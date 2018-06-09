@@ -56,7 +56,7 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
             ob[None], action[None], next_ob[None], goal[None], [env_info],
         )
 
-    def statistics(self, rollouts):
+    def get_diagnostics(self, *args, **kwargs):
         """
         :param rollouts: List where each element is a dictionary describing a
         rollout. Typical dictionary might look like:

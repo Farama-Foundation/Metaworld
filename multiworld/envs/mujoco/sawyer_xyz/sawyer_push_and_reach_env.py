@@ -76,7 +76,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
         self.set_xyz_action(action)
-        self.sim.step()
+        self.do_simulation(None)
+        # The marker seems to get reset every time you do a simulation
+        self._set_goal_marker(self._goal)
         obs = self._get_obs()
         info = self.get_info()
         reward = self.compute_reward(obs, action, obs, self._goal, info)
@@ -140,7 +142,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal(goal)
 
         self._set_puck_xy(self.sample_puck_xy())
-        self.reset_mocap_welds()
+        # self.reset_mocap_welds()
         return self._get_obs()
 
     def _reset_hand(self):
@@ -194,7 +196,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    def diagnostics(self, paths, prefix=''):
+    def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',

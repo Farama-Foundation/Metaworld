@@ -98,7 +98,9 @@ class MujocoEnv(gym.Env):
     def dt(self):
         return self.model.opt.timestep * self.frame_skip
 
-    def do_simulation(self, ctrl, n_frames):
+    def do_simulation(self, ctrl, n_frames=None):
+        if n_frames is None:
+            n_frames = self.frame_skip
         if self.sim.data.ctrl:
             self.sim.data.ctrl[:] = ctrl
         for _ in range(n_frames):
