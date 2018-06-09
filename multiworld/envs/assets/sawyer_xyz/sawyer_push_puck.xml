@@ -4,12 +4,11 @@
     <option integrator="Euler" timestep="0.002" iterations="50"/>
     <size njmax="500" nconmax="100" />
 	<include file="shared_config.xml"></include>
-    (new stuff)
 	<worldbody>
 		<include file="sawyer_xyz_base.xml"></include>
         <body name="puck" pos="0 0 0.1">
             <joint name="puckjoint" type="free" limited='false' damping="0" armature="0" />
-            <inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>
+            <inertial pos="0 0 0" mass="500" diaginertia="1000 1000 1000"/>
             <geom name="puckbox"
                   type="cylinder"
                   pos="0 0 0"

@@ -8,37 +8,26 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
-            puck_low=None,
-            puck_high=None,
-
-            reward_type='hand_and_puck_distance',
+            reward_type='hand_distance',
             indicator_threshold=0.06,
 
             fix_goal=False,
-            fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
+            fixed_goal=(0.15, 0.6, 0.3),
             goal_low=None,
             goal_high=None,
 
             **kwargs
     ):
         MultitaskEnv.__init__(self)
-        SawyerXYZEnv.__init__(
-            self,
-            model_name=self.model_name,
-            **kwargs
-        )
-        if puck_low is None:
-            puck_low = self.hand_low[:2]
-        if puck_high is None:
-            puck_high = self.hand_high[:2]
+        SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
 
         if goal_low is None:
-            goal_low = np.hstack((self.hand_low, puck_low))
+            goal_low = self.hand_low
         if goal_high is None:
-            goal_high = np.hstack((self.hand_high, puck_high))
+            goal_high = self.hand_high
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -48,30 +37,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.goal_low = goal_low
         self.goal_high = goal_high
         self._goal = self.sample_goal()
-        self.goal_space = Box(
-            np.hstack((self.hand_low, puck_low)),
-            np.hstack((self.hand_high, puck_high)),
-        )
+        self.goal_space = Box(goal_low, goal_high)
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
-        self.observation_space = Box(
-            np.hstack((self.hand_low, puck_low)),
-            np.hstack((self.hand_high, puck_high)),
-        )
-
-    @property
-    def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_push_puck.xml')
-
-    def viewer_setup(self):
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 1.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.3
-        self.viewer.cam.elevation = -45
-        self.viewer.cam.azimuth = 270
-        self.viewer.cam.trackbodyid = -1
+        self.observation_space = Box(self.hand_low, self.hand_high)
 
     def step(self, action):
         self.set_xyz_action(action)
@@ -83,62 +52,41 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         return obs, reward, done, info
 
     def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_puck_pos()[:2]
-        return np.concatenate((e, b))
+        return self.get_endeff_pos()
 
     def get_info(self):
-        hand_goal = self._goal[:3]
-        puck_goal = self._goal[3:]
+        hand_goal = self._goal
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
-        puck_distance = np.linalg.norm(puck_goal - self.get_puck_pos()[:2])
-        touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_puck_pos()
-        )
         return dict(
             hand_distance=hand_distance,
-            puck_distance=puck_distance,
-            hand_and_puck_distance=hand_distance+puck_distance,
-            touch_distance=touch_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
-            puck_success=float(puck_distance < self.indicator_threshold),
-            hand_and_puck_success=float(
-                hand_distance+puck_distance < self.indicator_threshold
-            ),
-            touch_success=float(touch_distance < self.indicator_threshold),
         )
-
-    def get_puck_pos(self):
-        return self.data.get_body_xpos('puck')
-
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
 
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._goal for
         logging, learning, etc.
         """
-        self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
-            goal[:3]
-        )
-        self.data.site_xpos[self.model.site_name2id('puck-goal-site')][:2] = (
-            goal[3:]
-        )
+        self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = goal
 
-    def _set_puck_xy(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = np.hstack((pos.copy(), np.array([0.02])))
-        qvel[7:10] = [0, 0, 0]
-        self.set_state(qpos, qvel)
+    @property
+    def model_name(self):
+        return get_asset_full_path('sawyer_xyz/sawyer_reach.xml')
+
+    def viewer_setup(self):
+        self.viewer.cam.trackbodyid = 0
+        self.viewer.cam.lookat[0] = 0
+        self.viewer.cam.lookat[1] = 1.0
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.distance = 0.3
+        self.viewer.cam.elevation = -45
+        self.viewer.cam.azimuth = 270
+        self.viewer.cam.trackbodyid = -1
 
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
         self._set_goal(goal)
-
-        self._set_puck_xy(self.sample_puck_xy())
         self.reset_mocap_welds()
         return self._get_obs()
 
@@ -173,22 +121,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
 
     def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
-        if self.reward_type == 'hand_and_puck_distance':
-            r = -np.hstack([info['hand_and_puck_distance'] for info in env_infos])
-        elif self.reward_type == 'hand_distance':
+        if self.reward_type == 'hand_distance':
             r = -np.hstack([info['hand_distance'] for info in env_infos])
-        elif self.reward_type == 'puck_distance':
-            r = -np.hstack([info['puck_distance'] for info in env_infos])
-        elif self.reward_type == 'touch_distance':
-            r = -np.hstack([info['touch_distance'] for info in env_infos])
-        elif self.reward_type == 'hand_and_puck_success':
-            r = -np.hstack([info['hand_and_puck_success'] for info in env_infos])
         elif self.reward_type == 'hand_success':
             r = -np.hstack([info['hand_success'] for info in env_infos])
-        elif self.reward_type == 'puck_success':
-            r = -np.hstack([info['puck_success'] for info in env_infos])
-        elif self.reward_type == 'touch_success':
-            r = -np.hstack([info['touch_success'] for info in env_infos])
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
@@ -197,13 +133,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
-            'puck_distance',
-            'hand_and_puck_distance',
-            'touch_distance',
             'hand_success',
-            'puck_success',
-            'hand_and_puck_success',
-            'touch_success',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -220,17 +150,16 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         return statistics
 
 
-class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
+class SawyerReachXYEnv(SawyerReachXYZEnv):
     def __init__(self, *args, hand_z_position=0.055, **kwargs):
-        SawyerPushAndReachXYZEnv.__init__(self, *args, **kwargs)
+        SawyerReachXYZEnv.__init__(self, *args, **kwargs)
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
         self.fixed_goal[2] = hand_z_position
-        goal_low = self.goal_space.low.copy()
-        goal_low[2] = hand_z_position
-        goal_high = self.goal_space.high.copy()
-        goal_high[2] = hand_z_position
-        self.goal_space = Box(goal_low, goal_high)
+        self.goal_space = Box(
+            np.hstack((self.goal_space.low[:2], self.hand_z_position)),
+            np.hstack((self.goal_space.high[:2], self.hand_z_position))
+        )
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]

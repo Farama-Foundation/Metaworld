@@ -22,6 +22,21 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
     def get_goal(self):
         pass
 
+    def get_info(self):
+        """
+        Ideally we'd change reset to return an observation and an info dict,
+        but this would break the gym interface.
+
+        Example use case:
+
+        ```
+        obs = env.reset()
+        info = env.get_info()
+
+        ```
+        """
+        return {}
+
     """
     Implement the batch-version of these functions.
     """
@@ -36,9 +51,9 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
     def sample_goal(self):
         return self.sample_goals(1)[0]
 
-    def compute_reward(self, ob, action, next_ob, goal, env_infos):
+    def compute_reward(self, ob, action, next_ob, goal, env_info):
         return self.compute_rewards(
-            ob[None], action[None], next_ob[None], goal[None], env_infos[0],
+            ob[None], action[None], next_ob[None], goal[None], [env_info],
         )
 
     def statistics(self, rollouts):

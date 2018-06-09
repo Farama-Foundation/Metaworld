@@ -16,15 +16,10 @@ Usage:
 <mujoco model="sawyer">
     <camera pos="0 0 3.2" name="topview" />
 
-    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.2 0.5"
+    <geom name="floor" type="plane" pos="0 0 -.9" size="10 10 0.5"
+          rgba="0 0 0 1" contype="15" conaffinity="15" />
+    <geom name="tableTop" type="box" pos="0 0.65 -0.45" size="0.4 0.2 0.45"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
-    <!--<geom name="plane"-->
-          <!--type="plane"-->
-          <!--pos="0 0.6 0"-->
-          <!--size="0.4 0.2 0.5"-->
-          <!--rgba=".6 .6 .5 1"-->
-          <!--contype="15"-->
-          <!--conaffinity="15" />-->
 
     <body name="base" pos="0 0 0">
         <site name="basesite" pos="0 0 0" size="0.01" />
@@ -125,7 +120,8 @@ Usage:
                                             <geom size="0.035 0.015" pos="0 0 0.02" type="cylinder" rgba="0.2 0.2 0.2 0"/>
 
 <!--  ================= BEGIN GRIPPER ================= /-->
-                                            <body name="claw" pos="0 0 0" quat="-1 0 1 0">
+                                            <body name="hand" pos="0 0 0"
+                                                  quat="-1 0 1 0">
                                                 <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
 
                                                 <body name="rightclaw"
@@ -172,7 +168,9 @@ Usage:
 
     <body mocap="true" name="mocap" pos="0 0 0">
         <!--For debugging, set the alpha to 1-->
-        <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 0" size="0.1 0.02 0.02" type="box"></geom>
+        <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1" size="0.1 0.02 0.02" type="box"></geom>-->
+        <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.0 0.5 0.5 1" size="0.01" type="sphere"></geom>-->
+        <site pos="0 0 0" rgba="0.0 0.5 0.5 1" size="0.01" type="sphere"></site>
     </body>
 
 </mujoco>

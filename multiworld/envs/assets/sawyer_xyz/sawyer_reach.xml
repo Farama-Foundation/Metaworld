@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+	<compiler meshdir="../meshes/sawyer" angle="radian" />
+    <option integrator="Euler" timestep="0.002" iterations="50"/>
+    <size njmax="500" nconmax="100" />
+	<include file="shared_config.xml"></include>
+	<worldbody>
+		<include file="sawyer_xyz_base.xml"></include>
+        <site name="hand-goal-site" pos="0 0 0" size="0.01" />
+	</worldbody>
+    <actuator></actuator>
+</mujoco>

@@ -1,12 +1,21 @@
+"""
+Use this script to control the env with your keyboard.
+For this script to work, you need to have the PyGame window in focus.
+
+See/modify `char_to_action` to set the key-to-action mapping.
+"""
 import sys
 
 import numpy as np
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
-    SawyerPushAndReachXYEnv
+    SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 
 import pygame
 from pygame.locals import QUIT, KEYDOWN
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
+    SawyerReachXYZEnv
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -21,19 +30,25 @@ char_to_action = {
     'e': np.array([-1, -1, 0, 0]),
     'z': np.array([1, 1, 0, 0]),
     'c': np.array([-1, 1, 0, 0]),
+    'k': np.array([0, 0, 1, 0]),
+    'j': np.array([0, 0, -1, 0]),
     'x': 'toggle',
     'r': 'reset',
 }
 
 
-env = SawyerPushAndReachXYEnv()
+# env = SawyerPushAndReachXYEnv()
+env = SawyerPushAndReachXYZEnv()
+# env = SawyerReachXYEnv()
+# env = SawyerReachXYZEnv()
+NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
-action = np.array([0, 0, 0, 0])
+action = np.zeros(10)
 while True:
     done = False
     if not lock_action:
-        action = np.array([0, 0, 0, 0])
+        action = np.zeros(10)
     for event in pygame.event.get():
         event_happened = True
         if event.type == QUIT:
@@ -46,14 +61,11 @@ while True:
             elif new_action == 'reset':
                 done = True
             elif new_action is not None:
-                action = new_action / 10
+                action = new_action
             else:
-                action = np.array([0, 0, 0, 0])
-            print("got char:", char)
-            print("action", action)
-            print("angles", env.data.qpos.copy())
-    obs, reward, _, info = env.step(action)
+                action = np.zeros(10)
+    obs, reward, _, info = env.step(action[:NDIM])
 
     env.render()
     if done:
-        break
+        obs = env.reset()
