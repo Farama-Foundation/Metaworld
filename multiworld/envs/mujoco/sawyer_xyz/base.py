@@ -1,10 +1,12 @@
 import abc
 import numpy as np
 import mujoco_py
+
+from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 
 
-class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
+class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
     mocap for XYZ control.

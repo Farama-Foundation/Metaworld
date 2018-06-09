@@ -21,6 +21,7 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             **kwargs
     ):
+        self.quick_init(locals())
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
 
@@ -152,6 +153,7 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
 class SawyerReachXYEnv(SawyerReachXYZEnv):
     def __init__(self, *args, hand_z_position=0.055, **kwargs):
+        self.quick_init(locals())
         SawyerReachXYZEnv.__init__(self, *args, **kwargs)
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
