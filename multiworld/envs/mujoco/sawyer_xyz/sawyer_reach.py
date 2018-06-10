@@ -35,10 +35,8 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_low = goal_low
-        self.goal_high = goal_high
-        self._goal = self.sample_goal()
         self.goal_space = Box(goal_low, goal_high)
+        self._goal = self.sample_goal()
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.observation_space = Box(self.hand_low, self.hand_high)
@@ -48,8 +46,8 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.do_simulation(None)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._goal)
-        obs = self._get_obs()
         info = self.get_info()
+        obs = info['observation']
         reward = self.compute_reward(obs, action, obs, self._goal, info)
         done = False
         return obs, reward, done, info
@@ -60,7 +58,14 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def get_info(self):
         hand_goal = self._goal
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
+        obs = self._get_obs()
         return dict(
+            observation=obs,
+            desired_goal=self._goal,
+            achieved_goal=obs,
+            state_observation=obs,
+            state_desired_goal=self._goal,
+            state_achieved_goal=obs,
             hand_distance=hand_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
         )
@@ -119,16 +124,19 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             return np.random.uniform(
-                self.goal_low,
-                self.goal_high,
-                size=(batch_size, self.goal_low.size),
+                self.goal_space.low,
+                self.goal_space.high,
+                size=(batch_size, self.goal_space.low.size),
             )
 
     def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
+        hand_pos = next_obs
+        goals = env_infos['desired_goal']
+        distances = np.linalg.norm(hand_pos - goals, axis=1)
         if self.reward_type == 'hand_distance':
-            r = -np.hstack([info['hand_distance'] for info in env_infos])
+            r = -distances
         elif self.reward_type == 'hand_success':
-            r = -np.hstack([info['hand_success'] for info in env_infos])
+            r = -(distances < self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
@@ -155,16 +163,23 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
 
 class SawyerReachXYEnv(SawyerReachXYZEnv):
-    def __init__(self, *args, hand_z_position=0.055, **kwargs):
+    def __init__(self, *args,
+                 fixed_goal=(0.15, 0.6),
+                 hand_z_position=0.055, **kwargs):
         self.quick_init(locals())
-        SawyerReachXYZEnv.__init__(self, *args, **kwargs)
+        SawyerReachXYZEnv.__init__(
+            self,
+            *args,
+            fixed_goal=(fixed_goal[0], fixed_goal[1], hand_z_position),
+            **kwargs
+        )
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
-        self.fixed_goal[2] = hand_z_position
         self.goal_space = Box(
             np.hstack((self.goal_space.low[:2], self.hand_z_position)),
             np.hstack((self.goal_space.high[:2], self.hand_z_position))
         )
+        self._goal = self.sample_goal()
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]

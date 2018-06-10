@@ -46,15 +46,23 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
+        """
+        It's important that this function actually computes the goals!
+        It shouldn't (e.g.) look up the reward in env_infos, because it might be
+        stale if the goal got relabelled.
+        """
         pass
 
     def sample_goal(self):
         return self.sample_goals(1)[0]
 
     def compute_reward(self, ob, action, next_ob, goal, env_info):
+        env_info_batch = {}
+        for k in env_info.keys():
+            env_info_batch[k] = [env_info[k]]
         return self.compute_rewards(
-            ob[None], action[None], next_ob[None], goal[None], [env_info],
-        )
+            ob[None], action[None], next_ob[None], goal[None], env_info_batch,
+        )[0]
 
     def get_diagnostics(self, *args, **kwargs):
         """

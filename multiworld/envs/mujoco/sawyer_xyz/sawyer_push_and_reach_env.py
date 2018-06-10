@@ -46,13 +46,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_low = goal_low
-        self.goal_high = goal_high
-        self._goal = self.sample_goal()
         self.goal_space = Box(
             np.hstack((self.hand_low, puck_low)),
             np.hstack((self.hand_high, puck_high)),
         )
+        self._goal = self.sample_goal()
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.observation_space = Box(
@@ -81,7 +79,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._goal)
         obs = self._get_obs()
         info = self.get_info()
-        reward = self.compute_reward(obs, action, obs, self._goal, info)
+        reward = self.compute_reward(obs, action, obs, info)
         done = False
         return obs, reward, done, info
 
@@ -99,6 +97,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             self.get_endeff_pos() - self.get_puck_pos()
         )
         return dict(
+            goal=self._goal,
+            state_goal=self._goal,
             hand_distance=hand_distance,
             puck_distance=puck_distance,
             hand_and_puck_distance=hand_distance+puck_distance,
@@ -112,7 +112,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         )
 
     def get_puck_pos(self):
-        return self.data.get_body_xpos('puck')
+        return self.data.get_body_xpos('puck').copy()
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
@@ -170,9 +170,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             return np.random.uniform(
-                self.goal_low,
-                self.goal_high,
-                size=(batch_size, self.goal_low.size),
+                self.goal_space.low,
+                self.goal_space.high,
+                size=(batch_size, self.goal_space.low.size),
             )
 
     def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
@@ -235,6 +235,7 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         goal_high = self.goal_space.high.copy()
         goal_high[2] = hand_z_position
         self.goal_space = Box(goal_low, goal_high)
+        self._goal = self.sample_goal()
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]

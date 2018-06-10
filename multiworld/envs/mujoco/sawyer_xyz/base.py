@@ -39,7 +39,7 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         )
 
     def get_endeff_pos(self):
-        return self.data.get_body_xpos('hand')
+        return self.data.get_body_xpos('hand').copy()
 
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
