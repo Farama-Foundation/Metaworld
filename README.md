@@ -66,6 +66,7 @@ obs = env.reset()  # returns 'observation' concatenated to `desired_goal`
 action = policy_that_takes_in_vector(obs)
 ```
 
+## Extending Obs/Goals - Debugging and Multi-Modality
 One nice thing about using Dict spaces + FlattenEnv is that it makes it really
 easy to extend and debug.
 
@@ -116,8 +117,10 @@ wrapped_env = LanguageEnv(wrapped_env)
 env = FlattenEnv(
     base_env,
     obs_key=['image_observation', 'lidar_observation'],
-    goal_key=['language_desired_goal', 'image_observation'],
+    goal_key=['language_desired_goal', 'image_desired_goal'],
 )
+obs = env.reset()  # image + lidar observation
+goal = env.get_goal()  # language + image goal
 ```
 
 Note that you don't have to use FlattenEnv: you can always just use the
