@@ -57,6 +57,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((self.hand_low, puck_low)),
             np.hstack((self.hand_high, puck_high)),
         )
+        self.init_puck_z = self.get_puck_pos()[2]
 
     @property
     def model_name(self):
@@ -77,8 +78,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.do_simulation(None)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._goal)
-        obs = self._get_obs()
         info = self.get_info()
+        obs = info['observation']
         reward = self.compute_reward(obs, action, obs, info)
         done = False
         return obs, reward, done, info
@@ -96,9 +97,14 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         touch_distance = np.linalg.norm(
             self.get_endeff_pos() - self.get_puck_pos()
         )
+        obs = self._get_obs()
         return dict(
-            goal=self._goal,
-            state_goal=self._goal,
+            observation=obs,
+            desired_goal=self._goal,
+            achieved_goal=obs,
+            state_observation=obs,
+            state_desired_goal=self._goal,
+            state_achieved_goal=obs,
             hand_distance=hand_distance,
             puck_distance=puck_distance,
             hand_and_puck_distance=hand_distance+puck_distance,
@@ -175,23 +181,38 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 size=(batch_size, self.goal_space.low.size),
             )
 
-    def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
-        if self.reward_type == 'hand_and_puck_distance':
-            r = -np.hstack([info['hand_and_puck_distance'] for info in env_infos])
-        elif self.reward_type == 'hand_distance':
-            r = -np.hstack([info['hand_distance'] for info in env_infos])
-        elif self.reward_type == 'puck_distance':
-            r = -np.hstack([info['puck_distance'] for info in env_infos])
-        elif self.reward_type == 'touch_distance':
-            r = -np.hstack([info['touch_distance'] for info in env_infos])
-        elif self.reward_type == 'hand_and_puck_success':
-            r = -np.hstack([info['hand_and_puck_success'] for info in env_infos])
+    def compute_rewards(self, obs, actions, next_obs, env_infos):
+        hand_pos = next_obs[:, :3]
+        puck_pos = next_obs[:, 3:]
+        goals = np.array(env_infos['desired_goal'])
+        hand_goals = goals[:, :3]
+        puck_goals = goals[:, 3:]
+
+        hand_distances = np.linalg.norm(hand_goals - hand_pos, axis=1)
+        puck_distances = np.linalg.norm(puck_goals - puck_pos, axis=1)
+        hand_and_puck_distances = hand_distances + puck_distances
+        puck_zs = self.init_puck_z * np.ones((goals.shape[0], 1))
+        touch_distances = np.linalg.norm(
+            hand_pos - np.hstack((puck_pos, puck_zs)),
+            axis=1,
+        )
+
+        if self.reward_type == 'hand_distance':
+            r = -hand_distances
         elif self.reward_type == 'hand_success':
-            r = -np.hstack([info['hand_success'] for info in env_infos])
+            r = -(hand_distances < self.indicator_threshold).astype(float)
+        elif self.reward_type == 'puck_distance':
+            r = -puck_distances
         elif self.reward_type == 'puck_success':
-            r = -np.hstack([info['puck_success'] for info in env_infos])
+            r = -(puck_distances < self.indicator_threshold).astype(float)
+        elif self.reward_type == 'hand_and_puck_distance':
+            r = -hand_and_puck_distances
+        elif self.reward_type == 'hand_and_puck_success':
+            r = -(hand_and_puck_distances < self.indicator_threshold).astype(float)
+        elif self.reward_type == 'touch_distance':
+            r = -touch_distances
         elif self.reward_type == 'touch_success':
-            r = -np.hstack([info['touch_success'] for info in env_infos])
+            r = -(touch_distances < self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r

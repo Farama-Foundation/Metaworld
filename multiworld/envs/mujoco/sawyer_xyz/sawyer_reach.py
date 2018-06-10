@@ -48,7 +48,7 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._goal)
         info = self.get_info()
         obs = info['observation']
-        reward = self.compute_reward(obs, action, obs, self._goal, info)
+        reward = self.compute_reward(obs, action, obs, info)
         done = False
         return obs, reward, done, info
 
@@ -129,7 +129,7 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 size=(batch_size, self.goal_space.low.size),
             )
 
-    def compute_rewards(self, obs, actions, next_obs, goals, env_infos):
+    def compute_rewards(self, obs, actions, next_obs, env_infos):
         hand_pos = next_obs
         goals = env_infos['desired_goal']
         distances = np.linalg.norm(hand_pos - goals, axis=1)
