@@ -1,77 +1,150 @@
 # multiworld
 Multitask Environments for RL
+(WIP: currently, the envs are normal gym `Env`s, but I'm currently working on
+making these `GoalEnv`s.
 
 ## Basic Usage
-This library contains a variety of `MultitaskEnv`s.
-`MultitaskEnv`s can be seen as regular gym environments.
-However, they're designed with multitasks in mind.
+This library contains a variety of gym `GoalEnv`s.
+
 As a running example, let's say we have a `CarEnv`.
 Like normal gym envs, we can do
 ```
-env = CarEnv(fixed_goal=True)
+env = CarEnv()
 obs = env.reset()
 next_obs, reward, done, info = env.step(action)
 ```
-One difference from usual gym envs however is that the reward function depends
-on the goal.
-Furthermore, *the goal is not appended to the observation*.
-The goal can be retrieved with
-```
-goal = env.get_goal()
-```
-We passed in `fixed_goal=True` to the constructor, meaning that the goal is
-always the same even if we call reset.
-We can change this by changing `fixed_goal`:
-```
-env = CarEnv(fixed_goal=False)
-env.reset()
-goal1 = env.get_goal()
-env.reset()
-goal2 = env.get_goal()
-assert goal1 != goal2
-```
 
-However, remember that the goal is not part of the observation.
-Hence, you'll probably want to give the goal to the policy as well:
+Unlike `Env`s, the observation space of `GoalEnv`s is a dictionary.
 ```
-env = CarEnv(fixed_goal=False)
-obs = env.reset()
-goal = env.get_goal()
-action = policy(obs, goal)
-```
-This can be annoying to integrate with existing RL code, so as a helper, we have
-`MultitaskEnvToFlatEnv` which tasks care of appending the goal to the
-observation.
-```
-env = CarEnv(fixed_goal=False)
-env = MultitaskToFlatEnv(env)
-obs = env.reset()  # goal is concatenated to the observation
-action = policy(obs)
-```
+print(obs)
 
-## Wrappers, Extensions, and Info dict
-Another big difference from gym envs is that we make liberal use of the `info`
-dictionary returned by step.
-```
-env = CarEnv(fixed_goal=True)
-obs = env.reset()
-next_obs, reward, done, info = env.step(action)
-print(info)
-
+# Output:
 # {
 #     'observation': ...,
 #     'desired_goal': ...,
 #     'achieved_goal': ...,
 # }
 ```
-As you see, the info dictionary now has the keys `observation`, `desired_goal`,
-and `achieved_goal`. This is
-The reason we do this is to make the class easily extendable.
+This can make it rather difficult to use these envs with existing RL code, which
+usually expects a flat vector.
+Hence, we include a wrapper that converts this dictionary-observation env into a
+normal "flat" environment:
 
-Because the `info` dict is so useful, all the environments also implement the
-`get_info` method, so you can do
 ```
-env = CarEnv(fixed_goal=False)
-first_obs = env.reset()
-info = env.get_info()  # returns the info dict associated with first_obs
+base_env = CarEnv()
+env = FlattenEnv(base_env, obs_key='observation')
+obs = env.reset()  # returns just the 'observation'
+action = policy_that_takes_in_vector(obs)
+```
+
+The observation space of FlattenEnv will be the corresponding env of the vector
+(e.g. `gym.space.Box`).
+However, note that the goal is not part of the observation!
+Not giving the goal to the policy might make the task impossible.
+
+We provide two possible solutions to this:
+
+1. Use the `get_goal` function
+```
+base_env = CarEnv()
+env = FlattenEnv(base_env, obs_key='observation')
+obs = env.reset()  # returns just the 'observation'
+goal = env.get_goal()
+action = policy_that_takes_in_two_vectors(obs, goal)
+```
+
+2. Pass in a list including `'desired_goal'` to FlattenEnv and set
+`append_goal_to_obs` to `True`.
+```
+base_env = CarEnv()
+env = FlattenEnv(
+    base_env,
+    obs_key=['observation', 'desired_goal'],
+    append_goal_to_obs=True,  # default value is False
+)
+obs = env.reset()  # returns 'observation' concatenated to `desired_goal`
+action = policy_that_takes_in_vector(obs)
+```
+
+One nice thing about using Dict spaces + FlattenEnv is that it makes it really
+easy to extend and debug.
+
+For example, this repo includes an `ImageMujocoEnv` wrapper which converts
+the observation space of a Mujoco GoalEnv into images.
+Rather than completely overwriting `observation`, we simply append the
+images to the dictionary:
+
+```
+base_env = CarEnv()
+env = ImageEnv(base_env)
+obs = env.reset()
+
+print(obs)
+
+# Output:
+# {
+#     'observation': ...,
+#     'desired_goal': ...,
+#     'achieved_goal': ...,
+#     'image_observation': ...,
+#     'image_desired_goal': ...,
+#     'image_achieved_goal': ...,
+#     'state_observation': ...,   # CarEnv sets these values by default
+#     'state_desired_goal': ...,
+#     'state_achieved_goal': ...,
+# }
+```
+
+This makes it really easy to debug your environment, by e.g. using state-based
+observation but image-based goals:
+```
+base_env = CarEnv()
+wrapped_env = ImageEnv(base_env)
+env = FlattenEnv(
+    base_env,
+    obs_key='state_observation',
+    goal_key='image_desired_goal',
+)
+```
+
+It also makes multi-model environments really easy to write!
+```
+base_env = CarEnv()
+wrapped_env = ImageEnv(base_env)
+wrapped_env = LidarEnv(wrapped_env)
+wrapped_env = LanguageEnv(wrapped_env)
+env = FlattenEnv(
+    base_env,
+    obs_key=['image_observation', 'lidar_observation'],
+    goal_key=['language_desired_goal', 'image_observation'],
+)
+```
+
+Note that you don't have to use FlattenEnv: you can always just use the
+(wrapped) environments as needed and manually chose the keys that you care about
+ for the observations/goals.
+
+
+## Extra features
+### `fixed_goal`
+The environments also all taken in `fixed_goal` as a parameter, which disables
+resampling the goal each time `reset` is called. This can be useful for
+debugging: first make sure the env can solve the single-goal case before trying
+the multi-goal case.
+
+### `get_diagnostics`
+The function `get_diagonstics(rollouts)` returns an `OrderedDict` of potentially
+seful numbers to plot/log.
+`rollouts` is a list. Each element of the list should be a dictionary describing
+a rollout. A dictionary should have the following keys with the corresponding
+values:
+```
+{
+    'observations': np array,
+    'actions': np array,
+    'next_observations': np array,
+    'rewards': np array,
+    'terminals': np array,
+    'env_infos': list of dictionaries returned by step(),
+}
 ```
