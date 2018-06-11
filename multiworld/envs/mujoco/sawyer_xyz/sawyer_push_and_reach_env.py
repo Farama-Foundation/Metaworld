@@ -84,7 +84,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._goal)
         obs = self._get_obs()
         info = self._get_info()
-        reward = self.compute_reward(obs, action, obs, info)
+        reward = self.compute_reward(
+            obs['achieved_goal'],
+            obs['desired_goal'],
+            info,
+        )
         done = False
         return obs, reward, done, info
 
@@ -187,17 +191,16 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 size=(batch_size, self.hand_and_puck_space.low.size),
             )
 
-    def compute_rewards(self, obs, actions, next_obs, env_infos=None):
-        hand_pos = next_obs['observation'][:, :3]
-        puck_pos = next_obs['observation'][:, 3:]
-        goals = next_obs['desired_goal']
-        hand_goals = goals[:, :3]
-        puck_goals = goals[:, 3:]
+    def compute_rewards(self, achieved_goals, desired_goals, info):
+        hand_pos = achieved_goals[:, :3]
+        puck_pos = achieved_goals[:, 3:]
+        hand_goals = desired_goals[:, :3]
+        puck_goals = desired_goals[:, 3:]
 
         hand_distances = np.linalg.norm(hand_goals - hand_pos, axis=1)
         puck_distances = np.linalg.norm(puck_goals - puck_pos, axis=1)
         hand_and_puck_distances = hand_distances + puck_distances
-        puck_zs = self.init_puck_z * np.ones((goals.shape[0], 1))
+        puck_zs = self.init_puck_z * np.ones((desired_goals.shape[0], 1))
         touch_distances = np.linalg.norm(
             hand_pos - np.hstack((puck_pos, puck_zs)),
             axis=1,
