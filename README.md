@@ -32,12 +32,12 @@ normal "flat" environment:
 
 ```
 base_env = CarEnv()
-env = FlattenEnv(base_env, obs_key='observation')
+env = FlatGoalEnv(base_env, obs_key='observation')
 obs = env.reset()  # returns just the 'observation'
 action = policy_that_takes_in_vector(obs)
 ```
 
-The observation space of FlattenEnv will be the corresponding env of the vector
+The observation space of FlatGoalEnv will be the corresponding env of the vector
 (e.g. `gym.space.Box`).
 However, note that the goal is not part of the observation!
 Not giving the goal to the policy might make the task impossible.
@@ -47,17 +47,17 @@ We provide two possible solutions to this:
 1. Use the `get_goal` function
 ```
 base_env = CarEnv()
-env = FlattenEnv(base_env, obs_key='observation')
+env = FlatGoalEnv(base_env, obs_key='observation')
 obs = env.reset()  # returns just the 'observation'
 goal = env.get_goal()
 action = policy_that_takes_in_two_vectors(obs, goal)
 ```
 
-2. Pass in a list including `'desired_goal'` to FlattenEnv and set
+2. Pass in a list including `'desired_goal'` to FlatGoalEnv and set
 `append_goal_to_obs` to `True`.
 ```
 base_env = CarEnv()
-env = FlattenEnv(
+env = FlatGoalEnv(
     base_env,
     obs_key=['observation', 'desired_goal'],
     append_goal_to_obs=True,  # default value is False
@@ -67,7 +67,7 @@ action = policy_that_takes_in_vector(obs)
 ```
 
 ## Extending Obs/Goals - Debugging and Multi-Modality
-One nice thing about using Dict spaces + FlattenEnv is that it makes it really
+One nice thing about using Dict spaces + FlatGoalEnv is that it makes it really
 easy to extend and debug.
 
 For example, this repo includes an `ImageMujocoEnv` wrapper which converts
@@ -101,7 +101,7 @@ observation but image-based goals:
 ```
 base_env = CarEnv()
 wrapped_env = ImageEnv(base_env)
-env = FlattenEnv(
+env = FlatGoalEnv(
     base_env,
     obs_key='state_observation',
     goal_key='image_desired_goal',
@@ -114,7 +114,7 @@ base_env = CarEnv()
 wrapped_env = ImageEnv(base_env)
 wrapped_env = LidarEnv(wrapped_env)
 wrapped_env = LanguageEnv(wrapped_env)
-env = FlattenEnv(
+env = FlatGoalEnv(
     base_env,
     obs_key=['image_observation', 'lidar_observation'],
     goal_key=['language_desired_goal', 'image_desired_goal'],
@@ -123,7 +123,7 @@ obs = env.reset()  # image + lidar observation
 goal = env.get_goal()  # language + image goal
 ```
 
-Note that you don't have to use FlattenEnv: you can always just use the
+Note that you don't have to use FlatGoalEnv: you can always just use the
 (wrapped) environments as needed and manually chose the keys that you care about
  for the observations/goals.
 

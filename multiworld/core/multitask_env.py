@@ -1,41 +1,12 @@
 import abc
 from collections import OrderedDict
+import numpy as np
 
 
-class MultitaskEnv(object, metaclass=abc.ABCMeta):
-    """
-    An environment with multiple goals.
-
-    The interface is much like a gym.Env:
-
-    ```
-    obs = env.reset()  # internally sets a new goal
-    next_observation, reward, done, info = env.step(action)
-    goal = env.get_goal()
-    ```
-
-    We make liberal use of the "info" dictionary.
-    In particular, it should contain the goal.
-    """
-
+class MultitaskEnv(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_goal(self):
         pass
-
-    def get_info(self):
-        """
-        Ideally we'd change reset to return an observation and an info dict,
-        but this would break the gym interface.
-
-        Example use case:
-
-        ```
-        obs = env.reset()
-        info = env.get_info()
-
-        ```
-        """
-        return {}
 
     """
     Implement the batch-version of these functions.
@@ -45,7 +16,7 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def compute_rewards(self, obs, actions, next_obs, env_infos):
+    def compute_rewards(self, obs, actions, next_obs, env_infos=None):
         """
         It's important that this function actually computes the goals!
         It shouldn't (e.g.) look up the reward in env_infos, because it might be
@@ -62,12 +33,21 @@ class MultitaskEnv(object, metaclass=abc.ABCMeta):
     def sample_goal(self):
         return self.sample_goals(1)[0]
 
-    def compute_reward(self, ob, action, next_ob, env_info):
-        env_info_batch = {}
-        for k in env_info.keys():
-            env_info_batch[k] = [env_info[k]]
+    def compute_reward(self, ob, action, next_ob, env_info=None):
+        if env_info is None:
+            env_info_batch = None
+        else:
+            env_info_batch = {}
+            for k in env_info.keys():
+                env_info_batch[k] = np.array([env_info[k]])
+        ob_batch = {}
+        for k in ob.keys():
+            ob_batch[k] = np.array([ob[k]])
+        next_ob_batch = {}
+        for k in next_ob.keys():
+            next_ob_batch[k] = np.array([next_ob[k]])
         return self.compute_rewards(
-            ob[None], action[None], next_ob[None], env_info_batch,
+            ob_batch, action[None], next_ob_batch, env_info_batch,
         )[0]
 
     def get_diagnostics(self, *args, **kwargs):

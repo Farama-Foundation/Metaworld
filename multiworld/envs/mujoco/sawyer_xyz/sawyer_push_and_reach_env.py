@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import numpy as np
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -46,17 +46,21 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(
-            np.hstack((self.hand_low, puck_low)),
-            np.hstack((self.hand_high, puck_high)),
-        )
-        self._goal = self.sample_goal()
+        self._goal = None
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
-        self.observation_space = Box(
+        self.hand_and_puck_space = Box(
             np.hstack((self.hand_low, puck_low)),
             np.hstack((self.hand_high, puck_high)),
         )
+        self.observation_space = Dict([
+            ('observation', self.hand_and_puck_space),
+            ('desired_goal', self.hand_and_puck_space),
+            ('achieved_goal', self.hand_and_puck_space),
+            ('state_observation', self.hand_and_puck_space),
+            ('state_desired_goal', self.hand_and_puck_space),
+            ('state_achieved_goal', self.hand_and_puck_space),
+        ])
         self.init_puck_z = self.get_puck_pos()[2]
 
     @property
@@ -78,8 +82,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.do_simulation(None)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._goal)
-        info = self.get_info()
-        obs = info['observation']
+        obs = self._get_obs()
+        info = self._get_info()
         reward = self.compute_reward(obs, action, obs, info)
         done = False
         return obs, reward, done, info
@@ -87,9 +91,18 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def _get_obs(self):
         e = self.get_endeff_pos()
         b = self.get_puck_pos()[:2]
-        return np.concatenate((e, b))
+        flat_obs = np.concatenate((e, b))
 
-    def get_info(self):
+        return dict(
+            observation=flat_obs,
+            desired_goal=self._goal,
+            achieved_goal=flat_obs,
+            state_observation=flat_obs,
+            state_desired_goal=self._goal,
+            state_achieved_goal=flat_obs,
+        )
+
+    def _get_info(self):
         hand_goal = self._goal[:3]
         puck_goal = self._goal[3:]
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
@@ -97,14 +110,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         touch_distance = np.linalg.norm(
             self.get_endeff_pos() - self.get_puck_pos()
         )
-        obs = self._get_obs()
         return dict(
-            observation=obs,
-            desired_goal=self._goal,
-            achieved_goal=obs,
-            state_observation=obs,
-            state_desired_goal=self._goal,
-            state_achieved_goal=obs,
             hand_distance=hand_distance,
             puck_distance=puck_distance,
             hand_and_puck_distance=hand_distance+puck_distance,
@@ -176,15 +182,15 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             return np.random.uniform(
-                self.goal_space.low,
-                self.goal_space.high,
-                size=(batch_size, self.goal_space.low.size),
+                self.hand_and_puck_space.low,
+                self.hand_and_puck_space.high,
+                size=(batch_size, self.hand_and_puck_space.low.size),
             )
 
-    def compute_rewards(self, obs, actions, next_obs, env_infos):
-        hand_pos = next_obs[:, :3]
-        puck_pos = next_obs[:, 3:]
-        goals = np.array(env_infos['desired_goal'])
+    def compute_rewards(self, obs, actions, next_obs, env_infos=None):
+        hand_pos = next_obs['observation'][:, :3]
+        puck_pos = next_obs['observation'][:, 3:]
+        goals = next_obs['desired_goal']
         hand_goals = goals[:, :3]
         puck_goals = goals[:, 3:]
 
@@ -251,12 +257,19 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
         self.fixed_goal[2] = hand_z_position
-        goal_low = self.goal_space.low.copy()
-        goal_low[2] = hand_z_position
-        goal_high = self.goal_space.high.copy()
-        goal_high[2] = hand_z_position
-        self.goal_space = Box(goal_low, goal_high)
-        self._goal = self.sample_goal()
+        hand_and_puck_low = self.hand_and_puck_space.low.copy()
+        hand_and_puck_low[2] = hand_z_position
+        hand_and_puck_high = self.hand_and_puck_space.high.copy()
+        hand_and_puck_high[2] = hand_z_position
+        self.hand_and_puck_space = Box(hand_and_puck_low, hand_and_puck_high)
+        self.observation_space = Dict([
+            ('observation', self.hand_and_puck_space),
+            ('desired_goal', self.hand_and_puck_space),
+            ('achieved_goal', self.hand_and_puck_space),
+            ('state_observation', self.hand_and_puck_space),
+            ('state_desired_goal', self.hand_and_puck_space),
+            ('state_achieved_goal', self.hand_and_puck_space),
+        ])
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]

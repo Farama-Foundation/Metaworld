@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import numpy as np
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -36,36 +36,46 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self.goal_space = Box(goal_low, goal_high)
-        self._goal = self.sample_goal()
+        self._goal = None
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.observation_space = Box(self.hand_low, self.hand_high)
+        self.hand_space = Box(self.hand_low, self.hand_high)
+        self.observation_space = Dict([
+            ('observation', self.hand_space),
+            ('desired_goal', self.hand_space),
+            ('achieved_goal', self.hand_space),
+            ('state_observation', self.hand_space),
+            ('state_desired_goal', self.hand_space),
+            ('state_achieved_goal', self.hand_space),
+        ])
 
     def step(self, action):
         self.set_xyz_action(action)
         self.do_simulation(None)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._goal)
-        info = self.get_info()
-        obs = info['observation']
+        obs = self._get_obs()
+        info = self._get_info()
         reward = self.compute_reward(obs, action, obs, info)
         done = False
         return obs, reward, done, info
 
     def _get_obs(self):
-        return self.get_endeff_pos()
-
-    def get_info(self):
         hand_goal = self._goal
-        hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
-        obs = self._get_obs()
+        flat_obs = self.get_endeff_pos()
         return dict(
-            observation=obs,
+            observation=flat_obs,
             desired_goal=self._goal,
-            achieved_goal=obs,
-            state_observation=obs,
+            achieved_goal=flat_obs,
+            state_observation=flat_obs,
             state_desired_goal=self._goal,
-            state_achieved_goal=obs,
+            state_achieved_goal=flat_obs,
+        )
+
+    def _get_info(self):
+        hand_distance = np.linalg.norm(self._goal - self.get_endeff_pos())
+        return dict(
             hand_distance=hand_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
         )
@@ -124,14 +134,14 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             return np.random.uniform(
-                self.goal_space.low,
-                self.goal_space.high,
-                size=(batch_size, self.goal_space.low.size),
+                self.hand_space.low,
+                self.hand_space.high,
+                size=(batch_size, self.hand_space.low.size),
             )
 
-    def compute_rewards(self, obs, actions, next_obs, env_infos):
-        hand_pos = next_obs
-        goals = env_infos['desired_goal']
+    def compute_rewards(self, obs, actions, next_obs, env_infos=None):
+        hand_pos = next_obs['observation']
+        goals = next_obs['desired_goal']
         distances = np.linalg.norm(hand_pos - goals, axis=1)
         if self.reward_type == 'hand_distance':
             r = -distances
@@ -175,11 +185,18 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
         )
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
-        self.goal_space = Box(
-            np.hstack((self.goal_space.low[:2], self.hand_z_position)),
-            np.hstack((self.goal_space.high[:2], self.hand_z_position))
+        self.hand_space = Box(
+            np.hstack((self.hand_space.low[:2], self.hand_z_position)),
+            np.hstack((self.hand_space.high[:2], self.hand_z_position))
         )
-        self._goal = self.sample_goal()
+        self.observation_space = Dict([
+            ('observation', self.hand_space),
+            ('desired_goal', self.hand_space),
+            ('achieved_goal', self.hand_space),
+            ('state_observation', self.hand_space),
+            ('state_desired_goal', self.hand_space),
+            ('state_achieved_goal', self.hand_space),
+        ])
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
