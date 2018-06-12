@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mujoco>
-	<compiler meshdir="../meshes/sawyer" angle="radian" />
-    <option integrator="Euler" timestep="0.002" iterations="50"/>
-    <size njmax="500" nconmax="100" />
 	<include file="shared_config.xml"></include>
 	<worldbody>
 		<include file="sawyer_xyz_base.xml"></include>
-        <body name="puck" pos="0 0 0.1">
+        <body name="puck" pos="0 0 0">
             <joint name="puckjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="500" diaginertia="1000 1000 1000"/>
             <geom name="puckbox"
@@ -25,5 +22,7 @@
         <site name="puck-goal-site" pos="0 0 0" size="0.01"
               rgba="0.5 0.5 1 0.5"/>
 	</worldbody>
-    <actuator></actuator>
+    <actuator>
+       <motor gear="100" joint="rc_close"  />
+    </actuator>
 </mujoco>

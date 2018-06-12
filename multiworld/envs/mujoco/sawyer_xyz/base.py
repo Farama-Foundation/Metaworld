@@ -16,7 +16,6 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
 
     def __init__(self, model_name, frame_skip=50):
         MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
-
         # Resets the mocap welds that we use for actuation.
         sim = self.sim
         if sim.model.nmocap > 0 and sim.model.eq_data is not None:

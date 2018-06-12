@@ -101,7 +101,7 @@ class MujocoEnv(gym.Env):
     def do_simulation(self, ctrl, n_frames=None):
         if n_frames is None:
             n_frames = self.frame_skip
-        if self.sim.data.ctrl:
+        if self.sim.data.ctrl is not None and ctrl is not None:
             self.sim.data.ctrl[:] = ctrl
         for _ in range(n_frames):
             self.sim.step()

@@ -52,7 +52,8 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
         self.set_xyz_action(action)
-        self.do_simulation(None)
+        # keep gripper closed
+        self.do_simulation(np.array([1]))
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._goal)
         obs = self._get_obs()
@@ -66,7 +67,6 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         return obs, reward, done, info
 
     def _get_obs(self):
-        hand_goal = self._goal
         flat_obs = self.get_endeff_pos()
         return dict(
             observation=flat_obs,

@@ -8,6 +8,8 @@ import sys
 
 import numpy as np
 
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
+    SawyerPickAndPlaceEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 
@@ -32,15 +34,18 @@ char_to_action = {
     'c': np.array([-1, 1, 0, 0]),
     'k': np.array([0, 0, 1, 0]),
     'j': np.array([0, 0, -1, 0]),
+    'h': 'close',
+    'l': 'open',
     'x': 'toggle',
     'r': 'reset',
 }
 
 
 # env = SawyerPushAndReachXYEnv()
-env = SawyerPushAndReachXYZEnv()
+# env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
+env = SawyerPickAndPlaceEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -48,7 +53,7 @@ action = np.zeros(10)
 while True:
     done = False
     if not lock_action:
-        action = np.zeros(10)
+        action[:3] = 0
     for event in pygame.event.get():
         event_happened = True
         if event.type == QUIT:
@@ -60,8 +65,12 @@ while True:
                 lock_action = not lock_action
             elif new_action == 'reset':
                 done = True
+            elif new_action == 'close':
+                action[3] = 1
+            elif new_action == 'open':
+                action[3] = -1
             elif new_action is not None:
-                action = new_action
+                action[:3] = new_action[:3]
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
