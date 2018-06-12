@@ -6,6 +6,9 @@ import numpy as np
 class MultitaskEnv(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_goal(self):
+        """
+        Returns a dictionary
+        """
         pass
 
     """
@@ -13,6 +16,11 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
     """
     @abc.abstractmethod
     def sample_goals(self, batch_size):
+        """
+        :param batch_size:
+        :return: Returns a dictionary mapping desired goal keys to arrays of
+        size BATCH_SIZE x Z, where Z depends on the key.
+        """
         pass
 
     @abc.abstractmethod
@@ -26,7 +34,11 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         pass
 
     def sample_goal(self):
-        return self.sample_goals(1)[0]
+        goal = {}
+        goals = self.sample_goals(1)
+        for k in goals.keys():
+            goal[k] = goals[k][0]
+        return goal
 
     def compute_reward(self, achieved_goal, desired_goal, info):
 

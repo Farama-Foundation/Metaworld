@@ -46,7 +46,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self._goal = None
+        self._state_goal = None
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.hand_and_puck_space = Box(
@@ -82,7 +82,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         # keep gripper closed
         self.do_simulation(np.array([1]))
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._goal)
+        self._set_goal_marker(self._state_goal)
         obs = self._get_obs()
         info = self._get_info()
         reward = self.compute_reward(
@@ -100,16 +100,16 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         return dict(
             observation=flat_obs,
-            desired_goal=self._goal,
+            desired_goal=self._state_goal,
             achieved_goal=flat_obs,
             state_observation=flat_obs,
-            state_desired_goal=self._goal,
+            state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
         )
 
     def _get_info(self):
-        hand_goal = self._goal[:3]
-        puck_goal = self._goal[3:]
+        hand_goal = self._state_goal[:3]
+        puck_goal = self._state_goal[3:]
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
         puck_distance = np.linalg.norm(puck_goal - self.get_puck_pos()[:2])
         touch_distance = np.linalg.norm(
@@ -136,7 +136,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _set_goal_marker(self, goal):
         """
-        This should be use ONLY for visualization. Use self._goal for
+        This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
         self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
@@ -169,14 +169,14 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             self.do_simulation(None, self.frame_skip)
 
     def _set_goal(self, goal):
-        self._goal = goal
-        self._set_goal_marker(self._goal)
+        self._state_goal = goal
+        self._set_goal_marker(self._state_goal)
 
     """
     Multitask functions
     """
     def get_goal(self):
-        return self._goal
+        return self._state_goal
 
     def sample_goals(self, batch_size):
         if self.fix_goal:

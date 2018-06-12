@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
     def __init__(
             self,
             reward_type='hand_distance',
@@ -18,6 +18,8 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             fixed_goal=(0.15, 0.6, 0.3),
             goal_low=None,
             goal_high=None,
+
+            hide_goal_markers=False,
 
             **kwargs
     ):
@@ -36,7 +38,9 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self.goal_space = Box(goal_low, goal_high)
-        self._goal = None
+        self._state_goal = None
+
+        self.hide_goal_markers = hide_goal_markers
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.observation_space = Box(self.hand_low, self.hand_high)
@@ -55,7 +59,7 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         # keep gripper closed
         self.do_simulation(np.array([1]))
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._goal)
+        self._set_goal_marker(self._state_goal)
         obs = self._get_obs()
         info = self._get_info()
         reward = self.compute_reward(
@@ -70,15 +74,15 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         flat_obs = self.get_endeff_pos()
         return dict(
             observation=flat_obs,
-            desired_goal=self._goal,
+            desired_goal=self._state_goal,
             achieved_goal=flat_obs,
             state_observation=flat_obs,
-            state_desired_goal=self._goal,
+            state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
         )
 
     def _get_info(self):
-        hand_distance = np.linalg.norm(self._goal - self.get_endeff_pos())
+        hand_distance = np.linalg.norm(self._state_goal - self.get_endeff_pos())
         return dict(
             hand_distance=hand_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
@@ -86,12 +90,17 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _set_goal_marker(self, goal):
         """
-        This should be use ONLY for visualization. Use self._goal for
+        This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
-            goal
-        )
+        if self.hide_goal_markers:
+            self.data.site_xpos[self.model.site_name2id('hand-goal-site'), 2] = (
+                -1000
+            )
+        else:
+            self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
+                goal
+            )
 
     @property
     def model_name(self):
@@ -110,7 +119,8 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
-        self._set_goal(goal)
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
         return self._get_obs()
 
     def _reset_hand(self):
@@ -119,29 +129,42 @@ class SawyerReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def _set_goal(self, goal):
-        self._goal = goal
-        self._set_goal_marker(self._goal)
 
     """
     Multitask functions
     """
     def get_goal(self):
-        return self._goal
+        return {
+            'desired_goal': self._state_goal,
+            'state_desired_goal': self._state_goal,
+        }
+
+    def set_to_state_goal(self, state_goal):
+        for _ in range(30):
+            delta = state_goal - self.get_endeff_pos()
+            if np.linalg.norm(delta) < 0.01:
+                break
+            self.set_xyz_action(delta)
+            # keep gripper closed
+            self.do_simulation(np.array([1]))
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
-            return np.repeat(
+            goals = np.repeat(
                 self.fixed_goal.copy()[None],
                 batch_size,
                 0
             )
         else:
-            return np.random.uniform(
+            goals = np.random.uniform(
                 self.hand_space.low,
                 self.hand_space.high,
                 size=(batch_size, self.hand_space.low.size),
             )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+        }
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
         hand_pos = achieved_goals

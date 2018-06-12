@@ -40,6 +40,12 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     def get_endeff_pos(self):
         return self.data.get_body_xpos('hand').copy()
 
+    def get_env_state(self):
+        return self.sim.get_state()
+
+    def set_env_state(self, state):
+        return self.sim.set_state(state)
+
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def __init__(
