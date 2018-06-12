@@ -11,10 +11,10 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
-            block_low=None,
-            block_high=None,
+            obj_low=None,
+            obj_high=None,
 
-            reward_type='hand_and_block_distance',
+            reward_type='hand_and_obj_distance',
             indicator_threshold=0.06,
 
             fix_goal=False,
@@ -31,15 +31,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
-        if block_low is None:
-            block_low = self.hand_low
-        if block_high is None:
-            block_high = self.hand_high
+        if obj_low is None:
+            obj_low = self.hand_low
+        if obj_high is None:
+            obj_high = self.hand_high
 
         if goal_low is None:
-            goal_low = np.hstack((self.hand_low, block_low))
+            goal_low = np.hstack((self.hand_low, obj_low))
         if goal_high is None:
-            goal_high = np.hstack((self.hand_high, block_high))
+            goal_high = np.hstack((self.hand_high, obj_high))
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -52,17 +52,17 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
         )
-        self.hand_and_block_space = Box(
-            np.hstack((self.hand_low, block_low)),
-            np.hstack((self.hand_high, block_high)),
+        self.hand_and_obj_space = Box(
+            np.hstack((self.hand_low, obj_low)),
+            np.hstack((self.hand_high, obj_high)),
         )
         self.observation_space = Dict([
-            ('observation', self.hand_and_block_space),
-            ('desired_goal', self.hand_and_block_space),
-            ('achieved_goal', self.hand_and_block_space),
-            ('state_observation', self.hand_and_block_space),
-            ('state_desired_goal', self.hand_and_block_space),
-            ('state_achieved_goal', self.hand_and_block_space),
+            ('observation', self.hand_and_obj_space),
+            ('desired_goal', self.hand_and_obj_space),
+            ('achieved_goal', self.hand_and_obj_space),
+            ('state_observation', self.hand_and_obj_space),
+            ('state_desired_goal', self.hand_and_obj_space),
+            ('state_achieved_goal', self.hand_and_obj_space),
         ])
 
     @property
@@ -96,7 +96,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_obs(self):
         e = self.get_endeff_pos()
-        b = self.get_block_pos()
+        b = self.get_obj_pos()
         flat_obs = np.concatenate((e, b))
 
         return dict(
@@ -110,29 +110,29 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_info(self):
         hand_goal = self._goal[:3]
-        block_goal = self._goal[3:]
+        obj_goal = self._goal[3:]
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
-        block_distance = np.linalg.norm(block_goal - self.get_block_pos())
+        obj_distance = np.linalg.norm(obj_goal - self.get_obj_pos())
         touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_block_pos()
+            self.get_endeff_pos() - self.get_obj_pos()
         )
         return dict(
             hand_distance=hand_distance,
-            block_distance=block_distance,
-            hand_and_block_distance=hand_distance+block_distance,
+            obj_distance=obj_distance,
+            hand_and_obj_distance=hand_distance+obj_distance,
             touch_distance=touch_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
-            block_success=float(block_distance < self.indicator_threshold),
-            hand_and_block_success=float(
-                hand_distance+block_distance < self.indicator_threshold
+            obj_success=float(obj_distance < self.indicator_threshold),
+            hand_and_obj_success=float(
+                hand_distance+obj_distance < self.indicator_threshold
             ),
             touch_success=float(touch_distance < self.indicator_threshold),
         )
 
-    def get_block_pos(self):
-        return self.data.get_body_xpos('block').copy()
+    def get_obj_pos(self):
+        return self.data.get_body_xpos('obj').copy()
 
-    def sample_block_xy(self):
+    def sample_obj_xy(self):
         return np.array([0, 0.6])
 
     def _set_goal_marker(self, goal):
@@ -143,11 +143,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
             goal[:3]
         )
-        self.data.site_xpos[self.model.site_name2id('block-goal-site')] = (
+        self.data.site_xpos[self.model.site_name2id('obj-goal-site')] = (
             goal[3:]
         )
 
-    def _set_block_xy(self, pos):
+    def _set_obj_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
@@ -159,7 +159,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         goal = self.sample_goal()
         self._set_goal(goal)
 
-        self._set_block_xy(self.sample_block_xy())
+        self._set_obj_xy(self.sample_obj_xy())
         return self._get_obs()
 
     def _reset_hand(self):
@@ -187,35 +187,35 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             return np.random.uniform(
-                self.hand_and_block_space.low,
-                self.hand_and_block_space.high,
-                size=(batch_size, self.hand_and_block_space.low.size),
+                self.hand_and_obj_space.low,
+                self.hand_and_obj_space.high,
+                size=(batch_size, self.hand_and_obj_space.low.size),
             )
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
         hand_pos = achieved_goals[:, :3]
-        block_pos = achieved_goals[:, 3:]
+        obj_pos = achieved_goals[:, 3:]
         hand_goals = desired_goals[:, :3]
-        block_goals = desired_goals[:, 3:]
+        obj_goals = desired_goals[:, 3:]
 
         hand_distances = np.linalg.norm(hand_goals - hand_pos, axis=1)
-        block_distances = np.linalg.norm(block_goals - block_pos, axis=1)
-        hand_and_block_distances = hand_distances + block_distances
-        touch_distances = np.linalg.norm(hand_pos - block_pos, axis=1)
+        obj_distances = np.linalg.norm(obj_goals - obj_pos, axis=1)
+        hand_and_obj_distances = hand_distances + obj_distances
+        touch_distances = np.linalg.norm(hand_pos - obj_pos, axis=1)
 
         if self.reward_type == 'hand_distance':
             r = -hand_distances
         elif self.reward_type == 'hand_success':
             r = -(hand_distances < self.indicator_threshold).astype(float)
-        elif self.reward_type == 'block_distance':
-            r = -block_distances
-        elif self.reward_type == 'block_success':
-            r = -(block_distances < self.indicator_threshold).astype(float)
-        elif self.reward_type == 'hand_and_block_distance':
-            r = -hand_and_block_distances
-        elif self.reward_type == 'hand_and_block_success':
+        elif self.reward_type == 'obj_distance':
+            r = -obj_distances
+        elif self.reward_type == 'obj_success':
+            r = -(obj_distances < self.indicator_threshold).astype(float)
+        elif self.reward_type == 'hand_and_obj_distance':
+            r = -hand_and_obj_distances
+        elif self.reward_type == 'hand_and_obj_success':
             r = -(
-                hand_and_block_distances < self.indicator_threshold
+                hand_and_obj_distances < self.indicator_threshold
             ).astype(float)
         elif self.reward_type == 'touch_distance':
             r = -touch_distances
@@ -229,12 +229,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
-            'block_distance',
-            'hand_and_block_distance',
+            'obj_distance',
+            'hand_and_obj_distance',
             'touch_distance',
             'hand_success',
-            'block_success',
-            'hand_and_block_success',
+            'obj_success',
+            'hand_and_obj_success',
             'touch_success',
         ]:
             stat_name = stat_name
