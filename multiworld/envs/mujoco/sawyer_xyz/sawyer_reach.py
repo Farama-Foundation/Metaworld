@@ -139,7 +139,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def set_to_state_goal(self, state_goal):
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
         for _ in range(30):
             delta = state_goal - self.get_endeff_pos()
             if np.linalg.norm(delta) < 0.01:

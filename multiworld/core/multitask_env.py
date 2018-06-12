@@ -34,11 +34,8 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         pass
 
     def sample_goal(self):
-        goal = {}
         goals = self.sample_goals(1)
-        for k in goals.keys():
-            goal[k] = goals[k][0]
-        return goal
+        return self.unbatchify_dict(goals, 0)
 
     def compute_reward(self, achieved_goal, desired_goal, info):
 
@@ -68,3 +65,15 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         :return: OrderedDict. Statistics to save.
         """
         return OrderedDict()
+
+    @staticmethod
+    def unbatchify_dict(batch_dict, i):
+        """
+        :param batch_dict: A batch dict is a dict whose values are batch.
+        :return: the dictionary returns a dict whose values are just elements of
+        the batch.
+        """
+        new_d = {}
+        for k in batch_dict.keys():
+            new_d[k] = batch_dict[k][i]
+        return new_d

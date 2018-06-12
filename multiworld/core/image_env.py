@@ -62,9 +62,8 @@ class ImageEnv(ProxyEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-        goal = obs['state_desired_goal']
         env_state = self.wrapped_env.get_env_state()
-        self.wrapped_env.set_to_state_goal(goal)
+        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
         self._img_goal = self._get_flat_img()
         self.wrapped_env.set_env_state(env_state)
         return self._update_obs(obs)
@@ -116,7 +115,7 @@ class ImageEnv(ProxyEnv):
         img_goals = np.zeros((batch_size, self.image_length))
         goals = self.wrapped_env.sample_goals(batch_size)
         for i in range(batch_size):
-            goal = goals['state_desired_goal'][i]
+            goal = self.unbatchify_dict(goals, i)
             self.wrapped_env.set_to_goal(goal)
             img_goals[i, :] = self._get_flat_img()
         goals['desired_goal'] = img_goals
