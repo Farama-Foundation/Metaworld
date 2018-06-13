@@ -22,6 +22,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
+            hide_goal_markers=False,
+
             **kwargs
     ):
         self.quick_init(locals())
@@ -36,6 +38,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         if puck_high is None:
             puck_high = self.hand_high[:2]
 
+        self.puck_low = puck_low
+        self.puck_high = puck_high
+
         if goal_low is None:
             goal_low = np.hstack((self.hand_low, puck_low))
         if goal_high is None:
@@ -47,6 +52,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
+
+        self.hide_goal_markers = hide_goal_markers
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.hand_and_puck_space = Box(
@@ -145,6 +152,13 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('puck-goal-site')][:2] = (
             goal[3:]
         )
+        if self.hide_goal_markers:
+            self.data.site_xpos[self.model.site_name2id('hand-goal-site'), 2] = (
+                -1000
+            )
+            self.data.site_xpos[self.model.site_name2id('puck-goal-site'), 2] = (
+                -1000
+            )
 
     def _set_puck_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -156,7 +170,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
-        self._set_goal(goal)
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
         self._set_puck_xy(self.sample_puck_xy())
         # self.reset_mocap_welds()
@@ -168,29 +183,42 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def _set_goal(self, goal):
-        self._state_goal = goal
-        self._set_goal_marker(self._state_goal)
-
     """
     Multitask functions
     """
     def get_goal(self):
-        return self._state_goal
+        return {
+            'desired_goal': self._state_goal,
+            'state_desired_goal': self._state_goal,
+        }
+
+    def set_to_goal(self, goal):
+        hand_goal = goal['state_desired_goal'][:3]
+        puck_goal = goal['state_desired_goal'][3:]
+        for _ in range(30):
+            self.data.set_mocap_pos('mocap', hand_goal)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            # keep gripper closed
+            self.do_simulation(np.array([1]))
+        self._set_puck_xy(puck_goal)
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
-            return np.repeat(
+            goals = np.repeat(
                 self.fixed_goal.copy()[None],
                 batch_size,
                 0
             )
         else:
-            return np.random.uniform(
+            goals = np.random.uniform(
                 self.hand_and_puck_space.low,
                 self.hand_and_puck_space.high,
                 size=(batch_size, self.hand_and_puck_space.low.size),
             )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+        }
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
         hand_pos = achieved_goals[:, :3]

@@ -93,13 +93,12 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
+        self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
+            goal
+        )
         if self.hide_goal_markers:
             self.data.site_xpos[self.model.site_name2id('hand-goal-site'), 2] = (
                 -1000
-            )
-        else:
-            self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
-                goal
             )
 
     @property
@@ -142,10 +141,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
         for _ in range(30):
-            delta = state_goal - self.get_endeff_pos()
-            if np.linalg.norm(delta) < 0.01:
-                break
-            self.set_xyz_action(delta)
+            self.data.set_mocap_pos('mocap', state_goal)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             # keep gripper closed
             self.do_simulation(np.array([1]))
 

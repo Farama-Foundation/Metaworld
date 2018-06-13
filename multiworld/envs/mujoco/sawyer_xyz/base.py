@@ -44,7 +44,8 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         return self.sim.get_state()
 
     def set_env_state(self, state):
-        return self.sim.set_state(state)
+        self.sim.set_state(state)
+        self.sim.forward()
 
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):

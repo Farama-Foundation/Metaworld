@@ -22,6 +22,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
+            hide_goal_markers=False,
+
             **kwargs
     ):
         self.quick_init(locals())
@@ -47,6 +49,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
+
+        self.hide_goal_markers = hide_goal_markers
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -146,6 +150,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('obj-goal-site')] = (
             goal[3:]
         )
+        if self.hide_goal_markers:
+            self.data.site_xpos[self.model.site_name2id('hand-goal-site'), 2] = (
+                -1000
+            )
+            self.data.site_xpos[self.model.site_name2id('obj-goal-site'), 2] = (
+                -1000
+            )
 
     def _set_obj_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -157,7 +168,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
-        self._set_goal(goal)
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
         self._set_obj_xy(self.sample_obj_xy())
         return self._get_obs()
@@ -168,29 +180,33 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def _set_goal(self, goal):
-        self._state_goal = goal
-        self._set_goal_marker(self._state_goal)
 
     """
     Multitask functions
     """
     def get_goal(self):
-        return self._state_goal
+        return {
+            'desired_goal': self._state_goal,
+            'state_desired_goal': self._state_goal,
+        }
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
-            return np.repeat(
+            goals = np.repeat(
                 self.fixed_goal.copy()[None],
                 batch_size,
                 0
             )
         else:
-            return np.random.uniform(
+            goals = np.random.uniform(
                 self.hand_and_obj_space.low,
                 self.hand_and_obj_space.high,
                 size=(batch_size, self.hand_and_obj_space.low.size),
             )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+        }
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
         hand_pos = achieved_goals[:, :3]
