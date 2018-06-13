@@ -137,7 +137,7 @@ the multi-goal case.
 
 ### `get_diagnostics`
 The function `get_diagonstics(rollouts)` returns an `OrderedDict` of potentially
-seful numbers to plot/log.
+useful numbers to plot/log.
 `rollouts` is a list. Each element of the list should be a dictionary describing
 a rollout. A dictionary should have the following keys with the corresponding
 values:
