@@ -38,6 +38,7 @@ char_to_action = {
     'l': 'open',
     'x': 'toggle',
     'r': 'reset',
+    'p': 'put obj in hand',
 }
 
 
@@ -69,6 +70,10 @@ while True:
                 action[3] = 1
             elif new_action == 'open':
                 action[3] = -1
+            elif new_action == 'put obj in hand':
+                print("putting obj in hand")
+                env.put_obj_in_hand()
+                action[3] = 1
             elif new_action is not None:
                 action[:3] = new_action[:3]
             else:

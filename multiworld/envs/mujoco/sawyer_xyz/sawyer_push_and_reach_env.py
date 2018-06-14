@@ -164,7 +164,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
-        qvel[8:11] = [0, 0, 0]
+        qpos[11:15] = np.array([1, 0, 0, 0])
+        qvel[8:15] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
