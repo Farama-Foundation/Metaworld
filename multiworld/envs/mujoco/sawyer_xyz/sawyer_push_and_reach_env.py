@@ -202,6 +202,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             # keep gripper closed
             self.do_simulation(np.array([1]))
         self._set_puck_xy(puck_goal)
+        self.sim.forward()
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
@@ -281,6 +282,17 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 always_show_all_stats=True,
                 ))
         return statistics
+
+    def get_env_state(self):
+        base_state = super().get_env_state()
+        goal = self._state_goal.copy()
+        return base_state, goal
+
+    def set_env_state(self, state):
+        base_state, goal = state
+        super().set_env_state(base_state)
+        self._state_goal = goal
+        self._set_goal_marker(goal)
 
 
 class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
