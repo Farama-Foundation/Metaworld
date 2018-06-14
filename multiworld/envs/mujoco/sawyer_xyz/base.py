@@ -5,6 +5,8 @@ import mujoco_py
 from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 
+import copy
+
 
 class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     """
@@ -41,10 +43,17 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         return self.data.get_body_xpos('hand').copy()
 
     def get_env_state(self):
-        return self.sim.get_state()
+        joint_state = self.sim.get_state()
+        mocap_state = self.data.mocap_pos, self.data.mocap_quat
+        state = joint_state, mocap_state
+        return copy.deepcopy(state)
 
     def set_env_state(self, state):
-        self.sim.set_state(state)
+        joint_state, mocap_state = state
+        self.sim.set_state(joint_state)
+        mocap_pos, mocap_quat = mocap_state
+        self.data.set_mocap_pos('mocap', mocap_pos)
+        self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
 
 
