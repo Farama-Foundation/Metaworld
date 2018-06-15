@@ -50,9 +50,9 @@ class ImageEnv(ProxyEnv):
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
         spaces['achieved_goal'] = img_space
-        spaces['latent_observation'] = img_space
-        spaces['latent_desired_goal'] = img_space
-        spaces['latent_achieved_goal'] = img_space
+        spaces['image_observation'] = img_space
+        spaces['image_desired_goal'] = img_space
+        spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
 
     def step(self, action):
@@ -124,3 +124,11 @@ class ImageEnv(ProxyEnv):
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
         return - np.linalg.norm(achieved_goals - desired_goals, axis=1)
+
+def normalize_image(image):
+    assert image.dtype == np.uint8
+    return np.float64(image) / 255.0
+
+def unormalize_image(image):
+    assert image.dtype != np.uint8
+    return np.uint8(image * 255.0)
