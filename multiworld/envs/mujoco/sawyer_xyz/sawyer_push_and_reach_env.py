@@ -175,7 +175,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
 
         self._set_puck_xy(self.sample_puck_xy())
-        # self.reset_mocap_welds()
         return self._get_obs()
 
     def _reset_hand(self):

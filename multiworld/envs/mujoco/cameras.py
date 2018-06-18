@@ -30,3 +30,29 @@ def init_sawyer_camera_v1(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+
+def init_sawyer_camera_v2(camera):
+    """
+    Top down basically. Sees through the arm.
+    """
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.8
+    camera.lookat[2] = 0.3
+    camera.distance = 0.3
+    camera.elevation = -65
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
+
+def init_sawyer_camera_v3(camera):
+    """
+    Top down basically. Sees through the arm.
+    """
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 0.3
+    camera.elevation = -35
+    camera.azimuth = 270
+    camera.trackbodyid = -1
