@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import numpy as np
-from gym.envs.mujoco import MujocoEnv
+from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from gym.spaces import Box, Dict
 
 from railrl.core import logger
@@ -22,7 +22,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  use_safety_box=False,
                  fix_goal=False,
                  fixed_goal=(0.15, 0.6, 0.3),
-                 reward_type='euclidean',
+                 reward_type='hand_distance',
                  indicator_threshold=.06,
                  goal_low=None,
                  goal_high=None,
@@ -43,20 +43,24 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self.goal_space = Box(goal_low, goal_high)
-        self._goal_xyz = None
-        self.reset()
+        self._goal_xyz = self.sample_goal_xyz()
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
-
+        self.reset()
+        obs_size = self._get_env_obs().shape[0]
+        self.obs_space = Box(
+            -10*np.ones(obs_size),
+            10*np.ones(obs_size)
+        )
         self.action_space = Box( -1*np.ones(7), np.ones(7))
         self.observation_space = Dict([
-            ('observation', self.observation_space),
+            ('observation', self.obs_space),
             ('desired_goal', self.goal_space),
             ('achieved_goal', self.goal_space),
-            ('state_observation', self.observation_space),
+            ('state_observation', self.obs_space),
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ])
@@ -195,8 +199,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.prev_qpos=self.init_angles
         self.sim.forward()
         return self._get_obs()
-
-
 
     @property
     def init_angles(self):
