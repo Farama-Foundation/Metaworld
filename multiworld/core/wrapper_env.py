@@ -27,9 +27,9 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
             self,
             env,
             reward_scale=1.,
-            obs_mean=None,
-            obs_std=None,
-            obs_to_normalize_key='observation',
+            obs_means=None,
+            obs_stds=None,
+            obs_to_normalize_keys=['observation'],
     ):
         #TODO: implement this to support normalizing different observations separately
         # self._wrapped_env needs to be called first because
@@ -43,45 +43,56 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
         self._serializable_initialized = False
         Serializable.quick_init(self, locals())
         ProxyEnv.__init__(self, env)
-        self._should_normalize = not (obs_mean is None and obs_std is None)
+        self._should_normalize = not (obs_means is None and obs_stds is None)
+        num_obs_types = len(obs_to_normalize_keys)
         if self._should_normalize:
-            if obs_mean is None:
-                obs_mean = np.zeros_like(env.observation_space[obs_to_normalize_key].low)
+            if obs_means is None:
+                obs_means = dict()
+                for key in self.obs_to_normalize_keys:
+                    obs_means[key] = np.zeros_like(env.observation_space[key].low)
             else:
-                obs_mean = np.array(obs_mean)
-            if obs_std is None:
-                obs_std = np.ones_like(env.observation_space[obs_to_normalize_key].low)
+                obs_means = dict()
+                for key in self.obs_to_normalize_keys:
+                    obs_means[key] = np.array(obs_means[key])
+            if obs_stds is None:
+                obs_stds = dict()
+                for key in self.obs_to_normalize_keys:
+                    obs_stds[key] = np.zeros_like(env.observation_space[key].low)
             else:
-                obs_std = np.array(obs_std)
+                obs_stds = dict()
+                for key in self.obs_to_normalize_keys:
+                    obs_stds[key] = np.array(obs_stds[key])
         self._reward_scale = reward_scale
-        self._obs_mean = obs_mean
-        self._obs_std = obs_std
+        self._obs_means = obs_means
+        self._obs_stds = obs_stds
         ub = np.ones(self._wrapped_env.action_space.shape)
         self.action_space = Box(-1 * ub, ub)
-        self.obs_to_normalize_key=obs_to_normalize_key
+        self.obs_to_normalize_keys=obs_to_normalize_keys
 
     def estimate_obs_stats(self, obs_batch, override_values=False):
-        if self._obs_mean is not None and not override_values:
+        if self._obs_means is not None and not override_values:
             raise Exception("Observation mean and std already set. To "
                             "override, set override_values to True.")
-        self._obs_mean = np.mean(obs_batch, axis=0)
-        self._obs_std = np.std(obs_batch, axis=0)
+        # self._obs_means = np.mean(obs_batch, axis=0)
+        # self._obs_stds = np.std(obs_batch, axis=0)
+        raise NotImplementedError()
 
     def _apply_normalize_obs(self, obs):
-        obs[self.obs_to_normalize_key]= (obs[self.obs_to_normalize_key] - self._obs_mean) / (self._obs_std + 1e-8)
+        for key in self.obs_to_normalize_keys:
+            obs[key]= (obs[key] - self._obs_means[key]) / (self._obs_stds[key] + 1e-8)
 
     def __getstate__(self):
         d = Serializable.__getstate__(self)
         # Add these explicitly in case they were modified
-        d["_obs_mean"] = self._obs_mean
-        d["_obs_std"] = self._obs_std
+        d["_obs_means"] = self._obs_means
+        d["_obs_stds"] = self._obs_stds
         d["_reward_scale"] = self._reward_scale
         return d
 
     def __setstate__(self, d):
         Serializable.__setstate__(self, d)
-        self._obs_mean = d["_obs_mean"]
-        self._obs_std = d["_obs_std"]
+        self._obs_means = d["_obs_means"]
+        self._obs_stds = d["_obs_stds"]
         self._reward_scale = d["_reward_scale"]
 
     def step(self, action):
