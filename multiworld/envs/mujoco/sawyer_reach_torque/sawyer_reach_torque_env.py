@@ -29,7 +29,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  goal_high=None,
                  use_goal_caching=False,
                  goal_generation_function=generate_goal_data_set,
-                 num_cached_goals=1000,
+                 num_cached_goals=100,
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -73,6 +73,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             joint_goal=[7, lambda x: x[:7], 'state_observation']
         )
         if self.use_goal_caching:
+            self._goal_xyz=np.zeros(3)
+            self._goal_angles = np.zeros(7)
             self.goals = goal_generation_function(self,goal_generation_dict=goal_generation_dict,
             num_goals=self.num_cached_goals)
             self.goals['state_desired_goal'] = self.goals['desired_goal']
@@ -187,6 +189,16 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
 
+    def no_resample_reset(self):
+        angles = self.data.qpos.copy()
+        velocities = self.data.qvel.copy()
+        angles[:] = self.init_angles
+        velocities[:] = 0
+        self.set_state(angles.flatten(), velocities.flatten())
+        self.prev_qpos = self.init_angles
+        self.sim.forward()
+        return self._get_obs()
+
     def reset(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
@@ -285,7 +297,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def sample_goals(self, batch_size):
         if self.use_goal_caching:
-            idxs = np.random.uniform(0, self.num_cached_goals, batch_size)
+            idxs = np.random.randint(0, self.num_cached_goals, batch_size)
             return {
                 'desired_goal':self.goals['desired_goal'][idxs],
                 'state_desired_goal':self.goals['state_desired_goal'][idxs],
@@ -327,26 +339,26 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
 
 if __name__ == "__main__":
-    import pygame
-    from pygame.locals import QUIT, KEYDOWN
-
-    pygame.init()
-    screen = pygame.display.set_mode((400, 300))
-    char_to_action = {
-        'w': np.array([0 , -1, 0 , 0]),
-        'a': np.array([1 , 0 , 0 , 0]),
-        's': np.array([0 , 1 , 0 , 0]),
-        'd': np.array([-1, 0 , 0 , 0]),
-        'q': np.array([1 , -1 , 0 , 0]),
-        'e': np.array([-1 , -1 , 0, 0]),
-        'z': np.array([1 , 1 , 0 , 0]),
-        'c': np.array([-1 , 1 , 0 , 0]),
-        # 'm': np.array([1 , 1 , 0 , 0]),
-        'j': np.array([0 , 0 , 1 , 0]),
-        'k': np.array([0 , 0 , -1 , 0]),
-        'x': 'toggle',
-        'r': 'reset',
-    }
+    # import pygame
+    # from pygame.locals import QUIT, KEYDOWN
+    #
+    # pygame.init()
+    # screen = pygame.display.set_mode((400, 300))
+    # char_to_action = {
+    #     'w': np.array([0 , -1, 0 , 0]),
+    #     'a': np.array([1 , 0 , 0 , 0]),
+    #     's': np.array([0 , 1 , 0 , 0]),
+    #     'd': np.array([-1, 0 , 0 , 0]),
+    #     'q': np.array([1 , -1 , 0 , 0]),
+    #     'e': np.array([-1 , -1 , 0, 0]),
+    #     'z': np.array([1 , 1 , 0 , 0]),
+    #     'c': np.array([-1 , 1 , 0 , 0]),
+    #     # 'm': np.array([1 , 1 , 0 , 0]),
+    #     'j': np.array([0 , 0 , 1 , 0]),
+    #     'k': np.array([0 , 0 , -1 , 0]),
+    #     'x': 'toggle',
+    #     'r': 'reset',
+    # }
 
     # ACTION_FROM = 'controller'
     # H = 100000
