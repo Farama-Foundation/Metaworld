@@ -7,7 +7,8 @@ from multiworld.envs.mujoco.sawyer_reach_torque.generate_goal_data_set import ge
 from railrl.core import logger
 
 from multiworld.core.serializable import Serializable
-from railrl.envs.env_utils import get_asset_full_path
+from multiworld.envs.env_util import get_stat_in_paths, \
+    create_stats_ordered_dict, get_asset_full_path
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -41,8 +42,12 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.action_scale = action_scale
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
+        else:
+            goal_low = np.array(goal_low)
         if goal_high is None:
             goal_high = np.array([0.1, 0.7, 0.2])
+        else:
+            goal_high = np.array(goal_low)
         self.safety_box = Box(
             goal_low,
             goal_high
