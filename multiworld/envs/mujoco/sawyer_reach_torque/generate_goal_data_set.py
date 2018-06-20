@@ -18,7 +18,7 @@ def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None)
         for i in range(num_goals):
             if i % 50 == 0:
                 print('Reset')
-                env.no_resample_reset()
+                env.reset(resample_on_reset=False)
                 exploration_policy.reset()
             action = exploration_policy.get_action()[0] * 10
             obs, _, _, _ = env.step(

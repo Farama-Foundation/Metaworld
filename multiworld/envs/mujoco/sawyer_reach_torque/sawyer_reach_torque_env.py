@@ -22,14 +22,18 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  keep_vel_in_obs=True,
                  use_safety_box=False,
                  fix_goal=False,
-                 fixed_goal=(0.15, 0.6, 0.3),
+                 fixed_goal=(0.05, 0.6, 0.15),
                  reward_type='hand_distance',
-                 indicator_threshold=.06,
+                 indicator_threshold=.05,
                  goal_low=None,
                  goal_high=None,
                  use_goal_caching=False,
-                 goal_generation_function=generate_goal_data_set,
+                 cached_goal_generation_function=generate_goal_data_set,
                  num_cached_goals=100,
+                 cached_goal_keys=('desired_goal', 'joint_goal'),
+                 goal_sizes=(3, 7),
+                 obs_to_goal_fctns=None,
+                 observation_keys=('state_observation', 'state_observation')
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -67,20 +71,18 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.prev_qpos = self.init_angles.copy()
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
-        goal_generation_dict=dict(
-            desired_goal=[3, lambda x: x[-3:],
-            'state_observation'],
-            joint_goal=[7, lambda x: x[:7], 'state_observation']
-        )
         if self.use_goal_caching:
+            goal_generation_dict = dict()
+            for goal_key, goal_size, obs_to_goal_fctn, obs_key in zip(cached_goal_keys, goal_sizes, obs_to_goal_fctns,
+                                                                      observation_keys):
+                goal_generation_dict[goal_key] = [goal_size, obs_to_goal_fctn, obs_key]
             self._goal_xyz=np.zeros(3)
             self._goal_angles = np.zeros(7)
-            self.goals = goal_generation_function(self,goal_generation_dict=goal_generation_dict,
-            num_goals=self.num_cached_goals)
+            self.goals = cached_goal_generation_function(self, goal_generation_dict=goal_generation_dict,
+                                                         num_goals=self.num_cached_goals)
             self.goals['state_desired_goal'] = self.goals['desired_goal']
         goal = self.sample_goal()
-        self._goal_xyz = goal['state_desired_goal'] #change so that sample goal
-        #sets these variables
+        self._goal_xyz = goal['state_desired_goal']
         if self.use_goal_caching:
             self._goal_angles = goal['joint_goal']
         self.reset()
@@ -146,13 +148,13 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     def _get_env_obs(self):
         if self.keep_vel_in_obs:
             return np.concatenate([
-                self.sim.data.qpos.flat[:7],
+                self.sim.data.qpos.flat,
                 self.sim.data.qvel.flat,
                 self.get_endeff_pos(),
             ])
         else:
             return np.concatenate([
-                self.sim.data.qpos.flat[:7],
+                self.sim.data.qpos.flat,
                 self.get_endeff_pos(),
             ])
 
@@ -189,27 +191,18 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
 
-    def no_resample_reset(self):
+    def reset(self, resample_on_reset=True):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
         angles[:] = self.init_angles
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.prev_qpos = self.init_angles
-        self.sim.forward()
-        return self._get_obs()
-
-    def reset(self):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[:] = self.init_angles
-        velocities[:] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
-        goal = self.sample_goal()
-        self._goal_xyz = goal['state_desired_goal']
-        if self.use_goal_caching:
-            self._goal_angles = goal['joint_goal']
-        self.set_goal_xyz(self._goal_xyz)
+        if resample_on_reset:
+            goal = self.sample_goal()
+            self._goal_xyz = goal['state_desired_goal']
+            if self.use_goal_caching:
+                self._goal_angles = goal['joint_goal']
+            self.set_goal_xyz(self._goal_xyz)
         self.prev_qpos=self.init_angles
         self.sim.forward()
         return self._get_obs()
