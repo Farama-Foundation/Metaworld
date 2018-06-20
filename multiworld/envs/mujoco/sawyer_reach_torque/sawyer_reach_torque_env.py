@@ -28,7 +28,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  goal_low=None,
                  goal_high=None,
                  use_goal_caching=False,
-                 goal_generation_function=generate_goal_data_set
+                 goal_generation_function=generate_goal_data_set,
+                 num_cached_goals=1000,
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -43,21 +44,13 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             goal_high
         )
         self.keep_vel_in_obs = keep_vel_in_obs
-        self.use_safety_box=use_safety_box
-        self.prev_qpos = self.init_angles.copy()
-        self.fix_goal = fix_goal
-        self.fixed_goal = np.array(fixed_goal)
         self.goal_space = Box(goal_low, goal_high)
-        self._goal_xyz = self.sample_goal()
-        self.reward_type = reward_type
-        self.indicator_threshold = indicator_threshold
-        self.reset()
         obs_size = self._get_env_obs().shape[0]
         self.obs_space = Box(
-            -10*np.ones(obs_size),
-            10*np.ones(obs_size)
+            -10 * np.ones(obs_size),
+            10 * np.ones(obs_size)
         )
-        self.action_space = Box( -1*np.ones(7), np.ones(7))
+        self.action_space = Box(-1 * np.ones(7), np.ones(7))
         self.observation_space = Dict([
             ('observation', self.obs_space),
             ('desired_goal', self.goal_space),
@@ -66,7 +59,29 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ])
-        goal_generation_function(self, observation_keys=['state_observation'], observation_sizes=[self.obs_space.low.size], show=True) #hardcoded for now
+        self.use_goal_caching=use_goal_caching
+        self.num_cached_goals = num_cached_goals
+        self.fix_goal = fix_goal
+        self.fixed_goal = np.array(fixed_goal)
+        self.use_safety_box=use_safety_box
+        self.prev_qpos = self.init_angles.copy()
+        self.reward_type = reward_type
+        self.indicator_threshold = indicator_threshold
+        goal_generation_dict=dict(
+            desired_goal=[3, lambda x: x[-3:],
+            'state_observation'],
+            joint_goal=[7, lambda x: x[:7], 'state_observation']
+        )
+        if self.use_goal_caching:
+            self.goals = goal_generation_function(self,goal_generation_dict=goal_generation_dict,
+            num_goals=self.num_cached_goals)
+            self.goals['state_desired_goal'] = self.goals['desired_goal']
+        goal = self.sample_goal()
+        self._goal_xyz = goal['state_desired_goal'] #change so that sample goal
+        #sets these variables
+        if self.use_goal_caching:
+            self._goal_angles = goal['joint_goal']
+        self.reset()
 
     @property
     def model_name(self):
@@ -96,20 +111,10 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.distance = 1.0
 
-        # robot view
-        # rotation_angle = 90
-        # cam_dist = 1
-        # cam_pos = np.array([0, 0.5, 0.2, cam_dist, -45, rotation_angle])
-
         # 3rd person view
         cam_dist = 0.3
         rotation_angle = 270
         cam_pos = np.array([0, 1.0, 0.5, cam_dist, -45, rotation_angle])
-
-        # top down view
-        # cam_dist = 0.2
-        # rotation_angle = 0
-        # cam_pos = np.array([0, 0, 1.5, cam_dist, -90, rotation_angle])
 
         for i in range(3):
             self.viewer.cam.lookat[i] = cam_pos[i]
@@ -164,15 +169,23 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def _get_info(self):
         hand_distance = np.linalg.norm(self._goal_xyz - self.get_endeff_pos())
-        return dict(
-            hand_distance=hand_distance,
-            hand_success=float(hand_distance < self.indicator_threshold),
-        )
+        if self.use_goal_caching:
+            info =  dict(
+                hand_distance=hand_distance,
+                hand_success=float(hand_distance < self.indicator_threshold),
+            )
+            abs_angle_dist = np.abs(self._goal_angles - self._get_env_obs()[:7])
+            for i in range(7):
+                info['Joint Angle Dim '+str(i+1)] = abs_angle_dist[i]
+            return info
+        else:
+            return dict(
+                hand_distance=hand_distance,
+                hand_success=float(hand_distance < self.indicator_threshold),
+            )
 
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
-
-
 
     def reset(self):
         angles = self.data.qpos.copy()
@@ -182,6 +195,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_state(angles.flatten(), velocities.flatten())
         goal = self.sample_goal()
         self._goal_xyz = goal['state_desired_goal']
+        if self.use_goal_caching:
+            self._goal_angles = goal['joint_goal']
         self.set_goal_xyz(self._goal_xyz)
         self.prev_qpos=self.init_angles
         self.sim.forward()
@@ -211,6 +226,21 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
+        if self.use_goal_caching:
+            for stat_name in ['Joint Angle Dim'+str(i+1) for i in range(7)]:
+                stat_name = stat_name
+                stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+                statistics.update(create_stats_ordered_dict(
+                    '%s%s' % (prefix, stat_name),
+                    stat,
+                    always_show_all_stats=True,
+                ))
+                statistics.update(create_stats_ordered_dict(
+                    'Final %s%s' % (prefix, stat_name),
+                    [s[-1] for s in stat],
+                    always_show_all_stats=True,
+                ))
+
         for stat_name in [
             'hand_distance',
             'hand_success',
@@ -254,6 +284,13 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         return obs[:, -3:]
 
     def sample_goals(self, batch_size):
+        if self.use_goal_caching:
+            idxs = np.random.uniform(0, self.num_cached_goals, batch_size)
+            return {
+                'desired_goal':self.goals['desired_goal'][idxs],
+                'state_desired_goal':self.goals['state_desired_goal'][idxs],
+                'joint_goal':self.goals['joint_goal'][idxs],
+            }
         if self.fix_goal:
             goals = np.repeat(
                 self.fixed_goal.copy()[None],
@@ -318,7 +355,7 @@ if __name__ == "__main__":
     # ACTION_FROM = 'pd'
     # H = 50
 
-    env = SawyerReachTorqueEnv(keep_vel_in_obs=False, use_safety_box=False)
+    env = SawyerReachTorqueEnv(keep_vel_in_obs=False, use_safety_box=False, use_goal_caching=True)
 
     # env.get_goal()
     # # env = MultitaskToFlatEnv(env)

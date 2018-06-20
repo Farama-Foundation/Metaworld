@@ -3,8 +3,10 @@ from railrl.exploration_strategies.ou_strategy import OUStrategy
 import numpy as np
 from railrl.policies.simple import RandomPolicy
 
-def generate_goal_data_set(env=None, num_goals=10000, show=False, observation_keys=['observation'], observation_sizes=[0]):
-    for obs_key, size in zip(observation_keys, observation_sizes):
+def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None):
+    goal_dict = dict()
+    for goal_key in goal_generation_dict:
+        size, obs_to_goal_fn, obs_key = goal_generation_dict[goal_key]
         goals = np.zeros((num_goals, size))
         policy = RandomPolicy(env.action_space)
         es = OUStrategy(action_space=env.action_space, theta=0)
@@ -23,6 +25,6 @@ def generate_goal_data_set(env=None, num_goals=10000, show=False, observation_ke
                 action
             )
             print(i)
-            goals[i, :] = obs[obs_key]
-        np.save('/tmp/goal_states', goals)
-
+            goals[i, :] = obs_to_goal_fn(obs[obs_key])
+        goal_dict[goal_key] = goals
+    return goal_dict
