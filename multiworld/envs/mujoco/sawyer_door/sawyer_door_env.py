@@ -47,14 +47,17 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
             np.array([-1, -1, -1, -max_angle]),
             np.array([1, 1, 1, max_angle]),
         )
-
+        self.angle_space = Box(
+            np.array([-max_angle]),
+            np.array([max_angle])
+        )
         self.observation_space = Dict([
             ('observation', self.state_space),
-            ('desired_goal', self.state_space),
-            ('achieved_goal', self.state_space),
+            ('desired_goal', self.angle_space),
+            ('achieved_goal', self.angle_space),
             ('state_observation', self.state_space),
-            ('state_desired_goal', self.state_space),
-            ('state_achieved_goal', self.state_space),
+            ('state_desired_goal', self.angle_space),
+            ('state_achieved_goal', self.angle_space),
         ])
         self._pos_action_scale = pos_action_scale
         self.action_reward_scale = action_reward_scale
@@ -220,7 +223,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         }
 
     def set_to_goal(self, goal):
-        state_goal = goal['state_desired_goal']
+        state_goal = goal
         self.set_goal_angle(state_goal)
 
     def get_diagnostics(self, paths, prefix=''):
@@ -328,8 +331,8 @@ class SawyerDoorPushOpenActionLimitedEnv(SawyerDoorPushOpenEnv):
 class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
     def __init__(self,
                  frame_skip=30,
-                 goal_low=0,
-                 goal_high=.5,
+                 goal_low=(-.1, .5, .06, 0),
+                 goal_high=(.1, .6, .06,.5),
                  action_reward_scale=0,
                  pos_action_scale=1 / 100,
                  reward_type='angle_difference',
@@ -339,6 +342,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
                  target_pos_scale=0,
                  target_angle_scale=1,
                  ):
+
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self, self.model_path, frame_skip=frame_skip)
@@ -348,7 +352,10 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(np.array([goal_low]), np.array([goal_high]))
+        self.goal_space = Box(
+            np.array(goal_low),
+            np.array(goal_high),
+        )
         self._state_goal = None
 
         self.action_space = Box(np.array([-1, -1, -1, -1]), np.array([1, 1, 1, 1]))
@@ -373,6 +380,19 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         
         self.reset()
         self.reset_mocap_welds()
+
+    def _get_obs(self):
+        pos = self.get_endeff_pos()
+        angle = self.get_door_angle()
+        flat_obs = np.concatenate((pos, angle))
+        return dict(
+            observation=flat_obs,
+            desired_goal=self._state_goal,
+            achieved_goal=flat_obs,
+            state_observation=flat_obs,
+            state_desired_goal=self._state_goal,
+            state_achieved_goal=flat_obs,
+        )
 
     def _get_info(self):
         angle_diff = np.abs(self.get_door_angle()-self._state_goal[-1])
@@ -408,7 +428,6 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         return 4
 
     def set_goal_angle(self, angle):
-        self._state_goal = angle.copy()
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[0] = angle.copy()
@@ -492,7 +511,7 @@ if __name__ == "__main__":
         'r': 'reset',
     }
 
-    env = SawyerDoorPushOpenActionLimitedEnv(pos_action_scale=1 / 100)
+    env = SawyerDoorPushOpenEnv(pos_action_scale=1 / 100)
 
     policy = ZeroPolicy(env.action_space.low.size)
     es = OUStrategy(
@@ -512,7 +531,7 @@ if __name__ == "__main__":
     ACTION_FROM = 'hardcoded'
     # ACTION_FROM = 'pd'
     # ACTION_FROM = 'random'
-    H = 100000
+    H = 1
     # H = 300
     # H = 50
     goal = .25
@@ -555,9 +574,8 @@ if __name__ == "__main__":
             #     print(env.get_endeff_pos())
             #     break
             # obs, reward, _, info = env.step(action)
-            goal = env.sample_goal()
-            print(goal)
-            env.set_to_goal(goal['desired_goal'])
+            print(env.get_goal()['desired_goal'])
+            env.set_to_goal(env.get_goal()['desired_goal'])
             env.render()
             print(t)
             # if done:
