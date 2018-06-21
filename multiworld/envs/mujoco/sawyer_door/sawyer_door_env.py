@@ -148,7 +148,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         return self.model.body_names.index('leftclaw')
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
-        r = np.abs(achieved_goals-desired_goals)
+        r = np.abs(achieved_goals-desired_goals)[0]
         if self.reward_type == 'angle_difference':
             r =  -r
         elif self.reward_type == 'hand_success':
