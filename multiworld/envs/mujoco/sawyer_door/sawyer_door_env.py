@@ -1,12 +1,11 @@
 import abc
-from _ast import Dict
 from collections import OrderedDict
 
 import mujoco_py
 import numpy as np
 import sys
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
-from gym.spaces import Box
+from gym.spaces import Box, Dict
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -65,7 +64,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
 
     @property
     def model_path(self):
-        return get_asset_full_path('sawyer_door/sawyer_door.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_door.xml')
 
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
@@ -383,7 +382,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
             angle_success = (angle_diff < self.indicator_threshold[0]).astype(float),
             hand_distance=hand_dist,
             hand_success=(hand_dist<self.indicator_threshold[1]).astype(float),
-			total_distance=angle_diff+hand_dist
+            total_distance=angle_diff+hand_dist
         )
         return info
 
@@ -422,13 +421,13 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-		for stat_name in [
-			'angle_difference',
-			'angle_success'
-			'hand_distance',
-			'hand_success',
-			'total_distance',
-		]:
+        for stat_name in [
+            'angle_difference',
+            'angle_success'
+            'hand_distance',
+            'hand_success',
+            'total_distance',
+        ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
             statistics.update(create_stats_ordered_dict(
@@ -558,7 +557,7 @@ if __name__ == "__main__":
             # obs, reward, _, info = env.step(action)
             goal = env.sample_goal()
             print(goal)
-            env.set_to_goal(goal)
+            env.set_to_goal(goal['desired_goal'])
             env.render()
             print(t)
             # if done:

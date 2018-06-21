@@ -1,5 +1,5 @@
 <mujoco model="sawyer">
-    <compiler angle="radian" meshdir="meshes/" />
+    <compiler angle="radian" meshdir="../meshes/sawyer"/>
     <!-- <option gravity="0 0 0" /> -->
     <!-- <option impratio="0.01" /> -->
     <!-- <option collision="predefined" /> -->
