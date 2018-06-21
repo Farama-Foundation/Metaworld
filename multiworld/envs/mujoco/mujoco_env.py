@@ -137,3 +137,10 @@ class MujocoEnv(gym.Env):
             self.sim.data.qpos.flat,
             self.sim.data.qvel.flat
         ])
+
+    def get_image(self, width=84, height=84, camera_name=None):
+        return self.sim.render(
+            width=width,
+            height=height,
+            camera_name=camera_name,
+        )
