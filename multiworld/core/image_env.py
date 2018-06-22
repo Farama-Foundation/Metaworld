@@ -12,9 +12,8 @@ class ImageEnv(ProxyEnv):
     def __init__(
             self,
             wrapped_env,
-            imsize=32,
+            imsize=84,
             init_camera=None,
-            camera_name=None,
             transpose=False,
             grayscale=False,
             normalize=False,
@@ -24,7 +23,6 @@ class ImageEnv(ProxyEnv):
         self.wrapped_env.hide_goal_markers = True
         self.imsize = imsize
         self.init_camera = init_camera
-        self.camera_name = camera_name
         self.transpose = transpose
         self.grayscale = grayscale
         self.normalize = normalize
@@ -38,10 +36,10 @@ class ImageEnv(ProxyEnv):
         # Flattened past image queue
         # init camera
         if init_camera is not None:
-            sim = self._wrapped_env.sim
-            viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
-            init_camera(viewer.cam)
-            sim.add_render_context(viewer)
+            sim = self._wrapped_env.initialize_camera(init_camera)
+            # viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
+            # init_camera(viewer.cam)
+            # sim.add_render_context(viewer)
         self._render_local = False
         self._img_goal = None
 

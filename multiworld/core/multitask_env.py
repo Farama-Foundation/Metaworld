@@ -24,30 +24,25 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def compute_rewards(self, achieved_goals, desired_goals, infos):
+    def compute_rewards(self, actions, obs):
         """
-        :param achieved_goals: BATCH x GOAL_DIM np array
-        :param desired_goals: BATCH x GOAL_DIM np array
-        :param infos: map from key to BATCH x K np arrays
-        :return: np.array of shape BATCH of rewards
+        :param actions: Np array of actions
+        :param obs: Batch dictionary
+        :return:
         """
+
         pass
 
     def sample_goal(self):
         goals = self.sample_goals(1)
         return self.unbatchify_dict(goals, 0)
 
-    def compute_reward(self, achieved_goal, desired_goal, info):
-
-        if info is None:
-            infos = None
-        else:
-            infos = {}
-            for k in info.keys():
-                infos[k] = np.array([info[k]])
-        return self.compute_rewards(
-            achieved_goal[None], desired_goal[None], infos
-        )[0]
+    def compute_reward(self, action, obs):
+        actions = action[None]
+        next_obs = {
+            k: v[None] for k, v in obs.items()
+        }
+        return self.compute_rewards(actions, next_obs)[0]
 
     def get_diagnostics(self, *args, **kwargs):
         """
@@ -68,6 +63,18 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
 
     @staticmethod
     def unbatchify_dict(batch_dict, i):
+        """
+        :param batch_dict: A batch dict is a dict whose values are batch.
+        :return: the dictionary returns a dict whose values are just elements of
+        the batch.
+        """
+        new_d = {}
+        for k in batch_dict.keys():
+            new_d[k] = batch_dict[k][i]
+        return new_d
+
+    @staticmethod
+    def batchify_dict(batch_dict, i):
         """
         :param batch_dict: A batch dict is a dict whose values are batch.
         :return: the dictionary returns a dict whose values are just elements of

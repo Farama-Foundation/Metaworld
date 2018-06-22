@@ -1,18 +1,13 @@
-from collections import OrderedDict
-
 import numpy as np
-from gym import GoalEnv
 from gym import spaces
 from pygame import Color
 
+from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
+from multiworld.core.serializable import Serializable
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
-# import matplotlib.pyplot as plt
-from multiworld.core.image_env import ImageEnv
-import matplotlib.cm as cm
 
-from multiworld.core.serializable import Serializable
 
 class Point2DEnv(MultitaskEnv, Serializable):
     """
@@ -22,7 +17,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def __init__(
             self,
             render_dt_msec=0,
-            action_l2norm_penalty=0, # disabled for now
+            action_l2norm_penalty=0,  # disabled for now
             render_onscreen=True,
             render_size=84,
             reward_type="dense",
@@ -81,9 +76,11 @@ class Point2DEnv(MultitaskEnv, Serializable):
             a_min=-self.boundary_dist,
             a_max=self.boundary_dist,
         )
-        obs = self._get_obs()
         distance_to_target = np.linalg.norm(self._position - self._target_position)
         is_success = distance_to_target < self.target_radius
+
+        ob = self._get_obs()
+        reward = self.compute_reward(velocities, ob)
         info = {
             'radius': self.target_radius,
             'target_position': self._target_position,
@@ -92,13 +89,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'speed': np.linalg.norm(velocities),
             'is_success': is_success,
         }
-        reward = self.compute_reward(
-            obs['achieved_goal'],
-            obs['desired_goal'],
-            info,
-        )
         done = False
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def _sample_goal(self):
         return np.random.uniform(
@@ -128,8 +120,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_achieved_goal=self._position.copy(),
         )
 
-    def compute_rewards(self, achieved_goal, desired_goal, info):
-        d = np.linalg.norm(achieved_goal - desired_goal, axis=-1)
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
         if self.reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
         if self.reward_type == "dense":
