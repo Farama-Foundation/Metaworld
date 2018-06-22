@@ -144,3 +144,9 @@ class MujocoEnv(gym.Env):
             height=height,
             camera_name=camera_name,
         )
+
+    def initialize_camera(self, init_fctn):
+        sim = self.sim
+        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
+        init_fctn(viewer.cam)
+        sim.add_render_context(viewer)

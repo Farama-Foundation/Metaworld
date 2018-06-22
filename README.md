@@ -1,7 +1,5 @@
 # multiworld
 Multitask Environments for RL
-(WIP: currently, the envs are normal gym `Env`s, but I'm currently working on
-making these `GoalEnv`s.
 
 ## Basic Usage
 This library contains a variety of gym `GoalEnv`s.
@@ -124,8 +122,13 @@ goal = env.get_goal()  # language + image goal
 ```
 
 Note that you don't have to use FlatGoalEnv: you can always just use the
-(wrapped) environments as needed and manually chose the keys that you care about
- for the observations/goals.
+environments manually choose the keys that you care about from the
+observation.
+
+## WARNING: `compute_reward` incompatibility
+The `compute_reward` interface is slightly different from gym's.
+Rather than `compute_reward(desired_goal, achieved_goal, info)` our interface is
+ `compute_reward(action, observation)`, where the observation is a dictionary.
 
 
 ## Extra features
