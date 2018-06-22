@@ -31,7 +31,6 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
             obs_stds=None,
             obs_to_normalize_keys=['observation'],
     ):
-        #TODO: implement this to support normalizing different observations separately
         # self._wrapped_env needs to be called first because
         # Serializable.quick_init calls getattr, on this class. And the
         # implementation of getattr (see below) calls self._wrapped_env.
@@ -100,7 +99,6 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
         ub = self._wrapped_env.action_space.high
         scaled_action = lb + (action + 1.) * 0.5 * (ub - lb)
         scaled_action = np.clip(scaled_action, lb, ub)
-
         wrapped_step = self._wrapped_env.step(scaled_action)
         next_obs, reward, done, info = wrapped_step
         if self._should_normalize:
