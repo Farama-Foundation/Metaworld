@@ -20,8 +20,8 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
     #TODO: MAKE THIS A SUBCLASS OF SAWYER MOCAP BASE
     def __init__(self,
                      frame_skip=50,
-                     goal_low=-1.5708,
-                     goal_high=1.5708,
+                     goal_low=-.5,
+                     goal_high=.5,
                      pos_action_scale=1 / 100,
                      action_reward_scale=0,
                      reward_type='angle_difference',
@@ -119,6 +119,16 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         pos_delta = action[None]
         self.reset_mocap2body_xpos()
         new_mocap_pos = self.data.mocap_pos + pos_delta
+        new_mocap_pos[0, 0] = np.clip(
+            new_mocap_pos[0, 0],
+            -0.15,
+            0.15,
+        )
+        new_mocap_pos[0, 1] = np.clip(
+            new_mocap_pos[0, 1],
+            -2,
+            2,
+        )
         new_mocap_pos[0, 2] = np.clip(
             0.06,
             0,

@@ -14,7 +14,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def __init__(self,
                  frame_skip=30,
-                 action_scale=1. / 10,
+                 action_scale=10,
                  keep_vel_in_obs=True,
                  use_safety_box=False,
                  fix_goal=False,
