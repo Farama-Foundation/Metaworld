@@ -42,6 +42,7 @@ class FlatGoalEnv(ProxyEnv):
                 for k in goal_keys
             ]),
         )
+        self.obs_dim = self.observation_space.low.size
         self._goal = None
 
     def step(self, action):
