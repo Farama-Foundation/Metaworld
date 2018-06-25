@@ -60,15 +60,11 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.do_simulation(np.array([1]))
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
-        obs = self._get_obs()
+        ob = self._get_obs()
+        reward = self.compute_reward(action, ob)
         info = self._get_info()
-        reward = self.compute_reward(
-            obs['achieved_goal'],
-            obs['desired_goal'],
-            info,
-        )
         done = False
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def _get_obs(self):
         flat_obs = self.get_endeff_pos()
@@ -172,7 +168,9 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             'state_desired_goal': goals,
         }
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals
         goals = desired_goals
         distances = np.linalg.norm(hand_pos - goals, axis=1)
