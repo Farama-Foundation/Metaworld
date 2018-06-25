@@ -79,20 +79,16 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
                         [0., 0., 0., 1., 0., 0., 0.])
         sim.forward()
 
-    def step(self, a):
-        a = np.clip(a, -1, 1)
-        self.mocap_set_action(a[:3] * self._pos_action_scale)
+    def step(self, action):
+        action = np.clip(action, -1, 1)
+        self.mocap_set_action(action[:3] * self._pos_action_scale)
         u = np.zeros((7))
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
-        obs = self._get_obs()
-        reward = self.compute_reward(
-            obs['achieved_goal'],
-            obs['desired_goal'],
-            info,
-        )
+        ob = self._get_obs()
+        reward = self.compute_reward(action, ob)
         done = False
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def _get_obs(self):
         pos = self.get_endeff_pos()
@@ -157,7 +153,9 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
         reward = np.linalg.norm(achieved_goals-desired_goals, axis=1)
         if self.reward_type == 'angle_difference':
             reward =  -reward
@@ -416,7 +414,9 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         )
         return info
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
         actual_angle = achieved_goals[-1]
         goal_angle = desired_goals[-1]
         pos = achieved_goals[:3]

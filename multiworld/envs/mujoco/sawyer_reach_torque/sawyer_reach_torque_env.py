@@ -133,23 +133,19 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.azimuth = cam_pos[5]
         self.viewer.cam.trackbodyid = -1
 
-    def step(self, a):
-        a = a * self.action_scale
-        self.do_simulation(a, self.frame_skip)
+    def step(self, action):
+        action = action * self.action_scale
+        self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
                 self.reset_to_prev_qpos()
             else:
                 self.prev_qpos = self.data.qpos.copy()
-        obs = self._get_obs()
+        ob = self._get_obs()
         info = self._get_info()
-        reward = self.compute_reward(
-            obs['achieved_goal'],
-            obs['desired_goal'],
-            info,
-        )
+        reward = self.compute_reward(action, ob)
         done = False
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def _get_env_obs(self):
         if self.keep_vel_in_obs:
@@ -321,7 +317,9 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             'state_desired_goal': goals,
         }
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals
         goals = desired_goals
         distances = np.linalg.norm(hand_pos - goals, axis=1)
