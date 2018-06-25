@@ -184,7 +184,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
             0,
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
-            3.53404635e+00, 0
+            3.53404635e+00,
         ]
 
     ''' Multitask Functions '''
