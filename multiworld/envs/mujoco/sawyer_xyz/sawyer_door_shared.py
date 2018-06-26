@@ -17,18 +17,18 @@ from railrl.policies.simple import ZeroPolicy
 
 
 class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta):
-    #TODO: MAKE THIS A SUBCLASS OF SAWYER MOCAP BASE
+    # TODO: MAKE THIS A SUBCLASS OF SAWYER MOCAP BASE
     def __init__(self,
-                     frame_skip=50,
-                     goal_low=-.5,
-                     goal_high=.5,
-                     pos_action_scale=1 / 100,
-                     action_reward_scale=0,
-                     reward_type='angle_difference',
-                     indicator_threshold=0.02,
-                     fix_goal=False,
-                     fixed_goal=.25,
-                ):
+                 frame_skip=50,
+                 goal_low=-.5,
+                 goal_high=.5,
+                 pos_action_scale=1 / 100,
+                 action_reward_scale=0,
+                 reward_type='angle_difference',
+                 indicator_threshold=0.02,
+                 fix_goal=False,
+                 fixed_goal=.25,
+                 ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
@@ -79,20 +79,16 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
                         [0., 0., 0., 1., 0., 0., 0.])
         sim.forward()
 
-    def step(self, a):
-        a = np.clip(a, -1, 1)
-        self.mocap_set_action(a[:3] * self._pos_action_scale)
+    def step(self, action):
+        action = np.clip(action, -1, 1)
+        self.mocap_set_action(action[:3] * self._pos_action_scale)
         u = np.zeros((7))
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
-        obs = self._get_obs()
-        reward = self.compute_reward(
-            obs['achieved_goal'],
-            obs['desired_goal'],
-            info,
-        )
+        ob = self._get_obs()
+        reward = self.compute_reward(action, ob)
         done = False
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def _get_obs(self):
         pos = self.get_endeff_pos()
@@ -108,10 +104,10 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         )
 
     def _get_info(self):
-        angle_diff = np.abs(self.get_door_angle()-self._state_goal)
+        angle_diff = np.abs(self.get_door_angle() - self._state_goal)
         info = dict(
             angle_difference=angle_diff,
-            angle_success = (angle_diff < self.indicator_threshold).astype(float)
+            angle_success=(angle_diff < self.indicator_threshold).astype(float)
         )
         return info
 
@@ -157,10 +153,12 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
-        reward = np.linalg.norm(achieved_goals-desired_goals, axis=1)
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['achieved_goal']
+        desired_goals = obs['desired_goal']
+        reward = np.linalg.norm(achieved_goals - desired_goals, axis=1)
         if self.reward_type == 'angle_difference':
-            reward =  -reward
+            reward = -reward
         elif self.reward_type == 'angle_success':
             reward = -(reward < self.indicator_threshold).astype(float)
         else:
@@ -273,6 +271,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         self.sim.forward()
         self._state_goal = goal
 
+
 class SawyerDoorPushOpenEnv(SawyerDoorEnv):
     def __init__(self, goal_low=0, goal_high=.5, **kwargs):
         self.quick_init(locals())
@@ -342,7 +341,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
     def __init__(self,
                  frame_skip=30,
                  goal_low=(-.1, .5, .06, 0),
-                 goal_high=(.1, .6, .06,.5),
+                 goal_high=(.1, .6, .06, .5),
                  action_reward_scale=0,
                  pos_action_scale=1 / 100,
                  reward_type='angle_difference',
@@ -387,7 +386,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         self.target_pos_scale = target_pos_scale
         self.action_reward_scale = action_reward_scale
         self.target_angle_scale = target_angle_scale
-        
+
         self.reset()
         self.reset_mocap_welds()
 
@@ -405,18 +404,20 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         )
 
     def _get_info(self):
-        angle_diff = np.abs(self.get_door_angle()-self._state_goal[-1])
-        hand_dist = np.linalg.norm(self.get_endeff_pos()-self._state_goal[:3])
+        angle_diff = np.abs(self.get_door_angle() - self._state_goal[-1])
+        hand_dist = np.linalg.norm(self.get_endeff_pos() - self._state_goal[:3])
         info = dict(
             angle_difference=angle_diff,
-            angle_success = (angle_diff < self.indicator_threshold[0]).astype(float),
+            angle_success=(angle_diff < self.indicator_threshold[0]).astype(float),
             hand_distance=hand_dist,
-            hand_success=(hand_dist<self.indicator_threshold[1]).astype(float),
-            total_distance=angle_diff+hand_dist
+            hand_success=(hand_dist < self.indicator_threshold[1]).astype(float),
+            total_distance=angle_diff + hand_dist
         )
         return info
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['achieved_goal']
+        desired_goals = obs['desired_goal']
         actual_angle = achieved_goals[-1]
         goal_angle = desired_goals[-1]
         pos = achieved_goals[:3]
@@ -424,13 +425,13 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         angle_diff = np.abs(actual_angle - goal_angle)
         pos_dist = np.linalg.norm(pos - goal_pos)
         if self.reward_type == 'angle_difference':
-            r = - (angle_diff*self.target_angle_scale+pos_dist*self.target_pos_scale)
+            r = - (angle_diff * self.target_angle_scale + pos_dist * self.target_pos_scale)
         elif self.reward_type == 'hand_success':
             r = -(angle_diff < self.indicator_threshold[0] and pos_dist < self.indicator_threshold[1]).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
-        
+
     ''' Multitask Functions '''
 
     @property
@@ -522,76 +523,78 @@ if __name__ == "__main__":
     }
     # np.random.seed(100)
     env = SawyerDoorPushOpenEnv(fix_goal=True)
-
-    policy = ZeroPolicy(env.action_space.low.size)
-    es = OUStrategy(
-        env.action_space,
-        theta=1
-    )
-    es = EpsilonGreedy(
-        action_space=env.action_space,
-        prob_random_action=0.1,
-    )
-    policy = exploration_policy = PolicyWrappedWithExplorationStrategy(
-        exploration_strategy=es,
-        policy=policy,
-    )
-
+    print(env.get_goal()['state_desired_goal'])
     env.reset()
-    ACTION_FROM = 'hardcoded'
-    # ACTION_FROM = 'pd'
-    # ACTION_FROM = 'random'
-    H = 10000
-    # H = 300
-    # H = 50
-    goal = .25
-
-    while True:
-        lock_action = False
-        obs = env.reset()
-        last_reward_t = 0
-        returns = 0
-        action, _ = policy.get_action(None)
-        goal=env._state_goal
-        print(goal)
-        for t in range(H):
-            done = False
-            if ACTION_FROM == 'controller':
-                if not lock_action:
-                    action = np.array([0, 0, 0, 0])
-                for event in pygame.event.get():
-                    event_happened = True
-                    if event.type == QUIT:
-                        sys.exit()
-                    if event.type == KEYDOWN:
-                        char = event.dict['key']
-                        new_action = char_to_action.get(chr(char), None)
-                        if new_action == 'toggle':
-                            lock_action = not lock_action
-                        elif new_action == 'reset':
-                            done = True
-                        elif new_action is not None:
-                            action = new_action
-                        else:
-                            action = np.array([0, 0, 0, 0])
-                        print("got char:", char)
-                        print("action", action)
-                        print("angles", env.data.qpos.copy())
-                        print("position", env.get_endeff_pos())
-            elif ACTION_FROM=='hardcoded':
-                action=np.array([0, 1, 0, 0])
-            else:
-                action = env.action_space.sample()
-            # if np.abs(env.data.qpos[0]-.01) < .001:
-            #     print(env.get_endeff_pos())
-            #     break
-            obs, reward, _, info = env.step(action)
-            print(reward, obs['state_desired_goal'], obs['observation'][-1])
-            # print(env.get_goal()['desired_goal'])
-            # env.set_to_goal(env.get_goal()['desired_goal'])
-            env.render()
-            print(t)
-            # if done:
-            #     break
-            # print("new episode")
-        break
+    print(env.get_goal()['state_desired_goal'])
+    # policy = ZeroPolicy(env.action_space.low.size)
+    # es = OUStrategy(
+    #     env.action_space,
+    #     theta=1
+    # )
+    # es = EpsilonGreedy(
+    #     action_space=env.action_space,
+    #     prob_random_action=0.1,
+    # )
+    # policy = exploration_policy = PolicyWrappedWithExplorationStrategy(
+    #     exploration_strategy=es,
+    #     policy=policy,
+    # )
+    #
+    # env.reset()
+    # ACTION_FROM = 'hardcoded'
+    # # ACTION_FROM = 'pd'
+    # # ACTION_FROM = 'random'
+    # H = 10
+    # # H = 300
+    # # H = 50
+    # goal = .25
+    #
+    # while True:
+    #     lock_action = False
+    #     obs = env.reset()
+    #     last_reward_t = 0
+    #     returns = 0
+    #     action, _ = policy.get_action(None)
+    #     goal=env._state_goal
+    #     print(goal)
+    #     for t in range(H):
+    #         done = False
+    #         if ACTION_FROM == 'controller':
+    #             if not lock_action:
+    #                 action = np.array([0, 0, 0, 0])
+    #             for event in pygame.event.get():
+    #                 event_happened = True
+    #                 if event.type == QUIT:
+    #                     sys.exit()
+    #                 if event.type == KEYDOWN:
+    #                     char = event.dict['key']
+    #                     new_action = char_to_action.get(chr(char), None)
+    #                     if new_action == 'toggle':
+    #                         lock_action = not lock_action
+    #                     elif new_action == 'reset':
+    #                         done = True
+    #                     elif new_action is not None:
+    #                         action = new_action
+    #                     else:
+    #                         action = np.array([0, 0, 0, 0])
+    #                     print("got char:", char)
+    #                     print("action", action)
+    #                     print("angles", env.data.qpos.copy())
+    #                     print("position", env.get_endeff_pos())
+    #         elif ACTION_FROM=='hardcoded':
+    #             action=np.array([0, 1, 0, 0])
+    #         else:
+    #             action = env.action_space.sample()
+    #         # if np.abs(env.data.qpos[0]-.01) < .001:
+    #         #     print(env.get_endeff_pos())
+    #         #     break
+    #         obs, reward, _, info = env.step(action)
+    #         print(reward, obs['state_desired_goal'], obs['observation'][-1])
+    #         # print(env.get_goal()['desired_goal'])
+    #         # env.set_to_goal(env.get_goal()['desired_goal'])
+    #         env.render()
+    #         print(t)
+    #         # if done:
+    #         #     break
+    #         # print("new episode")
+    #     break

@@ -58,9 +58,9 @@ class ImageEnv(ProxyEnv):
         new_obs = self._update_obs(obs)
         return new_obs, reward, done, info
 
-    def reset(self, resample_on_reset=True):
-        obs = self.wrapped_env.reset(resample_on_reset=resample_on_reset)
-        if resample_on_reset:
+    def reset(self, _resample_on_reset=True):
+        obs = self.wrapped_env.reset(_resample_on_reset=_resample_on_reset)
+        if _resample_on_reset:
             env_state = self.wrapped_env.get_env_state()
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
             self._img_goal = self._get_flat_img()

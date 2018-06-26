@@ -5,12 +5,11 @@
             gravity="0 0 -9.81"
             iterations="50"
             integrator="Euler"
-            timestep="0.002"
+            timestep="0.003"
             cone="pyramidal"
             impratio="1"
-            tolerance="1e-8"
+            tolerance="1e-10"
     /> <!-- things to check, timestep, impratio, cone-->
-    <option integrator="Euler" timestep="0.002" iterations="50"/>
     <size njmax="6000" nconmax="6000"/>
     <asset>
         <mesh name="pedestal" file="pedestal.stl" />
