@@ -6,6 +6,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
 
 
 class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
@@ -25,11 +26,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high=None,
 
             hide_goal_markers=False,
+            hide_arm=False,
 
             **kwargs
     ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
+        self.hide_arm = hide_arm
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
@@ -75,6 +78,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
+        if self.hide_arm:
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_hidden_arm.xml')
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
@@ -301,3 +306,49 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         super().set_env_state(base_state)
         self._state_goal = goal
         self._set_goal_marker(goal)
+
+class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
+
+    def __init__(
+        self,
+        x_axis=0.0,
+        *args,
+        **kwargs
+    ):
+        self.quick_init(locals())
+        super().__init__()
+
+        self.x_axis = x_axis
+        pos_arrays = [
+            self.hand_and_obj_space.low[:3],
+            self.hand_and_obj_space.low[3:],
+            self.hand_and_obj_space.high[:3],
+            self.hand_and_obj_space.high[3:],
+        ]
+        for pos in pos_arrays:
+            pos[0] = x_axis
+
+        self.observation_space = Dict([
+            ('observation', self.hand_and_obj_space),
+            ('desired_goal', self.hand_and_obj_space),
+            ('achieved_goal', self.hand_and_obj_space),
+            ('state_observation', self.hand_and_obj_space),
+            ('state_desired_goal', self.hand_and_obj_space),
+            ('state_achieved_goal', self.hand_and_obj_space),
+        ])
+        self.action_space = Box(
+            np.array([-1, -1, -1]),
+            np.array([1, 1, 1]),
+        )
+
+    def viewer_setup(self):
+        sawyer_pick_and_place_camera(self.viewer.cam)
+
+    def convert_2d_action(self, action):
+        cur_x_pos = self.get_endeff_pos()[0]
+        adjust_x = self.x_axis - cur_x_pos
+        return np.r_[adjust_x, action]
+
+    def step(self, action):
+        action = self.convert_2d_action(action)
+        return super().step(action)
