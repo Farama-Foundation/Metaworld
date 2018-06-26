@@ -2,7 +2,6 @@ from collections import OrderedDict
 import numpy as np
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from gym.spaces import Box, Dict
-from multiworld.envs.mujoco.sawyer_reach_torque.generate_goal_data_set import generate_goal_data_set
 from multiworld.core.serializable import Serializable
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_stat_in_paths, \
@@ -23,13 +22,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  indicator_threshold=.05,
                  goal_low=None,
                  goal_high=None,
-                 use_goal_caching=False,
-                 cached_goal_generation_function=generate_goal_data_set,
-                 num_cached_goals=100,
-                 cached_goal_keys=('desired_goal', 'joint_desired_goal'),
-                 goal_sizes=(3, 7),
-                 obs_to_goal_fctns=None,
-                 observation_keys=('state_observation', 'state_observation')
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -69,33 +61,14 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.achieved_goal_space),
         ])
-        self.use_goal_caching=use_goal_caching
-        self.num_cached_goals = num_cached_goals
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self.use_safety_box=use_safety_box
         self.prev_qpos = self.init_angles.copy()
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
-        if self.use_goal_caching:
-            goal_generation_dict = dict()
-            if obs_to_goal_fctns is None:
-                obs_to_goal_fctns = [
-                    lambda x: x[-3:],
-                    lambda x:x[:7]
-                ]
-            for goal_key, goal_size, obs_to_goal_fctn, obs_key in zip(cached_goal_keys, goal_sizes, obs_to_goal_fctns,
-                                                                      observation_keys):
-                goal_generation_dict[goal_key] = [goal_size, obs_to_goal_fctn, obs_key]
-            self._state_goal=np.zeros(3)
-            self._goal_angles = np.zeros(7)
-            self.goals = cached_goal_generation_function(self, goal_generation_dict=goal_generation_dict,
-                                                         num_goals=self.num_cached_goals)
-            self.goals['state_desired_goal'] = self.goals['desired_goal']
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
-        if self.use_goal_caching:
-            self._goal_angles = goal['joint_desired_goal']
         self.reset()
 
     @property
@@ -180,35 +153,22 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def _get_info(self):
         hand_distance = np.linalg.norm(self._state_goal - self.get_endeff_pos())
-        if self.use_goal_caching:
-            info =  dict(
-                hand_distance=hand_distance,
-                hand_success=float(hand_distance < self.indicator_threshold),
-            )
-            abs_angle_dist = np.abs(self._goal_angles - self._get_env_obs()[:7])
-            for i in range(7):
-                info['Joint Angle Dim '+str(i+1)] = abs_angle_dist[i]
-            return info
-        else:
-            return dict(
-                hand_distance=hand_distance,
-                hand_success=float(hand_distance < self.indicator_threshold),
-            )
+        return dict(
+            hand_distance=hand_distance,
+            hand_success=float(hand_distance < self.indicator_threshold),
+        )
 
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
 
-    def reset(self, _resample_on_reset=True):
+    def reset(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
         angles[:] = self.init_angles
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        if _resample_on_reset:
-            goal = self.sample_goal()
-            self._state_goal = goal['state_desired_goal']
-            if self.use_goal_caching:
-                self._goal_angles = goal['joint_desired_goal']
+        goal = self.sample_goal()
+        self._state_goal = goal['state_desired_goal']
         self.set_goal_xyz(self._state_goal)
         self.sim.forward()
         self.prev_qpos=self.data.qpos.copy()
@@ -245,21 +205,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-        if self.use_goal_caching:
-            for stat_name in ['Joint Angle Dim '+str(i+1) for i in range(7)]:
-                stat_name = stat_name
-                stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-                statistics.update(create_stats_ordered_dict(
-                    '%s%s' % (prefix, stat_name),
-                    stat,
-                    always_show_all_stats=True,
-                ))
-                statistics.update(create_stats_ordered_dict(
-                    'Final %s%s' % (prefix, stat_name),
-                    [s[-1] for s in stat],
-                    always_show_all_stats=True,
-                ))
-
         for stat_name in [
             'hand_distance',
             'hand_success',
@@ -292,13 +237,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         }
 
     def sample_goals(self, batch_size):
-        if self.use_goal_caching:
-            idxs = np.random.randint(0, self.num_cached_goals, batch_size)
-            return {
-                'desired_goal':self.goals['desired_goal'][idxs],
-                'state_desired_goal':self.goals['state_desired_goal'][idxs],
-                'joint_desired_goal':self.goals['joint_desired_goal'][idxs],
-            }
         if self.fix_goal:
             goals = np.repeat(
                 self.fixed_goal.copy()[None],

@@ -165,15 +165,14 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
             raise NotImplementedError("Invalid/no reward type.")
         return reward
 
-    def reset(self, resample_on_reset=True):
+    def reset(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
         angles[:] = self.init_angles
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        if resample_on_reset:
-            goal = self.sample_goal()
-            self._state_goal = goal['state_desired_goal']
+        goal = self.sample_goal()
+        self._state_goal = goal['state_desired_goal']
         return self._get_obs()
 
     @property
