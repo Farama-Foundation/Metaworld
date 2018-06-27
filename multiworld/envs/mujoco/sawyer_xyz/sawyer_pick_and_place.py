@@ -214,7 +214,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def sample_goals(self, batch_size, p_obj_in_hand=0.8):
+    def sample_goals(self, batch_size, p_obj_in_hand=0.9):
         if self.fix_goal:
             goals = np.repeat(
                 self.fixed_goal.copy()[None],
@@ -319,12 +319,13 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
+        oracle_resets=False,
         *args,
         **kwargs
     ):
         self.quick_init(locals())
         super().__init__(*args, **kwargs)
-
+        self.oracle_resets = oracle_resets
         self.x_axis = x_axis
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
@@ -347,6 +348,17 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
         )
+
+    def reset_model(self):
+        self._reset_hand()
+        goal = self.sample_goal()
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
+
+        self._set_obj_xyz(self.obj_init_pos)
+        if self.oracle_resets:
+            self.set_to_goal(self.sample_goal())
+        return self._get_obs()
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
@@ -399,7 +411,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             self.do_simulation(np.array([-1]))
         error = self.data.get_site_xpos('endeffector') - hand_goal
         corrected_obj_pos = state_goal[3:] + error
-        print(corrected_obj_pos)
         corrected_obj_pos[0] = self.x_axis
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_pos[2])
         self._set_obj_xyz(corrected_obj_pos)

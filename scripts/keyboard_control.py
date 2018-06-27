@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
-    SawyerPickAndPlaceEnv
+    SawyerPickAndPlaceEnvYZ
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 
@@ -46,7 +46,7 @@ char_to_action = {
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
-env = SawyerPickAndPlaceEnv()
+env = SawyerPickAndPlaceEnvYZ()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
