@@ -269,7 +269,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         return r
 
     def set_to_goal(self, goal):
-        pass
+        raise NotImplementedError()
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
