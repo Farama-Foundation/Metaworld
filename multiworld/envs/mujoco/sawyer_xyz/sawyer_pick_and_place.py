@@ -79,7 +79,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     @property
     def model_name(self):
         if self.hide_arm:
+            print('hiding')
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_hidden_arm.xml')
+        print('not hiding')
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
@@ -316,7 +318,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         **kwargs
     ):
         self.quick_init(locals())
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         self.x_axis = x_axis
         pos_arrays = [
@@ -350,5 +352,17 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.r_[adjust_x, action]
 
     def step(self, action):
+        new_obj_pos = self.data.get_site_xpos('obj')
+        new_obj_pos[0] = self.x_axis
+        self._set_obj_xyz(new_obj_pos)
+
         action = self.convert_2d_action(action)
         return super().step(action)
+
+    def _reset_hand(self):
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.23]))
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip)
+
+

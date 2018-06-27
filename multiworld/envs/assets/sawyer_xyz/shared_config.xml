@@ -41,7 +41,12 @@ Usage:
             cone="elliptic"
             impratio="3"
             tolerance="1e-10"
-    />
+            />
+    <default>
+        <joint limited="false" damping="1" />
+        <geom contype="1" conaffinity="1" condim="3" friction=".5 .1 .1" density="1000" margin="0.0001" />
+    </default>
+    <size njmax="500" nconmax="100" />
 
     <default>
         <joint limited="true"
@@ -49,6 +54,7 @@ Usage:
                stiffness="0"
                armature=".1"
                user="0"/>
+
         <geom solref="0.008 1"
               solimp="0.95 0.95 0.01"
               user="0"
