@@ -86,7 +86,7 @@ Usage:
                         <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 0" mesh="l2" />
                         <geom size="0.06 0.17" pos="0 0 0.08" type="cylinder" rgba="0.5 0.1 0.1 0" />
                         <body name="right_l3" pos="0 -0.042 0.26" quat="0.707107 -0.707107 0 0">
-                            <site name="armsite" pos="0 0 0" size="0.01" />
+                            <site name="armsite" pos="0 0 0" size="0.01" rgba="0.0 0.0 0.0 0.0" />
                             <inertial pos="-0.0048135 -0.0281 -0.084154" quat="0.902999 0.385391 -0.0880901 0.168247" mass="2.5097" diaginertia="0.0102404 0.0096997 0.00369622" />
                             <joint name="right_j3" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0439 3.0439" damping="10"/>
                             <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 0" mesh="l3" />
@@ -122,7 +122,7 @@ Usage:
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <body name="hand" pos="0 0 0"
                                                   quat="-1 0 1 0">
-                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
+                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" rgba="0.0 0.0 0.0 0.0" />
                                                     <body name="rightclaw" pos=".03 -.03 0.0" >
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
@@ -130,16 +130,16 @@ Usage:
                                                                 euler="0 0 0.2"
                                                         />
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
-                                                        <site name="endeffector2" pos=".015 .01 0" size="0.008" />
+                                                        <site name="endeffector2" pos=".015 .01 0" size="0.008"  rgba="0.0 0.0 0.0 0.0" />
                                                     </body>
 
-                                                    <body name="leftclaw" pos=".03 .025 0">
+                                                    <body name="leftclaw" pos=".03 .03 0">
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
                                                                 name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
                                                                 euler="0 0 -0.2"
                                                         />
-                                                        <site name="endeffector" pos=".015 -.01 0" size="0.008" />
+                                                        <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0" />
                                                     </body>
                                                 </body>
 <!--  ================= END GRIPPER ================= /-->
@@ -177,7 +177,7 @@ Usage:
         <!--For debugging, set the alpha to 1-->
         <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1" size="0.1 0.02 0.02" type="box"></geom>-->
         <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.0 0.5 0.5 1" size="0.01" type="sphere"></geom>-->
-        <site pos="0 0 0" rgba="0.0 0.5 0.5 1" size="0.01" type="sphere"></site>
+        <site pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.01" type="sphere"></site>
     </body>
 
 </mujoco>

@@ -38,10 +38,6 @@ Usage:
     <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes/sawyer"/>
     <size njmax="6000" nconmax="6000"/>
     <option gravity="0 0 -9.81" iterations="50" integrator="Euler" timestep="0.003" cone="elliptic" impratio="3" tolerance="1e-10" />
-    <default>
-        <joint limited="false" damping="1" />
-        <geom contype="1" conaffinity="1" condim="3" friction=".5 .1 .1" density="1000" margin="0.0001" />
-    </default>
     <size njmax="500" nconmax="100" />
 
     <default>
@@ -62,10 +58,5 @@ Usage:
             <joint damping="5"/>
         </default>
     </default>
-
-    <equality>
-        <weld body1="mocap" body2="leftclaw" solref="0.01"></weld>
-    </equality>
-
 
 </mujoco>
