@@ -125,13 +125,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def reset(self):
-        self.sim.reset()
-        ob = self.reset_model()
-        if self.viewer is not None:
-            self.viewer_setup()
-        return ob
-
     """
     Multitask functions
     """
