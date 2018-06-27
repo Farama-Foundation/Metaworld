@@ -63,7 +63,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             *args,
             hand_low=(-0.2, 0.55, 0.05),
             hand_high=(0.2, 0.75, 0.3),
-            action_scale=1./100,
+            action_scale=2./100,
             **kwargs
     ):
         super().__init__(*args, **kwargs)

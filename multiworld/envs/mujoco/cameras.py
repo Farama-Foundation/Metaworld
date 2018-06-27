@@ -56,3 +56,29 @@ def init_sawyer_camera_v3(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+
+def init_sawyer_camera_v4(camera):
+    """
+    This is the same camera used in old experiments (circa 6/7/2018)
+    """
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 0.3
+    camera.elevation = -35
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
+
+def init_sawyer_camera_v5(camera):
+    """
+    Purposely zoomed out to be hard.
+    """
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 1
+    camera.elevation = -35
+    camera.azimuth = 270
+    camera.trackbodyid = -1

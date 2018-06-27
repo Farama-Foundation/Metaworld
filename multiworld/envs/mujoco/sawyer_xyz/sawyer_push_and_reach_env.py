@@ -7,6 +7,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
+import mujoco_py
 
 class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
@@ -18,7 +19,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             indicator_threshold=0.06,
 
             fix_goal=False,
-            fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
+            fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
             goal_low=None,
             goal_high=None,
 
@@ -159,9 +160,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def _set_puck_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
-        qpos[11:15] = np.array([1, 0, 0, 0])
-        qvel[8:15] = 0
+        # qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
+        # qpos[11:15] = np.array([1, 0, 0, 0])
+        # qvel[8:15] = 0
+        qpos[7:10] = np.hstack((pos.copy(), np.array([0.02])))
+        qpos[10:14] = np.array([1, 0, 0, 0])
+        qvel[7:14] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -174,10 +178,35 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
+        velocities = self.data.qvel.copy()
+        angles = np.array(self.init_angles)
+        self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
+            self.data.set_mocap_pos('mocap', np.array([0, 0.4, 0.02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation(None, self.frame_skip)
+        #     self.do_simulation(None, self.frame_skip)
+        sim = self.sim
+        if sim.model.nmocap > 0 and sim.model.eq_data is not None:
+            for i in range(sim.model.eq_data.shape[0]):
+                if sim.model.eq_type[i] == mujoco_py.const.EQ_WELD:
+                    # Define the xyz + quat of the mocap relative to the hand
+                    sim.model.eq_data[i, :] = np.array(
+                        [0., 0., 0., 1., 0., 0., 0.]
+                    )
+
+    @property
+    def init_angles(self):
+        return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
+                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
+                1.49353907e+00,
+                1.80196716e-03, 7.40415706e-01, 2.09895360e-02,
+                1, 0, 0, 0
+                #- 3.62518873e-02,
+                # 6.13435141e-01, 2.09686080e-02,  7.07106781e-01,
+                # 1.48979724e-14, 7.07106781e-01, - 1.48999170e-14,
+                # 0, 0.6, 0.02,
+                # 1, 0, 1, 0,
+                ]
 
     """
     Multitask functions
@@ -190,12 +219,13 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def set_to_goal(self, goal):
         hand_goal = goal['state_desired_goal'][:3]
-        puck_goal = goal['state_desired_goal'][3:]
-        for _ in range(30):
+        for _ in range(10):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             # keep gripper closed
-            self.do_simulation(np.array([1]))
+            # self.do_simulation(np.array([1]), self.frame_skip)
+            self.do_simulation(None, self.frame_skip)
+        puck_goal = goal['state_desired_goal'][3:]
         self._set_puck_xy(puck_goal)
         self.sim.forward()
 
@@ -293,7 +323,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
 
 class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
-    def __init__(self, *args, hand_z_position=0.055, **kwargs):
+    def __init__(self, *args, hand_z_position=0.02, **kwargs):
         self.quick_init(locals())
         SawyerPushAndReachXYZEnv.__init__(self, *args, **kwargs)
         self.hand_z_position = hand_z_position
