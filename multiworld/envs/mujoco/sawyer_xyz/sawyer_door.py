@@ -17,7 +17,6 @@ from railrl.policies.simple import ZeroPolicy
 
 
 class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta):
-    #TODO: MAKE THIS A SUBCLASS OF SAWYER MOCAP BASE
     def __init__(self,
                      frame_skip=50,
                      goal_low=-.5,
