@@ -24,6 +24,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high=None,
 
             hide_goal_markers=False,
+            init_puck_z=0.02,
 
             **kwargs
     ):
@@ -69,7 +70,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_desired_goal', self.hand_and_puck_space),
             ('state_achieved_goal', self.hand_and_puck_space),
         ])
-        self.init_puck_z = self.get_puck_pos()[2]
+        self.init_puck_z = init_puck_z
 
     @property
     def model_name(self):
@@ -87,8 +88,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
         self.set_xyz_action(action)
-        # keep gripper closed
-        self.do_simulation(np.array([1]))
+        u = np.zeros(7)
+        self.do_simulation(u)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
@@ -163,8 +164,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         # qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
         # qpos[11:15] = np.array([1, 0, 0, 0])
         # qvel[8:15] = 0
-        qpos[7:10] = np.hstack((pos.copy(), np.array([0.02])))
-        qpos[10:14] = np.array([1, 0, 0, 0])
+        qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
+        # qpos[10:14] = np.array([1, 0, 0, 0])
         qvel[7:14] = 0
         self.set_state(qpos, qvel)
 
@@ -175,6 +176,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
 
         self._set_puck_xy(self.sample_puck_xy())
+        self.reset_mocap_welds()
         return self._get_obs()
 
     def _reset_hand(self):

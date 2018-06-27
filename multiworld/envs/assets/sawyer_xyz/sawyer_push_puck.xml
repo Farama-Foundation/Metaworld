@@ -22,7 +22,14 @@
         <site name="puck-goal-site" pos="0 0 0" size="0.01"
               rgba="0.5 0.5 1 0.5"/>
 	</worldbody>
-    <!--<actuator>-->
+    <actuator>
+        <motor joint="right_j0" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j1" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j2" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j3" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j4" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j5" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j6" ctrlrange="-100.0 100.0" ctrllimited="false"/>
        <!--<motor gear="100" joint="rc_close"  />-->
-    <!--</actuator>-->
+    </actuator>
 </mujoco>
