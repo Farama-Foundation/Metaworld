@@ -346,14 +346,16 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
                  reward_type='angle_difference',
                  indicator_threshold=(.02, .03),
                  fix_goal=False,
-                 fixed_goal=(0.15, 0.6, 0.3),
+                 fixed_goal=(0.15, 0.6, 0.3, 0),
                  target_pos_scale=0,
                  target_angle_scale=1,
+                 max_x_pos=.1,
+                 max_y_pos=.7,
                  ):
 
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
-        MujocoEnv.__init__(self, self.model_path, frame_skip=frame_skip)
+        MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -385,6 +387,10 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         self.target_pos_scale = target_pos_scale
         self.action_reward_scale = action_reward_scale
         self.target_angle_scale = target_angle_scale
+
+        self.max_x_pos = max_x_pos
+        self.max_y_pos = max_y_pos
+        self.min_y_pos = .5
         
         self.reset()
         self.reset_mocap_welds()
@@ -403,7 +409,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         )
 
     def _get_info(self):
-        angle_diff = np.abs(self.get_door_angle()-self._state_goal[-1])
+        angle_diff = np.abs(self.get_door_angle()-self._state_goal[-1])[0]
         hand_dist = np.linalg.norm(self.get_endeff_pos()-self._state_goal[:3])
         info = dict(
             angle_difference=angle_diff,
@@ -417,12 +423,12 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
-        actual_angle = achieved_goals[-1]
-        goal_angle = desired_goals[-1]
-        pos = achieved_goals[:3]
-        goal_pos = desired_goals[:3]
+        actual_angle = achieved_goals[:, -1]
+        goal_angle = desired_goals[:, -1]
+        pos = achieved_goals[:, :3]
+        goal_pos = desired_goals[:, :3]
         angle_diff = np.abs(actual_angle - goal_angle)
-        pos_dist = np.linalg.norm(pos - goal_pos)
+        pos_dist = np.linalg.norm(pos - goal_pos, axis=1)
         if self.reward_type == 'angle_difference':
             r = - (angle_diff*self.target_angle_scale+pos_dist*self.target_pos_scale)
         elif self.reward_type == 'hand_success':
@@ -452,7 +458,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         statistics = OrderedDict()
         for stat_name in [
             'angle_difference',
-            'angle_success'
+            'angle_success',
             'hand_distance',
             'hand_success',
             'total_distance',
@@ -470,6 +476,28 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
                 always_show_all_stats=True,
             ))
         return statistics
+
+    def mocap_set_action(self, action):
+        pos_delta = action[None]
+        self.reset_mocap2body_xpos()
+        new_mocap_pos = self.data.mocap_pos + pos_delta
+        new_mocap_pos[0, 0] = np.clip(
+            new_mocap_pos[0, 0],
+            -self.max_x_pos,
+            self.max_x_pos,
+        )
+        new_mocap_pos[0, 1] = np.clip(
+            new_mocap_pos[0, 1],
+            self.min_y_pos,
+            self.max_y_pos,
+        )
+        new_mocap_pos[0, 2] = np.clip(
+            0.06,
+            0,
+            0.5,
+        )
+        self.data.set_mocap_pos('mocap', new_mocap_pos)
+        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
 
 class SawyerDoorPullOpenEnv(SawyerDoorEnv):

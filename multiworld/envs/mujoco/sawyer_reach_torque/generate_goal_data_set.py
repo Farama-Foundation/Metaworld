@@ -3,7 +3,7 @@ from railrl.exploration_strategies.ou_strategy import OUStrategy
 import numpy as np
 from railrl.policies.simple import RandomPolicy
 import os.path as osp
-def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None, use_cached_dataset=False, show=False, action_scale=1/10):
+def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None, use_cached_dataset=False, action_scale=1/10):
     if use_cached_dataset and osp.isfile('/tmp/goals' + str(num_goals) + '.npy'):
         goal_dict = np.load('/tmp/goals' + str(num_goals) + '.npy').item()
         print("loaded data from saved file")
@@ -28,8 +28,6 @@ def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None,
         obs, _, _, _ = env.step(
             action
         )
-        if show:
-            pass
         print(i)
         for goal_key in goal_generation_dict:
             goal_size, obs_to_goal_fn, obs_key = goal_generation_dict[goal_key]
