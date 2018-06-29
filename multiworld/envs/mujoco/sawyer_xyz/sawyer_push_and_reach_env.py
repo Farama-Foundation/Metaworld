@@ -47,6 +47,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low = np.hstack((self.hand_low, puck_low))
         if goal_high is None:
             goal_high = np.hstack((self.hand_high, puck_high))
+        self.goal_low = np.array(goal_low)
+        self.goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -240,9 +242,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             goals = np.random.uniform(
-                self.hand_and_puck_space.low,
-                self.hand_and_puck_space.high,
-                size=(batch_size, self.hand_and_puck_space.low.size),
+                self.goal_low,
+                self.goal_high,
+                size=(batch_size, self.goal_low.size),
             )
         return {
             'desired_goal': goals,
