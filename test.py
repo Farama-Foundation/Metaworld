@@ -3,7 +3,11 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place \
 import time
 import numpy as np
 
-env = SawyerPickAndPlaceEnvYZ(hide_arm=True, hide_goal_markers=True)
+env = SawyerPickAndPlaceEnvYZ(
+    hide_arm=True,
+    hide_goal_markers=True,
+    obj_init_positions=((0, 0.575, 0.02),(0, 0.625, 0.02)),
+)
 env.reset()
 env.render()
 for i in range(1000):
@@ -20,9 +24,10 @@ for i in range(1000):
     obs = env._get_obs()
     env.render()
     env.reset()"""
-    env.set_to_goal(env.sample_goal())
-    for _ in range(1):
-        env.step(np.array([0.0, 0.0, 1.0]))
+#    env.set_to_goal(env.sample_goal())
+    action = env.action_space.sample()
+    for _ in range(40):
+        env.step(action)
         env.render()
     print(env._get_obs())
 

@@ -2,7 +2,7 @@
 <mujoco>
     <include file="shared_config.xml"></include>
     <worldbody>
-        <include file="sawyer_xyz_base.xml"></include>
+        <include file="sawyer_xyz_base_hidden_arm.xml"></include>
         <body name="obj" pos="0 0 0.1">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>

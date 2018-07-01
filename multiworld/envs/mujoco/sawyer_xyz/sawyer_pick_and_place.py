@@ -18,7 +18,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             reward_type='hand_and_obj_distance',
             indicator_threshold=0.06,
 
-            obj_init_pos=(0, 0.6, 0.02),
+            obj_init_positions=((0, 0.6, 0.02),),
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
@@ -51,7 +51,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
 
-        self.obj_init_pos = np.array(obj_init_pos)
+        self.obj_init_z = obj_init_positions[0][2]
+        self.obj_init_positions = np.array(obj_init_positions)
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
@@ -175,7 +176,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
 
-        self._set_obj_xyz(self.obj_init_pos)
+        obj_idx = np.random.choice(len(self.obj_init_positions))
+        self._set_obj_xyz(self.obj_init_positions[obj_idx])
         return self._get_obs()
 
     def _reset_hand(self):
@@ -236,7 +238,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         goals[:num_objs_in_hand, 5] += 0.00
 
         # Put object one the table (not floating)
-        goals[num_objs_in_hand:, 5] = self.obj_init_pos[2]
+        goals[num_objs_in_hand:, 5] = self.obj_init_z
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -350,12 +352,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         )
 
     def reset_model(self):
-        self._reset_hand()
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
-
-        self._set_obj_xyz(self.obj_init_pos)
+        super().reset_model()
         if self.oracle_resets:
             self.set_to_goal(self.sample_goal())
         return self._get_obs()
@@ -412,7 +409,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         error = self.data.get_site_xpos('endeffector') - hand_goal
         corrected_obj_pos = state_goal[3:] + error
         corrected_obj_pos[0] = self.x_axis
-        corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_pos[2])
+        corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
         action = np.array(1 - 2 * (np.random.random() > .7))
         for _ in range(3):
