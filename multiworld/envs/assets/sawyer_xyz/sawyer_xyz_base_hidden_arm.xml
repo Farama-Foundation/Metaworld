@@ -132,7 +132,6 @@ Usage:
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
                                                         <site name="endeffector2" pos=".015 .01 0" size="0.008"  rgba="0.0 0.0 0.0 0.0" />
                                                     </body>
-
                                                     <body name="leftclaw" pos=".03 .03 0">
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
