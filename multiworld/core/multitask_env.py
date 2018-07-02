@@ -4,10 +4,6 @@ import numpy as np
 
 
 class MultitaskEnv(metaclass=abc.ABCMeta):
-    def __init__(self, norm_order=1):
-        self.quick_init(locals())
-        self.norm_order = norm_order
-
     @abc.abstractmethod
     def get_goal(self):
         """
@@ -46,8 +42,7 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         next_obs = {
             k: v[None] for k, v in obs.items()
         }
-        result = self.compute_rewards(actions, next_obs)[0]
-        return result
+        return self.compute_rewards(actions, next_obs)[0]
 
     def get_diagnostics(self, *args, **kwargs):
         """
