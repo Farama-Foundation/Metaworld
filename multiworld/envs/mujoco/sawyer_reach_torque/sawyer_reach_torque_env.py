@@ -185,15 +185,22 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                 hand_distance=hand_distance,
                 hand_success=float(hand_distance < self.indicator_threshold),
             )
-            abs_angle_dist = np.abs(self._goal_angles - self._get_env_obs()[:7])
+            abs_angle_dist = self.compute_angle_difference(self._goal_angles, self._get_env_obs()[:7])
             for i in range(7):
-                info['Joint Angle Dim '+str(i+1)] = abs_angle_dist[i]
+                info['Joint Angle Difference Dim '+str(i+1)] = abs_angle_dist[i]
             return info
         else:
             return dict(
                 hand_distance=hand_distance,
                 hand_success=float(hand_distance < self.indicator_threshold),
             )
+
+    def compute_angle_difference(self, angles1, angles2):
+        angles1 = angles1 % (2*np.pi)
+        angles2 = angles2 % (2*np.pi)
+        deltas = np.abs(angles1 - angles2)
+        differences = np.minimum(2 * np.pi - deltas, deltas)
+        return differences
 
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
@@ -242,7 +249,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         if self.use_goal_caching:
-            for stat_name in ['Joint Angle Dim '+str(i+1) for i in range(7)]:
+            for stat_name in ['Joint Angle Difference Dim '+str(i+1) for i in range(7)]:
                 stat_name = stat_name
                 stat = get_stat_in_paths(paths, 'env_infos', stat_name)
                 statistics.update(create_stats_ordered_dict(

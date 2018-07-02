@@ -567,9 +567,9 @@ if __name__ == "__main__":
     import pygame
     from pygame.locals import QUIT, KEYDOWN
 
-    # pygame.init()
-    #
-    # screen = pygame.display.set_mode((400, 300))
+    pygame.init()
+
+    screen = pygame.display.set_mode((400, 300))
 
     char_to_action = {
         'w': np.array([0, 1, 0, 0]),
@@ -647,10 +647,10 @@ if __name__ == "__main__":
             if np.abs(env.data.qpos[0]+.4) < .001:
                 print(env.get_endeff_pos())
                 break
-            obs, reward, _, info = env.step(action)
-            print(obs['state_observation'][-1])
+            # obs, reward, _, info = env.step(action)
+            # print(obs['state_observation'][-1])
             # print(env.get_goal()['desired_goal'])
-            # env.set_to_goal(env.get_goal()['desired_goal'])
+            env.set_to_goal_pos(np.array([-.15, .6, -.35]))
             env.render()
             print(t)
             # if done:
