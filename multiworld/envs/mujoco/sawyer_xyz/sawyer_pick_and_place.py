@@ -19,6 +19,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             indicator_threshold=0.06,
 
             obj_init_positions=((0, 0.6, 0.02),),
+            random_init=False,
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
@@ -49,6 +50,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high = np.hstack((self.hand_high, obj_high))
 
         self.reward_type = reward_type
+        self.random_init = random_init
         self.indicator_threshold = indicator_threshold
 
         self.obj_init_z = obj_init_positions[0][2]
@@ -176,8 +178,17 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
 
-        obj_idx = np.random.choice(len(self.obj_init_positions))
-        self._set_obj_xyz(self.obj_init_positions[obj_idx])
+        if self.random_init:
+            goal = np.random.uniform(
+                self.hand_and_obj_space.low[3:],
+                self.hand_and_obj_space.high[3:],
+                size=(1, self.hand_and_obj_space.low.size - 3),
+            )
+            goal[:, 2] = self.obj_init_z
+            self._set_obj_xyz(goal)
+        else:
+            obj_idx = np.random.choice(len(self.obj_init_positions))
+            self._set_obj_xyz(self.obj_init_positions[obj_idx])
         return self._get_obs()
 
     def _reset_hand(self):
@@ -321,13 +332,13 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
-        oracle_resets=False,
+        oracle_reset_prob=0.0,
         *args,
         **kwargs
     ):
         self.quick_init(locals())
         super().__init__(*args, **kwargs)
-        self.oracle_resets = oracle_resets
+        self.oracle_reset_prob = oracle_reset_prob
         self.x_axis = x_axis
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
@@ -351,9 +362,13 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([1, 1, 1]),
         )
 
+    def mode(self, name):
+        if name == 'test' or name == 'video_vae' or name == 'video_env':
+            self.oracle_reset_prob = 0.0
+
     def reset_model(self):
         super().reset_model()
-        if self.oracle_resets:
+        if self.oracle_reset_prob > np.random.random():
             self.set_to_goal(self.sample_goal())
         return self._get_obs()
 
