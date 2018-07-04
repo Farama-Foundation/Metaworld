@@ -1,4 +1,4 @@
-
+import numpy as np
 
 def create_sawyer_camera_init(
         lookat=(0, 0.85, 0.3),
@@ -81,4 +81,73 @@ def init_sawyer_camera_v5(camera):
     camera.distance = 1
     camera.elevation = -35
     camera.azimuth = 270
+    camera.trackbodyid = -1
+
+
+def sawyer_xyz_camera(camera):
+    # TODO: reformat or delete
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+
+    # 3rd person view
+    cam_dist = 0.3
+    rotation_angle = 270
+    cam_pos = np.array([0, 1.0, 0.5, cam_dist, -30, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
+    camera.trackbodyid = -1
+
+
+def sawyer_xyz_camera_v2(camera):
+    # TODO: reformat or delete
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+
+    # 3rd person view
+    cam_dist = 0.3
+    rotation_angle = 270
+    cam_pos = np.array([0, 1.0, 0.65, cam_dist, -30, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
+    camera.trackbodyid = -1
+
+
+def sawyer_xyz_reacher_camera(camera):
+    # TODO: reformat or delete
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+
+    # 3rd person view
+    cam_dist = .5
+    rotation_angle = 270
+    cam_pos = np.array([0, 1.0, 0.9, cam_dist, -45, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
+    camera.trackbodyid = -1
+
+
+def sawyer_door_env_camera_closer(camera):
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+    cam_dist = 0.1
+    rotation_angle = 0
+    cam_pos = np.array([0, 0.725, .9, cam_dist, -90, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
