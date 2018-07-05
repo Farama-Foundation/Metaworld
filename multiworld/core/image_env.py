@@ -6,6 +6,7 @@ from PIL import Image
 from gym.spaces import Box, Dict
 
 from multiworld.core.wrapper_env import ProxyEnv
+from multiworld.envs.mujoco.sawyer_reach_torque.generate_goal_data_set import generate_goal_data_set
 
 
 class ImageEnv(ProxyEnv):
@@ -17,6 +18,16 @@ class ImageEnv(ProxyEnv):
             transpose=False,
             grayscale=False,
             normalize=False,
+            use_goal_caching=False,
+            cached_goal_generation_function=generate_goal_data_set,
+            num_cached_goals=100,
+            cached_goal_keys=None,
+            goal_sizes=None,
+            obs_to_goal_fctns=None,
+            observation_keys=None,
+            use_cached_dataset=False,
+            reward_type='image_distance',
+            threshold=10,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -52,20 +63,47 @@ class ImageEnv(ProxyEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
+        self.reward_type=reward_type
+        self.threshold = threshold
+        self.use_goal_caching = use_goal_caching
+        if self.use_goal_caching:
+            self._img_goal = np.random.uniform(0, 1, self.image_length)
+            # hardcoded for torque control for now
+            cached_goal_keys = ['image_desired_goal', 'state_desired_goal', 'joint_desired_goal']
+            goal_sizes = [(self.imsize ** 2) * 3, 3, 7]
+            obs_to_goal_fctns = [lambda x: x, lambda x: x[-3:], lambda x: x[:7]]
+            observation_keys = ['image_observation', 'state_observation', 'state_observation']
+            goal_generation_dict = dict()
+            for goal_key, goal_size, obs_to_goal_fctn, obs_key in zip(cached_goal_keys, goal_sizes, obs_to_goal_fctns,
+                                                                      observation_keys):
+                goal_generation_dict[goal_key] = [goal_size, obs_to_goal_fctn, obs_key]
+            self.goals = cached_goal_generation_function(self, goal_generation_dict=goal_generation_dict, num_goals=num_cached_goals, use_cached_dataset=use_cached_dataset)
+            self.goals['desired_goal'] = self.goals['image_desired_goal']
+            self._wrapped_env.goals = self.goals
+            self._wrapped_env.use_goal_caching = True
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
+        reward = self.compute_reward(action, new_obs)
         return new_obs, reward, done, info
 
     def reset(self, _resample_on_reset=True):
         obs = self.wrapped_env.reset(_resample_on_reset=_resample_on_reset)
         if _resample_on_reset:
-            env_state = self.wrapped_env.get_env_state()
-            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-            self._img_goal = self._get_flat_img()
-            self.wrapped_env.set_env_state(env_state)
-        return self._update_obs(obs)
+            if self.use_goal_caching:
+                idx = np.random.randint(0, self.num_cached_goals)
+                self._img_goal = self.goals['image_desired_goal'][idx]
+                self._wrapped_env._state_goal = self.goals['state_desired_goal'][idx]
+                self._wrapped_env._goal_angles = self.goals['joint_desired_goal'][idx]
+                for key in self.goals.keys():
+                    obs[key] = self.goals[key][idx]
+            else:
+                env_state = self.wrapped_env.get_env_state()
+                self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+                self._img_goal = self._get_flat_img()
+                self.wrapped_env.set_env_state(env_state)
+            return self._update_obs(obs)
 
     def _update_obs(self, obs):
         img_obs = self._get_flat_img()
@@ -105,6 +143,12 @@ class ImageEnv(ProxyEnv):
         return goal
 
     def sample_goals(self, batch_size):
+        if self.use_goal_caching:
+            idxs = np.random.randint(0, self.num_cached_goals, batch_size)
+            goals = dict()
+            for key in self.goals.keys():
+                goals[key] = self.goals[key][idxs]
+            return goals
         if batch_size > 1:
             warnings.warn("Sampling goal images is slow")
         img_goals = np.zeros((batch_size, self.image_length))
@@ -117,8 +161,16 @@ class ImageEnv(ProxyEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
-        return - np.linalg.norm(achieved_goals - desired_goals, axis=1)
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['achieved_goal']
+        desired_goals = obs['desired_goal']
+        dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
+        if self.reward_type=='image_distance':
+            return -dist
+        elif self.reward_type=='image_sparse':
+            return -(dist<self.threshold).astype(float)
+        else:
+            raise NotImplementedError()
 
 def normalize_image(image):
     assert image.dtype == np.uint8

@@ -347,7 +347,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
                  indicator_threshold=(.02, .03),
                  fix_goal=False,
                  fixed_goal=(0.15, 0.6, 0.3, 0),
-                 target_pos_scale=0,
+                 target_pos_scale=0.25,
                  target_angle_scale=1,
                  max_x_pos=.1,
                  max_y_pos=.7,
@@ -374,7 +374,6 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
             np.array([-1, -1, -1, -max_angle]),
             np.array([1, 1, 1, max_angle]),
         )
-
         self.observation_space = Dict([
             ('observation', self.state_space),
             ('desired_goal', self.state_space),
@@ -451,6 +450,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         self.set_state(qpos, qvel)
 
     def set_to_goal(self, goal):
+        goal = goal['state_desired_goal']
         self.set_to_goal_pos(goal[:3])
         self.set_to_goal_angle(goal[-1])
 
@@ -528,11 +528,12 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
 class SawyerDoorPullOpenActionLimitedEnv(SawyerDoorPullOpenEnv):
-    def __init__(self, max_x_pos=.1, min_y_pos=.5, **kwargs):
+    def __init__(self, max_x_pos=.1, min_y_pos=.4, max_y_pos=.6, use_line=False, **kwargs):
         self.quick_init(locals())
         self.max_x_pos = max_x_pos
         self.min_y_pos = min_y_pos
-        self.max_y_pos = .7
+        self.max_y_pos = max_y_pos
+        self.use_line=use_line
         super().__init__(**kwargs)
 
     def mocap_set_action(self, action):
@@ -558,10 +559,24 @@ class SawyerDoorPullOpenActionLimitedEnv(SawyerDoorPullOpenEnv):
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def set_to_goal(self, goal):
-        ee_pos = np.random.uniform(np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                                   np.array([self.max_x_pos, .6, .06]))
+        goal = goal['state_desired_goal']
+        if self.use_line:
+            ymax = self.min_y_pos
+            x_max = (ymax -.6)/np.tan(goal)[0] - .15
+            if np.abs(x_max) > self.max_x_pos:
+                xmax = self.max_x_pos
+            else:
+                xmax = x_max
+            x_pos = np.random.uniform(-self.max_x_pos, xmax)
+            y_min = self.min_y_pos
+            y_max = .6 + np.tan(goal)[0]*(x_pos+.15)
+            y_pos = np.random.uniform(y_min, y_max)
+            ee_pos = np.array([x_pos, y_pos, .06])
+        else:
+            ee_pos = np.random.uniform(np.array([-self.max_x_pos, self.min_y_pos, .06]),
+                                   np.array([self.max_x_pos, .5, .06]))
         self.set_to_goal_pos(ee_pos)
-        self.set_to_goal_angle(goal['state_desired_goal'])
+        self.set_to_goal_angle(goal)
 
 if __name__ == "__main__":
     import pygame
