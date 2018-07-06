@@ -15,7 +15,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             puck_low=None,
             puck_high=None,
 
-            reward_type='hand_and_puck_distance',
+            reward_type='state_distance',
+            norm_order=1,
             indicator_threshold=0.06,
 
             fix_goal=False,
@@ -51,6 +52,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
+        self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
 
         self.fix_goal = fix_goal
@@ -117,22 +119,54 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def _get_info(self):
         hand_goal = self._state_goal[:3]
         puck_goal = self._state_goal[3:]
-        hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
-        puck_distance = np.linalg.norm(puck_goal - self.get_puck_pos()[:2])
-        touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_puck_pos()
-        )
+
+        # hand distance
+        hand_diff = hand_goal - self.get_endeff_pos()
+        hand_distance = np.linalg.norm(hand_diff, ord=self.norm_order)
+        hand_distance_l1 = np.linalg.norm(hand_diff, 1)
+        hand_distance_l2 = np.linalg.norm(hand_diff, 2)
+
+        # puck distance
+        puck_diff = puck_goal - self.get_puck_pos()[:2]
+        puck_distance = np.linalg.norm(puck_diff, ord=self.norm_order)
+        puck_distance_l1 = np.linalg.norm(puck_diff, 1)
+        puck_distance_l2 = np.linalg.norm(puck_diff, 2)
+
+        # touch distance
+        touch_diff = self.get_endeff_pos() - self.get_puck_pos()
+        touch_distance = np.linalg.norm(touch_diff, ord=self.norm_order)
+        touch_distance_l1 = np.linalg.norm(touch_diff, ord=1)
+        touch_distance_l2 = np.linalg.norm(touch_diff, ord=2)
+
+        # state distance
+        state_diff = np.hstack((self.get_endeff_pos(), self.get_puck_pos()[:2])) - self._state_goal
+        state_distance = np.linalg.norm(state_diff, ord=self.norm_order)
+        state_distance_l1 = np.linalg.norm(state_diff, ord=1)
+        state_distance_l2 = np.linalg.norm(state_diff, ord=2)
+
         return dict(
             hand_distance=hand_distance,
+            hand_distance_l1=hand_distance_l1,
+            hand_distance_l2=hand_distance_l2,
             puck_distance=puck_distance,
+            puck_distance_l1=puck_distance_l1,
+            puck_distance_l2=puck_distance_l2,
             hand_and_puck_distance=hand_distance+puck_distance,
+            hand_and_puck_distance_l1=hand_distance_l1+puck_distance_l1,
+            hand_and_puck_distance_l2=hand_distance_l2+puck_distance_l2,
             touch_distance=touch_distance,
+            touch_distance_l1=touch_distance_l1,
+            touch_distance_l2=touch_distance_l2,
+            state_distance=state_distance,
+            state_distance_l1=state_distance_l1,
+            state_distance_l2=state_distance_l2,
             hand_success=float(hand_distance < self.indicator_threshold),
             puck_success=float(puck_distance < self.indicator_threshold),
             hand_and_puck_success=float(
                 hand_distance+puck_distance < self.indicator_threshold
             ),
             touch_success=float(touch_distance < self.indicator_threshold),
+            state_success=float(state_distance < self.indicator_threshold),
         )
 
     def get_puck_pos(self):
@@ -259,12 +293,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         hand_goals = desired_goals[:, :3]
         puck_goals = desired_goals[:, 3:]
 
-        hand_distances = np.linalg.norm(hand_goals - hand_pos, axis=1)
-        puck_distances = np.linalg.norm(puck_goals - puck_pos, axis=1)
-        hand_and_puck_distances = hand_distances + puck_distances
+        hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
+        puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
         puck_zs = self.init_puck_z * np.ones((desired_goals.shape[0], 1))
         touch_distances = np.linalg.norm(
             hand_pos - np.hstack((puck_pos, puck_zs)),
+            ord=self.norm_order,
             axis=1,
         )
 
@@ -277,9 +311,19 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         elif self.reward_type == 'puck_success':
             r = -(puck_distances < self.indicator_threshold).astype(float)
         elif self.reward_type == 'hand_and_puck_distance':
-            r = -hand_and_puck_distances
+            # r = -hand_distances - puck_distances
+            raise NotImplementedError("Deprecated reward type.")
         elif self.reward_type == 'hand_and_puck_success':
-            r = -(hand_and_puck_distances < self.indicator_threshold).astype(float)
+            # r = -(hand_distances + puck_distances < self.indicator_threshold).astype(float)
+            raise NotImplementedError("Deprecated reward type.")
+        elif self.reward_type == 'state_distance':
+            r = -np.linalg.norm(
+                achieved_goals - desired_goals,
+                ord=self.norm_order,
+                axis=1
+            )
+        elif self.reward_type == 'vectorized_state_distance':
+            r = -np.abs(achieved_goals - desired_goals)
         elif self.reward_type == 'touch_distance':
             r = -touch_distances
         elif self.reward_type == 'touch_success':
@@ -292,12 +336,24 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
+            'hand_distance_l1',
+            'hand_distance_l2',
             'puck_distance',
+            'puck_distance_l1',
+            'puck_distance_l2',
             'hand_and_puck_distance',
+            'hand_and_puck_distance_l1',
+            'hand_and_puck_distance_l2',
+            'state_distance',
+            'state_distance_l1',
+            'state_distance_l2',
             'touch_distance',
+            'touch_distance_l1',
+            'touch_distance_l2',
             'hand_success',
             'puck_success',
             'hand_and_puck_success',
+            'state_success',
             'touch_success',
         ]:
             stat_name = stat_name
