@@ -117,7 +117,7 @@ class ImageEnv(ProxyEnv):
         return goals
 
     def compute_rewards(self, achieved_goals, desired_goals, info):
-        return - np.linalg.norm(achieved_goals - desired_goals, axis=1)
+        return - np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=1)
 
 def normalize_image(image):
     assert image.dtype == np.uint8
