@@ -40,6 +40,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             puck_low = self.hand_low[:2]
         if puck_high is None:
             puck_high = self.hand_high[:2]
+        puck_low = np.array(puck_low)
+        puck_high = np.array(puck_high)
 
         self.puck_low = puck_low
         self.puck_high = puck_high
