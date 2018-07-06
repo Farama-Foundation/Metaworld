@@ -66,6 +66,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((self.hand_low, puck_low)),
             np.hstack((self.hand_high, puck_high)),
         )
+        self.hand_space = Box(self.hand_low, self.hand_high)
         self.observation_space = Dict([
             ('observation', self.hand_and_puck_space),
             ('desired_goal', self.hand_and_puck_space),
@@ -73,6 +74,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_observation', self.hand_and_puck_space),
             ('state_desired_goal', self.hand_and_puck_space),
             ('state_achieved_goal', self.hand_and_puck_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
 
@@ -114,6 +118,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
+            proprio_observation=flat_obs[:3],
+            proprio_desired_goal=self._state_goal[:3],
+            proprio_achieved_goal=flat_obs[:3],
         )
 
     def _get_info(self):
@@ -401,6 +408,9 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
             ('state_observation', self.hand_and_puck_space),
             ('state_desired_goal', self.hand_and_puck_space),
             ('state_achieved_goal', self.hand_and_puck_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):
