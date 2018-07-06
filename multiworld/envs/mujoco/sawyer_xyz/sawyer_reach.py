@@ -31,6 +31,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             goal_low = self.hand_low
         if goal_high is None:
             goal_high = self.hand_high
+        goal_low = np.array(goal_low)
+        goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
