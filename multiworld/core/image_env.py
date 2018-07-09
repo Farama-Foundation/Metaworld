@@ -16,7 +16,7 @@ class ImageEnv(ProxyEnv):
             transpose=False,
             grayscale=False,
             normalize=False,
-            reward_type='image_distance',
+            reward_type='wrapped_env',
             threshold=10,
     ):
         self.quick_init(locals())
@@ -128,6 +128,8 @@ class ImageEnv(ProxyEnv):
             return -dist
         elif self.reward_type=='image_sparse':
             return -(dist<self.threshold).astype(float)
+        elif self.reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
 
