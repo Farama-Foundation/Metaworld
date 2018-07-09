@@ -26,7 +26,7 @@ class ImageEnv(ProxyEnv):
             obs_to_goal_fctns=None,
             observation_keys=None,
             use_cached_dataset=False,
-            reward_type='image_distance',
+            reward_type='wrapped_env',
             threshold=10,
     ):
         self.quick_init(locals())
@@ -103,7 +103,7 @@ class ImageEnv(ProxyEnv):
                 self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
                 self._img_goal = self._get_flat_img()
                 self.wrapped_env.set_env_state(env_state)
-            return self._update_obs(obs)
+        return self._update_obs(obs)
 
     def _update_obs(self, obs):
         img_obs = self._get_flat_img()
@@ -165,10 +165,13 @@ class ImageEnv(ProxyEnv):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
         dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
+
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
             return -(dist<self.threshold).astype(float)
+        elif self.reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
 
