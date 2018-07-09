@@ -15,7 +15,6 @@
         <body name="cabinet" pos="-.775 -.05 0.15">
 	        <body name="door" pos="0.8 .7. -.5">
 	            <joint name="doorjoint" pos="-.1 0 0" axis="0 0 1" type="hinge" limited="true" range="-1.5708 1.5708" damping="0.1" armature="0" />
-	            <!--<geom type="box" pos="0 0 0" size="0.01 0.2 0.2" rgba=".1 .1 .9 1" contype="1" conaffinity="1" quat="0.5 0.5 -0.5 -0.5"/>-->
 	            <geom type="box" pos="0 0 0" size="0.01 0.2 0.2" rgba=".1 .1 .9 1" contype="1" conaffinity="1" quat="0.5 0.5 -0.5 -0.5"/>
 	           	<geom type="box" pos="0.1 -0.15 0" size="0.05 0.01 0.01" rgba="0 0 0 1" contype="1" conaffinity="1" />
 	           	<geom type="box" pos="0.15 -0.075 0" size="0.01 0.075 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
