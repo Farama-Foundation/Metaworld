@@ -37,6 +37,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             puck_low = self.hand_low[:2]
         if puck_high is None:
             puck_high = self.hand_high[:2]
+        puck_low = np.array(puck_low)
+        puck_high = np.array(puck_high)
 
         self.puck_low = puck_low
         self.puck_high = puck_high
@@ -45,6 +47,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low = np.hstack((self.hand_low, puck_low))
         if goal_high is None:
             goal_high = np.hstack((self.hand_high, puck_high))
+        goal_low = np.array(goal_low)
+        goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -60,6 +64,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((self.hand_low, puck_low)),
             np.hstack((self.hand_high, puck_high)),
         )
+        self.hand_space = Box(self.hand_low, self.hand_high)
         self.observation_space = Dict([
             ('observation', self.hand_and_puck_space),
             ('desired_goal', self.hand_and_puck_space),
@@ -67,6 +72,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_observation', self.hand_and_puck_space),
             ('state_desired_goal', self.hand_and_puck_space),
             ('state_achieved_goal', self.hand_and_puck_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = self.get_puck_pos()[2]
 
@@ -108,6 +116,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
+            proprio_observation=flat_obs[:3],
+            proprio_desired_goal=self._state_goal[:3],
+            proprio_achieved_goal=flat_obs[:3],
         )
 
     def _get_info(self):
@@ -311,6 +322,9 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
             ('state_observation', self.hand_and_puck_space),
             ('state_desired_goal', self.hand_and_puck_space),
             ('state_achieved_goal', self.hand_and_puck_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):

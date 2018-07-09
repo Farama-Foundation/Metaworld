@@ -31,6 +31,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             goal_low = self.hand_low
         if goal_high is None:
             goal_high = self.hand_high
+        goal_low = np.array(goal_low)
+        goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -43,7 +45,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.hide_goal_markers = hide_goal_markers
 
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
-        self.observation_space = Box(self.hand_low, self.hand_high)
         self.hand_space = Box(self.hand_low, self.hand_high)
         self.observation_space = Dict([
             ('observation', self.hand_space),
@@ -52,6 +53,9 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             ('state_observation', self.hand_space),
             ('state_desired_goal', self.hand_space),
             ('state_achieved_goal', self.hand_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):
@@ -75,6 +79,9 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
+            proprio_observation=flat_obs,
+            proprio_desired_goal=self._state_goal,
+            proprio_achieved_goal=flat_obs,
         )
 
     def _get_info(self):
@@ -230,6 +237,9 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
             ('state_observation', self.hand_space),
             ('state_desired_goal', self.hand_space),
             ('state_achieved_goal', self.hand_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):

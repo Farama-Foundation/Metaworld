@@ -141,6 +141,7 @@ def normalize_image(image):
     assert image.dtype == np.uint8
     return np.float64(image) / 255.0
 
+
 def unormalize_image(image):
     assert image.dtype != np.uint8
     return np.uint8(image * 255.0)
