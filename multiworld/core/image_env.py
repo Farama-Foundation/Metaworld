@@ -108,12 +108,6 @@ class ImageEnv(ProxyEnv):
         return goal
 
     def sample_goals(self, batch_size):
-        if self.use_goal_caching:
-            idxs = np.random.randint(0, self.num_cached_goals, batch_size)
-            goals = dict()
-            for key in self.goals.keys():
-                goals[key] = self.goals[key][idxs]
-            return goals
         if batch_size > 1:
             warnings.warn("Sampling goal images is slow")
         img_goals = np.zeros((batch_size, self.image_length))
@@ -140,7 +134,6 @@ class ImageEnv(ProxyEnv):
 def normalize_image(image):
     assert image.dtype == np.uint8
     return np.float64(image) / 255.0
-
 
 def unormalize_image(image):
     assert image.dtype != np.uint8
