@@ -4,7 +4,6 @@ import numpy as np
 import warnings
 from PIL import Image
 from gym.spaces import Box, Dict
-
 from multiworld.core.wrapper_env import ProxyEnv
 
 
@@ -17,6 +16,8 @@ class ImageEnv(ProxyEnv):
             transpose=False,
             grayscale=False,
             normalize=False,
+            reward_type='image_distance',
+            threshold=10,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -52,10 +53,13 @@ class ImageEnv(ProxyEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
+        self.reward_type=reward_type
+        self.threshold = threshold
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
+        reward = self.compute_reward(action, new_obs)
         return new_obs, reward, done, info
 
     def reset(self):
@@ -104,6 +108,12 @@ class ImageEnv(ProxyEnv):
         return goal
 
     def sample_goals(self, batch_size):
+        if self.use_goal_caching:
+            idxs = np.random.randint(0, self.num_cached_goals, batch_size)
+            goals = dict()
+            for key in self.goals.keys():
+                goals[key] = self.goals[key][idxs]
+            return goals
         if batch_size > 1:
             warnings.warn("Sampling goal images is slow")
         img_goals = np.zeros((batch_size, self.image_length))
@@ -116,8 +126,16 @@ class ImageEnv(ProxyEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
-    def compute_rewards(self, achieved_goals, desired_goals, info):
-        return - np.linalg.norm(achieved_goals - desired_goals, axis=1)
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['achieved_goal']
+        desired_goals = obs['desired_goal']
+        dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
+        if self.reward_type=='image_distance':
+            return -dist
+        elif self.reward_type=='image_sparse':
+            return -(dist<self.threshold).astype(float)
+        else:
+            raise NotImplementedError()
 
 def normalize_image(image):
     assert image.dtype == np.uint8

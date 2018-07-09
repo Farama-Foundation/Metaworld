@@ -192,10 +192,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         ]
 
     @property
-    def goal_dim(self):
-        return 3
-
-    @property
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
 
