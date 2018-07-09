@@ -4,7 +4,6 @@ import numpy as np
 import warnings
 from PIL import Image
 from gym.spaces import Box, Dict
-
 from multiworld.core.wrapper_env import ProxyEnv
 
 
@@ -17,6 +16,8 @@ class ImageEnv(ProxyEnv):
             transpose=False,
             grayscale=False,
             normalize=False,
+            reward_type='wrapped_env',
+            threshold=10,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -52,10 +53,13 @@ class ImageEnv(ProxyEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
+        self.reward_type=reward_type
+        self.threshold = threshold
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
+        reward = self.compute_reward(action, new_obs)
         return new_obs, reward, done, info
 
     def reset(self):
@@ -116,11 +120,22 @@ class ImageEnv(ProxyEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['achieved_goal']
+        desired_goals = obs['desired_goal']
+        dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
+        if self.reward_type=='image_distance':
+            return -dist
+        elif self.reward_type=='image_sparse':
+            return -(dist<self.threshold).astype(float)
+        elif self.reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
+        else:
+            raise NotImplementedError()
 
 def normalize_image(image):
     assert image.dtype == np.uint8
     return np.float64(image) / 255.0
-
 
 def unormalize_image(image):
     assert image.dtype != np.uint8
