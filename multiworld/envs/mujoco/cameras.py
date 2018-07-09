@@ -65,3 +65,16 @@ def sawyer_pick_and_place_camera(camera):
     camera.elevation = 0
     camera.azimuth = 180
     camera.trackbodyid = 0
+
+def init_sawyer_camera_v4(camera):
+    """
+    This is the same camera used in old experiments (circa 6/7/2018)
+    """
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 0.3
+    camera.elevation = -35
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+

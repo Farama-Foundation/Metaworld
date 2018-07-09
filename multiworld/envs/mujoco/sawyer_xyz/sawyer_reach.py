@@ -80,6 +80,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
     def _get_info(self):
         hand_distance = np.linalg.norm(self._state_goal - self.get_endeff_pos())
         return dict(
+            x_pos=self.get_endeff_pos()[0],
             hand_distance=hand_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
         )
@@ -180,6 +181,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         for stat_name in [
             'hand_distance',
             'hand_success',
+            'x_pos',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)

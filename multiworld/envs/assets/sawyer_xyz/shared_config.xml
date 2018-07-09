@@ -37,7 +37,7 @@ Usage:
 
     <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes/sawyer"/>
     <size njmax="6000" nconmax="6000"/>
-    <option gravity="0 0 -9.81" iterations="50" integrator="Euler" timestep="0.003" cone="elliptic" impratio="3" tolerance="1e-10" />
+    <option gravity="0 0 -9.81" iterations="120" integrator="Euler" timestep="0.003" cone="elliptic" impratio="1" tolerance="1e-10" />
     <size njmax="500" nconmax="100" />
 
     <default>
