@@ -13,10 +13,10 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
     mocap for XYZ control.
     """
-    # mocap_low = np.array([-0.2, 0.55, 0.06])
-    # mocap_high = np.array([0.2, 0.65, 0.2])
-    mocap_low = np.array([-0.2, 0.5, 0.06])
-    mocap_high = np.array([0.2, 0.7, 0.2])
+    mocap_low = np.array([-0.2, 0.55, 0.06])
+    mocap_high = np.array([0.2, 0.65, 0.2])
+    # mocap_low = np.array([-.2, 0.5, 0.06])
+    # mocap_high = np.array([.2, 0.7, 0.2])
 
 
     def __init__(self, model_name, frame_skip=50):
@@ -45,6 +45,9 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     def get_endeff_pos(self):
         return self.data.get_body_xpos('hand').copy()
 
+    def get_gripper_pos(self):
+        return np.array([self.data.qpos[7]])
+
     def get_env_state(self):
         joint_state = self.sim.get_state()
         mocap_state = self.data.mocap_pos, self.data.mocap_quat
@@ -59,15 +62,14 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
 
-
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def __init__(
             self,
             *args,
-            # hand_low=(-0.2, 0.57, 0.05),
-            # hand_high=(0.2, 0.67, 0.2),
-            hand_low=(-0.2, 0.55, 0.05),
-            hand_high=(0.2, 0.75, 0.2),
+            hand_low=(-0.2, 0.57, 0.05),
+            hand_high=(0.2, 0.67, 0.2),
+            # hand_low=(-0.2, 0.55, 0.05),
+            # hand_high=(0.2, 0.75, 0.2),
 
             action_scale=1./100,
             **kwargs
