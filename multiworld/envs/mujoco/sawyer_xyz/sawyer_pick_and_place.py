@@ -185,9 +185,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
+        if self.presampled_goals is not None:
+            self._state_goal = goal['state_desired_goal']
+        else:
+            self.set_to_goal(self.sample_goal(), set_goal=True)
         self._reset_hand()
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
             self.set_obj_xyz(self.last_obj_pos)
@@ -251,10 +253,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def sample_goals(self, batch_size, p_obj_in_hand=0.9):
         if self.presampled_goals is not None:
             goals = self.presampled_goals[np.random.choice(len(self.presampled_goals), batch_size)]
-            desired_goals = np.array([goals[idx]['desired_goal'] for idx in range(len(goals))])
             return {
-                'desired_goal': desired_goals,
-                'state_desired_goal': desired_goals,
+                'desired_goal': goals,
+                'state_desired_goal': goals,
             }
 
         if self.fix_goal:
@@ -401,6 +402,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
         )
+        self.save = []
 
     def mode(self, name):
         if name == 'test' or name == 'video_vae' or name == 'video_env':
@@ -409,7 +411,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def reset_model(self):
         super().reset_model()
         if self.oracle_reset_prob > np.random.random():
-            self.set_to_goal(self.sample_goal())
+            self.set_to_goal(self.sample_goal(), set_goal=False)
         return self._get_obs()
 
     def viewer_setup(self):
@@ -453,7 +455,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             state_achieved_goal=flat_obs,
         )
 
-    def set_to_goal(self, goal):
+    def set_to_goal(self, goal, set_goal=False):
         state_goal = goal['state_desired_goal']
         hand_goal = state_goal[:3]
         for _ in range(30):
@@ -472,5 +474,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         # new_obj_pos[0] = self.x_axis
         # self._set_obj_xyz(new_obj_pos)
         self.sim.forward()
-
-
+        if set_goal:
+            self._state_goal = self._get_obs()['state_achieved_goal']
+            if len(self.save) == 20:
+                import pdb; pdb.set_trace()
