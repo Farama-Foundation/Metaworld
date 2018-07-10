@@ -26,6 +26,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ball_radius = 0.25,
             walls = [],
             fixed_goal=None,
+            randomize_position_on_reset = True,
             **kwargs
     ):
         print("WARNING, ignoring kwargs:", kwargs)
@@ -40,12 +41,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.ball_radius = ball_radius
         self.walls = walls
         self.fixed_goal = fixed_goal
+        self.randomize_position_on_reset = randomize_position_on_reset
 
         self._max_episode_steps = 50
         self.max_target_distance = self.boundary_dist - self.target_radius
 
         self._target_position = None
-        self._position = None
+        self._position = np.zeros((2))
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
@@ -101,9 +103,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._target_position = np.random.uniform(
             size=2, low=-self.max_target_distance, high=self.max_target_distance
         )
-        self._position = np.random.uniform(
-            size=2, low=-self.boundary_dist, high=self.boundary_dist
-        )
+        if self.randomize_position_on_reset:
+            self._position = np.random.uniform(
+                size=2, low=-self.boundary_dist, high=self.boundary_dist
+            )
         return self._get_obs()
 
     def seed(self, s):
@@ -121,8 +124,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
         )
 
     def compute_rewards(self, actions, obs):
-        achieved_goals = obs['state_achieved_goal']
-        desired_goals = obs['state_desired_goal']
+        achieved_goals = obs['observation']
+        desired_goals = obs['desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
         if self.reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
@@ -362,6 +365,15 @@ class Point2DWallEnv(Point2DEnv):
                 HorizontalWall(
                     self.ball_radius,
                     self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist,
+                    self.inner_wall_max_dist,
+                )
+            ]
+        if wall_shape == "--":
+            self.walls = [
+                HorizontalWall(
+                    self.ball_radius,
+                    0,
                     -self.inner_wall_max_dist,
                     self.inner_wall_max_dist,
                 )
