@@ -3,6 +3,7 @@ from railrl.exploration_strategies.ou_strategy import OUStrategy
 import numpy as np
 from railrl.policies.simple import RandomPolicy
 import os.path as osp
+
 def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None, use_cached_dataset=False, action_scale=1/10):
     if use_cached_dataset and osp.isfile('/tmp/goals' + str(num_goals) + '.npy'):
         goal_dict = np.load('/tmp/goals' + str(num_goals) + '.npy').item()
@@ -22,7 +23,7 @@ def generate_goal_data_set(env=None, num_goals=10000, goal_generation_dict=None,
     for i in range(num_goals):
         if i % 50 == 0:
             print('Reset')
-            env.reset(_resample_on_reset=False)
+            env.reset_model()
             exploration_policy.reset()
         action = exploration_policy.get_action()[0] * action_scale
         obs, _, _, _ = env.step(

@@ -203,15 +203,6 @@
                 </body>
             </body>
         </body>
-
-        <body name="goal" pos="0 0 0">
-            <joint name="goaljoint" type="free" limited='false' />
-            <geom name="goalbox" type="sphere" pos="0 0 0" size="0.02"
-                  density="0.00001"
-                  rgba=".9 .1 .1 0" contype="0" conaffinity="8"/>
-            <site name="goal" pos="0 0 0" size="0.01" />
-        </body>
-
     </worldbody>
 
     <actuator>

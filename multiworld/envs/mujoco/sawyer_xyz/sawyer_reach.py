@@ -111,12 +111,11 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.viewer.cam.azimuth = 270
         self.viewer.cam.trackbodyid = -1
 
-    def reset_model(self, resample_on_reset=True):
+    def reset_model(self):
         self._reset_hand()
-        if resample_on_reset:
-            goal = self.sample_goal()
-            self._state_goal = goal['state_desired_goal']
-            self._set_goal_marker(self._state_goal)
+        goal = self.sample_goal()
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
         self.sim.forward()
         return self._get_obs()
 
@@ -126,9 +125,9 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def reset(self, resample_on_reset=True):
+    def reset(self):
         self.sim.reset()
-        ob = self.reset_model(resample_on_reset=resample_on_reset)
+        ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
         return ob

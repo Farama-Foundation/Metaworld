@@ -88,21 +88,20 @@ class ImageEnv(ProxyEnv):
         reward = self.compute_reward(action, new_obs)
         return new_obs, reward, done, info
 
-    def reset(self, _resample_on_reset=True):
-        obs = self.wrapped_env.reset(_resample_on_reset=_resample_on_reset)
-        if _resample_on_reset:
-            if self.use_goal_caching:
-                idx = np.random.randint(0, self.num_cached_goals)
-                self._img_goal = self.goals['image_desired_goal'][idx]
-                self._wrapped_env._state_goal = self.goals['state_desired_goal'][idx]
-                self._wrapped_env._goal_angles = self.goals['joint_desired_goal'][idx]
-                for key in self.goals.keys():
-                    obs[key] = self.goals[key][idx]
-            else:
-                env_state = self.wrapped_env.get_env_state()
-                self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-                self._img_goal = self._get_flat_img()
-                self.wrapped_env.set_env_state(env_state)
+    def reset(self):
+        obs = self.wrapped_env.reset()
+        if self.use_goal_caching:
+            idx = np.random.randint(0, self.num_cached_goals)
+            self._img_goal = self.goals['image_desired_goal'][idx]
+            self._wrapped_env._state_goal = self.goals['state_desired_goal'][idx]
+            self._wrapped_env._goal_angles = self.goals['joint_desired_goal'][idx]
+            for key in self.goals.keys():
+                obs[key] = self.goals[key][idx]
+        else:
+            env_state = self.wrapped_env.get_env_state()
+            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+            self._img_goal = self._get_flat_img()
+            self.wrapped_env.set_env_state(env_state)
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
