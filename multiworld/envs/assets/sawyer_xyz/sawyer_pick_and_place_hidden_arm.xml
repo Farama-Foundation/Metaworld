@@ -2,6 +2,7 @@
 <mujoco>
     <include file="shared_config.xml"></include>
     <worldbody>
+
         <include file="sawyer_xyz_base.xml"></include>
         <body name="obj" pos="0 0 0.1">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
