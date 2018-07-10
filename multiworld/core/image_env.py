@@ -161,15 +161,21 @@ class ImageEnv(ProxyEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
+    def compute_reward(self, action, obs):
+        actions = action[None]
+        next_obs = {
+            k: v[None] for k, v in obs.items()
+        }
+        return self.compute_rewards(actions, next_obs)[0]
+
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
         dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
-
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
-            return -(dist<self.threshold).astype(float)
+            return (dist<self.threshold).astype(float)-1
         elif self.reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs)
         else:
