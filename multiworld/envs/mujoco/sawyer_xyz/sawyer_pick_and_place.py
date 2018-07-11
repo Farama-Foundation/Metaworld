@@ -185,10 +185,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        if self.presampled_goals is not None:
-            self._state_goal = goal['state_desired_goal']
-        else:
-            self.set_to_goal(self.sample_goal(), set_goal=True)
+        self._state_goal = self.sample_goal()['state_desired_goal']
         self._reset_hand()
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
@@ -476,5 +473,3 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         self.sim.forward()
         if set_goal:
             self._state_goal = self._get_obs()['state_achieved_goal']
-            if len(self.save) == 20:
-                import pdb; pdb.set_trace()

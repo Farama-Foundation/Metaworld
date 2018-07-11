@@ -61,9 +61,11 @@ class ImageEnv(ProxyEnv):
     def reset(self):
         obs = self.wrapped_env.reset()
         env_state = self.wrapped_env.get_env_state()
-        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal(), set_goal=True)
+        goal = self.wrapped_env._state_goal.copy()
         self._img_goal = self._get_flat_img()
         self.wrapped_env.set_env_state(env_state)
+        self.wrapped_env._state_goal = goal
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
