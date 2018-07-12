@@ -103,13 +103,13 @@ class SawyerReachXYZEnv(sawyer_env_base.SawyerEnvBase, MultitaskEnv):
 
     #Image Env Functions
     def get_env_state(self):
-        #this should be implemented for position control, but just pass for torque control
-        pass
+        #this should be implemented for position control, but just return None for torque control
+        return None
 
 
     def set_env_state(self, state):
-        # this should be implemented for position control, but just pass for torque control
-        pass
+        # this should be implemented for position control, but just return None for torque control
+        return None
 
     """
     Multitask functions
