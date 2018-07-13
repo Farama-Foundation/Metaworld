@@ -28,6 +28,7 @@ class ImageEnv(ProxyEnv):
             use_cached_dataset=False,
             reward_type='wrapped_env',
             threshold=10,
+            image_length=None,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -42,6 +43,8 @@ class ImageEnv(ProxyEnv):
             self.image_length = self.imsize * self.imsize
         else:
             self.image_length = 3 * self.imsize * self.imsize
+        if image_length is not None:
+            self.image_length = image_length
         # This is torch format rather than PIL image
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
