@@ -53,8 +53,8 @@ class ImageEnv(ProxyEnv):
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
 
-    def step(self, action):
-        obs, reward, done, info = self.wrapped_env.step(action)
+    def step(self, action, **kwargs):
+        obs, reward, done, info = self.wrapped_env.step(action, **kwargs)
         new_obs = self._update_obs(obs)
         return new_obs, reward, done, info
 

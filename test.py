@@ -9,8 +9,8 @@ env = SawyerPickAndPlaceEnvYZ(
     obj_init_positions=((0, 0.575, 0.02),(0, 0.625, 0.02)),
 )
 env.reset()
-env.render()
-for i in range(1000):
+# env.render()
+for i in range(100000):
     print(i)
     env.reset()
 #    env.put_obj_in_hand()
@@ -28,7 +28,7 @@ for i in range(1000):
     action = env.action_space.sample()
     for _ in range(40):
         env.step(action)
-        env.render()
+        # env.render()
     print(env._get_obs())
 
     """

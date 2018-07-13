@@ -423,7 +423,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         new_obj_pos = self.data.get_site_xpos('obj')
         new_obj_pos[0] = self.x_axis
         new_obj_pos[1] = np.clip(new_obj_pos[1], .55, .65)
-
         if for_vae and new_obj_pos[2] > .05:
             action[2] = 1.0
         self._set_obj_xyz(new_obj_pos)
@@ -467,7 +466,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         corrected_obj_pos[0] = self.x_axis
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
-        action = np.array(1 - 2 * (np.random.random() > .7))
+        action = np.array(1 - 2 * (np.random.random() > .6))
         for _ in range(10):
             self.do_simulation(action)
         # new_obj_pos = self.data.get_site_xpos('obj')
