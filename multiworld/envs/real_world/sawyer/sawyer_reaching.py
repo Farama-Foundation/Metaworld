@@ -1,11 +1,11 @@
 from collections import OrderedDict
 import numpy as np
-import sawyer_control.envs.sawyer_env_base
+import sawyer_control.envs.sawyer_env_base as sawyer_env_base
 from multiworld.core.serializable import Serializable
-from multiworld.core.eval_util import get_stat_in_paths, \
+from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict
 from multiworld.core.multitask_env import MultitaskEnv
-from gym.spaces import Box, Dict
+from gym.spaces import Dict
 
 class SawyerReachXYZEnv(sawyer_env_base.SawyerEnvBase, MultitaskEnv):
     def __init__(self,
