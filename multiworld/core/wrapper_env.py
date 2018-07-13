@@ -76,7 +76,7 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
         d = Serializable.__getstate__(self)
         # Add these explicitly in case they were modified
         d["_obs_means"] = self._obs_means
-        d["_obs_stds"] = self._obs_std
+        d["_obs_stds"] = self._obs_stds
         return d
 
     def __setstate__(self, d):

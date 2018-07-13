@@ -94,7 +94,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         # pull the puck back into the bounding box
         puck_pos = self.get_puck_pos()[:2]
-        self.new_puck_pos = np.minimum(self.puck_high, np.maximum(self.puck_low, puck_pos))
+        self.new_puck_pos = np.clip(puck_pos, self.puck_low, self.puck_high)
         self._set_puck_xy(self.new_puck_pos)
         # print(puck_pos, new_puck_pos, self.puck_low, self.puck_high)
 
