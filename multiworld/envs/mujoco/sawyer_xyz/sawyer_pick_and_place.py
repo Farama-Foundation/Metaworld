@@ -247,7 +247,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def sample_goals(self, batch_size, p_obj_in_hand=0.9):
+    def sample_goals(self, batch_size, p_obj_in_hand=0.75):
         if self.presampled_goals is not None:
             goals = self.presampled_goals[np.random.choice(len(self.presampled_goals), batch_size)]
             return {
@@ -419,10 +419,13 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         adjust_x = self.x_axis - cur_x_pos
         return np.r_[adjust_x, action]
 
-    def step(self, action):
+    def step(self, action, for_vae=False):
         new_obj_pos = self.data.get_site_xpos('obj')
         new_obj_pos[0] = self.x_axis
         new_obj_pos[1] = np.clip(new_obj_pos[1], .55, .65)
+
+        if for_vae and new_obj_pos[2] > .05:
+            action[2] = 1.0
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos
         action = self.convert_2d_action(action)
