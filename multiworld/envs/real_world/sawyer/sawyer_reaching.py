@@ -1,13 +1,13 @@
 from collections import OrderedDict
 import numpy as np
-import sawyer_control.envs.sawyer_env_base as sawyer_env_base
+from sawyer_control.envs.sawyer_env_base import SawyerEnvBase
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict
 from multiworld.core.multitask_env import MultitaskEnv
 from gym.spaces import Dict
 
-class SawyerReachXYZEnv(sawyer_env_base.SawyerEnvBase, MultitaskEnv):
+class SawyerReachXYZEnv(SawyerEnvBase, MultitaskEnv):
     def __init__(self,
                  fixed_goal=(1, 1, 1),
                  indicator_threshold=.05,
@@ -15,7 +15,7 @@ class SawyerReachXYZEnv(sawyer_env_base.SawyerEnvBase, MultitaskEnv):
                  **kwargs
                  ):
         Serializable.quick_init(self, locals())
-        sawyer_env_base.SawyerEnvBase.__init__(self, **kwargs)
+        SawyerEnvBase.__init__(self, **kwargs)
         if self.action_mode=='torque':
             self.goal_space = self.config.TORQUE_SAFETY_BOX
         else:
