@@ -1,9 +1,6 @@
-from collections import OrderedDict
 import numpy as np
 import sawyer_control.envs.sawyer_reaching as sawyer_reaching
 from multiworld.core.serializable import Serializable
-from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict
 from gym.spaces import Dict
 
 class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
@@ -13,10 +10,10 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
         Serializable.quick_init(self, locals())
         super().__init__(self, **kwargs)
         self.observation_space = Dict([
-            ('observation', self._observation_space),
+            ('observation', self.observation_space),
             ('desired_goal', self.goal_space),
             ('achieved_goal', self.goal_space),
-            ('state_observation', self._observation_space),
+            ('state_observation', self.observation_space),
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ])
@@ -74,7 +71,7 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
         }
 
     def sample_goals(self, batch_size):
-        goals = super().sample_goals()
+        goals = super().sample_goals(batch_size)
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
