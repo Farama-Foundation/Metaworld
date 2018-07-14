@@ -101,16 +101,6 @@ class SawyerReachXYZEnv(SawyerEnvBase, MultitaskEnv):
                 ))
         return statistics
 
-    #Image Env Functions
-    def get_env_state(self):
-        #this should be implemented for position control, but just return None for torque control
-        return None
-
-
-    def set_env_state(self, state):
-        # this should be implemented for position control, but just return None for torque control
-        return None
-
     """
     Multitask functions
     """
@@ -144,9 +134,8 @@ class SawyerReachXYZEnv(SawyerEnvBase, MultitaskEnv):
         }
 
     def set_to_goal(self, goal):
-        #for position control this should be implemented, for torque control this should raise an error
-        raise NotImplementedError()
-
-    def convert_obs_to_goals(self, obs):
-        return obs[:, -3:]
-
+        goal = goal['state_desired_goal']
+        if self.action_mode=='position':
+            self._position_act(goal - self._get_endeffector_pose()[:3])
+        else:
+            raise NotImplementedError()
