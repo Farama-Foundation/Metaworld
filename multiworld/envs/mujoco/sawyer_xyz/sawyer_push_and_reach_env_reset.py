@@ -350,6 +350,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         elif self.reward_type == 'vectorized_state_distance':
             r = -np.abs(achieved_goals - desired_goals)
+        elif self.reward_type == 'vectorized_puck_distance_l1':
+            r = -np.abs(hand_goals - hand_pos)
+        elif self.reward_type == 'vectorized_puck_distance_l2':
+            r = -np.power(hand_goals - hand_pos, 2)
         elif self.reward_type == 'touch_distance':
             r = -touch_distances
         elif self.reward_type == 'touch_success':
