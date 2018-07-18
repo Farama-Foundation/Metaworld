@@ -17,7 +17,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             indicator_threshold=0.06,
 
             fix_goal=False,
-            fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
+            fixed_goal=(0.0, 0.6, 0.02, -0.15, 0.6),
 
             puck_low=(-0.1, 0.6),
             puck_high=(0.1, 0.7),
