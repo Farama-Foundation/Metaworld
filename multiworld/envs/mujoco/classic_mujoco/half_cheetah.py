@@ -6,7 +6,7 @@ from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict, get_asset_full_path
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 
-class HalfCheetah(MujocoEnv, MultitaskEnv, Serializable):
+class HalfCheetahEnv(MujocoEnv, MultitaskEnv, Serializable):
     def __init__(self, action_scale=1, frame_skip=5, reward_type='vel_distance', indicator_threshold=.1, fixed_goal=5, fix_goal=False, max_speed=6):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -74,6 +74,8 @@ class HalfCheetah(MujocoEnv, MultitaskEnv, Serializable):
         xvel_error = np.linalg.norm(xvel - desired_xvel)
         info = dict()
         info['vel_distance'] = xvel_error
+        info['vel_difference'] =np.abs(xvel - desired_xvel)
+        info['vel_success'] = (xvel_error < self.indicator_threshold).astype(float)
         return info
 
     def compute_rewards(self, actions, obs):
@@ -108,6 +110,7 @@ class HalfCheetah(MujocoEnv, MultitaskEnv, Serializable):
         for stat_name in [
             'vel_distance',
             'vel_success',
+            'vel_difference',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
