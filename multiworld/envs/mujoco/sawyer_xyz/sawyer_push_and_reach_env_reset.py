@@ -36,6 +36,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             reset_free=False,
 
+            mode='train',
             **kwargs
     ):
         self.quick_init(locals())
@@ -93,6 +94,17 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.init_puck_z = init_puck_z
         self.reset_free = reset_free
         self.puck_pos = self.sample_puck_xy()
+        self._set_puck_xy(self.puck_pos)
+        self.mode(mode)
+
+    def mode(self, name):
+        if name == "train":
+            self.reset_puck_on_eval=False
+        elif name == "eval":
+            self.reset_puck_on_eval=False
+        else:
+            raise ValueError("Invalid mode: {}".format(name))
+        self.cur_mode = name
 
     @property
     def model_name(self):
@@ -186,6 +198,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
         # qpos[10:14] = np.array([1, 0, 0, 0])
         qvel[7:14] = 0
+        self.puck_pos = pos
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -193,7 +206,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
 
-        if self.reset_free:
+        if self.reset_free and not self.reset_puck_on_eval:
             self._set_puck_xy(self.puck_pos)
         else:
             self._set_puck_xy(self.sample_puck_xy())
@@ -231,6 +244,13 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 # 1, 0, 1, 0,
                 ]
 
+    def train(self):
+        self.mode('train')
+
+    def eval(self):
+        self.mode('eval')
+
+
     """
     Multitask functions
     """
@@ -241,7 +261,16 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         }
 
     def set_to_goal(self, goal):
-        pass
+        hand_goal = np.random.uniform(self.mocap_low, self.mocap_high)
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', hand_goal)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            # keep gripper closed
+            # self.do_simulation(np.array([1]), self.frame_skip)
+            self.do_simulation(None, self.frame_skip)
+        puck_goal = goal['state_desired_goal']
+        self._set_puck_xy(puck_goal)
+        self.sim.forward()
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
@@ -335,7 +364,28 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
             ('state_achieved_goal', self.puck_space),
         ])
 
+    def set_to_goal(self, goal):
+        hand_goal = np.random.uniform(np.concatenate((self.mocap_low[:2], [self.hand_z_position])), np.concatenate((self.mocap_high[:2], [self.hand_z_position])))
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', hand_goal)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip)
+        puck_goal = goal['state_desired_goal']
+        self._set_puck_xy(puck_goal)
+        self.sim.forward()
+
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
+
+if __name__ == "__main__":
+    env = SawyerPushAndReachXYEnv(reset_free=False)
+    while True:
+        env.reset()
+        for i in range(100):
+            env.step(env.action_space.sample())
+            env.render()
+        print(env.puck_pos)
+        env.reset()
+        print(env.puck_pos)
