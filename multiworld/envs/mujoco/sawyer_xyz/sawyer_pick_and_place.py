@@ -87,6 +87,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_desired_goal', self.hand_and_obj_space),
             ('state_achieved_goal', self.hand_and_obj_space),
         ])
+        self.hand_reset_pos = np.array([0, .6, .2])
 
     @property
     def model_name(self):
@@ -207,7 +208,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _reset_hand(self):
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
+            self.data.set_mocap_pos('mocap', self.hand_reset_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
@@ -399,7 +400,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
         )
-        self.save = []
+        self.hand_reset_pos = np.array([x_axis, .6, .2])
 
     def mode(self, name):
         if name == 'test' or name == 'video_vae' or name == 'video_env':
@@ -429,12 +430,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         self.last_obj_pos = new_obj_pos
         action = self.convert_2d_action(action)
         return super().step(action)
-
-    def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.2]))
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation(None, self.frame_skip)
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -466,7 +461,10 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         corrected_obj_pos[0] = self.x_axis
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
-        action = np.array(1 - 2 * (np.random.random() > .6))
+        if correct_obs_pos[2] > .05:
+            action = np.array(1)
+        else:
+            action = np.array(1 - 2 * np.random.choice(2))
         for _ in range(10):
             self.do_simulation(action)
         # new_obj_pos = self.data.get_site_xpos('obj')
