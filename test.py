@@ -4,9 +4,9 @@ import time
 import numpy as np
 
 env = SawyerPickAndPlaceEnvYZ(
-    hide_arm=True,
+    hide_arm=False,
     hide_goal_markers=True,
-    obj_init_positions=((0, 0.575, 0.02),(0, 0.625, 0.02)),
+    oracle_reset_prob=.5,
 )
 env.reset()
 # env.render()
@@ -24,12 +24,12 @@ for i in range(100000):
     obs = env._get_obs()
     env.render()
     env.reset()"""
+    print(env.get_obj_pos())
 #    env.set_to_goal(env.sample_goal())
     action = env.action_space.sample()
     for _ in range(40):
         env.step(action)
         # env.render()
-    print(env._get_obs())
 
     """
     delta = np.array([0.0, 0.0, 1.0])

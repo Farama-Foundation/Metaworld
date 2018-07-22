@@ -29,6 +29,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
             hide_goal_markers=False,
             hide_arm=False,
+            oracle_reset_prob=0.0,
             presampled_goals=None,
 
             **kwargs
@@ -63,6 +64,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
         self.reset_free = reset_free
+        self.oracle_reset_prob = oracle_reset_prob
 
         self.hide_goal_markers = hide_goal_markers
 
@@ -97,12 +99,16 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         print('not hiding')
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
+    def mode(self, name):
+        if name == 'test' or name == 'video_vae' or name == 'video_env':
+            self.oracle_reset_prob = 0.0
+
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0
         self.viewer.cam.lookat[1] = 1.0
         self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.3
+        self.viewer.cam.distance = 0.3.reshape(-1, 1)
         self.viewer.cam.elevation = -45
         self.viewer.cam.azimuth = 270
         self.viewer.cam.trackbodyid = -1
@@ -152,7 +158,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             hand_and_obj_success=float(
                 hand_distance+obj_distance < self.indicator_threshold
             ),
-            pos_y=self.get_endeff_pos()[1],
             touch_success=float(touch_distance < self.indicator_threshold),
         )
 
@@ -190,7 +195,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._reset_hand()
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
-            self.set_obj_xyz(self.last_obj_pos)
+            self._set_obj_xyz(self.last_obj_pos)
             return self._get_obs()
 
         if self.random_init:
@@ -204,6 +209,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         else:
             obj_idx = np.random.choice(len(self.obj_init_positions))
             self._set_obj_xyz(self.obj_init_positions[obj_idx])
+
+        if self.oracle_reset_prob > np.random.random():
+            self.set_to_goal(self.sample_goal(), set_goal=False)
+
         return self._get_obs()
 
     def _reset_hand(self):
@@ -226,18 +235,27 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_obj_xyz(new_obj_pos)
         self.do_simulation(1)
 
-    def set_to_goal(self, goal):
+    def set_to_goal(self, goal, set_goal=False):
         state_goal = goal['state_desired_goal']
         hand_goal = state_goal[:3]
         for _ in range(30):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            # keep gripper closed
             self.do_simulation(np.array([-1]))
         error = self.data.get_site_xpos('endeffector') - hand_goal
-        self._set_obj_xyz(state_goal[3:] + error)
-        self.do_simulation(np.array([1]))
+        corrected_obj_pos = state_goal[3:] + error
+        corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
+        self._set_obj_xyz(corrected_obj_pos)
+        if corrected_obj_pos[2] > .05:
+            action = np.array(1)
+        else:
+            action = np.array(1 - 2 * np.random.choice(2))
+
+        for _ in range(10):
+            self.do_simulation(action)
         self.sim.forward()
+        if set_goal:
+            self._state_goal = self._get_obs()['state_achieved_goal']
 
     """
     Multitask functions
@@ -332,7 +350,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'hand_and_obj_success',
             'touch_success',
             'hand_distance',
-            'pos_y',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -364,14 +381,12 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
-        oracle_reset_prob=0.0,
         reset_free=False,
         *args,
         **kwargs
     ):
         self.quick_init(locals())
         super().__init__(*args, **kwargs)
-        self.oracle_reset_prob = oracle_reset_prob
         self.x_axis = x_axis
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
@@ -402,16 +417,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         )
         self.hand_reset_pos = np.array([x_axis, .6, .2])
 
-    def mode(self, name):
-        if name == 'test' or name == 'video_vae' or name == 'video_env':
-            self.oracle_reset_prob = 0.0
-
-    def reset_model(self):
-        super().reset_model()
-        if self.oracle_reset_prob > np.random.random():
-            self.set_to_goal(self.sample_goal(), set_goal=False)
-        return self._get_obs()
-
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
 
@@ -420,56 +425,20 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         adjust_x = self.x_axis - cur_x_pos
         return np.r_[adjust_x, action]
 
-    def step(self, action, for_vae=False):
+    def step(self, action):
         new_obj_pos = self.data.get_site_xpos('obj')
         new_obj_pos[0] = self.x_axis
         new_obj_pos[1] = np.clip(new_obj_pos[1], .55, .65)
-        if for_vae and new_obj_pos[2] > .05:
-            action[2] = 1.0
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos
         action = self.convert_2d_action(action)
         return super().step(action)
 
-    def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_obj_pos()
-        e[0] = self.x_axis
-        b[0] = self.x_axis
-        gripper = self.get_gripper_pos()
-        flat_obs = np.concatenate((e, b))
-        flat_obs_with_gripper = np.concatenate((gripper, e, b))
-
-        return dict(
-            observation=flat_obs_with_gripper,
-            desired_goal=self._state_goal,
-            achieved_goal=flat_obs,
-            state_observation=flat_obs_with_gripper,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=flat_obs,
-        )
-
     def set_to_goal(self, goal, set_goal=False):
-        state_goal = goal['state_desired_goal']
-        hand_goal = state_goal[:3]
-        for _ in range(30):
-            self.data.set_mocap_pos('mocap', hand_goal)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation(np.array([-1]))
-        error = self.data.get_site_xpos('endeffector') - hand_goal
-        corrected_obj_pos = state_goal[3:] + error
-        corrected_obj_pos[0] = self.x_axis
-        corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
-        self._set_obj_xyz(corrected_obj_pos)
-        if correct_obs_pos[2] > .05:
-            action = np.array(1)
-        else:
-            action = np.array(1 - 2 * np.random.choice(2))
-        for _ in range(10):
-            self.do_simulation(action)
-        # new_obj_pos = self.data.get_site_xpos('obj')
-        # new_obj_pos[0] = self.x_axis
-        # self._set_obj_xyz(new_obj_pos)
-        self.sim.forward()
+        super().set_to_goal(goal, set_goal=set_goal)
+        obj_pos = self.get_obj_pos()
+        obj_pos[0] = self.x_axis
+        self._set_obj_xyz(obj_pos)
         if set_goal:
             self._state_goal = self._get_obs()['state_achieved_goal']
+
