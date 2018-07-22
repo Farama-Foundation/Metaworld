@@ -248,7 +248,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         corrected_obj_pos = state_goal[3:] + error
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
-        if corrected_obj_pos[2] > .05:
+        if corrected_obj_pos[2] > .03:
             action = np.array(1)
         else:
             action = np.array(1 - 2 * np.random.choice(2))
