@@ -24,11 +24,11 @@ for i in range(100000):
     obs = env._get_obs()
     env.render()
     env.reset()"""
-    print(env.get_obj_pos())
 #    env.set_to_goal(env.sample_goal())
     action = env.action_space.sample()
     for _ in range(40):
         env.step(action)
+    print(env.get_obj_pos())
         # env.render()
 
     """

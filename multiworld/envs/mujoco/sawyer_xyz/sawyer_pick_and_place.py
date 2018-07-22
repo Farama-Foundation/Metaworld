@@ -116,6 +116,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation(action[3:])
+        new_obj_pos = np.clip(self.get_obj_pos(), self.mocap_low, self.mocap_high)
+        self._set_obj_xyz(new_obj_pos)
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
@@ -428,7 +430,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def step(self, action):
         new_obj_pos = self.data.get_site_xpos('obj')
         new_obj_pos[0] = self.x_axis
-        new_obj_pos[1] = np.clip(new_obj_pos[1], .55, .65)
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos
         action = self.convert_2d_action(action)
