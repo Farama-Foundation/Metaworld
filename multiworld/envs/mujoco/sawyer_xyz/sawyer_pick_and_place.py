@@ -104,14 +104,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.oracle_reset_prob = 0.0
 
     def viewer_setup(self):
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 1.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.3.reshape(-1, 1)
-        self.viewer.cam.elevation = -45
-        self.viewer.cam.azimuth = 270
-        self.viewer.cam.trackbodyid = -1
+        sawyer_pick_and_place_camera(self.viewer.cam)
 
     def step(self, action):
         self.set_xyz_action(action[:3])
@@ -383,7 +376,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
-        reset_free=False,
         *args,
         **kwargs
     ):
@@ -418,9 +410,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([1, 1, 1]),
         )
         self.hand_reset_pos = np.array([x_axis, .6, .2])
-
-    def viewer_setup(self):
-        sawyer_pick_and_place_camera(self.viewer.cam)
 
     def convert_2d_action(self, action):
         cur_x_pos = self.get_endeff_pos()[0]
