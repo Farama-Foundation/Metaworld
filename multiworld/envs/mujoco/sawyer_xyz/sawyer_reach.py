@@ -17,9 +17,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.3),
-            goal_low=None,
-            goal_high=None,
-
             hide_goal_markers=False,
 
             **kwargs
@@ -28,24 +25,14 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
 
-        if goal_low is None:
-            goal_low = self.hand_low
-        if goal_high is None:
-            goal_high = self.hand_high
-        goal_low = np.array(goal_low)
-        goal_high = np.array(goal_high)
-
         self.reward_type = reward_type
         self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(goal_low, goal_high)
         self._state_goal = None
-
         self.hide_goal_markers = hide_goal_markers
-
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.hand_space = Box(self.hand_low, self.hand_high)
         self.observation_space = Dict([
