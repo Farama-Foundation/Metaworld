@@ -32,6 +32,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             init_puck_z=0.02,
 
             reset_free=False,
+            init_puck_pos=(0.0, .65),
 
             mode='train',
             **kwargs
@@ -94,6 +95,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.reset_free = reset_free
         self.puck_pos = self.get_puck_pos()[:2]
         self.mode(mode)
+        self.init_puck_pos=np.array(init_puck_pos)
 
     def mode(self, name):
         if name == "train":
@@ -164,7 +166,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         return self.data.get_body_xpos('puck').copy()
 
     def sample_puck_xy(self):
-        return np.array([0, 0.65])
+        return self.init_puck_pos
 
     def _set_goal_marker(self, goal):
         """
