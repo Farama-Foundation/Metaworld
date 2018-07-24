@@ -100,7 +100,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_xyz_action(action)
         u = np.zeros(7)
         self.do_simulation(u)
-        # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
@@ -206,11 +205,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def _set_puck_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        # qpos[8:11] = np.hstack((pos.copy(), np.array([0.02])))
-        # qpos[11:15] = np.array([1, 0, 0, 0])
-        # qvel[8:15] = 0
         qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
-        # qpos[10:14] = np.array([1, 0, 0, 0])
         qvel[7:14] = 0
         self.set_state(qpos, qvel)
 
@@ -231,7 +226,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', np.array([0, 0.4, 0.02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     self.do_simulation(None, self.frame_skip)
         sim = self.sim
         if sim.model.nmocap > 0 and sim.model.eq_data is not None:
             for i in range(sim.model.eq_data.shape[0]):
@@ -248,11 +242,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                 1.49353907e+00,
                 1.80196716e-03, 7.40415706e-01, 2.09895360e-02,
                 1, 0, 0, 0
-                #- 3.62518873e-02,
-                # 6.13435141e-01, 2.09686080e-02,  7.07106781e-01,
-                # 1.48979724e-14, 7.07106781e-01, - 1.48999170e-14,
-                # 0, 0.6, 0.02,
-                # 1, 0, 1, 0,
                 ]
 
     """
@@ -269,8 +258,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            # keep gripper closed
-            # self.do_simulation(np.array([1]), self.frame_skip)
             self.do_simulation(None, self.frame_skip)
         puck_goal = goal['state_desired_goal'][3:]
         self._set_puck_xy(puck_goal)
@@ -319,12 +306,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             r = -puck_distances
         elif self.reward_type == 'puck_success':
             r = -(puck_distances < self.indicator_threshold).astype(float)
-        elif self.reward_type == 'hand_and_puck_distance':
-            # r = -hand_distances - puck_distances
-            raise NotImplementedError("Deprecated reward type.")
-        elif self.reward_type == 'hand_and_puck_success':
-            # r = -(hand_distances + puck_distances < self.indicator_threshold).astype(float)
-            raise NotImplementedError("Deprecated reward type.")
         elif self.reward_type == 'state_distance':
             r = -np.linalg.norm(
                 achieved_goals - desired_goals,
