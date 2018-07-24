@@ -47,7 +47,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_low = self.hand_low
         if obj_high is None:
             obj_high = self.hand_high
-
+        self.obj_low = obj_low
+        self.obj_high = obj_high
         if goal_low is None:
             goal_low = np.hstack((self.hand_low, obj_low))
         if goal_high is None:
@@ -110,7 +111,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation(action[3:])
-        new_obj_pos = np.clip(self.get_obj_pos(), self.mocap_low, self.mocap_high)
+        new_obj_pos = self.get_obj_pos()
+        new_obj_pos[0:2] = np.clip(
+            new_obj_pos[0:2],
+            self.obj_low[0:2],
+            self.obj_high[0:2]
+        )
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos.copy()
         # The marker seems to get reset every time you do a simulation

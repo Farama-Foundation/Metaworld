@@ -6,7 +6,7 @@ import numpy as np
 env = SawyerPickAndPlaceEnvYZ(
     hide_arm=False,
     hide_goal_markers=True,
-    oracle_reset_prob=.5,
+    oracle_reset_prob=0.0,
 )
 env.reset()
 # env.render()
@@ -25,15 +25,8 @@ for i in range(100000):
     env.render()
     env.reset()"""
 #    env.set_to_goal(env.sample_goal())
-    action = env.action_space.sample()
-    for _ in range(40):
-        env.step(action)
-    print(env.get_obj_pos())
-        # env.render()
-
-    """
-    delta = np.array([0.0, 0.0, 1.0])
-    for _ in range(20):
+    delta = np.array([-.0, -0.2, -1.0])
+    for _ in range(100):
         env.step(delta)
         env.render()
     delta = np.array([0.0, .6, 1.0])
@@ -41,4 +34,4 @@ for i in range(100000):
         env.step(delta)
         env.render()
 
-    env.reset()"""
+    env.reset()
