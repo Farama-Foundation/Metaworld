@@ -28,9 +28,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low=(-0.1, 0.6),
             goal_high=(0.1, 0.7),
 
-            mocap_low=(-0.1, 0.5, 0.),
-            mocap_high=(0.1, 0.7, 0.5),
-
             hide_goal_markers=False,
             init_puck_z=0.02,
 
@@ -43,6 +40,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
+            hand_low=hand_low,
+            hand_high=hand_high,
             model_name=self.model_name,
             **kwargs
         )
