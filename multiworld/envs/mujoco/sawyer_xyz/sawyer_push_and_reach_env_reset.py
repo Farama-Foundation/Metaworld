@@ -19,14 +19,14 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             fix_goal=False,
             fixed_goal=(0.0, 0.6, 0.02, -0.15, 0.6),
 
-            puck_low=(-0.1, 0.6),
-            puck_high=(0.1, 0.7),
+            puck_low=None,
+            puck_high=None,
 
-            hand_low=(-0.2, 0.5, 0.),
-            hand_high=(0.2, 0.7, 0.5),
+            hand_low=(-0.25, 0.3, 0.02),
+            hand_high=(0.25, .8, .02),
 
-            goal_low=(-0.1, 0.6),
-            goal_high=(0.1, 0.7),
+            goal_low=(-0.25, 0.3),
+            goal_high=(0.25, 0.8),
 
             hide_goal_markers=False,
             init_puck_z=0.02,
@@ -60,6 +60,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low = np.array(puck_low)
         if goal_high is None:
             goal_high = np.array(puck_high)
+
         self.goal_low = np.array(goal_low)
         self.goal_high = np.array(goal_high)
 
@@ -350,12 +351,16 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
 
     def set_to_goal(self, goal):
         hand_goal = np.random.uniform(np.concatenate((self.mocap_low[:2], [self.hand_z_position])), np.concatenate((self.mocap_high[:2], [self.hand_z_position])))
+        hand_goal = [.25, .8, self.hand_z_position]
         for _ in range(10):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
+        print(self.data.get_mocap_pos('mocap'))
+        print(self.get_endeff_pos())
         puck_goal = goal['state_desired_goal']
         self._set_puck_xy(puck_goal)
+        print(self.get_puck_pos() == hand_goal[:2])
         self.sim.forward()
 
     def step(self, action):

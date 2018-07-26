@@ -20,7 +20,7 @@ Usage:
           <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
     <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"-->
           <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
-    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.2 0.5"
+    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
 
     <body name="base" pos="0 0 0">
