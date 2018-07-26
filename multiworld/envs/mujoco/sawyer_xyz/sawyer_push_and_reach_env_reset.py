@@ -351,13 +351,10 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
 
     def set_to_goal(self, goal):
         hand_goal = np.random.uniform(np.concatenate((self.mocap_low[:2], [self.hand_z_position])), np.concatenate((self.mocap_high[:2], [self.hand_z_position])))
-        hand_goal = [.25, .8, self.hand_z_position]
         for _ in range(10):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
-        print(self.data.get_mocap_pos('mocap'))
-        print(self.get_endeff_pos())
         puck_goal = goal['state_desired_goal']
         self._set_puck_xy(puck_goal)
         print(self.get_puck_pos() == hand_goal[:2])
