@@ -1,10 +1,9 @@
-from collections import OrderedDict
-import numpy as np
 from gym.spaces import Dict
 import sawyer_control.envs.sawyer_pushing as sawyer_pushing
 from sawyer_control.core.serializable import Serializable
+from multiworld.core.multitask_env import MultitaskEnv
 
-class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv):
+class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv, MultitaskEnv):
     ''' Must Wrap with Image Env to use!'''
     def __init__(self,
                  **kwargs
@@ -33,7 +32,7 @@ class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv):
 
     def _get_obs(self):
         achieved_goal = None
-        state_obs = self._get_env_obs()
+        state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
             desired_goal=self._state_goal,
@@ -59,6 +58,9 @@ class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv):
             'state_desired_goal': self._state_goal,
         }
 
+    def sample_goal(self):
+        return MultitaskEnv.sample_goal(self)
+
     def sample_goals(self, batch_size):
         goals = super().sample_goals(batch_size)
         return {
@@ -69,3 +71,8 @@ class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv):
     def set_to_goal(self, goal):
         goal = goal['state_desired_goal']
         super().set_to_goal(goal)
+
+if __name__=="__main__":
+    env = SawyerPushXYEnv()
+    env.reset()
+    env.set_to_goal({'state_desired_goal':[0, .1]})

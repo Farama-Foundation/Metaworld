@@ -1,9 +1,11 @@
 import numpy as np
 import sawyer_control.envs.sawyer_reaching as sawyer_reaching
+
+from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from gym.spaces import Dict
 
-class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
+class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
     def __init__(self,
                  **kwargs
                  ):
@@ -42,8 +44,8 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
         return r
 
     def _get_obs(self):
-        ee_pos = self.get_endeffector_pose()
-        state_obs = self._get_env_obs()
+        ee_pos = self._get_endeffector_pose()
+        state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
             desired_goal=self._state_goal,
@@ -70,6 +72,9 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
             'state_desired_goal': self._state_goal,
         }
 
+    def sample_goal(self):
+        return MultitaskEnv.sample_goal(self)
+
     def sample_goals(self, batch_size):
         goals = super().sample_goals(batch_size)
         return {
@@ -80,3 +85,8 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv):
     def set_to_goal(self, goal):
         goal = goal['state_desired_goal']
         super().set_to_goal(goal)
+
+if __name__=="__main__":
+    env = SawyerReachXYZEnv()
+    env.reset()
+    env.set_to_goal({'state_desired_goal':[0, .1, 0]})
