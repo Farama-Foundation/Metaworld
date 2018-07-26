@@ -357,7 +357,6 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
             self.do_simulation(None, self.frame_skip)
         puck_goal = goal['state_desired_goal']
         self._set_puck_xy(puck_goal)
-        print(self.get_puck_pos() == hand_goal[:2])
         self.sim.forward()
 
     def step(self, action):
