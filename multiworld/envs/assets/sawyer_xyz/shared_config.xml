@@ -31,16 +31,12 @@ Usage:
         <headlight ambient="0.5 0.5 0.5"  />
     </visual>
 
-    <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes/sawyer"/>
-    <size njmax="6000" nconmax="6000"/>
+    <compiler angle="radian" meshdir="../meshes/sawyer"/>
+    <size njmax="500" nconmax="100"/>
     <option
-            gravity="0 0 -9.81"
             iterations="50"
             integrator="Euler"
-            timestep="0.003"
-            cone="elliptic"
-            impratio="3"
-            tolerance="1e-10"
+            timestep="0.002"
     />
 
     <default>
@@ -51,6 +47,7 @@ Usage:
                user="0"/>
         <geom solref="0.008 1"
               solimp="0.95 0.95 0.01"
+              margin="0.001"
               user="0"
               />
         <motor ctrllimited="true" ctrlrange="-1 1"/>
@@ -72,6 +69,6 @@ Usage:
     </default>
 
     <equality>
-        <weld body1="mocap" body2="hand" solref="0.005 1"></weld>
+        <weld body1="mocap" body2="hand" solref="0.01"></weld>
     </equality>
 </mujoco>

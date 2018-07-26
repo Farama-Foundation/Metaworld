@@ -42,11 +42,11 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv()
+env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
-env = SawyerPickAndPlaceEnv()
+# env = SawyerPickAndPlaceEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
