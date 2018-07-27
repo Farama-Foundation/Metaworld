@@ -24,7 +24,7 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
     def step(self, action):
         self._act(action)
         observation = self._get_obs()
-        reward = self.compute_reward(action, observation)
+        reward = MultitaskEnv.compute_reward(self, action, observation)
         info = self._get_info()
         done = False
         return observation, reward, done, info
