@@ -3,9 +3,9 @@
 	<include file="shared_config.xml"></include>
 	<worldbody>
 		<include file="sawyer_xyz_base.xml"></include>
-        <body name="puck" pos="0 0 0">
+        <body name="puck" pos="0 0 .1">
             <joint name="puckjoint" type="free" limited='false' damping="0" armature="0" />
-            <inertial pos="0 0 0" mass="500" diaginertia="1000 1000 1000"/>
+            <inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>
             <geom name="puckbox"
                   type="cylinder"
                   pos="0 0 0"
@@ -23,6 +23,13 @@
               rgba="0.5 0.5 1 0.5"/>
 	</worldbody>
     <actuator>
-       <motor gear="100" joint="rc_close"  />
+        <motor joint="right_j0" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j1" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j2" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j3" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j4" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j5" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+        <motor joint="right_j6" ctrlrange="-100.0 100.0" ctrllimited="false"/>
+       <!--<motor gear="100" joint="rc_close"  />-->
     </actuator>
 </mujoco>
