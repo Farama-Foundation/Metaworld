@@ -282,8 +282,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         }
 
     def compute_rewards(self, actions, obs):
-        achieved_goals = obs['observation']
-        desired_goals = obs['desired_goal']
+        achieved_goals = obs['state_observation']
+        desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals[:, :3]
         puck_pos = achieved_goals[:, 3:]
         hand_goals = desired_goals[:, :3]
