@@ -42,9 +42,8 @@ class ImageEnv(ProxyEnv):
             # init_camera(viewer.cam)
             # sim.add_render_context(viewer)
         self._render_local = False
-        self._img_goal = None
-
         img_space = Box(0, 1, (self.image_length,))
+        self._img_goal = img_space.sample()
         spaces = self.wrapped_env.observation_space.spaces
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -64,10 +63,7 @@ class ImageEnv(ProxyEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-        env_state = self.wrapped_env.get_env_state()
-        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-        self._img_goal = self._get_flat_img()
-        self.wrapped_env.set_env_state(env_state)
+        self.set_goal(obs)
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
@@ -106,6 +102,16 @@ class ImageEnv(ProxyEnv):
         goal['desired_goal'] = self._img_goal
         goal['image_desired_goal'] = self._img_goal
         return goal
+
+    def set_goal(self, obs=None, goal=None):
+        if goal is not None:
+            self._img_goal = goal['image_desired_goal']
+            self.wrapped_env.set_goal(obs, goal)
+        else:
+            env_state = self.wrapped_env.get_env_state()
+            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+            self._img_goal = self._get_flat_img()
+            self.wrapped_env.set_env_state(env_state)
 
     def sample_goals(self, batch_size):
         if batch_size > 1:
