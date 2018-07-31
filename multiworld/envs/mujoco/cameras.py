@@ -18,7 +18,6 @@ def create_sawyer_camera_init(
 
     return init
 
-
 def init_sawyer_camera_v1(camera):
     """
     Do not get so close that the arm crossed the camera plane
@@ -30,7 +29,6 @@ def init_sawyer_camera_v1(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
-
 
 def init_sawyer_camera_v2(camera):
     """
@@ -44,7 +42,6 @@ def init_sawyer_camera_v2(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-
 def init_sawyer_camera_v3(camera):
     """
     Top down basically. Sees through the arm.
@@ -56,7 +53,6 @@ def init_sawyer_camera_v3(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
-
 
 def init_sawyer_camera_v4(camera):
     """
@@ -70,7 +66,6 @@ def init_sawyer_camera_v4(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-
 def init_sawyer_camera_v5(camera):
     """
     Purposely zoomed out to be hard.
@@ -83,9 +78,7 @@ def init_sawyer_camera_v5(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-
 def sawyer_xyz_reacher_camera(camera):
-    # TODO: reformat or delete
     camera.trackbodyid = 0
     camera.distance = 1.0
 
@@ -101,9 +94,7 @@ def sawyer_xyz_reacher_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-
 def sawyer_torque_reacher_camera(camera):
-    # TODO: reformat or delete
     camera.trackbodyid = 0
     camera.distance = 1.0
 
