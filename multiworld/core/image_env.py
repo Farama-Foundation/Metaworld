@@ -4,7 +4,6 @@ import numpy as np
 import warnings
 from PIL import Image
 from gym.spaces import Box, Dict
-
 from multiworld.core.wrapper_env import ProxyEnv
 
 
@@ -30,12 +29,14 @@ class ImageEnv(ProxyEnv):
         self.grayscale = grayscale
         self.normalize = normalize
 
-        if grayscale:
-            self.image_length = self.imsize * self.imsize
-        else:
-            self.image_length = 3 * self.imsize * self.imsize
         if image_length is not None:
             self.image_length = image_length
+        else:
+            if grayscale:
+                self.image_length = self.imsize * self.imsize
+            else:
+                self.image_length = 3 * self.imsize * self.imsize
+
         # This is torch format rather than PIL image
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
