@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 from PIL import Image
 from gym.spaces import Box, Dict
+
 from multiworld.core.wrapper_env import ProxyEnv
 
 
@@ -18,6 +19,7 @@ class ImageEnv(ProxyEnv):
             normalize=False,
             reward_type='wrapped_env',
             threshold=10,
+            image_length=None,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -32,6 +34,8 @@ class ImageEnv(ProxyEnv):
             self.image_length = self.imsize * self.imsize
         else:
             self.image_length = 3 * self.imsize * self.imsize
+        if image_length is not None:
+            self.image_length = image_length
         # This is torch format rather than PIL image
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
@@ -120,6 +124,13 @@ class ImageEnv(ProxyEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
+    def compute_reward(self, action, obs):
+        actions = action[None]
+        next_obs = {
+            k: v[None] for k, v in obs.items()
+        }
+        return self.compute_rewards(actions, next_obs)[0]
+
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
@@ -127,7 +138,7 @@ class ImageEnv(ProxyEnv):
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
-            return -(dist<self.threshold).astype(float)
+            return (dist<self.threshold).astype(float)-1
         elif self.reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs)
         else:

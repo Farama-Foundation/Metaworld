@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 from gym import spaces
 from pygame import Color
@@ -5,6 +7,7 @@ from pygame import Color
 from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
+from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
 
@@ -131,6 +134,26 @@ class Point2DEnv(MultitaskEnv, Serializable):
             return -(d > self.target_radius).astype(np.float32)
         if self.reward_type == "dense":
             return -d
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'distance_to_target',
+            'is_success',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
 
     def get_goal(self):
         return {
