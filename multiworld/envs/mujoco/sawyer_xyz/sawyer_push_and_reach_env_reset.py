@@ -366,11 +366,13 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
 
 if __name__ == "__main__":
     env = SawyerPushAndReachXYEnv(reset_free=False)
+    # while True:
+    #     env.reset()
+    #     for i in range(100):
+    #         env.step(env.action_space.sample())
+    #         env.render()
+    #     print(env.puck_pos)
+    #     env.reset()
+    #     print(env.puck_pos)
     while True:
-        env.reset()
-        for i in range(100):
-            env.step(env.action_space.sample())
-            env.render()
-        print(env.puck_pos)
-        env.reset()
-        print(env.puck_pos)
+        env.render()
