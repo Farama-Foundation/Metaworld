@@ -27,6 +27,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             hide_goal_markers=False,
             init_puck_z=0.02,
 
+            reset_free=False,
+
             **kwargs
     ):
         self.quick_init(locals())
@@ -81,6 +83,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
+        self.reset_free = reset_free
+        self.puck_pos = self.sample_puck_xy()
 
     @property
     def model_name(self):
@@ -101,6 +105,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         u = np.zeros(7)
         self.do_simulation(u)
         self._set_goal_marker(self._state_goal)
+        puck_pos = self.get_puck_pos()[:2]
+        self.puck_pos = np.clip(puck_pos, self.puck_low, self.puck_high)
+        # self._set_puck_xy(self.puck_pos)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = self._get_info()
@@ -214,8 +221,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
-
-        self._set_puck_xy(self.sample_puck_xy())
+        if self.reset_free:
+            self._set_puck_xy(self.puck_pos)
+        else:
+            self._set_puck_xy(self.sample_puck_xy())
         self.reset_mocap_welds()
         return self._get_obs()
 

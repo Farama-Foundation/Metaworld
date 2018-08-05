@@ -48,7 +48,8 @@ env = SawyerPushAndReachXYEnv(
             puck_low=(-.31, .33),
             puck_high=(.31, 85),
             goal_low=(-0.25, 0.3, 0.05, -.22, .38),
-            goal_high=(0.26, 0.875, 0.3, .22, .8)
+            goal_high=(0.26, 0.875, 0.3, .22, .8),
+            reset_free=True,
 )
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
