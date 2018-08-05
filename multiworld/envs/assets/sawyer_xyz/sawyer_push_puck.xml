@@ -30,13 +30,13 @@
           <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15"  euler="-.707 0 0"/>-->
             <geom name="arena base" type="box" pos="0 0.0 0" size="0.3 0.3 0.01"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
-            <geom name="arena side 1" type="box" pos="-.3 0.0 0.025" size="0.075 0.35 0.01"
+            <geom name="arena side 1" type="box" pos="-.3 0.0 0.025" size="0.125 0.4 0.01"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15"  euler="0 .707 0"/>
-            <geom name="arena side 2" type="box" pos=".3 0.0 0.025" size="0.075 0.35 0.01"
+            <geom name="arena side 2" type="box" pos=".3 0.0 0.025" size="0.125 0.4 0.01"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15"  euler="0 -.707 0"/>
-            <geom name="arena side 3" type="box" pos=".0 0.3 0.025" size="0.35 0.075 0.01"
+            <geom name="arena side 3" type="box" pos=".0 0.3 0.025" size="0.4 0.125 0.01"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15"  euler=".707 0 0"/>
-            <geom name="arena side 4" type="box" pos=".0 -0.3 0.025" size="0.35 0.075 0.01"
+            <geom name="arena side 4" type="box" pos=".0 -0.3 0.025" size="0.4 0.125 0.01"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15"  euler="-.707 0 0"/>
         </body>
 
