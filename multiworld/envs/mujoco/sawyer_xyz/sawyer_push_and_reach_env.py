@@ -107,7 +107,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         puck_pos = self.get_puck_pos()[:2]
         self.puck_pos = np.clip(puck_pos, self.puck_low, self.puck_high)
-        # self._set_puck_xy(self.puck_pos)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = self._get_info()
@@ -217,14 +216,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
+        puck_pos = self.get_puck_pos()[:2]
         self._reset_hand()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
-        if self.reset_free:
-            self._set_puck_xy(self.puck_pos)
-        else:
-            self._set_puck_xy(self.sample_puck_xy())
         self.reset_mocap_welds()
         return self._get_obs()
 
