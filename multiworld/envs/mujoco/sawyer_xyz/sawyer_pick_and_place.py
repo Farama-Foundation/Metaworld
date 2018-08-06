@@ -271,7 +271,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def sample_goals(self, batch_size, p_obj_in_hand=0.75):
         if self.presampled_goals is not None:
-            goals = self.presampled_goals[np.random.choice(len(self.presampled_goals), batch_size)]
+            goals = self.presampled_goals[
+                np.random.choice(len(self.presampled_goals), batch_size)
+            ]
             return {
                 'desired_goal': goals,
                 'state_desired_goal': goals,
