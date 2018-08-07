@@ -28,6 +28,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             init_puck_z=0.02,
 
             reset_free=False,
+            num_resets_before_puck_reset=1,
 
             **kwargs
     ):
@@ -85,6 +86,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.init_puck_z = init_puck_z
         self.reset_free = reset_free
         self._set_puck_xy(self.sample_puck_xy())
+        self.reset_counter = 0
+        self.num_resets_before_puck_reset = num_resets_before_puck_reset
 
     @property
     def model_name(self):
@@ -219,10 +222,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
-            if not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
+            if not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]) or self.reset_counter % self.num_resets_before_puck_reset == 0:
+                print('RESET')
                 self._set_puck_xy(self.sample_puck_xy())
         else:
             self._set_puck_xy(self.sample_puck_xy())
+        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 

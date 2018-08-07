@@ -43,13 +43,14 @@ char_to_action = {
 
 
 env = SawyerPushAndReachXYEnv(
-            hand_low=(-0.28, 0.3, 0.05),
-            hand_high=(0.28, 0.9, 0.3),
-            puck_low=(-.35, .2),
-            puck_high=(.35, 1),
-            goal_low=(-0.25, 0.3, 0.05, -.22, .38),
-            goal_high=(0.26, 0.875, 0.3, .22, .825),
-            reset_free=True,
+    hand_low=(-0.28, 0.3, 0.05),
+    hand_high=(0.28, 0.9, 0.3),
+    puck_low=(-.35, .2),
+    puck_high=(.35, 1),
+    goal_low=(-0.25, 0.3, 0.02, -.22, .38),
+    goal_high=(0.25, 0.875, 0.02, .22, .8),
+    reset_free=True,
+    num_resets_before_puck_reset=100000,
 )
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
