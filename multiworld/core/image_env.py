@@ -63,7 +63,10 @@ class ImageEnv(ProxyEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-        self.set_goal(obs)
+        env_state = self.wrapped_env.get_env_state()
+        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+        self._img_goal = self._get_flat_img()
+        self.wrapped_env.set_env_state(env_state)
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
@@ -103,15 +106,10 @@ class ImageEnv(ProxyEnv):
         goal['image_desired_goal'] = self._img_goal
         return goal
 
-    def set_goal(self, obs=None, goal=None):
-        if goal is not None:
-            self._img_goal = goal['image_desired_goal']
-            self.wrapped_env.set_goal(obs, goal)
-        else:
-            env_state = self.wrapped_env.get_env_state()
-            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-            self._img_goal = self._get_flat_img()
-            self.wrapped_env.set_env_state(env_state)
+    def set_goal(self, goal):
+        ''' Assume goal contains both image_desired_goal and any goals required for wrapped envs'''
+        self._img_goal = goal['image_desired_goal']
+        self.wrapped_env.set_goal(goal)
 
     def sample_goals(self, batch_size):
         if batch_size > 1:

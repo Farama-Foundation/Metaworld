@@ -168,7 +168,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def reset(self):
         self.reset_model()
-        self.set_goal()
+        self.set_goal(self.sample_goal())
         self.sim.forward()
         self.prev_qpos = self.data.qpos.copy()
         return self._get_obs()
@@ -218,9 +218,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def set_goal(self, obs=None, goal=None):
-        if goal is None:
-            goal = self.sample_goal()
+    def set_goal(self, goal):
         self._state_goal = goal['state_desired_goal']
 
     def sample_goals(self, batch_size):
