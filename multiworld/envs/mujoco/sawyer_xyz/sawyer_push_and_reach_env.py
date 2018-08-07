@@ -84,7 +84,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         ])
         self.init_puck_z = init_puck_z
         self.reset_free = reset_free
-        self.puck_pos = self.sample_puck_xy()
+        self._set_puck_xy(self.sample_puck_xy())
 
     @property
     def model_name(self):
@@ -105,8 +105,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         u = np.zeros(7)
         self.do_simulation(u)
         self._set_goal_marker(self._state_goal)
-        puck_pos = self.get_puck_pos()[:2]
-        self.puck_pos = np.clip(puck_pos, self.puck_low, self.puck_high)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = self._get_info()
@@ -216,17 +214,22 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        puck_pos = self.get_puck_pos()[:2]
         self._reset_hand()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
+        if self.reset_free:
+            if not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
+                self._set_puck_xy(self.sample_puck_xy())
+        else:
+            self._set_puck_xy(self.sample_puck_xy())
         self.reset_mocap_welds()
         return self._get_obs()
 
     def _reset_hand(self):
         velocities = self.data.qvel.copy()
-        angles = np.array(self.init_angles)
+        angles = self.data.qpos.copy()
+        angles[:7] = self.init_angles[:7]
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
             self.data.set_mocap_pos('mocap', np.array([0, 0.4, 0.02]))
@@ -239,6 +242,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                     sim.model.eq_data[i, :] = np.array(
                         [0., 0., 0., 1., 0., 0., 0.]
                     )
+
+    def reset(self):
+        ob = self.reset_model()
+        if self.viewer is not None:
+            self.viewer_setup()
+        return ob
 
     @property
     def init_angles(self):

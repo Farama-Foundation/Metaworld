@@ -43,12 +43,12 @@ char_to_action = {
 
 
 env = SawyerPushAndReachXYEnv(
-            hand_low=(-0.275, 0.3, 0.05),
-            hand_high=(0.275, 0.9, 0.3),
-            puck_low=(-.31, .33),
-            puck_high=(.31, 85),
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.31, .25),
+            puck_high=(.31, 95),
             goal_low=(-0.25, 0.3, 0.05, -.22, .38),
-            goal_high=(0.26, 0.875, 0.3, .22, .8),
+            goal_high=(0.26, 0.875, 0.3, .22, .825),
             reset_free=True,
 )
 # env = SawyerPushAndReachXYZEnv()
@@ -87,6 +87,7 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
+    # env.set_to_goal(env.sample_goal())
     print('Puck_pos ', env.get_puck_pos())
     print('Hand_pos ', env.get_endeff_pos())
     env.render()
