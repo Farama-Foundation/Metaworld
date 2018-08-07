@@ -6,6 +6,7 @@ from PIL import Image
 from gym.spaces import Box, Dict
 
 from multiworld.core.wrapper_env import ProxyEnv
+from multiworld.envs.env_util import concatenate_box_spaces
 
 
 class ImageEnv(ProxyEnv):
@@ -31,6 +32,7 @@ class ImageEnv(ProxyEnv):
             self.image_length = self.imsize * self.imsize
         else:
             self.image_length = 3 * self.imsize * self.imsize
+        self.channels = 1 if grayscale else 3
         # This is torch format rather than PIL image
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
@@ -51,6 +53,23 @@ class ImageEnv(ProxyEnv):
         spaces['image_observation'] = img_space
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
+
+        self.return_image_proprio = False
+        if 'proprio_observation' in spaces.keys():
+            self.return_image_proprio = True
+            spaces['image_proprio_observation'] = concatenate_box_spaces(
+                spaces['image_observation'],
+                spaces['proprio_observation']
+            )
+            spaces['image_proprio_desired_goal'] = concatenate_box_spaces(
+                spaces['image_desired_goal'],
+                spaces['proprio_desired_goal']
+            )
+            spaces['image_proprio_achieved_goal'] = concatenate_box_spaces(
+                spaces['image_achieved_goal'],
+                spaces['proprio_achieved_goal']
+            )
+
         self.observation_space = Dict(spaces)
 
     def step(self, action, **kwargs):
@@ -76,6 +95,18 @@ class ImageEnv(ProxyEnv):
         obs['observation'] = img_obs
         obs['desired_goal'] = self._img_goal
         obs['achieved_goal'] = img_obs
+
+        if self.return_image_proprio:
+            obs['image_proprio_observation'] = np.concatenate(
+                (obs['image_observation'], obs['proprio_observation'])
+            )
+            obs['image_proprio_desired_goal'] = np.concatenate(
+                (obs['image_desired_goal'], obs['proprio_desired_goal'])
+            )
+            obs['image_proprio_achieved_goal'] = np.concatenate(
+                (obs['image_achieved_goal'], obs['proprio_achieved_goal'])
+            )
+
         return obs
 
     def _get_flat_img(self):

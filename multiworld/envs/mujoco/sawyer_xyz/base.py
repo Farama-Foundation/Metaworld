@@ -13,7 +13,7 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
     mocap for XYZ control.
     """
-    mocap_low = np.array([-0.05, 0.55, 0.06])
+    mocap_low = np.array([-0.1, 0.55, 0.06])
     mocap_high = np.array([0.0, 0.65, 0.2])
     # mocap_low = np.array([-.2, 0.5, 0.06])
     # mocap_high = np.array([.2, 0.7, 0.2])
@@ -66,7 +66,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def __init__(
             self,
             *args,
-            hand_low=(-0.05, 0.55, 0.05),
+            hand_low=(-0.1, 0.55, 0.05),
             hand_high=(-0.0, 0.65, 0.2),
             # hand_low=(-0.2, 0.55, 0.05),
             # hand_high=(0.2, 0.75, 0.2),

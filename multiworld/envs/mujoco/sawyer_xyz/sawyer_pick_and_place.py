@@ -78,6 +78,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
         )
+        self.hand_space = Box(
+            self.hand_low,
+            self.hand_high,
+        )
         self.gripper_and_hand_and_obj_space = Box(
             np.hstack(([0.0], self.hand_low, obj_low)),
             np.hstack(([0.04], self.hand_high, obj_high)),
@@ -90,6 +94,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_observation', self.gripper_and_hand_and_obj_space),
             ('state_desired_goal', self.hand_and_obj_space),
             ('state_achieved_goal', self.hand_and_obj_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
         self.hand_reset_pos = np.array([0, .6, .2])
 
@@ -133,6 +140,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         gripper = self.get_gripper_pos()
         flat_obs = np.concatenate((e, b))
         flat_obs_with_gripper = np.concatenate((gripper, e, b))
+        hand_goal = self._state_goal[:3]
 
         return dict(
             observation=flat_obs_with_gripper,
@@ -141,6 +149,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             state_observation=flat_obs_with_gripper,
             state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
+            proprio_observation=e,
+            proprio_achieved_goal=e,
+            proprio_desired_goal=hand_goal,
         )
 
     def _get_info(self):
@@ -403,18 +414,12 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             self.gripper_and_hand_and_obj_space.high[1:4],
             self.gripper_and_hand_and_obj_space.high[4:],
 
+            self.hand_space.high[:3],
+            self.hand_space.low[:3],
         ]
         for pos in pos_arrays:
             pos[0] = x_axis
 
-        self.observation_space = Dict([
-            ('observation', self.gripper_and_hand_and_obj_space),
-            ('desired_goal', self.hand_and_obj_space),
-            ('achieved_goal', self.hand_and_obj_space),
-            ('state_observation', self.gripper_and_hand_and_obj_space),
-            ('state_desired_goal', self.hand_and_obj_space),
-            ('state_achieved_goal', self.hand_and_obj_space),
-        ])
         self.action_space = Box(
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
