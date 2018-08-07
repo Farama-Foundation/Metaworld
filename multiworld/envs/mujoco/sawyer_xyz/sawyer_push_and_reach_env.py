@@ -29,6 +29,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             reset_free=False,
             num_resets_before_puck_reset=1,
+            num_resets_before_goal_reset=1,
 
             **kwargs
     ):
@@ -88,6 +89,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_puck_xy(self.sample_puck_xy())
         self.reset_counter = 0
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
+        self.goal_reset_counter = 0
+        self.num_resets_before_goal_reset = num_resets_before_goal_reset
 
     @property
     def model_name(self):
@@ -218,12 +221,16 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        goal = self.sample_goal()
+        if self.goal_reset_counter % self.num_resets_before_goal_reset == 0:
+            goal = self.sample_goal()
+            print('GOAL RESET')
+        else:
+            goal = self.get_goal()
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
             if self.reset_counter % self.num_resets_before_puck_reset == 0:
-                print('RESET')
+                print('PUCK RESET')
                 self._set_puck_xy(self.sample_puck_xy())
             elif not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
                 for i in range(100):
