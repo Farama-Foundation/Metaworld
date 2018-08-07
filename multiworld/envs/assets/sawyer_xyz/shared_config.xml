@@ -37,6 +37,7 @@ Usage:
             iterations="50"
             integrator="Euler"
             timestep="0.002"
+            cone="elliptic"
     />
 
     <default>

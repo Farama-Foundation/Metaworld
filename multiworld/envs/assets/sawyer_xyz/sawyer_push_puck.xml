@@ -5,7 +5,7 @@
 		<include file="sawyer_xyz_base.xml"></include>
         <body name="puck" pos="0 0 .1">
             <joint name="puckjoint" type="free" limited='false' damping="1" armature="0" />
-            <inertial pos="0 0 0" mass=".1" diaginertia="1 1 1"/>
+            <inertial pos="0 0 0" mass=".1" diaginertia=".001 .001 .001"/>
             <geom name="puckbox"
                   type="cylinder"
                   pos="0 0 0"
@@ -13,7 +13,7 @@
                   rgba=".1 .1 .9 1"
                   contype="2"
                   conaffinity="4"
-                  friction="1 0.005 0.0001"
+                  friction=".1 .005 .0001"
             />
             <site name="puck" pos="0 0 0" size="0.01" />
         </body>
@@ -30,15 +30,15 @@
             <!--<geom name="arena side 4" type="box" pos=".0 -0.25 0.025" size="0.3 0.05 0.01"-->
           <!--rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="-.707 0 0"/>-->
             <geom name="arena base" type="box" pos="0 0.0 0" size="0.3 0.3 0.01"
-          rgba=".6 .6 .5 1" contype="4" conaffinity="2" />
+          rgba=".6 .6 .5 1" contype="4" conaffinity="2" friction=".1 .005 .0001"/>
             <geom name="arena side 1" type="box" pos="-.3 0.0 0.025" size="0.125 0.4 0.01"
-          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="0 .707 0"/>
+          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="0 .707 0" friction=".1 .005 .0001"/>
             <geom name="arena side 2" type="box" pos=".3 0.0 0.025" size="0.125 0.4 0.01"
-          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="0 -.707 0"/>
+          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="0 -.707 0" friction=".1 .005 .0001"/>
             <geom name="arena side 3" type="box" pos=".0 0.3 0.025" size="0.4 0.125 0.01"
-          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler=".707 0 0"/>
+          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler=".707 0 0" friction=".1 .005 .0001"/>
             <geom name="arena side 4" type="box" pos=".0 -0.3 0.025" size="0.4 0.125 0.01"
-          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="-.707 0 0"/>
+          rgba=".6 .6 .5 1" contype="4" conaffinity="2"  euler="-.707 0 0" friction=".1 .005 .0001"/>
              <!--<geom name="arena base" type="box" pos="0 0.0 0" size="0.3 0.3 0.01"-->
           <!--rgba=".6 .6 .5 1" contype="4" conaffinity="2" />-->
             <!--<geom name="arena side 1" type="box" pos="-.3 0.0 0.025" size="0.05 0.4 0.01"-->
