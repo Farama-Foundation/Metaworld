@@ -45,10 +45,10 @@ char_to_action = {
 env = SawyerPushAndReachXYEnv(
     hand_low=(-0.28, 0.3, 0.05),
     hand_high=(0.28, 0.9, 0.3),
-    puck_low=(-.35, .275),
-    puck_high=(.35, .9),
-    goal_low=(-0.25, 0.3, 0.02, -.22, .38),
-    goal_high=(0.25, 0.875, 0.02, .22, .8),
+    puck_low=(-.4, .2),
+    puck_high=(.4, 1),
+    goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+    goal_high=(0.25, 0.875, 0.02, .2, .8),
     reset_free=True,
     num_resets_before_puck_reset=100000,
 )
