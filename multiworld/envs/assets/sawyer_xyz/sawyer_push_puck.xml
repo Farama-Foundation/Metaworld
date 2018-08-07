@@ -13,7 +13,7 @@
                   rgba=".1 .1 .9 1"
                   contype="2"
                   conaffinity="4"
-                  friction="1 .001 .0001"
+                  friction="1 0.005 0.0001"
             />
             <site name="puck" pos="0 0 0" size="0.01" />
         </body>
