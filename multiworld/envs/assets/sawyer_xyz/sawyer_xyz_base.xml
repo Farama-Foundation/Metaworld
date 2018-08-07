@@ -128,14 +128,14 @@ Usage:
 
                                                 <body name="rightclaw"
                                                       pos=".01 .015 0" >
-                                                    <geom name="rightclaw_it" class="1" type="box" pos="0 0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
+                                                    <geom name="rightclaw_it" class="1" type="box" pos="0 0.0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.6 1.0"/>
                                                     <!--<joint name="rc_close"-->
                                                            <!--type="slide"-->
                                                            <!--pos="0 0 0" axis="0 1 0" range="0 .001" user="008" limited="true"/>-->
                                                 </body>
 
                                                 <body name="leftclaw" pos=".01 .02 0">
-                                                    <geom name="leftclaw_it" class="1" type="box" pos="0 0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
+                                                    <geom name="leftclaw_it" class="1" type="box" pos="0 -.04 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
                                                     <site name="endeffector" pos="0 0 0" size="0.01" />
                                                     <!-- <body name="endeff" pos=".01 .02 0"> -->
                                                     <!-- <geom name="leftclaw_it" class="1" type="capsule" fromto="0 0 0 .05 0.0 0.0"    size="0.005" /> -->
