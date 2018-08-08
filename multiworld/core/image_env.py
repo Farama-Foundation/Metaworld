@@ -22,6 +22,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             normalize=False,
             reward_type='wrapped_env',
             threshold=10,
+            image_length=None,
             presampled_goals=None,
     ):
         self.quick_init(locals())
@@ -33,10 +34,14 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.grayscale = grayscale
         self.normalize = normalize
 
-        if grayscale:
-            self.image_length = self.imsize * self.imsize
+        if image_length is not None:
+            self.image_length = image_length
         else:
-            self.image_length = 3 * self.imsize * self.imsize
+            if grayscale:
+                self.image_length = self.imsize * self.imsize
+            else:
+                self.image_length = 3 * self.imsize * self.imsize
+
         # This is torch format rather than PIL image
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
@@ -154,7 +159,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
-            return -(dist<self.threshold).astype(float)
+            return (dist<self.threshold).astype(float)-1
         elif self.reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs)
         else:
