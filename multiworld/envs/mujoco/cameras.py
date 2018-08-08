@@ -119,7 +119,6 @@ def sawyer_torque_reacher_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-
 def sawyer_door_env_camera(camera):
     camera.trackbodyid = 0
     camera.distance = 1.0
@@ -134,7 +133,6 @@ def sawyer_door_env_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-
 def sawyer_pusher_camera_upright(camera):
     """
     Top down basically. Sees through the arm.
@@ -147,7 +145,6 @@ def sawyer_pusher_camera_upright(camera):
     camera.elevation = -50
     camera.azimuth = 270
     camera.trackbodyid = -1
-
 
 def sawyer_pusher_camera_top_down(camera):
     camera.trackbodyid = 0
