@@ -152,13 +152,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
-    def compute_reward(self, action, obs):
-        actions = action[None]
-        next_obs = {
-            k: v[None] for k, v in obs.items()
-        }
-        return self.compute_rewards(actions, next_obs)[0]
-
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
