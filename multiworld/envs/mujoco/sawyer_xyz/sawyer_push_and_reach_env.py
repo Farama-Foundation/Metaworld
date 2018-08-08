@@ -12,17 +12,20 @@ import mujoco_py
 class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
-            puck_low=None,
-            puck_high=None,
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
 
             reward_type='state_distance',
             norm_order=1,
             indicator_threshold=0.06,
 
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
-            goal_low=None,
-            goal_high=None,
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
 
             hide_goal_markers=False,
             init_puck_z=0.02,
@@ -35,6 +38,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
+            hand_low=hand_low,
+            hand_high=hand_high,
             model_name=self.model_name,
             **kwargs
         )

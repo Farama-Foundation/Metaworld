@@ -42,16 +42,7 @@ char_to_action = {
 }
 
 
-env = SawyerPushAndReachXYEnv(
-    hand_low=(-0.28, 0.3, 0.05),
-    hand_high=(0.28, 0.9, 0.3),
-    puck_low=(-.4, .2),
-    puck_high=(.4, 1),
-    goal_low=(-0.25, 0.3, 0.02, -.2, .4),
-    goal_high=(0.25, 0.875, 0.02, .2, .8),
-    reset_free=True,
-    num_resets_before_puck_reset=100000,
-)
+env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
@@ -79,16 +70,15 @@ while True:
                 action[3] = 1
             elif new_action == 'open':
                 action[3] = -1
-            # elif new_action == 'put obj in hand':
-            #     print("putting obj in hand")
-            #     env.put_obj_in_hand()
-            #     action[3] = 1
+            elif new_action == 'put obj in hand':
+                print("putting obj in hand")
+                env.put_obj_in_hand()
+                action[3] = 1
             elif new_action is not None:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-    # env.set_to_goal(env.sample_goal())
     print('Puck_pos ', env.get_puck_pos())
     print('Hand_pos ', env.get_endeff_pos())
     env.render()
