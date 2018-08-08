@@ -224,8 +224,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
+        self.set_goal(goal)
         if self.reset_free:
             if self.reset_counter % self.num_resets_before_puck_reset == 0:
                 self._set_puck_xy(self.sample_puck_xy())
@@ -277,6 +276,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def set_to_goal(self, goal):
         hand_goal = goal['state_desired_goal'][:3]

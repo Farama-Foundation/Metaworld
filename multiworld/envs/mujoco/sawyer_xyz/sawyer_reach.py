@@ -114,9 +114,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
     def reset_model(self):
         self._reset_hand()
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
+        self.set_goal(self.sample_goal())
         self.sim.forward()
         return self._get_obs()
 
@@ -134,6 +132,10 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']

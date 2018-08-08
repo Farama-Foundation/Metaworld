@@ -164,10 +164,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
-
+        self.set_goal(self.sample_goal())
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 
@@ -203,6 +200,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def sample_goals(self, batch_size, p_obj_in_hand=0.5):
         if self.fix_goal:
