@@ -1,3 +1,5 @@
+import random
+
 import cv2
 import mujoco_py
 import numpy as np
@@ -18,6 +20,7 @@ class ImageEnv(ProxyEnv):
             normalize=False,
             reward_type='wrapped_env',
             threshold=10,
+            presampled_goals=None,
     ):
         self.quick_init(locals())
         super().__init__(wrapped_env)
@@ -43,7 +46,7 @@ class ImageEnv(ProxyEnv):
             # sim.add_render_context(viewer)
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,))
-        self._img_goal = img_space.sample()
+        self._img_goal = None
         spaces = self.wrapped_env.observation_space.spaces
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -54,6 +57,11 @@ class ImageEnv(ProxyEnv):
         self.observation_space = Dict(spaces)
         self.reward_type=reward_type
         self.threshold = threshold
+        self.num_goals_presampled = 0
+
+    def set_presampled_goals(self, presampled_goals):
+        self._presampled_goals = presampled_goals
+        self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
@@ -63,10 +71,17 @@ class ImageEnv(ProxyEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-        env_state = self.wrapped_env.get_env_state()
-        self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-        self._img_goal = self._get_flat_img()
-        self.wrapped_env.set_env_state(env_state)
+        if self.num_goals_presampled > 0:
+            goal = self.sample_goal()
+            self._img_goal = goal['image_desired_goal']
+            self.wrapped_env.set_goal(goal)
+            for key in goal:
+                obs[key] = goal[key]
+        else:
+            env_state = self.wrapped_env.get_env_state()
+            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+            self._img_goal = self._get_flat_img()
+            self.wrapped_env.set_env_state(env_state)
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
@@ -112,6 +127,12 @@ class ImageEnv(ProxyEnv):
         self.wrapped_env.set_goal(goal)
 
     def sample_goals(self, batch_size):
+        if self.num_goals_presampled > 0:
+            idx = np.random.randint(0, self.num_goals_presampled, batch_size)
+            sampled_goals = {
+                k: v[idx] for k, v in self._presampled_goals.items()
+            }
+            return sampled_goals
         if batch_size > 1:
             warnings.warn("Sampling goal images is slow")
         img_goals = np.zeros((batch_size, self.image_length))
