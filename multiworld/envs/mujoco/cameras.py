@@ -134,15 +134,22 @@ def sawyer_door_env_camera(camera):
     camera.trackbodyid = -1
 
 def sawyer_pusher_camera_upright(camera):
-    """
-    Top down basically. Sees through the arm.
-    """
     camera.trackbodyid = 0
     camera.distance = .45
     camera.lookat[0] = 0
     camera.lookat[1] = 0.85
     camera.lookat[2] = 0.45
     camera.elevation = -50
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
+def sawyer_pusher_camera_upright_v2(camera):
+    camera.trackbodyid = 0
+    camera.distance = .45
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.45
+    camera.elevation = -60
     camera.azimuth = 270
     camera.trackbodyid = -1
 
