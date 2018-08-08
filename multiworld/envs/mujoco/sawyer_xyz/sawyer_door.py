@@ -170,8 +170,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         angles[:] = self.init_angles
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
+        self.set_goal(self.sample_goal())
         return self._get_obs()
 
     @property
@@ -188,6 +187,9 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
     @property
     def goal_dim(self):
         return 1
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
