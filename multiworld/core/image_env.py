@@ -6,10 +6,12 @@ import numpy as np
 import warnings
 from PIL import Image
 from gym.spaces import Box, Dict
+
+from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.wrapper_env import ProxyEnv
 
 
-class ImageEnv(ProxyEnv):
+class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
             self,
             wrapped_env,
