@@ -31,7 +31,7 @@ def init_sawyer_camera_v1(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-        
+
 def init_sawyer_camera_v2(camera):
     """
     Top down basically. Sees through the arm.
@@ -44,7 +44,7 @@ def init_sawyer_camera_v2(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-        
+
 def init_sawyer_camera_v3(camera):
     """
     Top down basically. Sees through the arm.
@@ -57,7 +57,7 @@ def init_sawyer_camera_v3(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-        
+
 def init_sawyer_camera_v4(camera):
     """
     This is the same camera used in old experiments (circa 6/7/2018)
@@ -70,7 +70,7 @@ def init_sawyer_camera_v4(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-        
+
 def init_sawyer_camera_v5(camera):
     """
     Purposely zoomed out to be hard.
@@ -83,7 +83,7 @@ def init_sawyer_camera_v5(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-        
+
 def sawyer_xyz_reacher_camera(camera):
     camera.trackbodyid = 0
     camera.distance = 1.0
@@ -100,7 +100,7 @@ def sawyer_xyz_reacher_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-        
+
 def sawyer_torque_reacher_camera(camera):
     camera.trackbodyid = 0
     camera.distance = 1.0
@@ -117,7 +117,7 @@ def sawyer_torque_reacher_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-        
+
 def sawyer_door_env_camera(camera):
     camera.trackbodyid = 0
     camera.distance = 1.0
@@ -132,7 +132,7 @@ def sawyer_door_env_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
-        
+
 def sawyer_pusher_camera_upright(camera):
     """
     Top down basically. Sees through the arm.
