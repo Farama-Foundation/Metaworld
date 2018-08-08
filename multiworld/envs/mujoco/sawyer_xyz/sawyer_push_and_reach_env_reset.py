@@ -198,7 +198,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self.set_goal(self.sample_goal())
-        self._set_goal_marker(self._state_goal)
         if self.reset_free and not self.reset_puck_on_eval:
             self._set_puck_xy(self.puck_pos)
         else:
@@ -248,6 +247,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def set_goal(self, goal):
         self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def set_to_goal(self, goal):
         hand_goal = np.random.uniform(self.mocap_low, self.mocap_high)
