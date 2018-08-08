@@ -67,8 +67,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.prev_qpos = self.init_angles.copy()
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
         self.reset()
 
     @property
@@ -81,7 +79,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         angles[:] = self.prev_qpos.copy()
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.set_goal_xyz(self._state_goal)
 
     def is_outside_box(self):
         pos = self.get_endeff_pos()
@@ -93,7 +90,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         angles[:] = qpos
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.set_goal_xyz(self._state_goal)
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
@@ -161,25 +157,21 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
 
-    def reset(self):
+    def reset_model(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
         angles[:] = self.init_angles
         velocities[:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self.set_goal_xyz(self._state_goal)
         self.sim.forward()
         self.prev_qpos=self.data.qpos.copy()
-        return self._get_obs()
 
-    def set_goal_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = pos.copy()
-        qvel[7:10] = [0, 0, 0]
-        self.set_state(qpos, qvel)
+    def reset(self):
+        self.reset_model()
+        self.set_goal(self.sample_goal())
+        self.sim.forward()
+        self.prev_qpos = self.data.qpos.copy()
+        return self._get_obs()
 
     @property
     def init_angles(self):
@@ -187,17 +179,11 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
             3.53404635e+00,
-            1.07586388e-02, 6.62018003e-01, 2.09936716e-02,
-            1.00000000e+00, 3.76632959e-14, 1.36837913e-11, 1.56567415e-23
         ]
 
     @property
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
-
-    @property
-    def goal_id(self):
-        return self.model.body_names.index('goal')
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -232,6 +218,9 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
             'state_desired_goal': self._state_goal,
         }
 
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+
     def sample_goals(self, batch_size):
         if self.fix_goal:
             goals = np.repeat(
@@ -263,9 +252,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
-
-    def set_to_goal(self, goal):
-        raise NotImplementedError()
 
     def get_env_state(self):
         joint_state = self.sim.get_state()

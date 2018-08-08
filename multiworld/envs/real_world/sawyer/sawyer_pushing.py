@@ -1,6 +1,6 @@
 from gym.spaces import Dict
 import sawyer_control.envs.sawyer_pushing as sawyer_pushing
-from sawyer_control.core.serializable import Serializable
+from multiworld.core.serializable import Serializable
 from multiworld.core.multitask_env import MultitaskEnv
 
 class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv, MultitaskEnv):
@@ -22,13 +22,13 @@ class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv, MultitaskEnv):
     def step(self, action):
         self._act(action)
         observation = self._get_obs()
-        reward = self.compute_reward(action, observation)
+        reward = None
         info = self._get_info()
         done = False
         return observation, reward, done, info
 
     def compute_rewards(self, actions, obs):
-        pass
+        raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
         achieved_goal = None
