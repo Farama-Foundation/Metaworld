@@ -224,14 +224,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._reset_hand()
         if self.goal_reset_counter % self.num_resets_before_goal_reset == 0:
             goal = self.sample_goal()
-            print('GOAL RESET')
         else:
             goal = self.get_goal()
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
             if self.reset_counter % self.num_resets_before_puck_reset == 0:
-                print('PUCK RESET')
                 self._set_puck_xy(self.sample_puck_xy())
             elif not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
                 self._set_puck_xy(self.sample_puck_xy())
