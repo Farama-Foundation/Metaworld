@@ -216,6 +216,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
+        qpos[10:14] = np.array([1, 0, 0, 0])
         qvel[7:14] = 0
         self.set_state(qpos, qvel)
 
@@ -429,3 +430,16 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
+
+if __name__=="__main__":
+    env = SawyerPushAndReachXYEnv(
+        hand_low=(-0.28, 0.3, 0.05),
+        hand_high=(0.28, 0.9, 0.3),
+        puck_low=(-.4, .2),
+        puck_high=(.4, 1),
+        goal_low=(-0.28, 0.3, 0.02, -.2, .4),
+        goal_high=(0.28, 0.9, 0.02, .2, .8),
+    )
+    while True:
+        env.set_to_goal(env.sample_goal())
+        env.render()
