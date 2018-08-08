@@ -229,9 +229,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal['state_desired_goal']
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
-            for i in range(100):
-                u = np.zeros(7)
-                self.do_simulation(u)
             if self.reset_counter % self.num_resets_before_puck_reset == 0:
                 print('PUCK RESET')
                 self._set_puck_xy(self.sample_puck_xy())
