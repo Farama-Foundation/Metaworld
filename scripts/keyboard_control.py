@@ -79,8 +79,6 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-    print('Puck_pos ', env.get_puck_pos())
-    print('Hand_pos ', env.get_endeff_pos())
     env.render()
     if done:
         obs = env.reset()
