@@ -237,6 +237,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         else:
             self._set_puck_xy(self.sample_puck_xy())
         self.reset_counter += 1
+        self.goal_reset_counter+=1
         self.reset_mocap_welds()
         return self._get_obs()
 
