@@ -222,16 +222,17 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        self._reset_hand()
-        goal = self.sample_goal()
-        self.set_goal(goal)
         if self.reset_free:
             if self.reset_counter % self.num_resets_before_puck_reset == 0:
+                self._reset_hand()
                 self._set_puck_xy(self.sample_puck_xy())
             elif not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
                 self._set_puck_xy(self.sample_puck_xy())
         else:
+            self._reset_hand()
             self._set_puck_xy(self.sample_puck_xy())
+        goal = self.sample_goal()
+        self.set_goal(goal)
         self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
