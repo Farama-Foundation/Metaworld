@@ -9,6 +9,7 @@ from gym.spaces import Box, Dict
 
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.wrapper_env import ProxyEnv
+from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
 
 
 class ImageEnv(ProxyEnv, MultitaskEnv):
@@ -74,7 +75,16 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
         reward = self.compute_reward(action, new_obs)
+        self._update_info(info, obs)
         return new_obs, reward, done, info
+
+    def _update_info(self, info, obs):
+        achieved_goal = obs['image_achieved_goal']
+        desired_goal = self._img_goal
+        image_dist = np.linalg.norm(achieved_goal-desired_goal)
+        image_success = (image_dist<self.threshold).astype(float)-1
+        info['image_dist'] = image_dist
+        info['image_success'] = image_success
 
     def reset(self):
         obs = self.wrapped_env.reset()
@@ -164,6 +174,23 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
+
+    def get_diagnostics(self, paths, **kwargs):
+        statistics = self.wrapped_env.get_diagnostics(paths, **kwargs)
+        for stat_name_in_paths in ["image_dist", "image_success"]:
+            stats = get_stat_in_paths(paths, 'env_infos', stat_name_in_paths)
+            statistics.update(create_stats_ordered_dict(
+                stat_name_in_paths,
+                stats,
+                always_show_all_stats=True,
+            ))
+            final_stats = [s[-1] for s in stats]
+            statistics.update(create_stats_ordered_dict(
+                "Final " + stat_name_in_paths,
+                final_stats,
+                always_show_all_stats=True,
+            ))
+        return statistics
 
 def normalize_image(image):
     assert image.dtype == np.uint8
