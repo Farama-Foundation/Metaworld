@@ -37,8 +37,8 @@ class MujocoEnv(gym.Env):
             'video.frames_per_second': int(np.round(1.0 / self.dt))
         }
         if device_id == -1 and 'gpu_id' in os.environ:
-            self.device_id = int(device_id)
-
+            device_id =int(os.environ['gpu_id'])
+        self.device_id = device_id
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
         if automatically_set_spaces:
