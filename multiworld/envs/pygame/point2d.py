@@ -144,6 +144,26 @@ class Point2DEnv(MultitaskEnv, Serializable):
         if self.reward_type == "dense":
             return -d
 
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'distance_to_target',
+            'is_success',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
+
     def get_goal(self):
         return {
             'desired_goal': self._target_position.copy(),

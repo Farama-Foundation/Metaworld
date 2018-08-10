@@ -79,7 +79,6 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-
     env.render()
     if done:
         obs = env.reset()

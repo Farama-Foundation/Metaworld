@@ -12,27 +12,34 @@ import mujoco_py
 class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
-            puck_low=None,
-            puck_high=None,
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
 
             reward_type='state_distance',
             norm_order=1,
             indicator_threshold=0.06,
 
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
-            goal_low=None,
-            goal_high=None,
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
 
             hide_goal_markers=False,
             init_puck_z=0.02,
 
+            reset_free=False,
+            num_resets_before_puck_reset=1,
             **kwargs
     ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
+            hand_low=hand_low,
+            hand_high=hand_high,
             model_name=self.model_name,
             **kwargs
         )
@@ -81,6 +88,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
+        self.reset_free = reset_free
+        self._set_puck_xy(self.sample_puck_xy())
+        self.reset_counter = 0
+        self.num_resets_before_puck_reset = num_resets_before_puck_reset
 
     @property
     def model_name(self):
@@ -206,22 +217,29 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
+        qpos[10:14] = np.array([1, 0, 0, 0])
         qvel[7:14] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
         self._reset_hand()
         goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
-
-        self._set_puck_xy(self.sample_puck_xy())
+        self.set_goal(goal)
+        if self.reset_free:
+            if self.reset_counter % self.num_resets_before_puck_reset == 0:
+                self._set_puck_xy(self.sample_puck_xy())
+            elif not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
+                self._set_puck_xy(self.sample_puck_xy())
+        else:
+            self._set_puck_xy(self.sample_puck_xy())
+        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 
     def _reset_hand(self):
         velocities = self.data.qvel.copy()
-        angles = np.array(self.init_angles)
+        angles = self.data.qpos.copy()
+        angles[:7] = self.init_angles[:7]
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
             self.data.set_mocap_pos('mocap', np.array([0, 0.4, 0.02]))
@@ -234,6 +252,12 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
                     sim.model.eq_data[i, :] = np.array(
                         [0., 0., 0., 1., 0., 0., 0.]
                     )
+
+    def reset(self):
+        ob = self.reset_model()
+        if self.viewer is not None:
+            self.viewer_setup()
+        return ob
 
     @property
     def init_angles(self):
@@ -252,6 +276,10 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def set_to_goal(self, goal):
         hand_goal = goal['state_desired_goal'][:3]
