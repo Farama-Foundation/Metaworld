@@ -13,7 +13,7 @@ def register_custom_envs():
     _REGISTERED = True
 
     LOGGER.info("Registering multiworld mujoco gym environments")
-    # TODO
+    # TODO Below is an example. Fill it out.
     # register(
     #     id='TODO',
     #     entry_point='multiworld.envs.mujoco.todo:TODO',
