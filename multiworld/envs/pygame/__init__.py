@@ -16,11 +16,12 @@ def register_custom_envs():
     register(
         id='Point2DLargeEnv-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
-        tag={
+        tags={
             'git-commit-hash': '166f0f3',
             'author': 'Vitchyr'
         },
         kwargs={
+            'images_are_rgb': True,
             'target_radius': 1,
             'ball_radius': 1,
         },

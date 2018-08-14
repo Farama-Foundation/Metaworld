@@ -17,7 +17,7 @@ def register_custom_envs():
     # register(
     #     id='TODO',
     #     entry_point='multiworld.envs.mujoco.todo:TODO',
-    #     tag={
+    #     tags={
     #         'git-commit-hash': 'TODO',
     #         'author': 'TODO'
     #     },
