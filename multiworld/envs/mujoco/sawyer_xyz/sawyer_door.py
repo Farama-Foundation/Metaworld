@@ -7,27 +7,26 @@ import sys
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from gym.spaces import Box, Dict
 from multiworld.core.serializable import Serializable
-from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict, get_asset_full_path
+from multiworld.envs.env_util import (
+    get_stat_in_paths,
+    create_stats_ordered_dict, get_asset_full_path,
+)
 from multiworld.core.multitask_env import MultitaskEnv
-from railrl.exploration_strategies.base import PolicyWrappedWithExplorationStrategy
-from railrl.exploration_strategies.epsilon_greedy import EpsilonGreedy
-from railrl.exploration_strategies.ou_strategy import OUStrategy
-from railrl.policies.simple import ZeroPolicy
 
 
-class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta):
+class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
+                    metaclass=abc.ABCMeta):
     def __init__(self,
-                     frame_skip=50,
-                     goal_low=-.5,
-                     goal_high=.5,
-                     pos_action_scale=1 / 100,
-                     action_reward_scale=0,
-                     reward_type='angle_difference',
-                     indicator_threshold=0.02,
-                     fix_goal=False,
-                     fixed_goal=.25,
-                ):
+                 frame_skip=50,
+                 goal_low=-.5,
+                 goal_high=.5,
+                 pos_action_scale=1 / 100,
+                 action_reward_scale=0,
+                 reward_type='angle_difference',
+                 indicator_threshold=0.02,
+                 fix_goal=False,
+                 fixed_goal=.25,
+                 ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
@@ -40,7 +39,8 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         self.goal_space = Box(np.array([goal_low]), np.array([goal_high]))
         self._state_goal = None
 
-        self.action_space = Box(np.array([-1, -1, -1, -1]), np.array([1, 1, 1, 1]))
+        self.action_space = Box(np.array([-1, -1, -1, -1]),
+                                np.array([1, 1, 1, 1]))
         max_angle = 1.5708
         self.state_space = Box(
             np.array([-1, -1, -1, -max_angle]),
@@ -103,10 +103,10 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         )
 
     def _get_info(self):
-        angle_diff = np.abs(self.get_door_angle()-self._state_goal)
+        angle_diff = np.abs(self.get_door_angle() - self._state_goal)
         info = dict(
             angle_difference=angle_diff,
-            angle_success = (angle_diff < self.indicator_threshold).astype(float)
+            angle_success=(angle_diff < self.indicator_threshold).astype(float)
         )
         return info
 
@@ -155,9 +155,9 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
-        reward = np.linalg.norm(achieved_goals-desired_goals, axis=1)
+        reward = np.linalg.norm(achieved_goals - desired_goals, axis=1)
         if self.reward_type == 'angle_difference':
-            reward =  -reward
+            reward = -reward
         elif self.reward_type == 'angle_success':
             reward = -(reward < self.indicator_threshold).astype(float)
         else:
@@ -271,6 +271,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable, metaclass=abc.ABCMeta
         self.sim.forward()
         self._state_goal = goal
 
+
 class SawyerDoorPushOpenEnv(SawyerDoorEnv):
     def __init__(self,
                  goal_low=0,
@@ -278,7 +279,7 @@ class SawyerDoorPushOpenEnv(SawyerDoorEnv):
                  max_x_pos=.1,
                  max_y_pos=.7,
                  **kwargs
-                ):
+                 ):
         self.quick_init(locals())
         self.max_x_pos = max_x_pos
         self.max_y_pos = max_y_pos
@@ -308,8 +309,9 @@ class SawyerDoorPushOpenEnv(SawyerDoorEnv):
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def set_to_goal(self, goal):
-        ee_pos = np.random.uniform(np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                                   np.array([self.max_x_pos, .6, .06]))
+        ee_pos = np.random.uniform(
+            np.array([-self.max_x_pos, self.min_y_pos, .06]),
+            np.array([self.max_x_pos, .6, .06]))
         self.set_to_goal_pos(ee_pos)
         self.set_to_goal_angle(goal['state_desired_goal'])
 
@@ -318,7 +320,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
     def __init__(self,
                  frame_skip=30,
                  goal_low=(-.1, .5, .06, 0),
-                 goal_high=(.1, .6, .06,.5),
+                 goal_high=(.1, .6, .06, .5),
                  action_reward_scale=0,
                  pos_action_scale=1 / 100,
                  reward_type='angle_difference',
@@ -346,7 +348,8 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         )
         self._state_goal = None
 
-        self.action_space = Box(np.array([-1, -1, -1, -1]), np.array([1, 1, 1, 1]))
+        self.action_space = Box(np.array([-1, -1, -1, -1]),
+                                np.array([1, 1, 1, 1]))
         max_angle = 1.5708
         self.state_space = Box(
             np.array([-1, -1, -1, -max_angle]),
@@ -368,7 +371,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         self.max_x_pos = max_x_pos
         self.max_y_pos = max_y_pos
         self.min_y_pos = .5
-        
+
         self.reset()
         self.reset_mocap_welds()
 
@@ -386,14 +389,16 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         )
 
     def _get_info(self):
-        angle_diff = np.abs(self.get_door_angle()-self._state_goal[-1])[0]
-        hand_dist = np.linalg.norm(self.get_endeff_pos()-self._state_goal[:3])
+        angle_diff = np.abs(self.get_door_angle() - self._state_goal[-1])[0]
+        hand_dist = np.linalg.norm(self.get_endeff_pos() - self._state_goal[:3])
         info = dict(
             angle_difference=angle_diff,
-            angle_success = (angle_diff < self.indicator_threshold[0]).astype(float),
+            angle_success=(angle_diff < self.indicator_threshold[0]).astype(
+                float),
             hand_distance=hand_dist,
-            hand_success=(hand_dist<self.indicator_threshold[1]).astype(float),
-            total_distance=angle_diff+hand_dist
+            hand_success=(hand_dist < self.indicator_threshold[1]).astype(
+                float),
+            total_distance=angle_diff + hand_dist
         )
         return info
 
@@ -407,13 +412,15 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         angle_diff = np.abs(actual_angle - goal_angle)
         pos_dist = np.linalg.norm(pos - goal_pos, axis=1)
         if self.reward_type == 'angle_difference':
-            r = - (angle_diff*self.target_angle_scale+pos_dist*self.target_pos_scale)
+            r = - (
+                        angle_diff * self.target_angle_scale + pos_dist * self.target_pos_scale)
         elif self.reward_type == 'hand_success':
-            r = -(angle_diff < self.indicator_threshold[0] and pos_dist < self.indicator_threshold[1]).astype(float)
+            r = -(angle_diff < self.indicator_threshold[0] and pos_dist <
+                  self.indicator_threshold[1]).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
-        
+
     ''' Multitask Functions '''
 
     @property
@@ -477,6 +484,7 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
+
 class SawyerDoorPullOpenEnv(SawyerDoorEnv):
     def __init__(self,
                  goal_low=-.5,
@@ -486,12 +494,12 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
                  max_y_pos=.6,
                  use_line=False,
                  **kwargs
-                ):
+                 ):
         self.quick_init(locals())
         self.max_x_pos = max_x_pos
         self.min_y_pos = min_y_pos
         self.max_y_pos = max_y_pos
-        self.use_line=use_line
+        self.use_line = use_line
         super().__init__(goal_low=goal_low, goal_high=goal_high, **kwargs)
 
     def mocap_set_action(self, action):
@@ -520,32 +528,34 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
         goal = goal['state_desired_goal']
         if self.use_line:
             ymax = self.min_y_pos
-            x_max = (ymax -.6)/np.tan(goal)[0] - .15
+            x_max = (ymax - .6) / np.tan(goal)[0] - .15
             if np.abs(x_max) > self.max_x_pos:
                 xmax = self.max_x_pos
             else:
                 xmax = x_max
             x_pos = np.random.uniform(-self.max_x_pos, xmax)
             y_min = self.min_y_pos
-            y_max = .6 + np.tan(goal)[0]*(x_pos+.15)
+            y_max = .6 + np.tan(goal)[0] * (x_pos + .15)
             y_pos = np.random.uniform(y_min, y_max)
             ee_pos = np.array([x_pos, y_pos, .06])
         else:
-            ee_pos = np.random.uniform(np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                                   np.array([self.max_x_pos, .5, .06]))
+            ee_pos = np.random.uniform(
+                np.array([-self.max_x_pos, self.min_y_pos, .06]),
+                np.array([self.max_x_pos, .5, .06]))
         self.set_to_goal_pos(ee_pos)
         self.set_to_goal_angle(goal)
 
+
 class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
     def __init__(self,
-                     goal_low=-.5,
-                     goal_high=.5,
-                     max_x_pos=.1,
-                     min_y_pos=.5,
-                     max_y_pos=.7,
-                     use_line=True,
-                     **kwargs
-                ):
+                 goal_low=-.5,
+                 goal_high=.5,
+                 max_x_pos=.1,
+                 min_y_pos=.5,
+                 max_y_pos=.7,
+                 use_line=True,
+                 **kwargs
+                 ):
         self.quick_init(locals())
         self.max_x_pos = max_x_pos
         self.min_y_pos = min_y_pos
@@ -595,101 +605,8 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
                 y_pos = np.random.uniform(y_min, y_max)
                 ee_pos = np.array([x_pos, y_pos, .06])
             else:
-                ee_pos = np.random.uniform(np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                                           np.array([self.max_x_pos, .5, .06]))
+                ee_pos = np.random.uniform(
+                    np.array([-self.max_x_pos, self.min_y_pos, .06]),
+                    np.array([self.max_x_pos, .5, .06]))
             self.set_to_goal_pos(ee_pos)
         self.set_to_goal_angle(state_goal)
-if __name__ == "__main__":
-    import pygame
-    from pygame.locals import QUIT, KEYDOWN
-
-    pygame.init()
-
-    screen = pygame.display.set_mode((400, 300))
-
-    char_to_action = {
-        'w': np.array([0, 1, 0, 0]),
-        'a': np.array([-1, 0, 0, 0]),
-        's': np.array([0, -1, 0, 0]),
-        'd': np.array([1, 0, 0, 0]),
-        'q': np.array([1, -1, 0, 0]),
-        'e': np.array([-1, -1, 0, 0]),
-        'z': np.array([1, 1, 0, 0]),
-        'c': np.array([-1, 1, 0, 0]),
-        'x': 'toggle',
-        'r': 'reset',
-    }
-    # np.random.seed(100)
-    env = SawyerDoorPullOpenEnv(fix_goal=True, min_y_pos=.3)
-    policy = ZeroPolicy(env.action_space.low.size)
-    es = OUStrategy(
-        env.action_space,
-        theta=1
-    )
-    es = EpsilonGreedy(
-        action_space=env.action_space,
-        prob_random_action=0.1,
-    )
-    policy = exploration_policy = PolicyWrappedWithExplorationStrategy(
-        exploration_strategy=es,
-        policy=policy,
-    )
-
-    env.reset()
-    ACTION_FROM = 'hardcoded'
-    # ACTION_FROM = 'pd'
-    # ACTION_FROM = 'random'
-    H = 10000
-    # H = 300
-    # H = 50
-    goal = .25
-
-    while True:
-        lock_action = False
-        obs = env.reset()
-        last_reward_t = 0
-        returns = 0
-        action, _ = policy.get_action(None)
-        goal=env._state_goal
-        print(goal)
-        for t in range(H):
-            done = False
-            if ACTION_FROM == 'controller':
-                if not lock_action:
-                    action = np.array([0, 0, 0, 0])
-                for event in pygame.event.get():
-                    event_happened = True
-                    if event.type == QUIT:
-                        sys.exit()
-                    if event.type == KEYDOWN:
-                        char = event.dict['key']
-                        new_action = char_to_action.get(chr(char), None)
-                        if new_action == 'toggle':
-                            lock_action = not lock_action
-                        elif new_action == 'reset':
-                            done = True
-                        elif new_action is not None:
-                            action = new_action
-                        else:
-                            action = np.array([0, 0, 0, 0])
-                        print("got char:", char)
-                        print("action", action)
-                        print("angles", env.data.qpos.copy())
-                        print("position", env.get_endeff_pos())
-            elif ACTION_FROM=='hardcoded':
-                action=np.array([1, -2, 0, 0])
-            else:
-                action = env.action_space.sample()
-            if np.abs(env.data.qpos[0]+.4) < .001:
-                print(env.get_endeff_pos())
-                break
-            # obs, reward, _, info = env.step(action)
-            # print(obs['state_observation'][-1])
-            # print(env.get_goal()['desired_goal'])
-            env.set_to_goal_pos(np.array([-.15, .6, -.35]))
-            env.render()
-            print(t)
-            # if done:
-            #     break
-            # print("new episode")
-        break
