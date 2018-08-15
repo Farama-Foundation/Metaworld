@@ -14,7 +14,7 @@ def register_custom_envs():
 
     LOGGER.info("Registering multiworld pygame gym environments")
     register(
-        id='Point2DLargeEnv-v0',
+        id='Point2DLargeEnv-offscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '166f0f3',
@@ -24,6 +24,21 @@ def register_custom_envs():
             'images_are_rgb': True,
             'target_radius': 1,
             'ball_radius': 1,
+            'render_onscreen': False,
+        },
+    )
+    register(
+        id='Point2DLargeEnv-onscreen-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '166f0f3',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'render_onscreen': True,
         },
     )
 
