@@ -63,7 +63,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
-        self.reward_type=reward_type
+        self.action_space = self.wrapped_env.action_space
+        self.reward_type = reward_type
         self.threshold = threshold
         self.num_goals_presampled = 0
 
