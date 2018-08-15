@@ -31,18 +31,18 @@ normal "flat" environment:
 ```
 base_env = CarEnv()
 env = FlatGoalEnv(base_env, obs_key='observation')
-obs = env.reset()  # returns just the 'observation'
+obs = env.reset()  # returns vector in 'observation' key
 action = policy_that_takes_in_vector(obs)
 ```
 
 The observation space of FlatGoalEnv will be the corresponding env of the vector
 (e.g. `gym.space.Box`).
-However, note that the goal is not part of the observation!
+**However, the goal is not part of the observation!**
 Not giving the goal to the policy might make the task impossible.
 
 We provide two possible solutions to this:
 
-1. Use the `get_goal` function
+(1) Use the `get_goal` function
 ```
 base_env = CarEnv()
 env = FlatGoalEnv(base_env, obs_key='observation')
@@ -50,14 +50,12 @@ obs = env.reset()  # returns just the 'observation'
 goal = env.get_goal()
 action = policy_that_takes_in_two_vectors(obs, goal)
 ```
-
-2. Pass in a list including `'desired_goal'` to FlatGoalEnv and set
+(2) Set
 `append_goal_to_obs` to `True`.
 ```
 base_env = CarEnv()
 env = FlatGoalEnv(
     base_env,
-    obs_key=['observation', 'desired_goal'],
     append_goal_to_obs=True,  # default value is False
 )
 obs = env.reset()  # returns 'observation' concatenated to `desired_goal`
