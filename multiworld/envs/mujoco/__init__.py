@@ -22,14 +22,14 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
             'git-commit-hash': 'c5e15f7',
-            'author': 'Vitchyr'
+            'author': 'vitchyr'
         },
         kwargs={
             'hide_goal_markers': False,
         },
     )
     register(
-        id='image48sawyerreachxyenv-v0',
+        id='Image48SawyerReachXYEnv-v0',
         entry_point=create_image_48_sawyer_reach_xy_env_v0,
         tags={
             'git-commit-hash': 'c5e15f7',
@@ -37,7 +37,7 @@ def register_custom_envs():
         },
     )
     register(
-        id='image84sawyerreachxyenv-v0',
+        id='Image84SawyerReachXYEnv-v0',
         entry_point=create_image_84_sawyer_reach_xy_env_v0,
         tags={
             'git-commit-hash': 'c5e15f7',
