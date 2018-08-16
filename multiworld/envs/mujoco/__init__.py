@@ -60,7 +60,25 @@ def register_custom_envs():
         )
     )
     register(
-        id='SawyerPushAndReacherXYEnv-StateDistance-ResetFree-v0',
+        id='SawyerPushXYEnv-ResetFree-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '3d4adbe',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            reset_free=True,
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+        )
+    )
+    register(
+        id='SawyerPushAndReachXYEnv-ResetFree-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '3d4adbe',
