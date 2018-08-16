@@ -63,7 +63,7 @@ def register_custom_envs():
         id='SawyerPushXYEnv-ResetFree-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '3d4adbe',
+            'git-commit-hash': '33c6b71',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -81,7 +81,7 @@ def register_custom_envs():
         id='SawyerPushAndReachXYEnv-ResetFree-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '3d4adbe',
+            'git-commit-hash': '33c6b71',
             'author': 'vitchyr'
         },
         kwargs=dict(
