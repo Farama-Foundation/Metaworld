@@ -2,9 +2,6 @@ import gym
 from gym.envs.registration import register
 import logging
 
-from multiworld.core.image_env import ImageEnv
-from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
-
 LOGGER = logging.getLogger(__name__)
 
 _REGISTERED = False
@@ -65,6 +62,9 @@ def register_custom_envs():
 
 
 def create_image_48_sawyer_reach_xy_env_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
+
     wrapped_env = gym.make('SawyerReachXYEnv-v0')
     return ImageEnv(
         wrapped_env,
@@ -76,6 +76,9 @@ def create_image_48_sawyer_reach_xy_env_v0():
 
 
 def create_image_84_sawyer_reach_xy_env_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
+
     wrapped_env = gym.make('SawyerReachXYEnv-v0')
     return ImageEnv(
         wrapped_env,
