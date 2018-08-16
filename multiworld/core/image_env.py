@@ -113,7 +113,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def _get_flat_img(self):
         # returns the image as a torch format np array
-        image_obs = self._wrapped_env.get_image()
+        image_obs = self._wrapped_env.get_image(
+            width=self.imsize,
+            height=self.imsize,
+        )
         if self._render_local:
             cv2.imshow('env', image_obs)
             cv2.waitKey(1)
