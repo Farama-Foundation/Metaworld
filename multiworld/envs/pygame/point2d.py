@@ -193,8 +193,20 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     """Functions for ImageEnv wrapper"""
 
-    def get_image(self):
+    def get_image(self, width=None, height=None):
         """Returns a black and white image"""
+        if width is not None:
+            if width != height:
+                raise NotImplementedError()
+            if width != self.render_size:
+                self.drawer = PygameViewer(
+                    screen_width=width,
+                    screen_height=height,
+                    x_bounds=(-self.boundary_dist, self.boundary_dist),
+                    y_bounds=(-self.boundary_dist, self.boundary_dist),
+                    render_onscreen=self.render_onscreen,
+                )
+                self.render_size = width
         self.render()
         img = self.drawer.get_image()
         if self.images_are_rgb:
