@@ -111,7 +111,7 @@ class ImageEnv(ProxyEnv):
 
     def _get_flat_img(self):
         # returns the image as a torch format np array
-        image_obs = self._wrapped_env.get_image()
+        image_obs = self._wrapped_env.get_image(width=self.imsize, height=self.imsize)
         # image_obs = self._wrapped_env.get_image(width=200, height=200)
         # start_x = 60
         # start_y = 45
