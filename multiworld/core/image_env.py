@@ -63,7 +63,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
-        self.reward_type=reward_type
+        self.action_space = self.wrapped_env.action_space
+        self.reward_type = reward_type
         self.threshold = threshold
         self.num_goals_presampled = 0
 
@@ -128,6 +129,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.transpose:
             image_obs = image_obs.transpose()
         return image_obs.flatten()
+
+    def render(self):
+        self.wrapped_env.render()
 
     def enable_render(self):
         self._render_local = True

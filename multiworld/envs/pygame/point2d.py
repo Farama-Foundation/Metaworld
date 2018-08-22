@@ -38,7 +38,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
     ):
         if walls is None:
             walls = []
-        print("WARNING, ignoring kwargs:", kwargs)
+        if len(kwargs) > 0:
+            import logging
+            LOGGER = logging.getLogger(__name__)
+            LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
@@ -120,10 +123,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 size=2, low=-self.boundary_dist, high=self.boundary_dist
             )
         return self._get_obs()
-
-    def seed(self, s):
-        """Do nothing for seed"""
-        pass
 
     def _get_obs(self):
         return dict(
