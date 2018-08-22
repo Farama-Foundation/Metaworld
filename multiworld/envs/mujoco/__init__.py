@@ -47,7 +47,55 @@ def register_custom_envs():
     )
 
     """
-    Pushing tasks
+    Pushing tasks, XY, With Reset
+    """
+    register(
+        id='SawyerPushAndReacherXYEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '3d4adbe',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            hide_goal_markers=True,
+            action_scale=.02,
+            puck_low=[-0.25, .4],
+            puck_high=[0.25, .8],
+            mocap_low=[-0.2, 0.45, 0.],
+            mocap_high=[0.2, 0.75, 0.5],
+            goal_low=[-0.2, 0.45, 0.02, -0.25, 0.4],
+            goal_high=[0.2, 0.75, 0.02, 0.25, 0.8],
+        )
+    )
+    register(
+        id='SawyerPushAndReachXYEasyEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'fec148f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            reset_free=False,
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.05, 0.4, 0.02, -.1, .5),
+            goal_high=(0.05, 0.7, 0.02, .1, .7),
+        )
+    )
+    register(
+        id='Image48SawyerPushAndReachXYEasyEnv-v0',
+        entry_point=create_image_48_sawyer_reach_and_reach_xy_easy_env_v0,
+        tags={
+            'git-commit-hash': 'fec148f',
+            'author': 'vitchyr'
+        },
+    )
+
+    """
+    Pushing tasks, XY, Reset Free
     """
     register(
         id='SawyerPushAndReacherXYEnv-ResetFree-v0',
@@ -162,32 +210,6 @@ def register_custom_envs():
         )
     )
 
-    register(
-        id='SawyerPushAndReachXYEasyEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
-        tags={
-            'git-commit-hash': 'fec148f',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            reward_type='puck_distance',
-            reset_free=False,
-            hand_low=(-0.28, 0.3, 0.05),
-            hand_high=(0.28, 0.9, 0.3),
-            puck_low=(-.4, .2),
-            puck_high=(.4, 1),
-            goal_low=(-0.05, 0.4, 0.02, -.1, .5),
-            goal_high=(0.05, 0.7, 0.02, .1, .7),
-        )
-    )
-    register(
-        id='Image48SawyerPushAndReachXYEasyEnv-v0',
-        entry_point=create_image_48_sawyer_reach_and_reach_xy_easy_env_v0,
-        tags={
-            'git-commit-hash': 'fec148f',
-            'author': 'vitchyr'
-        },
-    )
     """
     Push XYZ
     """
