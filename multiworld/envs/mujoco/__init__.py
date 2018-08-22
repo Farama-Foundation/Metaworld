@@ -53,7 +53,7 @@ def register_custom_envs():
         id='SawyerPushAndReacherXYEnv-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '3d4adbe',
+            'git-commit-hash': '3503e9f',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -66,6 +66,14 @@ def register_custom_envs():
             goal_low=[-0.2, 0.45, 0.02, -0.25, 0.4],
             goal_high=[0.2, 0.75, 0.02, 0.25, 0.8],
         )
+    )
+    register(
+        id='Image48SawyerPushAndReacherXYEnv-v0',
+        entry_point=create_Image48SawyerPushAndReacherXYEnv_v0,
+        tags={
+            'git-commit-hash': '3503e9f',
+            'author': 'vitchyr'
+        },
     )
     register(
         id='SawyerPushAndReachXYEasyEnv-v0',
@@ -332,6 +340,19 @@ def create_image_48_sawyer_reach_and_reach_xy_easy_env_v0():
         normalize=True,
     )
 
+
+def create_Image48SawyerPushAndReacherXYEnv_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_top_down
+
+    wrapped_env = gym.make('SawyerPushAndReacherXYEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_pusher_camera_top_down,
+        transpose=True,
+        normalize=True,
+    )
 
 
 register_custom_envs()
