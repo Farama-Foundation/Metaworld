@@ -91,8 +91,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self._presampled_goals = presampled_goals
         self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
-    def step(self, action, **kwargs):
-        obs, reward, done, info = self.wrapped_env.step(action, **kwargs)
+    def step(self, action):
+        obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
         reward = self.compute_reward(action, new_obs)
         self._update_info(info, obs)

@@ -28,7 +28,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             reset_free=False,
 
             hide_goal_markers=False,
-            hide_arm=False,
             oracle_reset_prob=0.0,
             presampled_goals=None,
             num_goals_presampled=10,
@@ -38,7 +37,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
-        self.hide_arm = hide_arm
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
@@ -113,14 +111,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.hide_arm:
-            print('hiding')
-            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_hidden_arm.xml')
-        print('not hiding')
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def mode(self, name):
-        if name == 'test' or name == 'video_vae' or name == 'video_env':
+        if 'train' not in name:
             self.oracle_reset_prob = 0.0
 
     def viewer_setup(self):
@@ -249,21 +243,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-
-    # def _reset_hand(self):
-        # for _ in range(10):
-            # self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
-            # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            # self.do_simulation(None, self.frame_skip)
-
-    def put_obj_in_hand(self):
-        new_obj_pos = self.data.get_site_xpos('endeffector')
-        new_obj_pos[1] -= 0.02
-        new_obj_pos[2] += 0.03
-        self.do_simulation(-1)
-        self._set_obj_xyz(new_obj_pos)
-        self.do_simulation(1)
-
     def set_to_goal(self, goal):
         """
         This function can fail due to mocap imprecision or impossible object
@@ -358,14 +337,14 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'obj_distance',
-            'hand_and_obj_distance',
             'touch_distance',
             'hand_success',
             'obj_success',
             'hand_and_obj_success',
             'touch_success',
             'hand_distance',
+            'obj_distance',
+            'hand_and_obj_distance',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -401,6 +380,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         end up in as the "corrected" goal. The downside to this is that it's not
         possible to call set_to_goal with the corrected goal as input as mocap
         errors make it impossible to rereate the exact same hand position.
+
+        The return of this function should be passed into
+        corrected_image_env_goals or corrected_state_env_goals
         """
         if self.fix_goal:
             goals = np.repeat(self.fixed_goal.copy()[None], num_goals, 0)
@@ -418,7 +400,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goals[:num_objs_in_hand, 3:] = goals[:num_objs_in_hand, :3].copy()
             goals[:num_objs_in_hand, 4] -= 0.01
             goals[:num_objs_in_hand, 5] += 0.01
-    
+
             # Put object one the table (not floating)
             goals[num_objs_in_hand:, 5] = self.obj_init_z
             return {
@@ -485,7 +467,9 @@ def corrected_state_goals(pickup_env, pickup_env_goals):
     goals = pickup_env_goals.copy()
     num_goals = len(list(goals.values())[0])
     for idx in range(num_goals):
-        pickup_env.set_to_goal({'state_desired_goal': goals['state_desired_goal'][idx]})
+        pickup_env.set_to_goal(
+            {'state_desired_goal': goals['state_desired_goal'][idx]}
+        )
         corrected_state_goal = pickup_env._get_obs()['achieved_goal']
         corrected_proprio_goal = pickup_env._get_obs()['proprio_achieved_goal']
 
@@ -495,6 +479,11 @@ def corrected_state_goals(pickup_env, pickup_env_goals):
     return goals
 
 def corrected_image_env_goals(image_env, pickup_env_goals):
+    """
+    This isn't as easy as setting to the corrected since mocap will fail to
+    move to the exact position, and the object will fail to stay in the hand.
+    """
+
     image_env.wrapped_env._state_goal = np.zeros(6)
     goals = pickup_env_goals.copy()
 
@@ -506,7 +495,11 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
         proprio_desired_goal=np.zeros((num_goals, 3))
     )
     for idx in range(num_goals):
-        image_env.set_to_goal({'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]})
+        if idx % 100 == 0:
+            print(idx)
+        image_env.set_to_goal(
+            {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]}
+        )
         corrected_state_goal = image_env._get_obs()['state_achieved_goal']
         corrected_proprio_goal = image_env._get_obs()['proprio_achieved_goal']
         corrected_image_goal = image_env._get_obs()['image_achieved_goal']
@@ -517,12 +510,12 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
         goals['proprio_desired_goal'][idx] = corrected_proprio_goal
     return goals
 
-def setup_image_presampled_goals(image_env, num_presampled_goals):
+def get_image_presampled_goals(image_env, num_presampled_goals):
     image_env.reset()
     pickup_env = image_env.wrapped_env
     image_env_goals = corrected_image_env_goals(
         image_env,
         pickup_env.generate_uncorrected_env_goals(num_presampled_goals)
     )
-    image_env.set_presampled_goals(image_env_goals)
+    return image_env_goals
 
