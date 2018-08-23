@@ -32,6 +32,8 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             reset_free=False,
             num_resets_before_puck_reset=1,
+            num_resets_before_hand_reset=1,
+            reset_hand_with_puck=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -90,8 +92,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.init_puck_z = init_puck_z
         self.reset_free = reset_free
         self._set_puck_xy(self.sample_puck_xy())
-        self.reset_counter = 0
+        self.puck_reset_counter = 0
+        self.hand_reset_counter = 0
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
+        self.num_resets_before_hand_reset = num_resets_before_hand_reset
+        self.reset_hand_with_puck = reset_hand_with_puck
 
     @property
     def model_name(self):
@@ -222,18 +227,22 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        if self.reset_free:
-            if self.reset_counter % self.num_resets_before_puck_reset == 0:
+        if self.reset_hand_with_puck:
+            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
                 self._reset_hand()
                 self._set_puck_xy(self.sample_puck_xy())
-            elif not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
-                self._set_puck_xy(self.sample_puck_xy())
         else:
-            self._reset_hand()
+            if self.puck_reset_counter % self.num_resets_before_hand_reset == 0:
+                self._reset_hand()
+            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
+                self._set_puck_xy(self.sample_puck_xy())
+
+        if not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
             self._set_puck_xy(self.sample_puck_xy())
         goal = self.sample_goal()
         self.set_goal(goal)
-        self.reset_counter += 1
+        self.puck_reset_counter += 1
+        self.hand_reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 
