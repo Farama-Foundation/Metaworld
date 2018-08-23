@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
-    SawyerPickAndPlaceEnvYZ
+    SawyerPickAndPlaceEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 
@@ -24,16 +24,16 @@ screen = pygame.display.set_mode((400, 300))
 
 
 char_to_action = {
-    'w': np.array([0, -1, 0]),
-    'a': np.array([1, 0, 0]),
-    's': np.array([0, 1, 0]),
-    'd': np.array([-1, 0, 0]),
-    'q': np.array([1, -1, 0]),
-    'e': np.array([-1, -1, 0]),
-    'z': np.array([1, 1, 0]),
-    'c': np.array([-1, 1, 0]),
-    'k': np.array([0, 0, 1]),
-    'j': np.array([0, 0, -1]),
+    'w': np.array([0, -1, 0, 0]),
+    'a': np.array([1, 0, 0, 0]),
+    's': np.array([0, 1, 0, 0]),
+    'd': np.array([-1, 0, 0, 0]),
+    'q': np.array([1, -1, 0, 0]),
+    'e': np.array([-1, -1, 0, 0]),
+    'z': np.array([1, 1, 0, 0]),
+    'c': np.array([-1, 1, 0, 0]),
+    'k': np.array([0, 0, 1, 0]),
+    'j': np.array([0, 0, -1, 0]),
     'h': 'close',
     'l': 'open',
     'x': 'toggle',
@@ -42,11 +42,11 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv()
+env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
-env = SawyerPickAndPlaceEnvYZ()
+# env = SawyerPickAndPlaceEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -79,7 +79,6 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-
     env.render()
     if done:
         obs = env.reset()

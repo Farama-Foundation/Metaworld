@@ -5,7 +5,13 @@ from multiworld.core.wrapper_env import ProxyEnv
 
 
 class FlatGoalEnv(ProxyEnv):
-    def __init__(self, wrapped_env, obs_keys=None, goal_keys=None):
+    def __init__(
+            self,
+            wrapped_env,
+            obs_keys=None,
+            goal_keys=None,
+            append_goal_to_obs=False,
+    ):
         self.quick_init(locals())
         super(FlatGoalEnv, self).__init__(wrapped_env)
 
@@ -13,6 +19,8 @@ class FlatGoalEnv(ProxyEnv):
             obs_keys = ['observation']
         if goal_keys is None:
             goal_keys = ['desired_goal']
+        if append_goal_to_obs:
+            obs_keys += goal_keys
         for k in obs_keys:
             assert k in self.wrapped_env.observation_space.spaces
         for k in goal_keys:

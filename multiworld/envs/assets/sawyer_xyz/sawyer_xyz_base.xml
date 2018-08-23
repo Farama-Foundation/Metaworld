@@ -16,9 +16,11 @@ Usage:
 <mujoco model="sawyer">
     <camera pos="0 0 3.2" name="topview" />
 
-    <geom name="floor" type="plane" pos="0 0 -.9" size="10 10 0.5"
-          rgba="0 0 0 1" contype="15" conaffinity="15" />
-    <geom name="tableTop" type="box" pos="0 0.65 -0.45" size="0.4 0.2 0.45"
+    <!--<geom name="floor" type="plane" pos="0 0 -.9" size="10 10 10"-->
+          <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
+    <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"-->
+          <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
+    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
 
     <body name="base" pos="0 0 0">
@@ -113,7 +115,7 @@ Usage:
                                     <body name="right_l6" pos="0 -0.11 0.1053" quat="0.0616248 0.06163 -0.704416 0.704416">
                                         <inertial pos="-8.0726e-06 0.0085838 -0.0049566" quat="0.479044 0.515636 -0.513069 0.491322" mass="0.3292" diaginertia="0.000360258 0.000311068 0.000214974" />
                                         <joint name="right_j6" pos="0 0 0" axis="0 0 1" limited="true" range="-4.7124 4.7124" damping="10"/>
-                                        <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 1" mesh="l6" />
+                                        <geom type="mesh" contype="4" conaffinity="2" group="1" rgba="0.5 0.1 0.1 1" mesh="l6" />
                                         <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" rgba="0.5 0.1 0.1 0" />
                                         <body name="right_hand" pos="0 0 0.0245" quat="0.707107 0 0 0.707107">
                                             <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
@@ -122,25 +124,43 @@ Usage:
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <body name="hand" pos="0 0 0"
                                                   quat="-1 0 1 0">
-                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01"/>
-                                                    <body name="rightclaw" pos=".03 -.03 0.0" >
-                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
-                                                        <geom
-                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
-                                                                euler="0 0 0.2"
-                                                        />
-                                                        <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
-                                                        <site name="endeffector2" pos=".015 .01 0" size="0.008" rgba="0.0 0.0 0.0 0.0" />
-                                                    </body>
-                                                    <body name="leftclaw" pos=".03 .03 0">
-                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
-                                                        <geom
-                                                                name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
-                                                                euler="0 0 -0.2"
-                                                        />
-                                                        <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />
-                                                    </body>
+                                                <!--<geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01"/>-->
+                                                    <!--<body name="rightclaw" pos=".03 -.03 0.0" >-->
+                                                        <!--<inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>-->
+                                                        <!--<geom-->
+                                                                <!--name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"-->
+                                                                <!--euler="0 0 0.2"-->
+                                                        <!--/>-->
+                                                        <!--<joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>-->
+                                                        <!--<site name="endeffector2" pos=".015 .01 0" size="0.008" rgba="0.0 0.0 0.0 0.0" />-->
+                                                    <!--</body>-->
+                                                    <!--<body name="leftclaw" pos=".03 .03 0">-->
+                                                        <!--<inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>-->
+                                                        <!--<geom-->
+                                                                <!--name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"-->
+                                                                <!--euler="0 0 -0.2"-->
+                                                        <!--/>-->
+                                                        <!--<site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />-->
+                                                    <!--</body>-->
+                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
+
+                                                <body name="rightclaw"
+                                                      pos=".01 .015 0" >
+                                                    <geom name="rightclaw_it" class="1" type="box" pos="0 0.0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.6 1.0"/>
+                                                    <!--<joint name="rc_close"-->
+                                                           <!--type="slide"-->
+                                                           <!--pos="0 0 0" axis="0 1 0" range="0 .001" user="008" limited="true"/>-->
                                                 </body>
+
+                                                <body name="leftclaw" pos=".01 .02 0">
+                                                    <geom name="leftclaw_it" class="1" type="box" pos="0 -.04 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
+                                                    <site name="endeffector" pos="0 0 0" size="0.01" />
+                                                    <!-- <body name="endeff" pos=".01 .02 0"> -->
+                                                    <!-- <geom name="leftclaw_it" class="1" type="capsule" fromto="0 0 0 .05 0.0 0.0"    size="0.005" /> -->
+                                                    <!-- <site name="endeffector" pos="0 0 0" size="0.01" /> -->
+                                                    <!-- </body> -->
+                                                </body>
+                                            </body>
 <!--  ================= END GRIPPER ================= /-->
                                         </body>
                                     </body>

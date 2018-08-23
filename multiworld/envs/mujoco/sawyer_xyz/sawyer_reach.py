@@ -12,13 +12,11 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
     def __init__(
             self,
             reward_type='hand_distance',
+            norm_order=1,
             indicator_threshold=0.06,
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.3),
-            goal_low=None,
-            goal_high=None,
-
             hide_goal_markers=False,
 
             **kwargs
@@ -27,23 +25,15 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
 
-        if goal_low is None:
-            goal_low = self.hand_low
-        if goal_high is None:
-            goal_high = self.hand_high
-
         self.reward_type = reward_type
+        self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(goal_low, goal_high)
         self._state_goal = None
-
         self.hide_goal_markers = hide_goal_markers
-
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
-        self.observation_space = Box(self.hand_low, self.hand_high)
         self.hand_space = Box(self.hand_low, self.hand_high)
         self.observation_space = Dict([
             ('observation', self.hand_space),
@@ -52,6 +42,9 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             ('state_observation', self.hand_space),
             ('state_desired_goal', self.hand_space),
             ('state_achieved_goal', self.hand_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):
@@ -75,13 +68,21 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
             state_achieved_goal=flat_obs,
+            proprio_observation=flat_obs,
+            proprio_desired_goal=self._state_goal,
+            proprio_achieved_goal=flat_obs,
         )
 
     def _get_info(self):
-        hand_distance = np.linalg.norm(self._state_goal - self.get_endeff_pos())
+        hand_diff = self._state_goal - self.get_endeff_pos()
+        hand_distance = np.linalg.norm(hand_diff, ord=self.norm_order)
+        hand_distance_l1 = np.linalg.norm(hand_diff, ord=1)
+        hand_distance_l2 = np.linalg.norm(hand_diff, ord=2)
         return dict(
             y_pos=self.get_endeff_pos()[1],
             hand_distance=hand_distance,
+            hand_distance_l1=hand_distance_l1,
+            hand_distance_l2=hand_distance_l2,
             hand_success=float(hand_distance < self.indicator_threshold),
         )
 
@@ -114,9 +115,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
     def reset_model(self):
         self._reset_hand()
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
+        self.set_goal(self.sample_goal())
         self.sim.forward()
         return self._get_obs()
 
@@ -126,7 +125,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-
     """
     Multitask functions
     """
@@ -135,6 +133,10 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
@@ -167,11 +169,14 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals
         goals = desired_goals
-        distances = np.linalg.norm(hand_pos - goals, axis=1)
+        hand_diff = hand_pos - goals
         if self.reward_type == 'hand_distance':
-            r = -distances
+            r = -np.linalg.norm(hand_diff, ord=self.norm_order, axis=1)
+        elif self.reward_type == 'vectorized_hand_distance':
+            r = -np.abs(hand_diff)
         elif self.reward_type == 'hand_success':
-            r = -(distances < self.indicator_threshold).astype(float)
+            r = -(np.linalg.norm(hand_diff, ord=self.norm_order, axis=1)
+                  < self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
@@ -180,6 +185,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
+            'hand_distance_l1',
+            'hand_distance_l2',
             'hand_success',
             'y_pos',
         ]:
@@ -233,6 +240,9 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
             ('state_observation', self.hand_space),
             ('state_desired_goal', self.hand_space),
             ('state_achieved_goal', self.hand_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', self.hand_space),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
     def step(self, action):

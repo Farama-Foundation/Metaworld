@@ -206,7 +206,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        self._state_goal = self.sample_goal()['state_desired_goal']
         self._reset_hand()
         self._set_goal_marker(self._state_goal)
         if self.reset_free:
@@ -226,8 +225,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self._set_obj_xyz(self.obj_init_positions[obj_idx])
 
         if self.oracle_reset_prob > np.random.random():
-            self.set_to_goal(self.sample_goal(), set_goal=False)
+            self.set_to_goal(self.sample_goal())
 
+        self.set_goal(self.sample_goal())
+        self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 
     def _reset_hand(self):
@@ -250,7 +251,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_obj_xyz(new_obj_pos)
         self.do_simulation(1)
 
-    def set_to_goal(self, goal, set_goal=False):
+    def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
         hand_goal = state_goal[:3]
         for _ in range(30):
@@ -269,8 +270,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.do_simulation(action)
         self.sim.forward()
-        if set_goal:
-            self._state_goal = self._get_obs()['state_achieved_goal']
 
     """
     Multitask functions
@@ -281,16 +280,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def sample_goals(self, batch_size, p_obj_in_hand=0.8):
-        if self.presampled_goals is not None:
-            goals = self.presampled_goals[
-                np.random.choice(len(self.presampled_goals), batch_size)
-            ]
-            return {
-                'desired_goal': goals,
-                'state_desired_goal': goals,
-            }
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        self._set_goal_marker(self._state_goal)
 
+    def sample_goals(self, batch_size, p_obj_in_hand=0.5):
         if self.fix_goal:
             goals = np.repeat(
                 self.fixed_goal.copy()[None],
@@ -439,11 +433,17 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         action = self.convert_2d_action(action)
         return super().step(action)
 
-    def set_to_goal(self, goal, set_goal=False):
-        super().set_to_goal(goal, set_goal=set_goal)
+    def set_to_goal(self, goal):
+        super().set_to_goal(goal)
         obj_pos = self.get_obj_pos()
         obj_pos[0] = self.x_axis
         self._set_obj_xyz(obj_pos)
-        if set_goal:
-            self._state_goal = self._get_obs()['state_achieved_goal']
+
+
+def generate_env_goals(image_env, num_goals):
+
+    for _ in range(num_goals):
+        goal = self.sample_goal()
+        env.set_to_goal(goal)
+        corrected_goal = self._get_obs()['state_achieved_goal']
 
