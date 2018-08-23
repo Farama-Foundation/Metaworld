@@ -1,5 +1,10 @@
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place \
         import SawyerPickAndPlaceEnv, SawyerPickAndPlaceEnvYZ
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place \
+        import corrected_image_env_goals, setup_image_presampled_goals
+
+from multiworld.core.image_env import ImageEnv
+from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera_slanted_angle
 import time
 import numpy as np
 
@@ -8,6 +13,23 @@ env = SawyerPickAndPlaceEnvYZ(
     hide_goal_markers=True,
     oracle_reset_prob=0.0,
 )
+image_env = ImageEnv(
+    env,
+    transpose=True,
+    normalize=True,
+    init_camera=sawyer_pick_and_place_camera_slanted_angle
+)
+setup_image_presampled_goals(image_env, 10)
+
+image_goals = image_env._presampled_goals['desired_goal']
+import cv2
+for image_goal in image_goals:
+    cv2.imshow('env', image_goal.reshape(3, 84, 84).transpose())
+    import time; time.sleep(2)
+    cv2.waitKey(1)
+
+import pdb; pdb.set_trace()
+
 env.reset()
 # env.render()
 for i in range(100000):
