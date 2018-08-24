@@ -30,7 +30,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             hide_goal_markers=False,
             init_puck_z=0.02,
 
-            reset_free=False,
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
             reset_hand_with_puck=False,
@@ -90,7 +89,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
-        self.reset_free = reset_free
         self._set_puck_xy(self.sample_puck_xy())
         self.puck_reset_counter = 0
         self.hand_reset_counter = 0
