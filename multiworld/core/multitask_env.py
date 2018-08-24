@@ -1,9 +1,19 @@
+import gym
 import abc
 from collections import OrderedDict
-import numpy as np
 
 
-class MultitaskEnv(metaclass=abc.ABCMeta):
+class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
+    """
+    Effectively a gym.GoalEnv, but we add three more functions:
+
+        - get_goal
+        - sample_goals
+        - compute_rewards
+
+    We also change the compute_reward interface to take in an action and
+    observation dictionary.
+    """
     @abc.abstractmethod
     def get_goal(self):
         """

@@ -19,7 +19,7 @@ class MujocoEnv(gym.Env):
     Some differences are:
      - Do not automatically set the observation/action space.
     """
-    def __init__(self, model_path, frame_skip, automatically_set_spaces=False):
+    def __init__(self, model_path, frame_skip, device_id=-1, automatically_set_spaces=False):
         if model_path.startswith("/"):
             fullpath = model_path
         else:
@@ -36,7 +36,9 @@ class MujocoEnv(gym.Env):
             'render.modes': ['human', 'rgb_array'],
             'video.frames_per_second': int(np.round(1.0 / self.dt))
         }
-
+        if device_id == -1 and 'gpu_id' in os.environ:
+            device_id =int(os.environ['gpu_id'])
+        self.device_id = device_id
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
         if automatically_set_spaces:
@@ -147,6 +149,6 @@ class MujocoEnv(gym.Env):
 
     def initialize_camera(self, init_fctn):
         sim = self.sim
-        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
+        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=self.device_id)
         init_fctn(viewer.cam)
         sim.add_render_context(viewer)

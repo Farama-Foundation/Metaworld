@@ -7,7 +7,10 @@ from pygame import Color
 from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
-from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
+from multiworld.envs.env_util import (
+    get_stat_in_paths,
+    create_stats_ordered_dict,
+)
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
 
@@ -35,7 +38,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
     ):
         if walls is None:
             walls = []
-        print("WARNING, ignoring kwargs:", kwargs)
+        if len(kwargs) > 0:
+            import logging
+            LOGGER = logging.getLogger(__name__)
+            LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
@@ -118,10 +124,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             )
         return self._get_obs()
 
-    def seed(self, s):
-        """Do nothing for seed"""
-        pass
-
     def _get_obs(self):
         return dict(
             observation=self._position.copy(),
@@ -191,8 +193,20 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     """Functions for ImageEnv wrapper"""
 
-    def get_image(self):
+    def get_image(self, width=None, height=None):
         """Returns a black and white image"""
+        if width is not None:
+            if width != height:
+                raise NotImplementedError()
+            if width != self.render_size:
+                self.drawer = PygameViewer(
+                    screen_width=width,
+                    screen_height=height,
+                    x_bounds=(-self.boundary_dist, self.boundary_dist),
+                    y_bounds=(-self.boundary_dist, self.boundary_dist),
+                    render_onscreen=self.render_onscreen,
+                )
+                self.render_size = width
         self.render()
         img = self.drawer.get_image()
         if self.images_are_rgb:
@@ -251,6 +265,25 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer.render()
         self.drawer.tick(self.render_dt_msec)
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'distance_to_target',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
 
     """Static visualization/utility methods"""
 
