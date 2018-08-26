@@ -95,7 +95,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
         self.reset_hand_with_puck = reset_hand_with_puck
-
+        self.puck_space = Box(self.puck_low, self.puck_high)
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_push_puck.xml')
@@ -235,7 +235,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
                 self._set_puck_xy(self.sample_puck_xy())
 
-        if not Box(self.puck_low, self.puck_high).contains(self.get_puck_pos()[:2]):
+        if self.puck_space.contains(self.get_puck_pos()[:2]):
             self._set_puck_xy(self.sample_puck_xy())
         goal = self.sample_goal()
         self.set_goal(goal)
