@@ -422,7 +422,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 class SawyerPushAndReachXYDoublePuckEnv(SawyerPushAndReachXYZDoublePuckEnv):
     def __init__(self, *args, hand_z_position=0.02, **kwargs):
         self.quick_init(locals())
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.hand_z_position = hand_z_position
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
         self.fixed_goal[2] = hand_z_position
