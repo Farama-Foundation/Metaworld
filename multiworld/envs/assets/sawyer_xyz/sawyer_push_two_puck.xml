@@ -25,7 +25,7 @@
                   type="cylinder"
                   pos="0 0 0"
                   size="0.07 0.02"
-                  rgba=".1 .5 .9 1"
+                  rgba=".1 .9 .1 1"
                   contype="2"
                   conaffinity="4"
                   friction=".1 .005 .0001"
