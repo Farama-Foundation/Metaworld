@@ -32,7 +32,8 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
-            reset_hand_with_puck=False,
+            always_start_on_same_side=True,
+            goal_always_on_same_side=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -59,7 +60,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         if goal_high is None:
             goal_high = np.hstack((self.hand_high, puck_high, puck_high))
         self.goal_low = np.array(goal_low)
-        self.goal_high = np.array(goal_low)
+        self.goal_high = np.array(goal_high)
 
         self.reward_type = reward_type
         self.norm_order = norm_order
@@ -77,6 +78,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((self.hand_high, puck_high, puck_high)),
         )
         self.hand_space = Box(self.hand_low, self.hand_high)
+        self.puck_space = Box(self.puck_low, self.puck_high)
         self.observation_space = Dict([
             ('observation', self.hand_and_two_puck_space),
             ('desired_goal', self.hand_and_two_puck_space),
@@ -89,12 +91,13 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
-        # self._set_puck_xys(self.sample_puck1_xy())
-        self.puck_reset_counter = 0
-        self.hand_reset_counter = 0
+        self.reset_counter = 0
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
-        self.reset_hand_with_puck = reset_hand_with_puck
+        self._always_start_on_same_side = always_start_on_same_side
+        self._goal_always_on_same_size = goal_always_on_same_side
+
+        self._set_puck_xys(self._sample_puck_xys())
 
     @property
     def model_name(self):
@@ -147,43 +150,26 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         # hand distance
         hand_diff = hand_goal - self.get_endeff_pos()
         hand_distance = np.linalg.norm(hand_diff, ord=self.norm_order)
-        hand_distance_l1 = np.linalg.norm(hand_diff, 1)
-        hand_distance_l2 = np.linalg.norm(hand_diff, 2)
 
         # puck1 distance
         puck1_diff = puck1_goal - self.get_puck1_pos()[:2]
         puck1_distance = np.linalg.norm(puck1_diff, ord=self.norm_order)
-        puck1_distance_l1 = np.linalg.norm(puck1_diff, 1)
-        puck1_distance_l2 = np.linalg.norm(puck1_diff, 2)
 
         # puck2 distance
         puck2_diff = puck2_goal - self.get_puck2_pos()[:2]
         puck2_distance = np.linalg.norm(puck2_diff, ord=self.norm_order)
-        puck2_distance_l1 = np.linalg.norm(puck2_diff, 1)
-        puck2_distance_l2 = np.linalg.norm(puck2_diff, 2)
 
         # state distance
         state_diff = np.hstack((self.get_endeff_pos(), self.get_puck1_pos()[:2], self.get_puck2_pos()[:2])) - self._state_goal
         state_distance = np.linalg.norm(state_diff, ord=self.norm_order)
-        state_distance_l1 = np.linalg.norm(state_diff, ord=1)
-        state_distance_l2 = np.linalg.norm(state_diff, ord=2)
 
         return dict(
             hand_distance=hand_distance,
-            hand_distance_l1=hand_distance_l1,
-            hand_distance_l2=hand_distance_l2,
             puck1_distance=puck1_distance,
-            puck1_distance_l1=puck1_distance_l1,
-            puck1_distance_l2=puck1_distance_l2,
             puck2_distance=puck2_distance,
-            puck2_distance_l1=puck2_distance_l1,
-            puck2_distance_l2=puck2_distance_l2,
+            puck_distance_sum=puck1_distance + puck2_distance,
             hand_and_puck_distance=hand_distance+puck1_distance+puck2_distance,
-            hand_and_puck_distance_l1=hand_distance_l1+puck1_distance_l1 + puck2_distance_l1,
-            hand_and_puck_distance_l2=hand_distance_l2+puck1_distance_l2 + puck2_distance_l2,
             state_distance=state_distance,
-            state_distance_l1=state_distance_l1,
-            state_distance_l2=state_distance_l2,
             hand_success=float(hand_distance < self.indicator_threshold),
             puck1_success=float(puck1_distance < self.indicator_threshold),
             puck2_success=float(puck2_distance < self.indicator_threshold),
@@ -199,11 +185,14 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
     def get_puck2_pos(self):
         return self.data.get_body_xpos('puck2').copy()
 
-    def sample_puck1_xy(self):
-        return np.array([-.1, 0.6])
-
-    def sample_puck2_xy(self):
-        return np.array([0.1, 0.6])
+    def _sample_puck_xys(self):
+        if self._always_start_on_same_side:
+            return np.array([-.1, 0.6]), np.array([0.1, 0.6])
+        else:
+            if np.random.randint(0, 2) == 0:
+                return np.array([0.1, 0.6]), np.array([-.1, 0.6])
+            else:
+                return np.array([-.1, 0.6]), np.array([0.1, 0.6])
 
     def _set_goal_marker(self, goal):
         """
@@ -213,18 +202,25 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('hand-goal-site')] = (
             goal[:3]
         )
-        self.data.site_xpos[self.model.site_name2id('puck-goal-site')][:2] = (
+        self.data.site_xpos[self.model.site_name2id('puck1-goal-site')][:2] = (
             goal[3:5]
+        )
+        self.data.site_xpos[self.model.site_name2id('puck2-goal-site')][:2] = (
+            goal[5:7]
         )
         if self.hide_goal_markers:
             self.data.site_xpos[self.model.site_name2id('hand-goal-site'), 2] = (
                 -1000
             )
-            self.data.site_xpos[self.model.site_name2id('puck-goal-site'), 2] = (
+            self.data.site_xpos[self.model.site_name2id('puck1-goal-site'), 2] = (
+                -1000
+            )
+            self.data.site_xpos[self.model.site_name2id('puck2-goal-site'), 2] = (
                 -1000
             )
 
-    def _set_puck_xys(self, pos1, pos2):
+    def _set_puck_xys(self, puck_xys):
+        pos1, pos2 = puck_xys
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[7:10] = np.hstack((pos1.copy(), np.array([self.init_puck_z])))
@@ -236,22 +232,19 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        if self.reset_hand_with_puck:
-            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
-                self._reset_hand()
-                self._set_puck_xys(self.sample_puck1_xy(), self.sample_puck2_xy())
-        else:
-            if self.puck_reset_counter % self.num_resets_before_hand_reset == 0:
-                self._reset_hand()
-            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
-                self._set_puck_xys(self.sample_puck1_xy(), self.sample_puck2_xy())
+        if self.reset_counter % self.num_resets_before_hand_reset == 0:
+            self._reset_hand()
+        if self.reset_counter % self.num_resets_before_puck_reset == 0:
+            self._set_puck_xys(self._sample_puck_xys())
 
-        if not Box(self.puck_low, self.puck_high).contains(self.get_puck1_pos()[:2]):
-            self._set_puck_xys(self.sample_puck1_xy(), self.sample_puck2_xy())
+        if not (
+            self.puck_space.contains(self.get_puck1_pos()[:2])
+            and self.puck_space.contains(self.get_puck2_pos()[:2])
+        ):
+            self._set_puck_xys(self._sample_puck_xys())
         goal = self.sample_goal()
         self.set_goal(goal)
-        self.puck_reset_counter += 1
-        self.hand_reset_counter += 1
+        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 
@@ -309,7 +302,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
         puck_goal = goal['state_desired_goal'][3:]
-        self._set_puck_xys(puck_goal[:3], puck_goal[3:])
+        self._set_puck_xys((puck_goal[:2], puck_goal[2:]))
         self.sim.forward()
 
     def sample_goals(self, batch_size):
@@ -320,11 +313,24 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
                 0
             )
         else:
-            goals = np.random.uniform(
-                self.goal_low,
-                self.goal_high,
-                size=(batch_size, self.goal_low.size),
-            )
+            if self._goal_always_on_same_size:
+                goal_low = self.goal_low.copy()
+                goal_high = self.goal_high.copy()
+                # first puck
+                goal_high[3] = 0
+                # second puck
+                goal_low[5] = 0
+                goals = np.random.uniform(
+                    goal_low,
+                    goal_high,
+                    size=(batch_size, self.goal_low.size),
+                )
+            else:
+                goals = np.random.uniform(
+                    self.goal_low,
+                    self.goal_high,
+                    size=(batch_size, self.goal_low.size),
+                )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -373,20 +379,11 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
-            'hand_distance_l1',
-            'hand_distance_l2',
             'puck1_distance',
-            'puck1_distance_l1',
-            'puck1_distance_l2',
             'puck2_distance',
-            'puck2_distance_l1',
-            'puck2_distance_l2',
+            'puck_distance_sum',
             'hand_and_puck_distance',
-            'hand_and_puck_distance_l1',
-            'hand_and_puck_distance_l2',
             'state_distance',
-            'state_distance_l1',
-            'state_distance_l2',
             'hand_success',
             'puck1_success',
             'puck2_success',
