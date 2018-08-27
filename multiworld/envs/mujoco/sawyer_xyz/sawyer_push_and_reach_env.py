@@ -216,9 +216,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def _set_puck_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
-        qpos[10:14] = np.array([1, 0, 0, 0])
-        qvel[7:14] = 0
+        qpos[8:11] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
+        qpos[11:15] = np.array([1, 0, 0, 0])
+        qvel[8:15] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
