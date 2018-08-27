@@ -26,6 +26,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
                  indicator_threshold=0.02,
                  fix_goal=False,
                  fixed_goal=.25,
+                 num_resets_before_door_and_hand_reset=1,
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -60,7 +61,8 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         ])
         self._pos_action_scale = pos_action_scale
         self.action_reward_scale = action_reward_scale
-
+        self.reset_counter = 0
+        self.num_resets_before_door_and_hand_reset = num_resets_before_door_and_hand_reset
         self.reset()
         self.reset_mocap_welds()
 
@@ -165,13 +167,31 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         return reward
 
     def reset(self):
+        if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
+                self._reset_hand()
+                self._set_door_pos(0)
+        goal = self.sample_goal()
+        self.set_goal(goal)
+        self.reset_counter += 1
+        self.reset_mocap_welds()
+        return self._get_obs()
+
+    def _reset_hand(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
-        angles[:] = self.init_angles
-        velocities[:] = 0
+        angles[1:] = self.init_angles[1:]
+        velocities[1:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.set_goal(self.sample_goal())
-        return self._get_obs()
+        self.reset_mocap2body_xpos()
+        self.reset_mocap_welds()
+
+
+    def _set_door_pos(self, pos):
+        angles = self.data.qpos.copy()
+        velocities = self.data.qvel.copy()
+        angles[0] = pos
+        velocities[0] = 0
+        self.set_state(angles.flatten(), velocities.flatten())
 
     @property
     def init_angles(self):
@@ -554,9 +574,6 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
                  min_y_pos=.5,
                  max_y_pos=.7,
                  use_line=True,
-                 num_resets_before_door_reset=1,
-                 num_resets_before_hand_reset=1,
-                 reset_hand_with_door=False,
                  **kwargs
                  ):
         self.quick_init(locals())
@@ -564,47 +581,7 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
         self.min_y_pos = min_y_pos
         self.max_y_pos = max_y_pos
         self.use_line = use_line
-        self.door_reset_counter = 0
-        self.hand_reset_counter = 0
-        self.num_resets_before_door_reset = num_resets_before_door_reset
-        self.num_resets_before_hand_reset = num_resets_before_hand_reset
-        self.reset_hand_with_door = reset_hand_with_door
         super().__init__(goal_low=goal_low, goal_high=goal_high, **kwargs)
-
-    def reset(self):
-        if self.reset_hand_with_door:
-            if self.door_reset_counter % self.num_resets_before_door_reset == 0:
-                self._reset_hand()
-                self._set_door_pos(0)
-        else:
-            if self.door_reset_counter % self.num_resets_before_hand_reset == 0:
-                self._reset_hand()
-            if self.door_reset_counter % self.num_resets_before_door_reset == 0:
-                self._set_door_pos(0)
-
-        goal = self.sample_goal()
-        self.set_goal(goal)
-        self.door_reset_counter += 1
-        self.hand_reset_counter += 1
-        self.reset_mocap_welds()
-        return self._get_obs()
-
-    def _reset_hand(self):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[1:] = self.init_angles[1:]
-        velocities[1:] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
-        self.reset_mocap2body_xpos()
-        self.reset_mocap_welds()
-
-
-    def _set_door_pos(self, pos):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[0] = pos
-        velocities[0] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
 
     def mocap_set_action(self, action):
         pos_delta = action[None]
@@ -655,7 +632,7 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
         self.set_to_goal_angle(state_goal)
 
 if __name__ == '__main__':
-    env = SawyerPushAndPullDoorEnv()
+    env = SawyerPushAndPullDoorEnv(num_resets_before_door_and_hand_reset=10000)
     for i in range(1000):
         if i % 100 == 0:
             env.reset()
