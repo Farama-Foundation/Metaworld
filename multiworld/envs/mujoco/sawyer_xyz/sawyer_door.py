@@ -510,7 +510,7 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
                  goal_low=-.5,
                  goal_high=0,
                  max_x_pos=.1,
-                 min_y_pos=.4,
+                 min_y_pos=.5,
                  max_y_pos=.6,
                  use_line=False,
                  **kwargs

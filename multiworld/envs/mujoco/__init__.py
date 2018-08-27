@@ -298,6 +298,124 @@ def register_custom_envs():
         )
     )
 
+    #Sawyer Door Envs:
+    register(
+        id='SawyerDoorPushOpenEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerDoorPushOpenEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=0,
+            goal_high=.5,
+            max_x_pos=.1,
+            max_y_pos=.7,
+            num_resets_before_door_and_hand_reset=1,
+        )
+    )
+
+    register(
+        id='SawyerDoorPushOpenEnvResetFree-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerDoorPushOpenEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=0,
+            goal_high=.5,
+            max_x_pos=.1,
+            max_y_pos=.7,
+            num_resets_before_door_and_hand_reset=int(1e6),
+        )
+    )
+
+    register(
+        id='SawyerDoorPullOpenEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerDoorPullOpenEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=-.5,
+            goal_high=0,
+            max_x_pos=.1,
+            min_y_pos=.5,
+            max_y_pos=.6,
+            use_line=True,
+            num_resets_before_door_and_hand_reset=1,
+        )
+    )
+
+    register(
+        id='SawyerDoorPullOpenEnvResetFree-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerDoorPullOpenEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=-.5,
+            goal_high=0,
+            max_x_pos=.1,
+            min_y_pos=.5,
+            max_y_pos=.6,
+            use_line=True,
+            num_resets_before_door_and_hand_reset=int(1e6),
+        )
+    )
+
+    register(
+        id='SawyerPushAndPullDoorEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerPushAndPullDoorEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=-.5,
+            goal_high=.5,
+            max_x_pos=.1,
+            min_y_pos=.5,
+            max_y_pos=.7,
+            use_line=True,
+            num_resets_before_door_and_hand_reset=1,
+        )
+    )
+
+    register(
+        id='SawyerPushAndPullDoorEnvResetFree-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerPushAndPullDoorEnv',
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='angle_difference',
+            goal_low=-.5,
+            goal_high=.5,
+            max_x_pos=.1,
+            min_y_pos=.5,
+            max_y_pos=.7,
+            use_line=True,
+            num_resets_before_door_and_hand_reset=int(1e6)
+        )
+    )
+
+
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
