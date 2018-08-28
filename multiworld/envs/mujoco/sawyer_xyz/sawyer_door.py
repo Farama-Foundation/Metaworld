@@ -26,6 +26,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
                  indicator_threshold=0.02,
                  fix_goal=False,
                  fixed_goal=.25,
+                 num_resets_before_door_and_hand_reset=1,
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -60,7 +61,8 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         ])
         self._pos_action_scale = pos_action_scale
         self.action_reward_scale = action_reward_scale
-
+        self.reset_counter = 0
+        self.num_resets_before_door_and_hand_reset = num_resets_before_door_and_hand_reset
         self.reset()
         self.reset_mocap_welds()
 
@@ -165,13 +167,31 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         return reward
 
     def reset(self):
+        if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
+                self._reset_hand()
+                self._set_door_pos(0)
+        goal = self.sample_goal()
+        self.set_goal(goal)
+        self.reset_counter += 1
+        self.reset_mocap_welds()
+        return self._get_obs()
+
+    def _reset_hand(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
-        angles[:] = self.init_angles
-        velocities[:] = 0
+        angles[1:] = self.init_angles[1:]
+        velocities[1:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.set_goal(self.sample_goal())
-        return self._get_obs()
+        self.reset_mocap2body_xpos()
+        self.reset_mocap_welds()
+
+
+    def _set_door_pos(self, pos):
+        angles = self.data.qpos.copy()
+        velocities = self.data.qvel.copy()
+        angles[0] = pos
+        velocities[0] = 0
+        self.set_state(angles.flatten(), velocities.flatten())
 
     @property
     def init_angles(self):
@@ -490,7 +510,7 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
                  goal_low=-.5,
                  goal_high=0,
                  max_x_pos=.1,
-                 min_y_pos=.4,
+                 min_y_pos=.5,
                  max_y_pos=.6,
                  use_line=False,
                  **kwargs
@@ -610,3 +630,11 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
                     np.array([self.max_x_pos, .5, .06]))
             self.set_to_goal_pos(ee_pos)
         self.set_to_goal_angle(state_goal)
+
+if __name__ == '__main__':
+    env = SawyerPushAndPullDoorEnv(num_resets_before_door_and_hand_reset=10000)
+    for i in range(1000):
+        if i % 100 == 0:
+            env.reset()
+        env.step([0, 1, 0])
+        env.render()

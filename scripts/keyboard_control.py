@@ -12,6 +12,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    SawyerPushAndReachXYDoublePuckEnv,
+    SawyerPushAndReachXYZDoublePuckEnv,
+)
 
 import pygame
 from pygame.locals import QUIT, KEYDOWN
@@ -42,11 +46,13 @@ char_to_action = {
 }
 
 
-env = SawyerPushAndReachXYEnv()
+# env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
+env = SawyerPushAndReachXYDoublePuckEnv()
+# env = SawyerPushAndReachXYZDoublePuckEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
