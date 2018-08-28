@@ -12,10 +12,15 @@ from multiworld.envs.env_util import (
     create_stats_ordered_dict, get_asset_full_path,
 )
 from multiworld.core.multitask_env import MultitaskEnv
+from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
-                    metaclass=abc.ABCMeta):
+class SawyerDoorEnv(
+    SawyerXYZEnv,
+    MultitaskEnv,
+    Serializable,
+    metaclass=abc.ABCMeta,
+):
     def __init__(self,
                  frame_skip=50,
                  goal_low=-.5,
@@ -27,15 +32,19 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
                  fix_goal=False,
                  fixed_goal=.25,
                  num_resets_before_door_and_hand_reset=1,
-                 fixed_z=0.18,
-                 min_x_pos=-0.15,
-                 max_x_pos=0.15,
-                 min_y_pos=-2,
-                 max_y_pos=2,
-                 ):
+                 fixed_hand_z=0.12,
+                 hand_low=(-0.15, -2, 0),
+                 hand_high=(0.15, 2, 1),
+             ):
         self.quick_init(locals())
+        SawyerXYZEnv.__init__(
+            self,
+            self.model_name,
+            frame_skip=frame_skip,
+            hand_low=hand_low,
+            hand_high=hand_high
+        )
         MultitaskEnv.__init__(self)
-        MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -44,14 +53,10 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         self.fixed_goal = np.array([fixed_goal])
         self.goal_space = Box(np.array([goal_low]), np.array([goal_high]))
         self._state_goal = None
-        self.fixed_z = fixed_z
-        self.min_x_pos = min_x_pos
-        self.max_x_pos = max_x_pos
-        self.min_y_pos = min_y_pos
-        self.max_y_pos = max_y_pos
+        self.fixed_hand_z = fixed_hand_z
 
-        self.action_space = Box(np.array([-1, -1, -1, -1]),
-                                np.array([1, 1, 1, 1]))
+        self.action_space = Box(np.array([-1, -1, -1]),
+                                np.array([1, 1, 1]))
         max_angle = 1.5708
         self.state_space = Box(
             np.array([-1, -1, -1, -max_angle]),
@@ -80,20 +85,9 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_door.xml')
 
-    def reset_mocap_welds(self):
-        """Resets the mocap welds that we use for actuation."""
-        sim = self.sim
-        if sim.model.nmocap > 0 and sim.model.eq_data is not None:
-            for i in range(sim.model.eq_data.shape[0]):
-                if sim.model.eq_type[i] == mujoco_py.const.EQ_WELD:
-                    sim.model.eq_data[i, :] = np.array(
-                        [0., 0., 0., 1., 0., 0., 0.])
-        sim.forward()
-
     def step(self, action):
-        action = np.clip(action, -1, 1)
-        self.mocap_set_action(action[:3] * self._pos_action_scale)
-        u = np.zeros((7))
+        self.set_xy_action(action[:2], self.fixed_hand_z)
+        u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
         ob = self._get_obs()
@@ -122,37 +116,6 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         )
         return info
 
-    def mocap_set_action(self, action):
-        pos_delta = action[None]
-        self.reset_mocap2body_xpos()
-        new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            self.min_x_pos,
-            self.max_x_pos,
-        )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            self.min_y_pos,
-            self.max_y_pos,
-        )
-        new_mocap_pos[0, 2] = self.fixed_z
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-
-    def reset_mocap2body_xpos(self):
-        self.data.set_mocap_pos(
-            'mocap',
-            np.array([self.data.body_xpos[self.endeff_id]]),
-        )
-        self.data.set_mocap_quat(
-            'mocap',
-            np.array([self.data.body_xquat[self.endeff_id]]),
-        )
-
-    def get_endeff_pos(self):
-        return self.data.body_xpos[self.endeff_id].copy()
-
     def get_door_angle(self):
         return np.array([self.data.get_joint_qpos('doorjoint')])
 
@@ -174,8 +137,8 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
 
     def reset(self):
         if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
-                self._reset_hand()
-                self._set_door_pos(0)
+            self._reset_hand()
+            self._set_door_pos(0)
         goal = self.sample_goal()
         self.set_goal(goal)
         self.reset_counter += 1
@@ -188,9 +151,7 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         angles[1:] = self.init_angles[1:]
         velocities[1:] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-        self.reset_mocap2body_xpos()
         self.reset_mocap_welds()
-
 
     def _set_door_pos(self, pos):
         angles = self.data.qpos.copy()
@@ -324,6 +285,8 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
                  max_x_pos=.1,
                  min_y_pos=.5,
                  max_y_pos=.6,
+                 hand_low=(-0.15, 0.5),
+                 hand_high=(.1, 0.6),
                  use_line=False,
                  **kwargs
                  ):
@@ -332,9 +295,8 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
         super().__init__(
             goal_low=goal_low,
             goal_high=goal_high,
-            max_x_pos=max_x_pos,
-            min_y_pos=min_y_pos,
-            max_y_pos=max_y_pos,
+            hand_low=hand_low,
+            hand_high=hand_high,
             **kwargs
         )
 
