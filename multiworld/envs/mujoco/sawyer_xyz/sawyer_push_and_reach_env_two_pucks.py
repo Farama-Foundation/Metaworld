@@ -349,7 +349,6 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
         puck1_distances = np.linalg.norm(puck1_goals - puck1_pos, ord=self.norm_order, axis=1)
         puck2_distances = np.linalg.norm(puck2_goals - puck2_pos, ord=self.norm_order, axis=1)
-        puck_zs = self.init_puck_z * np.ones((desired_goals.shape[0], 1))
 
         if self.reward_type == 'hand_distance':
             r = -hand_distances
