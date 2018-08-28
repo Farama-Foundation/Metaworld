@@ -23,6 +23,9 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     def get_endeff_pos(self):
         return self.data.get_body_xpos('hand').copy()
 
+    def get_gripper_pos(self):
+        return np.array([self.data.qpos[7]])
+
     def get_env_state(self):
         joint_state = self.sim.get_state()
         mocap_state = self.data.mocap_pos, self.data.mocap_quat
