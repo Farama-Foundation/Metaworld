@@ -317,6 +317,97 @@ class SawyerDoorPushOpenEnv(SawyerDoorEnv):
         )
 
 
+class SawyerDoorPullOpenEnv(SawyerDoorEnv):
+    def __init__(self,
+                 goal_low=-.5,
+                 goal_high=0,
+                 max_x_pos=.1,
+                 min_y_pos=.5,
+                 max_y_pos=.6,
+                 use_line=False,
+                 **kwargs
+                 ):
+        self.quick_init(locals())
+        self.use_line = use_line
+        super().__init__(
+            goal_low=goal_low,
+            goal_high=goal_high,
+            max_x_pos=max_x_pos,
+            min_y_pos=min_y_pos,
+            max_y_pos=max_y_pos,
+            **kwargs
+        )
+
+    def set_to_goal(self, goal):
+        goal = goal['state_desired_goal']
+        if self.use_line:
+            ymax = self.min_y_pos
+            x_max = (ymax - .6) / np.tan(goal)[0] - .15
+            if np.abs(x_max) > self.max_x_pos:
+                xmax = self.max_x_pos
+            else:
+                xmax = x_max
+            x_pos = np.random.uniform(-self.max_x_pos, xmax)
+            y_min = self.min_y_pos
+            y_max = .6 + np.tan(goal)[0] * (x_pos + .15)
+            y_pos = np.random.uniform(y_min, y_max)
+            ee_pos = np.array([x_pos, y_pos, .06])
+        else:
+            ee_pos = np.random.uniform(
+                np.array([-self.max_x_pos, self.min_y_pos, .06]),
+                np.array([self.max_x_pos, .5, .06]))
+        self.set_to_goal_pos(ee_pos)
+        self.set_to_goal_angle(goal)
+
+
+class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
+    def __init__(self,
+                 goal_low=-.5,
+                 goal_high=.5,
+                 max_x_pos=.1,
+                 min_y_pos=.5,
+                 max_y_pos=.7,
+                 use_line=True,
+                 **kwargs
+                 ):
+        self.quick_init(locals())
+        self.use_line = use_line
+        super().__init__(
+            goal_low=goal_low,
+            goal_high=goal_high,
+            max_x_pos=max_x_pos,
+            min_y_pos=min_y_pos,
+            max_y_pos=max_y_pos,
+            **kwargs
+        )
+
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
+        if state_goal > 0:
+            ee_pos = np.random.uniform(np.array([-self.max_x_pos, .5, .06]),
+                                       np.array([self.max_x_pos, .6, .06]))
+            self.set_to_goal_pos(ee_pos)
+        else:
+            if self.use_line:
+                ymax = self.min_y_pos
+                x_max = (ymax - .6) / np.tan(state_goal)[0] - .15
+                if np.abs(x_max) > self.max_x_pos:
+                    xmax = self.max_x_pos
+                else:
+                    xmax = x_max
+                x_pos = np.random.uniform(-self.max_x_pos, xmax)
+                y_min = self.min_y_pos
+                y_max = .6 + np.tan(state_goal)[0] * (x_pos + .15)
+                y_pos = np.random.uniform(y_min, y_max)
+                ee_pos = np.array([x_pos, y_pos, .06])
+            else:
+                ee_pos = np.random.uniform(
+                    np.array([-self.max_x_pos, self.min_y_pos, .06]),
+                    np.array([self.max_x_pos, .5, .06]))
+            self.set_to_goal_pos(ee_pos)
+        self.set_to_goal_angle(state_goal)
+
+
 class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
     def __init__(self,
                  frame_skip=30,
@@ -414,7 +505,9 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
         pos_dist = np.linalg.norm(pos - goal_pos, axis=1)
         if self.reward_type == 'angle_difference':
             r = - (
-                        angle_diff * self.target_angle_scale + pos_dist * self.target_pos_scale)
+                angle_diff * self.target_angle_scale
+                + pos_dist * self.target_pos_scale
+            )
         elif self.reward_type == 'hand_success':
             r = -(angle_diff < self.indicator_threshold[0] and pos_dist <
                   self.indicator_threshold[1]).astype(float)
@@ -463,96 +556,6 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
             ))
         return statistics
 
-
-class SawyerDoorPullOpenEnv(SawyerDoorEnv):
-    def __init__(self,
-                 goal_low=-.5,
-                 goal_high=0,
-                 max_x_pos=.1,
-                 min_y_pos=.5,
-                 max_y_pos=.6,
-                 use_line=False,
-                 **kwargs
-                 ):
-        self.quick_init(locals())
-        self.use_line = use_line
-        super().__init__(
-            goal_low=goal_low,
-            goal_high=goal_high,
-            max_x_pos=max_x_pos,
-            min_y_pos=min_y_pos,
-            max_y_pos=max_y_pos,
-            **kwargs
-        )
-
-    def set_to_goal(self, goal):
-        goal = goal['state_desired_goal']
-        if self.use_line:
-            ymax = self.min_y_pos
-            x_max = (ymax - .6) / np.tan(goal)[0] - .15
-            if np.abs(x_max) > self.max_x_pos:
-                xmax = self.max_x_pos
-            else:
-                xmax = x_max
-            x_pos = np.random.uniform(-self.max_x_pos, xmax)
-            y_min = self.min_y_pos
-            y_max = .6 + np.tan(goal)[0] * (x_pos + .15)
-            y_pos = np.random.uniform(y_min, y_max)
-            ee_pos = np.array([x_pos, y_pos, .06])
-        else:
-            ee_pos = np.random.uniform(
-                np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                np.array([self.max_x_pos, .5, .06]))
-        self.set_to_goal_pos(ee_pos)
-        self.set_to_goal_angle(goal)
-
-
-class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
-    def __init__(self,
-                 goal_low=-.5,
-                 goal_high=.5,
-                 max_x_pos=.1,
-                 min_y_pos=.5,
-                 max_y_pos=.7,
-                 use_line=True,
-                 **kwargs
-                 ):
-        self.quick_init(locals())
-        self.use_line = use_line
-        super().__init__(
-            goal_low=goal_low,
-            goal_high=goal_high,
-            max_x_pos=max_x_pos,
-            min_y_pos=min_y_pos,
-            max_y_pos=max_y_pos,
-            **kwargs
-        )
-
-    def set_to_goal(self, goal):
-        state_goal = goal['state_desired_goal']
-        if state_goal > 0:
-            ee_pos = np.random.uniform(np.array([-self.max_x_pos, .5, .06]),
-                                       np.array([self.max_x_pos, .6, .06]))
-            self.set_to_goal_pos(ee_pos)
-        else:
-            if self.use_line:
-                ymax = self.min_y_pos
-                x_max = (ymax - .6) / np.tan(state_goal)[0] - .15
-                if np.abs(x_max) > self.max_x_pos:
-                    xmax = self.max_x_pos
-                else:
-                    xmax = x_max
-                x_pos = np.random.uniform(-self.max_x_pos, xmax)
-                y_min = self.min_y_pos
-                y_max = .6 + np.tan(state_goal)[0] * (x_pos + .15)
-                y_pos = np.random.uniform(y_min, y_max)
-                ee_pos = np.array([x_pos, y_pos, .06])
-            else:
-                ee_pos = np.random.uniform(
-                    np.array([-self.max_x_pos, self.min_y_pos, .06]),
-                    np.array([self.max_x_pos, .5, .06]))
-            self.set_to_goal_pos(ee_pos)
-        self.set_to_goal_angle(state_goal)
 
 if __name__ == '__main__':
     env = SawyerPushAndPullDoorEnv(num_resets_before_door_and_hand_reset=10000)
