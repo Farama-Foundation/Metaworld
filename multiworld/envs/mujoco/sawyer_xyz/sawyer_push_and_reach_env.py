@@ -90,11 +90,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         ])
         self.init_puck_z = init_puck_z
         self._set_puck_xy(self.sample_puck_xy())
-        self.puck_reset_counter = 0
-        self.hand_reset_counter = 0
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
-        self.reset_hand_with_puck = reset_hand_with_puck
+        self.reset_counter = 0
         self.puck_space = Box(self.puck_low, self.puck_high)
     @property
     def model_name(self):
@@ -225,22 +223,17 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        if self.reset_hand_with_puck:
-            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
-                self._reset_hand()
-                self._set_puck_xy(self.sample_puck_xy())
-        else:
-            if self.puck_reset_counter % self.num_resets_before_hand_reset == 0:
-                self._reset_hand()
-            if self.puck_reset_counter % self.num_resets_before_puck_reset == 0:
-                self._set_puck_xy(self.sample_puck_xy())
-
-        if self.puck_space.contains(self.get_puck_pos()[:2]):
+        if self.reset_counter % self.num_resets_before_hand_reset == 0:
+            self._reset_hand()
+        if self.reset_counter % self.num_resets_before_puck_reset == 0:
             self._set_puck_xy(self.sample_puck_xy())
+
+        if not (self.puck_space.contains(self.get_puck_pos()[:2])):
+            self._set_puck_xy(self.sample_puck_xy())
+
         goal = self.sample_goal()
         self.set_goal(goal)
-        self.puck_reset_counter += 1
-        self.hand_reset_counter += 1
+        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 
@@ -436,3 +429,12 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
+
+
+if __name__ == '__main__':
+    env = SawyerPushAndReachXYEnv(num_resets_before_puck_reset=int(1e6))
+    for i in range(1000):
+        if i % 100 == 0:
+            env.reset()
+        env.step([0, 1])
+        env.render()

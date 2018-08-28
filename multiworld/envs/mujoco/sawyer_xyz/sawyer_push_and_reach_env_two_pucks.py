@@ -95,7 +95,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
         self._always_start_on_same_side = always_start_on_same_side
-        self._goal_always_on_same_size = goal_always_on_same_side
+        self._goal_always_on_same_side = goal_always_on_same_side
 
         self._set_puck_xys(self._sample_puck_xys())
 
@@ -313,7 +313,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
                 0
             )
         else:
-            if self._goal_always_on_same_size:
+            if self._goal_always_on_same_side:
                 goal_low = self.goal_low.copy()
                 goal_high = self.goal_high.copy()
                 # first puck
