@@ -2,6 +2,8 @@ import gym
 from gym.envs.registration import register
 import logging
 
+from multiworld.envs.mujoco.cameras import sawyer_door_env_camera
+
 LOGGER = logging.getLogger(__name__)
 
 _REGISTERED = False
@@ -141,6 +143,46 @@ def register_custom_envs():
             goal_high=(0.25, 0.875, 0.02, .2, .8),
         )
     )
+
+    register(
+        id='SawyerPushXYEnv-ResetFree-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '33c6b71',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            reset_free=True,
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+        )
+    )
+
+    register(
+        id='SawyerPushXYEnv-CompleteResetFree-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'b9b5ce0',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+            num_resets_before_puck_reset=int(1e6),
+            num_resets_before_hand_reset=int(1e6),
+        )
+    )
+
     register(
         id='SawyerPushAndReachXYEnv-ResetFree-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
@@ -314,6 +356,7 @@ def register_custom_envs():
             max_x_pos=.1,
             max_y_pos=.7,
             num_resets_before_door_and_hand_reset=1,
+            hide_goal_markers=True,
         )
     )
 
@@ -332,6 +375,7 @@ def register_custom_envs():
             max_x_pos=.1,
             max_y_pos=.7,
             num_resets_before_door_and_hand_reset=int(1e6),
+            hide_goal_markers=True,
         )
     )
 
@@ -352,6 +396,7 @@ def register_custom_envs():
             max_y_pos=.6,
             use_line=True,
             num_resets_before_door_and_hand_reset=1,
+            hide_goal_markers=True,
         )
     )
 
@@ -372,6 +417,7 @@ def register_custom_envs():
             max_y_pos=.6,
             use_line=True,
             num_resets_before_door_and_hand_reset=int(1e6),
+            hide_goal_markers=True,
         )
     )
 
@@ -385,6 +431,7 @@ def register_custom_envs():
         },
         kwargs=dict(
             reward_type='angle_difference',
+            hide_goal_markers=True,
             goal_low=-.5,
             goal_high=.5,
             max_x_pos=.1,
@@ -411,8 +458,28 @@ def register_custom_envs():
             min_y_pos=.5,
             max_y_pos=.7,
             use_line=True,
-            num_resets_before_door_and_hand_reset=int(1e6)
+            num_resets_before_door_and_hand_reset=int(1e6),
+            hide_goal_markers=True,
         )
+    )
+
+    #Image Door Envs
+    register(
+        id='Image48SawyerPushAndPullDoorEnv-v0',
+        entry_point=create_Image_48_sawyer_push_and_pull_door_reset_free_env_v0,
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
+    )
+
+    register(
+        id='Image48SawyerPushAndPullDoorEnvResetFree-v0',
+        entry_point=create_Image_48_sawyer_push_and_pull_door_reset_free_env_v0,
+        tags={
+            'git-commit-hash': 'e8a2f0d',
+            'author': 'murtaza'
+        },
     )
 
 
@@ -471,6 +538,34 @@ def create_Image48SawyerPushAndReacherXYEnv_v0():
         transpose=True,
         normalize=True,
     )
+
+def create_Image_48_sawyer_push_and_pull_door_env_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_top_down
+
+    wrapped_env = gym.make('SawyerPushAndPullDoorEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_door_env_camera,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_Image_48_sawyer_push_and_pull_door_reset_free_env_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_top_down
+
+    wrapped_env = gym.make('SawyerPushAndPullDoorEnvResetFree-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_door_env_camera,
+        transpose=True,
+        normalize=True,
+    )
+
+
 
 
 register_custom_envs()
