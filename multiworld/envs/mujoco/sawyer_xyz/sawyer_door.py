@@ -27,6 +27,11 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
                  fix_goal=False,
                  fixed_goal=.25,
                  num_resets_before_door_and_hand_reset=1,
+                 fixed_z=0.18,
+                 min_x_pos=-0.15,
+                 max_x_pos=0.15,
+                 min_y_pos=-2,
+                 max_y_pos=2,
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -39,6 +44,11 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         self.fixed_goal = np.array([fixed_goal])
         self.goal_space = Box(np.array([goal_low]), np.array([goal_high]))
         self._state_goal = None
+        self.fixed_z = fixed_z
+        self.min_x_pos = min_x_pos
+        self.max_x_pos = max_x_pos
+        self.min_y_pos = min_y_pos
+        self.max_y_pos = max_y_pos
 
         self.action_space = Box(np.array([-1, -1, -1, -1]),
                                 np.array([1, 1, 1, 1]))
@@ -118,19 +128,15 @@ class SawyerDoorEnv(MultitaskEnv, MujocoEnv, Serializable,
         new_mocap_pos = self.data.mocap_pos + pos_delta
         new_mocap_pos[0, 0] = np.clip(
             new_mocap_pos[0, 0],
-            -0.15,
-            0.15,
+            self.min_x_pos,
+            self.max_x_pos,
         )
         new_mocap_pos[0, 1] = np.clip(
             new_mocap_pos[0, 1],
-            -2,
-            2,
+            self.min_y_pos,
+            self.max_y_pos,
         )
-        new_mocap_pos[0, 2] = np.clip(
-            0.06,
-            0,
-            0.5,
-        )
+        new_mocap_pos[0, 2] = self.fixed_z
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
@@ -301,39 +307,14 @@ class SawyerDoorPushOpenEnv(SawyerDoorEnv):
                  **kwargs
                  ):
         self.quick_init(locals())
-        self.max_x_pos = max_x_pos
-        self.max_y_pos = max_y_pos
         self.min_y_pos = .5
-        super().__init__(goal_low=goal_low, goal_high=goal_high, **kwargs)
-
-    def mocap_set_action(self, action):
-        pos_delta = action[None]
-        self.reset_mocap2body_xpos()
-        new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            -self.max_x_pos,
-            self.max_x_pos,
+        super().__init__(
+            goal_low=goal_low,
+            goal_high=goal_high,
+            max_x_pos=max_x_pos,
+            max_y_pos=max_y_pos,
+            **kwargs
         )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            self.min_y_pos,
-            self.max_y_pos,
-        )
-        new_mocap_pos[0, 2] = np.clip(
-            0.06,
-            0,
-            0.5,
-        )
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-
-    def set_to_goal(self, goal):
-        ee_pos = np.random.uniform(
-            np.array([-self.max_x_pos, self.min_y_pos, .06]),
-            np.array([self.max_x_pos, .6, .06]))
-        self.set_to_goal_pos(ee_pos)
-        self.set_to_goal_angle(goal['state_desired_goal'])
 
 
 class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
@@ -482,28 +463,6 @@ class SawyerDoorPushOpenAndReachEnv(SawyerDoorPushOpenEnv):
             ))
         return statistics
 
-    def mocap_set_action(self, action):
-        pos_delta = action[None]
-        self.reset_mocap2body_xpos()
-        new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            -self.max_x_pos,
-            self.max_x_pos,
-        )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            self.min_y_pos,
-            self.max_y_pos,
-        )
-        new_mocap_pos[0, 2] = np.clip(
-            0.06,
-            0,
-            0.5,
-        )
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-
 
 class SawyerDoorPullOpenEnv(SawyerDoorEnv):
     def __init__(self,
@@ -516,33 +475,15 @@ class SawyerDoorPullOpenEnv(SawyerDoorEnv):
                  **kwargs
                  ):
         self.quick_init(locals())
-        self.max_x_pos = max_x_pos
-        self.min_y_pos = min_y_pos
-        self.max_y_pos = max_y_pos
         self.use_line = use_line
-        super().__init__(goal_low=goal_low, goal_high=goal_high, **kwargs)
-
-    def mocap_set_action(self, action):
-        pos_delta = action[None]
-        self.reset_mocap2body_xpos()
-        new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            -self.max_x_pos,
-            self.max_x_pos,
+        super().__init__(
+            goal_low=goal_low,
+            goal_high=goal_high,
+            max_x_pos=max_x_pos,
+            min_y_pos=min_y_pos,
+            max_y_pos=max_y_pos,
+            **kwargs
         )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            self.min_y_pos,
-            self.max_y_pos,
-        )
-        new_mocap_pos[0, 2] = np.clip(
-            0.06,
-            0,
-            0.5,
-        )
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def set_to_goal(self, goal):
         goal = goal['state_desired_goal']
@@ -577,33 +518,15 @@ class SawyerPushAndPullDoorEnv(SawyerDoorEnv):
                  **kwargs
                  ):
         self.quick_init(locals())
-        self.max_x_pos = max_x_pos
-        self.min_y_pos = min_y_pos
-        self.max_y_pos = max_y_pos
         self.use_line = use_line
-        super().__init__(goal_low=goal_low, goal_high=goal_high, **kwargs)
-
-    def mocap_set_action(self, action):
-        pos_delta = action[None]
-        self.reset_mocap2body_xpos()
-        new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            -self.max_x_pos,
-            self.max_x_pos,
+        super().__init__(
+            goal_low=goal_low,
+            goal_high=goal_high,
+            max_x_pos=max_x_pos,
+            min_y_pos=min_y_pos,
+            max_y_pos=max_y_pos,
+            **kwargs
         )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            self.min_y_pos,
-            self.max_y_pos,
-        )
-        new_mocap_pos[0, 2] = np.clip(
-            0.06,
-            0,
-            0.5,
-        )
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
