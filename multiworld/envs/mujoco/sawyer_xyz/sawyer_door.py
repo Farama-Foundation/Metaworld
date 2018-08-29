@@ -25,7 +25,7 @@ class SawyerDoorEnv(
         self,
         frame_skip=50,
         goal_low=(.4, .5, .12, -.5), #arbitrarily defined for now
-        goal_high=(.6, .7, .12, 0), #arbitrarily defined for now 
+        goal_high=(.6, .7, .12, 0), #arbitrarily defined for now
         pos_action_scale=1 / 100,
         action_reward_scale=0,
         reward_type='angle_difference',
@@ -34,14 +34,14 @@ class SawyerDoorEnv(
         fixed_goal=(0.5, .5, .12, -.25),
         num_resets_before_door_and_hand_reset=1,
         fixed_hand_z=0.12,
-        hand_low=(-0.25, -2, 0),
-        hand_high=(0.25, 2, 1),
+        hand_low=(-0.25, 0.3, 0),
+        hand_high=(0.25, 0.6, 1),
         target_pos_scale=1,
         target_angle_scale=1,
-        xml_suffix='pull',
+        xml_path='sawyer_xyz/sawyer_door_pull.xml',
     ):
         self.quick_init(locals())
-        self.xml_suffix = xml_suffix
+        self.model_name = get_asset_full_path(xml_path)
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
@@ -85,10 +85,7 @@ class SawyerDoorEnv(
         self.target_angle_scale = target_angle_scale
         self.reset_counter = 0
         self.num_resets_before_door_and_hand_reset = num_resets_before_door_and_hand_reset
-
-    @property
-    def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_door_' + self.xml_suffix + '.xml')
+        self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
 
     def step(self, action):
         self.set_xy_action(action[:2], self.fixed_hand_z)
@@ -169,17 +166,27 @@ class SawyerDoorEnv(
         return self._get_obs()
 
     def _reset_hand(self):
+        velocities = self.data.qvel.copy()
+        angles = self.data.qpos.copy()
+        # Do this to make sure the robot isn't in some weird configuration.
+        angles[:7] = self.init_arm_angles
+        self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
             self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
+    @property
+    def init_arm_angles(self):
+        return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
+                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
+                1.49353907e+00]
 
     def _set_door_pos(self, pos):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[-1] = pos
-        velocities[-1] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
+        qpos = self.data.qpos.copy()
+        qvel = self.data.qvel.copy()
+        qpos[self.door_angle_idx] = pos
+        qvel[self.door_angle_idx] = 0
+        self.set_state(qpos.flatten(), qvel.flatten())
 
     ''' Multitask Functions '''
 
