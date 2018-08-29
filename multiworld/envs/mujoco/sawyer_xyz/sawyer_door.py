@@ -24,8 +24,8 @@ class SawyerDoorEnv(
     def __init__(
         self,
         frame_skip=50,
-        goal_low=(.4, .5, .12, -.5), #arbitrarily defined for now
-        goal_high=(.6, .7, .12, 0), #arbitrarily defined for now
+        goal_low=(-.25, .3, .12, -.5), #arbitrarily defined for now
+        goal_high=(.25, .6, .12, 0), #arbitrarily defined for now
         pos_action_scale=1 / 100,
         action_reward_scale=0,
         reward_type='angle_difference',
