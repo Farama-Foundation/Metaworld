@@ -29,6 +29,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             hide_goal_markers=False,
             init_puck_z=0.02,
+            init_hand_xyz=(0, 0.4, 0.07),
 
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
@@ -89,6 +90,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
         self.init_puck_z = init_puck_z
+        self.init_hand_xyz = np.array(init_hand_xyz)
         self._set_puck_xy(self.sample_puck_xy())
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
@@ -244,16 +246,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         angles[:7] = self.init_angles[:7]
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.4, 0.02]))
+            print(self.init_hand_xyz)
+            self.data.set_mocap_pos('mocap', self.init_hand_xyz.copy())
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        sim = self.sim
-        if sim.model.nmocap > 0 and sim.model.eq_data is not None:
-            for i in range(sim.model.eq_data.shape[0]):
-                if sim.model.eq_type[i] == mujoco_py.const.EQ_WELD:
-                    # Define the xyz + quat of the mocap relative to the hand
-                    sim.model.eq_data[i, :] = np.array(
-                        [0., 0., 0., 1., 0., 0., 0.]
-                    )
 
     def reset(self):
         ob = self.reset_model()
@@ -263,12 +258,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def init_angles(self):
-        return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
-                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
-                1.49353907e+00,
-                1.80196716e-03, 7.40415706e-01, 2.09895360e-02,
-                1, 0, 0, 0
-                ]
+        return [2.07332628e+00, -4.47460459e-01, -4.55678050e-01,
+                2.35962299e+00, 2.17558228e+00, 4.98524319e-01, 1.37302554e+00,
+                4.08324093e-02,
+                5.05442647e-04, 6.00496057e-01, 3.06443862e-02,
+                1, 0, 0, 0]
 
     """
     Multitask functions
@@ -403,7 +397,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
 
 class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
-    def __init__(self, *args, hand_z_position=0.02, **kwargs):
+    def __init__(self, *args, hand_z_position=0.05, **kwargs):
         self.quick_init(locals())
         SawyerPushAndReachXYZEnv.__init__(self, *args, **kwargs)
         self.hand_z_position = hand_z_position
