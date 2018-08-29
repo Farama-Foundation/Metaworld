@@ -34,8 +34,8 @@ class SawyerDoorEnv(
         fixed_goal=(0.5, .5, .12, -.25),
         num_resets_before_door_and_hand_reset=1,
         fixed_hand_z=0.12,
-        hand_low=(-0.15, -2, .12),
-        hand_high=(0.15, 2, .12),
+        hand_low=(-0.15, -2, 0),
+        hand_high=(0.15, 2, 1),
         target_pos_scale=1,
         target_angle_scale=1,
         xml_suffix='pull',
@@ -186,10 +186,10 @@ class SawyerDoorEnv(
     @property
     def init_angles(self):
         return [
-            0,
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
             3.53404635e+00,
+            0,
         ]
 
     ''' Multitask Functions '''
