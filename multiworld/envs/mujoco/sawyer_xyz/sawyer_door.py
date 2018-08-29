@@ -23,31 +23,32 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        frame_skip=50,
-        goal_low=(-.25, .3, .12, -.5), #arbitrarily defined for now
-        goal_high=(.25, .6, .12, 0), #arbitrarily defined for now
-        pos_action_scale=1 / 100,
+        goal_low=(-.25, .3, .12, -1.5708),
+        goal_high=(.25, .6, .12, 0),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
         fix_goal=False,
-        fixed_goal=(0.5, .5, .12, -.25),
+        fixed_goal=(0, .45, .12, -.25),
         num_resets_before_door_and_hand_reset=1,
         fixed_hand_z=0.12,
-        hand_low=(-0.25, 0.3, 0),
-        hand_high=(0.25, 0.6, 1),
+        hand_low=(-0.25, 0.3, .12),
+        hand_high=(0.25, 0.6, .12),
         target_pos_scale=1,
         target_angle_scale=1,
+        min_angle=-1.5708,
+        max_angle=0,
         xml_path='sawyer_xyz/sawyer_door_pull.xml',
+        **sawyer_xyz_kwargs
     ):
         self.quick_init(locals())
         self.model_name = get_asset_full_path(xml_path)
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
-            frame_skip=frame_skip,
             hand_low=hand_low,
-            hand_high=hand_high
+            hand_high=hand_high,
+            **sawyer_xyz_kwargs
         )
         MultitaskEnv.__init__(self)
 
@@ -60,16 +61,10 @@ class SawyerDoorEnv(
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
-        self.action_space = Box(np.array([-1, -1]),
-                                np.array([1, 1]))
-        max_angle = 1.5708
+        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
         self.state_space = Box(
-            np.concatenate((hand_low, [-1*max_angle])),
-            np.concatenate((hand_low, [1*max_angle])),
-        )
-        self.angle_space = Box(
-            np.array([-max_angle]),
-            np.array([max_angle])
+            np.concatenate((hand_low, [min_angle])),
+            np.concatenate((hand_high, [max_angle])),
         )
         self.observation_space = Dict([
             ('observation', self.state_space),
@@ -79,7 +74,6 @@ class SawyerDoorEnv(
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.state_space),
         ])
-        self._pos_action_scale = pos_action_scale
         self.action_reward_scale = action_reward_scale
         self.target_pos_scale = target_pos_scale
         self.target_angle_scale = target_angle_scale
@@ -210,6 +204,8 @@ class SawyerDoorEnv(
                 self.goal_space.high,
                 size=(batch_size, self.goal_space.low.size),
             )
+        # This only works for 2D control
+        goals[:, 2] = self.fixed_hand_z
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
