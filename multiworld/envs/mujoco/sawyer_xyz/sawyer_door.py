@@ -171,16 +171,16 @@ class SawyerDoorEnv(
     def _reset_hand(self):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
-        angles[1:] = self.init_angles[1:]
-        velocities[1:] = 0
+        angles[:-1] = self.init_angles[:-1]
+        velocities[:-1] = 0
         self.set_state(angles.flatten(), velocities.flatten())
         self.reset_mocap_welds()
 
     def _set_door_pos(self, pos):
         angles = self.data.qpos.copy()
         velocities = self.data.qvel.copy()
-        angles[0] = pos
-        velocities[0] = 0
+        angles[-1] = pos
+        velocities[-1] = 0
         self.set_state(angles.flatten(), velocities.flatten())
 
     @property
@@ -223,8 +223,8 @@ class SawyerDoorEnv(
         self._state_goal = angle.copy()
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[0] = angle.copy()
-        qvel[0] = 0
+        qpos[-1] = angle.copy()
+        qvel[-1] = 0
         self.set_state(qpos, qvel)
 
     def set_to_goal_pos(self, xyz):
