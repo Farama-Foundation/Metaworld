@@ -83,7 +83,8 @@ class SawyerDoorEnv(
 
     def step(self, action):
         self.set_xy_action(action[:2], self.fixed_hand_z)
-        u = np.zeros(7)
+        u = np.zeros(8)
+        u[7] = 1
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
         ob = self._get_obs()

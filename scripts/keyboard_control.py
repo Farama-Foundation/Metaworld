@@ -5,6 +5,7 @@ For this script to work, you need to have the PyGame window in focus.
 See/modify `char_to_action` to set the key-to-action mapping.
 """
 import sys
+import gym
 
 import numpy as np
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
@@ -54,6 +55,7 @@ env = SawyerPushAndReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
 # env = SawyerPushAndReachXYDoublePuckEnv()
 # env = SawyerPushAndReachXYZDoublePuckEnv()
+env = gym.make('SawyerDoorPullEnv-v0')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()

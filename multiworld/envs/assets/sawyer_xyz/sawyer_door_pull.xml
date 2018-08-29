@@ -31,7 +31,7 @@
         <motor joint="right_j4" ctrlrange="-100.0 100.0" ctrllimited="false"/>
         <motor joint="right_j5" ctrlrange="-100.0 100.0" ctrllimited="false"/>
         <motor joint="right_j6" ctrlrange="-100.0 100.0" ctrllimited="false"/>
-        <!--<motor gear="1" joint="rc_close" name="slide"/>-->
+        <motor gear="100" joint="rc_close" name="slide"/>
     </actuator>
 
 </mujoco>
