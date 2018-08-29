@@ -7,6 +7,7 @@ See/modify `char_to_action` to set the key-to-action mapping.
 import sys
 
 import numpy as np
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
@@ -51,7 +52,7 @@ char_to_action = {
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
-env = SawyerPushAndReachXYDoublePuckEnv()
+env = SawyerDoorEnv()
 # env = SawyerPushAndReachXYZDoublePuckEnv()
 NDIM = env.action_space.low.size
 lock_action = False

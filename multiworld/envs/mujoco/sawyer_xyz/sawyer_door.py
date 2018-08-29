@@ -24,22 +24,24 @@ class SawyerDoorEnv(
     def __init__(
         self,
         frame_skip=50,
-        goal_low=-.5,
-        goal_high=.5,
+        goal_low=(.4, .5, .12, -.5),
+        goal_high=(.6, .7, .12, 0),
         pos_action_scale=1 / 100,
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
         fix_goal=False,
-        fixed_goal=.25,
+        fixed_goal=(0.5, .5, .12, -.25),
         num_resets_before_door_and_hand_reset=1,
         fixed_hand_z=0.12,
-        hand_low=(-0.15, -2, 0),
-        hand_high=(0.15, 2, 1),
-        target_pos_scale=0.25,
+        hand_low=(-0.15, -2, .12),
+        hand_high=(0.15, 2, .12),
+        target_pos_scale=1,
         target_angle_scale=1,
+        xml_suffix='pull',
     ):
         self.quick_init(locals())
+        self.xml_suffix = xml_suffix
         SawyerXYZEnv.__init__(
             self,
             self.model_name,
@@ -53,8 +55,8 @@ class SawyerDoorEnv(
         self.indicator_threshold = indicator_threshold
 
         self.fix_goal = fix_goal
-        self.fixed_goal = np.array([fixed_goal])
-        self.goal_space = Box(np.array([goal_low]), np.array([goal_high]))
+        self.fixed_goal = np.array(fixed_goal)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
@@ -62,8 +64,8 @@ class SawyerDoorEnv(
                                 np.array([1, 1]))
         max_angle = 1.5708
         self.state_space = Box(
-            np.array([-1, -1, -1, -max_angle]),
-            np.array([1, 1, 1, max_angle]),
+            np.concatenate((hand_low, [-1*max_angle])),
+            np.concatenate((hand_low, [1*max_angle])),
         )
         self.angle_space = Box(
             np.array([-max_angle]),
@@ -71,10 +73,10 @@ class SawyerDoorEnv(
         )
         self.observation_space = Dict([
             ('observation', self.state_space),
-            ('desired_goal', self.state_space),
+            ('desired_goal', self.goal_space),
             ('achieved_goal', self.state_space),
             ('state_observation', self.state_space),
-            ('state_desired_goal', self.state_space),
+            ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.state_space),
         ])
         self._pos_action_scale = pos_action_scale
@@ -86,7 +88,7 @@ class SawyerDoorEnv(
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_door_pull.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_door_' + self.xml_suffix + '.xml')
 
     def step(self, action):
         self.set_xy_action(action[:2], self.fixed_hand_z)
@@ -141,11 +143,14 @@ class SawyerDoorEnv(
         goal_pos = desired_goals[:, :3]
         angle_diff = np.abs(actual_angle - goal_angle)
         pos_dist = np.linalg.norm(pos - goal_pos, axis=1)
-        if self.reward_type == 'angle_difference':
+        if self.reward_type == 'angle_diff_and_hand_distance':
             r = - (
                 angle_diff * self.target_angle_scale
                 + pos_dist * self.target_pos_scale
             )
+        elif self.reward_type == 'angle_difference':
+            r = - angle_diff * self.target_angle_scale
+
         elif self.reward_type == 'hand_success':
             r = -(angle_diff < self.indicator_threshold[0] and pos_dist <
                   self.indicator_threshold[1]).astype(float)
@@ -238,9 +243,6 @@ class SawyerDoorEnv(
     def set_to_goal(self, goal):
         raise NotImplementedError("Hard to do because what if the hand is in "
                                   "the door? Use presampled goals.")
-        goal = goal['state_desired_goal']
-        self.set_to_goal_pos(goal[:3])
-        self.set_to_goal_angle(goal[-1])
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
