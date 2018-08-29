@@ -4,6 +4,7 @@ from collections import OrderedDict
 from numbers import Number
 
 import numpy as np
+from gym.spaces import Box
 
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
@@ -105,3 +106,11 @@ def get_stat_in_paths(paths, dict_name, scalar_name):
 
 def get_asset_full_path(file_name):
     return os.path.join(ENV_ASSET_DIR, file_name)
+
+def concatenate_box_spaces(*spaces):
+    """
+    Assumes dtypes of all spaces are the of the same type
+    """
+    low = np.concatenate([space.low for space in spaces])
+    high = np.concatenate([space.high for space in spaces])
+    return Box(low=low, high=high)
