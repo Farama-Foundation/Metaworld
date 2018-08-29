@@ -48,11 +48,11 @@ char_to_action = {
 
 
 # env = SawyerPushAndReachXYEnv()
-# env = SawyerPushAndReachXYZEnv()
+env = SawyerPushAndReachXYZEnv()
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
-env = SawyerDoorEnv()
+# env = SawyerPushAndReachXYDoublePuckEnv()
 # env = SawyerPushAndReachXYZDoublePuckEnv()
 NDIM = env.action_space.low.size
 lock_action = False
