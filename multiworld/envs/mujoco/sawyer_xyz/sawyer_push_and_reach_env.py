@@ -246,7 +246,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         angles[:7] = self.init_angles[:7]
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            print(self.init_hand_xyz)
             self.data.set_mocap_pos('mocap', self.init_hand_xyz.copy())
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
