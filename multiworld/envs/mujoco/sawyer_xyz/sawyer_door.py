@@ -169,12 +169,10 @@ class SawyerDoorEnv(
         return self._get_obs()
 
     def _reset_hand(self):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[:-1] = self.init_angles[:-1]
-        velocities[:-1] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
-        self.reset_mocap_welds()
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip)
 
     def _set_door_pos(self, pos):
         angles = self.data.qpos.copy()
@@ -182,15 +180,6 @@ class SawyerDoorEnv(
         angles[-1] = pos
         velocities[-1] = 0
         self.set_state(angles.flatten(), velocities.flatten())
-
-    @property
-    def init_angles(self):
-        return [
-            1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
-            1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
-            3.53404635e+00,
-            0,
-        ]
 
     ''' Multitask Functions '''
 
