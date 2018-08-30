@@ -124,6 +124,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
             )
         return self._get_obs()
 
+    def _position_inside_wall(self, pos):
+        for wall in self.walls:
+            if wall.contains_point(pos):
+                return True
+        return False
+
     def _get_obs(self):
         return dict(
             observation=self._position.copy(),
@@ -135,8 +141,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
         )
 
     def compute_rewards(self, actions, obs):
-        achieved_goals = obs['observation']
-        desired_goals = obs['desired_goal']
+        achieved_goals = obs['state_observation']
+        desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
         if self.reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
@@ -169,6 +175,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'state_desired_goal': self._target_position.copy(),
         }
 
+    def _sample_position(self, low, high, realistic=True):
+        pos = np.random.uniform(low, high)
+        if realistic:
+            while self._position_inside_wall(pos) is True:
+                pos = np.random.uniform(low, high)
+        return pos
+
     def sample_goals(self, batch_size):
         if not self.fixed_goal is None:
             goals = np.repeat(
@@ -177,11 +190,16 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 0
             )
         else:
-            goals = np.random.uniform(
-                self.obs_range.low,
-                self.obs_range.high,
-                size=(batch_size, self.obs_range.low.size),
-            )
+            goals = np.zeros((batch_size, self.obs_range.low.size))
+            for b in range(batch_size):
+                goals[b, :] = self._sample_position(self.obs_range.low,
+                                         self.obs_range.high,)
+                                         # realistic=self.sample_realistic_goals)
+            # goals = np.random.uniform(
+            #     self.obs_range.low,
+            #     self.obs_range.high,
+            #     size=(batch_size, self.obs_range.low.size),
+            # )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -217,7 +235,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             return img
 
     def set_to_goal(self, goal_dict):
-        goal = goal_dict["desired_goal"]
+        goal = goal_dict["state_desired_goal"]
         self._position = goal
         self._target_position = goal
 
@@ -260,6 +278,21 @@ class Point2DEnv(MultitaskEnv, Serializable):
             self.drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint2,
+                wall.endpoint3,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint3,
+                wall.endpoint4,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint4,
+                wall.endpoint1,
                 Color('black'),
             )
 
@@ -383,6 +416,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             -Point2DEnv.boundary_dist - 1,
             Point2DEnv.boundary_dist + 1,
         )
+
+    def initialize_camera(self, init_fctn):
+        pass
 
 
 class Point2DWallEnv(Point2DEnv):
