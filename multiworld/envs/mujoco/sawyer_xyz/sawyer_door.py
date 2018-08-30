@@ -155,12 +155,14 @@ class SawyerDoorEnv(
             self._reset_hand()
             self._set_door_pos(0)
         self.reset_counter += 1
-
+        return self._get_obs()
+    
     def reset(self):
+        obs = self.reset_model()
         goal = self.sample_goal()
         self.set_goal(goal)
         self.reset_mocap_welds()
-        return self._get_obs()
+        return obs
 
     def _reset_hand(self):
         velocities = self.data.qvel.copy()
