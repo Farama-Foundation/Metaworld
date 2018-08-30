@@ -263,7 +263,7 @@ class SawyerDoorEnv(
         return statistics
 
     def get_env_state(self):
-        base_state = super().get_endeff_pos()
+        base_state = super().get_env_state()
         goal = self._state_goal.copy()
         return base_state, goal
 
