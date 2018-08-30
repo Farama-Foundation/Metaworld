@@ -150,13 +150,15 @@ class SawyerDoorEnv(
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    def reset(self):
+    def reset_model(self):
         if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
             self._reset_hand()
             self._set_door_pos(0)
+        self.reset_counter += 1
+
+    def reset(self):
         goal = self.sample_goal()
         self.set_goal(goal)
-        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
 
