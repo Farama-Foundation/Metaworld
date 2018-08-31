@@ -155,7 +155,7 @@ def sawyer_door_env_camera_v2(camera):
     camera.distance = 1.0
     cam_dist = 0.1
     rotation_angle = 0
-    cam_pos = np.array([.1, 0.625, .9, cam_dist, -90, rotation_angle])
+    cam_pos = np.array([.1, 0.55, .9, cam_dist, -90, rotation_angle])
 
     for i in range(3):
         camera.lookat[i] = cam_pos[i]
