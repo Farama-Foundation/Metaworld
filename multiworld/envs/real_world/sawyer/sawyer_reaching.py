@@ -57,7 +57,10 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
         )
 
     def reset(self):
-        self._reset_robot()
+        if self.action_mode == "position":
+            self._position_act(self.reset_pos - self._get_endeffector_pose(), in_reset=True)
+        else:
+            self._reset_robot()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         return self._get_obs()
