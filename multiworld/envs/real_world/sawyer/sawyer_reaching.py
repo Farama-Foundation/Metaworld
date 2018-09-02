@@ -10,7 +10,7 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
                  **kwargs
                  ):
         Serializable.quick_init(self, locals())
-        super().__init__(self, **kwargs)
+        sawyer_reaching.SawyerReachXYZEnv.__init__(self, **kwargs)
         self.observation_space = Dict([
             ('observation', self.observation_space),
             ('desired_goal', self.goal_space),
@@ -19,7 +19,6 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ])
-        self.reset()
 
     def step(self, action):
         self._act(action)
@@ -30,8 +29,8 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
         return observation, reward, done, info
 
     def compute_rewards(self, actions, obs):
-        achieved_goals = obs['achieved_goal']
-        desired_goals = obs['desired_goal']
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals
         goals = desired_goals
         distances = np.linalg.norm(hand_pos - goals, axis=1)
@@ -45,13 +44,13 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
 
     def _get_obs(self):
         ee_pos = self._get_endeffector_pose()
-        state_obs = super()._get_obs()
+        # state_obs = super()._get_obs()
         return dict(
-            observation=state_obs,
+            observation=ee_pos,
             desired_goal=self._state_goal,
             achieved_goal=ee_pos,
 
-            state_observation=state_obs,
+            state_observation=ee_pos,
             state_desired_goal=self._state_goal,
             state_achieved_goal=ee_pos,
         )
@@ -92,4 +91,3 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
 if __name__=="__main__":
     env = SawyerReachXYZEnv()
     env.reset()
-    env.set_to_goal({'state_desired_goal':[0, .1, 0]})
