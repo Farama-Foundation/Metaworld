@@ -2,6 +2,8 @@ import gym
 from gym.envs.registration import register
 import logging
 
+from multiworld.envs.mujoco.cameras import sawyer_door_env_camera
+
 LOGGER = logging.getLogger(__name__)
 
 _REGISTERED = False
@@ -141,6 +143,46 @@ def register_custom_envs():
             goal_high=(0.25, 0.875, 0.02, .2, .8),
         )
     )
+
+    register(
+        id='SawyerPushXYEnv-ResetFree-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '33c6b71',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            reset_free=True,
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+        )
+    )
+
+    register(
+        id='SawyerPushXYEnv-CompleteResetFree-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'b9b5ce0',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='puck_distance',
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+            num_resets_before_puck_reset=int(1e6),
+            num_resets_before_hand_reset=int(1e6),
+        )
+    )
+
     register(
         id='SawyerPushAndReachXYEnv-ResetFree-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
@@ -297,7 +339,33 @@ def register_custom_envs():
             goal_high=(0.25, 0.875, 0.02, .2, .8),
         )
     )
-
+    register(
+        id='SawyerDoorPullEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door:SawyerDoorEnv',
+        tags={
+            'git-commit-hash': '19f2be6',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            goal_low=(-.25, .3, .12, -1.5708),
+            goal_high=(.25, .6, .12, 0),
+            action_reward_scale=0,
+            reward_type='angle_difference',
+            indicator_threshold=(.02, .03),
+            fix_goal=False,
+            fixed_goal=(0, .45, .12, -.25),
+            num_resets_before_door_and_hand_reset=1,
+            fixed_hand_z=0.12,
+            hand_low=(-0.25, 0.3, .12),
+            hand_high=(0.25, 0.6, .12),
+            target_pos_scale=1,
+            target_angle_scale=1,
+            min_angle=-1.5708,
+            max_angle=0,
+            xml_path='sawyer_xyz/sawyer_door_pull.xml',
+        )
+    )
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
@@ -353,6 +421,5 @@ def create_Image48SawyerPushAndReacherXYEnv_v0():
         transpose=True,
         normalize=True,
     )
-
 
 register_custom_envs()
