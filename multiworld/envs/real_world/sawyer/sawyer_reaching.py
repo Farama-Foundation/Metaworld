@@ -44,13 +44,13 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
 
     def _get_obs(self):
         ee_pos = self._get_endeffector_pose()
-        # state_obs = super()._get_obs()
+        state_obs = super()._get_obs()
         return dict(
-            observation=ee_pos,
+            observation=state_obs,
             desired_goal=self._state_goal,
             achieved_goal=ee_pos,
 
-            state_observation=ee_pos,
+            state_observation=state_obs,
             state_desired_goal=self._state_goal,
             state_achieved_goal=ee_pos,
         )
