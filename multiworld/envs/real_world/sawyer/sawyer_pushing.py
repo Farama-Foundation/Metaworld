@@ -44,8 +44,12 @@ class SawyerPushXYEnv(sawyer_pushing.SawyerPushXYEnv, MultitaskEnv):
         )
 
     def reset(self):
-        self._reset_robot()
-        self._state_goal = self.sample_goal()['state_desired_goal']
+        if self.action_mode == "position":
+            self._position_act(self.reset_pos - self._get_endeffector_pose(), in_reset=True)
+        else:
+            self._reset_robot()
+        goal = self.sample_goal()
+        self._state_goal = goal['state_desired_goal']
         return self._get_obs()
 
     """
