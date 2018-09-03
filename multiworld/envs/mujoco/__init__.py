@@ -410,7 +410,6 @@ def register_custom_envs():
             indicator_threshold=(.02, .03),
             fix_goal=False,
             fixed_goal=(0, .45, .12, -.25),
-            num_resets_before_door_and_hand_reset=int(1e6),
             fixed_hand_z=0.12,
             hand_low=(-0.25, 0.3, .12),
             hand_high=(0.25, 0.6, .12),
@@ -424,29 +423,23 @@ def register_custom_envs():
     )
 
     register(
-        id='Image48SawyerDoorPull30Degrees-v0',
-        entry_point=create_image_door_env,
+        id='Image48SawyerDoorPull30DegreesEnv-v0',
+        entry_point=create_image_48_sawyer_door_pull_30_deg_env_v0,
         tags={
             'git-commit-hash': '3bdc360',
             'author': 'murtaza'
         },
-        kwargs=dict(
-            name='SawyerDoorPull30DegreesEnv-v0',
-            imsize=48,
-        )
+
     )
 
     register(
         id='Image48SawyerDoorPull30DegreesEnvResetFree-v0',
-        entry_point=create_image_door_env,
+        entry_point=create_image_48_sawyer_door_pull_30_deg_env_reset_free_v0,
         tags={
             'git-commit-hash': '3bdc360',
             'author': 'murtaza'
         },
-        kwargs=dict(
-            name='SawyerDoorPull30DegreesEnvResetFree-v0',
-            imsize=48,
-        )
+
     )
 
 
@@ -505,14 +498,27 @@ def create_Image48SawyerPushAndReacherXYEnv_v0():
         normalize=True,
     )
 
-def create_image_door_env(name, imsize):
+def create_image_48_sawyer_door_pull_30_deg_env_v0():
     from multiworld.core.image_env import ImageEnv
-    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera, sawyer_door_env_camera_v2
+    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v2
 
-    wrapped_env = gym.make(name)
+    wrapped_env = gym.make('SawyerDoorPull30DegreesEnv-v0')
     return ImageEnv(
         wrapped_env,
-        imsize,
+        48,
+        init_camera=sawyer_door_env_camera_v2,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_48_sawyer_door_pull_30_deg_env_reset_free_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v2
+
+    wrapped_env = gym.make('SawyerDoorPull30DegreesEnvResetFree-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
         init_camera=sawyer_door_env_camera_v2,
         transpose=True,
         normalize=True,
