@@ -80,6 +80,7 @@ class SawyerDoorEnv(
         self.reset_counter = 0
         self.num_resets_before_door_and_hand_reset = num_resets_before_door_and_hand_reset
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
+        self.reset()
 
     def step(self, action):
         self.set_xy_action(action[:2], self.fixed_hand_z)
@@ -150,15 +151,18 @@ class SawyerDoorEnv(
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    def reset(self):
+    def reset_model(self):
         if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
             self._reset_hand()
             self._set_door_pos(0)
+        self.reset_counter += 1
         goal = self.sample_goal()
         self.set_goal(goal)
-        self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
+    
+    def reset(self):
+       return self.reset_model()
 
     def _reset_hand(self):
         velocities = self.data.qvel.copy()
