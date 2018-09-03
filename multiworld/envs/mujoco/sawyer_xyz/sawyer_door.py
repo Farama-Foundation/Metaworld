@@ -30,7 +30,7 @@ class SawyerDoorEnv(
         indicator_threshold=(.02, .03),
         fix_goal=False,
         fixed_goal=(0, .45, .12, -.25),
-        num_resets_before_door_and_hand_reset=1,
+        reset_free=False,
         fixed_hand_z=0.12,
         hand_low=(-0.25, 0.3, .12),
         hand_high=(0.25, 0.6, .12),
@@ -77,8 +77,7 @@ class SawyerDoorEnv(
         self.action_reward_scale = action_reward_scale
         self.target_pos_scale = target_pos_scale
         self.target_angle_scale = target_angle_scale
-        self.reset_counter = 0
-        self.num_resets_before_door_and_hand_reset = num_resets_before_door_and_hand_reset
+        self.reset_free = reset_free
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
         self.reset()
 
@@ -152,10 +151,9 @@ class SawyerDoorEnv(
         return r
 
     def reset_model(self):
-        if self.reset_counter % self.num_resets_before_door_and_hand_reset == 0:
+        if self.reset_free:
             self._reset_hand()
             self._set_door_pos(0)
-        self.reset_counter += 1
         goal = self.sample_goal()
         self.set_goal(goal)
         self.reset_mocap_welds()
