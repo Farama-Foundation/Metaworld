@@ -151,7 +151,7 @@ class SawyerDoorEnv(
         return r
 
     def reset_model(self):
-        if self.reset_free:
+        if not self.reset_free:
             self._reset_hand()
             self._set_door_pos(0)
         goal = self.sample_goal()
