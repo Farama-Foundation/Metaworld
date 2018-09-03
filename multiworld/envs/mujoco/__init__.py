@@ -371,7 +371,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_door:SawyerDoorEnv',
         tags={
-            'git-commit-hash': '3bdc360',
+            'git-commit-hash': '433cb96',
             'author': 'murtaza'
         },
         kwargs=dict(
@@ -399,7 +399,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_door:SawyerDoorEnv',
         tags={
-            'git-commit-hash': '3bdc360',
+            'git-commit-hash': '433cb96',
             'author': 'murtaza'
         },
         kwargs=dict(
@@ -426,7 +426,7 @@ def register_custom_envs():
         id='Image48SawyerDoorPull30DegreesEnv-v0',
         entry_point=create_image_48_sawyer_door_pull_30_deg_env_v0,
         tags={
-            'git-commit-hash': '3bdc360',
+            'git-commit-hash': '433cb96',
             'author': 'murtaza'
         },
 
@@ -436,7 +436,7 @@ def register_custom_envs():
         id='Image48SawyerDoorPull30DegreesEnvResetFree-v0',
         entry_point=create_image_48_sawyer_door_pull_30_deg_env_reset_free_v0,
         tags={
-            'git-commit-hash': '3bdc360',
+            'git-commit-hash': '433cb96',
             'author': 'murtaza'
         },
 
