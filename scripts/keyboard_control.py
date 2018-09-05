@@ -49,13 +49,19 @@ char_to_action = {
 
 
 # env = SawyerPushAndReachXYEnv()
-env = SawyerPushAndReachXYZEnv()
+# env = SawyerPushAndReachXYZEnv()
+env = SawyerDoorEnv(
+    goal_low=(-.25, .3, .1, -1.0472),
+    goal_high=(.25, .6, .12, 0),
+    min_angle=-1.0472,
+    reset_free=False,
+)
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
 # env = SawyerPushAndReachXYDoublePuckEnv()
 # env = SawyerPushAndReachXYZDoublePuckEnv()
-env = gym.make('SawyerDoorPullEnv-v0')
+# env = gym.make('SawyerDoorPullEnv-v0')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -88,6 +94,7 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
+    print(env.data.qpos[:-1])
     env.render()
     if done:
         obs = env.reset()

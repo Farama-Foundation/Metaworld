@@ -32,7 +32,7 @@ class SawyerDoorEnv(
         fixed_goal=(0, .45, .12, -.25),
         num_resets_before_door_and_hand_reset=1,
         fixed_hand_z=0.12,
-        hand_low=(-0.25, 0.3, .12),
+        hand_low=(-0.25, 0.3, .1),
         hand_high=(0.25, 0.6, .12),
         target_pos_scale=1,
         target_angle_scale=1,
@@ -83,8 +83,7 @@ class SawyerDoorEnv(
 
     def step(self, action):
         self.set_xy_action(action[:2], self.fixed_hand_z)
-        u = np.zeros(8)
-        u[7] = 1
+        u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
         ob = self._get_obs()
@@ -172,9 +171,7 @@ class SawyerDoorEnv(
             self.do_simulation(None, self.frame_skip)
     @property
     def init_arm_angles(self):
-        return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
-                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
-                1.49353907e+00]
+        return [ 1.7244448, -0.92036369,  0.10234232,  2.11178144,  2.97668632, -0.38664629, 0.54065733]
 
     def _set_door_pos(self, pos):
         qpos = self.data.qpos.copy()

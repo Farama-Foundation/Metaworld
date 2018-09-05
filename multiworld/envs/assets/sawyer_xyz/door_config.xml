@@ -72,6 +72,6 @@ Usage:
     </default>
 
     <equality>
-        <weld body1="mocap" body2="leftclaw" solref="0.005 1"></weld>
+        <weld body1="mocap" body2="hand" solref="0.005 1"></weld>
     </equality>
 </mujoco>
