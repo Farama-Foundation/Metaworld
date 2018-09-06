@@ -4,6 +4,7 @@ from collections import OrderedDict
 import mujoco_py
 import numpy as np
 import sys
+
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from gym.spaces import Box, Dict
 from multiworld.core.serializable import Serializable
@@ -23,8 +24,8 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        goal_low=(-0.08, 0.45, 0.05, -1.0472),
-        goal_high=(0.08, 0.58, .075, 0),
+        goal_low=(-0.1, 0.42, 0.05, -1.0472),
+        goal_high=(0.0, 0.65, .075, 0),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -32,8 +33,8 @@ class SawyerDoorEnv(
         fixed_goal=(0, .45, .12, -.25),
         reset_free=False,
         fixed_hand_z=0.12,
-        hand_low=(-0.08, 0.45, 0.05),
-        hand_high=(0.08, 0.58, .075),
+        hand_low=(-0.1, 0.42, 0.05),
+        hand_high=(0., 0.65, .075),
         target_pos_scale=1,
         target_angle_scale=1,
         min_angle=-1.5708,
@@ -51,7 +52,7 @@ class SawyerDoorEnv(
             **sawyer_xyz_kwargs
         )
         MultitaskEnv.__init__(self)
-
+        # self.initialize_camera(camera)
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
 
@@ -79,7 +80,18 @@ class SawyerDoorEnv(
         self.target_angle_scale = target_angle_scale
         self.reset_free = reset_free
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
+        self.reset_free = True
         self.reset()
+        self.reset_free = reset_free
+
+    def viewer_setup(self):
+        self.viewer.cam.trackbodyid = -1
+        self.viewer.cam.lookat[0] = -.2
+        self.viewer.cam.lookat[1] = .55
+        self.viewer.cam.lookat[2] =  0.6
+        self.viewer.cam.distance = 0.25
+        self.viewer.cam.elevation = -60
+        self.viewer.cam.azimuth = 360
 
     def step(self, action):
         self.set_xyz_action(action)
@@ -168,7 +180,7 @@ class SawyerDoorEnv(
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([-2.74915791e-10, .56,  7.99195438e-02]))
+            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  7.99195438e-02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property
