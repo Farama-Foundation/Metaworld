@@ -366,82 +366,6 @@ def register_custom_envs():
         )
     )
 
-    register(
-        id='SawyerDoorPull30DegreesEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz'
-                    '.sawyer_door:SawyerDoorEnv',
-        tags={
-            'git-commit-hash': '433cb96',
-            'author': 'murtaza'
-        },
-        kwargs=dict(
-            goal_low=(-.25, .3, .12, -0.523599),
-            goal_high=(.25, .6, .12, 0),
-            action_reward_scale=0,
-            reward_type='angle_diff_and_hand_distance',
-            indicator_threshold=(.02, .03),
-            fix_goal=False,
-            fixed_goal=(0, .45, .12, -.25),
-            reset_free=False,
-            fixed_hand_z=0.12,
-            hand_low=(-0.25, 0.3, .12),
-            hand_high=(0.25, 0.6, .12),
-            target_pos_scale=1,
-            target_angle_scale=1,
-            min_angle=-0.523599,
-            max_angle=0,
-            xml_path='sawyer_xyz/sawyer_door_pull.xml',
-        )
-    )
-
-    register(
-        id='SawyerDoorPull30DegreesEnvResetFree-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz'
-                    '.sawyer_door:SawyerDoorEnv',
-        tags={
-            'git-commit-hash': '433cb96',
-            'author': 'murtaza'
-        },
-        kwargs=dict(
-            goal_low=(-.25, .3, .12, -0.523599),
-            goal_high=(.25, .6, .12, 0),
-            action_reward_scale=0,
-            reward_type='angle_diff_and_hand_distance',
-            indicator_threshold=(.02, .03),
-            fix_goal=False,
-            fixed_goal=(0, .45, .12, -.25),
-            fixed_hand_z=0.12,
-            hand_low=(-0.25, 0.3, .12),
-            hand_high=(0.25, 0.6, .12),
-            target_pos_scale=1,
-            target_angle_scale=1,
-            min_angle=-0.523599,
-            max_angle=0,
-            xml_path='sawyer_xyz/sawyer_door_pull.xml',
-            reset_free=True,
-        )
-    )
-
-    register(
-        id='Image48SawyerDoorPull30DegreesEnv-v0',
-        entry_point=create_image_48_sawyer_door_pull_30_deg_env_v0,
-        tags={
-            'git-commit-hash': '433cb96',
-            'author': 'murtaza'
-        },
-
-    )
-
-    register(
-        id='Image48SawyerDoorPull30DegreesEnvResetFree-v0',
-        entry_point=create_image_48_sawyer_door_pull_30_deg_env_reset_free_v0,
-        tags={
-            'git-commit-hash': '433cb96',
-            'author': 'murtaza'
-        },
-
-    )
-
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
@@ -494,32 +418,6 @@ def create_Image48SawyerPushAndReacherXYEnv_v0():
         wrapped_env,
         48,
         init_camera=sawyer_pusher_camera_top_down,
-        transpose=True,
-        normalize=True,
-    )
-
-def create_image_48_sawyer_door_pull_30_deg_env_v0():
-    from multiworld.core.image_env import ImageEnv
-    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v2
-
-    wrapped_env = gym.make('SawyerDoorPull30DegreesEnv-v0')
-    return ImageEnv(
-        wrapped_env,
-        48,
-        init_camera=sawyer_door_env_camera_v2,
-        transpose=True,
-        normalize=True,
-    )
-
-def create_image_48_sawyer_door_pull_30_deg_env_reset_free_v0():
-    from multiworld.core.image_env import ImageEnv
-    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v2
-
-    wrapped_env = gym.make('SawyerDoorPull30DegreesEnvResetFree-v0')
-    return ImageEnv(
-        wrapped_env,
-        48,
-        init_camera=sawyer_door_env_camera_v2,
         transpose=True,
         normalize=True,
     )
