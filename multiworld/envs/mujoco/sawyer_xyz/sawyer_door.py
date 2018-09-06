@@ -169,9 +169,13 @@ class SawyerDoorEnv(
         self.set_goal(goal)
         self.reset_mocap_welds()
         return self._get_obs()
-    
+
     def reset(self):
-       return self.reset_model()
+        # super.reset() does not account for reset-free logic.
+        ob = self.reset_model()
+        if self.viewer is not None:
+            self.viewer_setup()
+        return ob
 
     def _reset_hand(self):
         velocities = self.data.qvel.copy()
