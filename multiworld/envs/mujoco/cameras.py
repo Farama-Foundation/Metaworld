@@ -150,6 +150,21 @@ def sawyer_door_env_camera(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
+def sawyer_door_env_camera_v2(camera):
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+    cam_dist = 0.1
+    rotation_angle = 0
+    cam_pos = np.array([.1, 0.55, .9, cam_dist, -90, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
+    camera.trackbodyid = -1
+
+
 def sawyer_pusher_camera_upright(camera):
     camera.trackbodyid = 0
     camera.distance = .45

@@ -2,7 +2,6 @@ import gym
 from gym.envs.registration import register
 import logging
 
-from multiworld.envs.mujoco.cameras import sawyer_door_env_camera
 
 LOGGER = logging.getLogger(__name__)
 
@@ -366,6 +365,7 @@ def register_custom_envs():
             xml_path='sawyer_xyz/sawyer_door_pull.xml',
         )
     )
+
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv

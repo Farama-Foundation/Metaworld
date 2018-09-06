@@ -56,7 +56,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # sim.add_render_context(viewer)
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,))
-        self._img_goal = None
+        self._img_goal = img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -85,11 +85,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.action_space = self.wrapped_env.action_space
         self.reward_type = reward_type
         self.threshold = threshold
-        self.num_goals_presampled = 0
-
-    def set_presampled_goals(self, presampled_goals):
         self._presampled_goals = presampled_goals
-        self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
+        if self._presampled_goals is None:
+            self.num_goals_presampled = 0
+        else:
+            self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
