@@ -51,8 +51,10 @@ char_to_action = {
 # env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 env = SawyerDoorEnv(
-    goal_low=(-.25, .3, .1, -1.0472),
-    goal_high=(.25, .6, .12, 0),
+    goal_low=(-0.08, 0.45, 0.05, -1.0472),
+    goal_high=(0.08, 0.58, .075, 0),
+    hand_low=(-0.08, 0.45, 0.05),
+    hand_high=(0.08, 0.58, .075),
     min_angle=-1.0472,
     reset_free=False,
 )
@@ -94,7 +96,10 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-    print(env.data.qpos[:-1])
+    # print(env.data.qpos[:-1])
+    print(env.data.qpos[-1])
+    # print(env.get_endeff_pos())
+
     env.render()
     if done:
         obs = env.reset()

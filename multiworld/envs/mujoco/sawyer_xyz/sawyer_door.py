@@ -23,8 +23,8 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        goal_low=(-.25, .3, .12, -1.5708),
-        goal_high=(.25, .6, .12, 0),
+        goal_low=(-0.08, 0.45, 0.05, -1.0472),
+        goal_high=(0.08, 0.58, .075, 0),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -32,8 +32,8 @@ class SawyerDoorEnv(
         fixed_goal=(0, .45, .12, -.25),
         reset_free=False,
         fixed_hand_z=0.12,
-        hand_low=(-0.25, 0.3, .1),
-        hand_high=(0.25, 0.6, .12),
+        hand_low=(-0.08, 0.45, 0.05),
+        hand_high=(0.08, 0.58, .075),
         target_pos_scale=1,
         target_angle_scale=1,
         min_angle=-1.5708,
@@ -61,7 +61,7 @@ class SawyerDoorEnv(
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
-        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
+        self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.state_space = Box(
             np.concatenate((hand_low, [min_angle])),
             np.concatenate((hand_high, [max_angle])),
@@ -82,7 +82,7 @@ class SawyerDoorEnv(
         self.reset()
 
     def step(self, action):
-        self.set_xy_action(action[:2], self.fixed_hand_z)
+        self.set_xyz_action(action)
         u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
@@ -168,7 +168,7 @@ class SawyerDoorEnv(
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
+            self.data.set_mocap_pos('mocap', np.array([-2.74915791e-10, .56,  7.99195438e-02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property

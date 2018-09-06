@@ -20,7 +20,7 @@ Usage:
           <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
     <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"-->
           <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
-    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
+    <geom name="tableTop" type="plane" pos="0 0.6 -.1" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
 
     <body name="base" pos="0 0 0">
@@ -124,10 +124,10 @@ Usage:
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <body name="hand" pos="0 0 0"
                                                   quat="-1 0 1 0">
-                                                <geom contype="2" conaffinity="2" name="Geomclaw" type="box" size="0.01 0.03 0.01" pos="0 0.03 0"/>
-                                                <geom contype="2" conaffinity="2" name="d" type="box" size="0.05 0.01 0.01" pos="-0.05 0.05 0"/>
-                                                <geom contype="2" conaffinity="2" name="e" type="box" size="0.01 0.05 0.01" pos="-0.075 0.05 0"/>
-                                                <geom contype="2" conaffinity="2" name="f" type="box" size="0.03 0.01 0.01" pos="-0.075 0.09 0"/>
+                                                <geom contype="2" conaffinity="2" name="horizontal_hook" type="box" size="0.01 0.03 0.01" pos="0 0.03 0"/>
+                                                <geom contype="2" conaffinity="2" name="down_hook" type="box" size="0.03 0.01 0.01" pos="0.01 0.05 0"/>
+                                               <!-- <geom contype="2" conaffinity="2" name="e" type="box" size="0.01 0.05 0.01" pos="-0.075 0.05 0"/>
+                                                <geom contype="2" conaffinity="2" name="f" type="box" size="0.03 0.01 0.01" pos="-0.075 0.09 0"/> /-->
                                             </body>
 <!--  ================= END GRIPPER ================= /-->
                                         </body>
