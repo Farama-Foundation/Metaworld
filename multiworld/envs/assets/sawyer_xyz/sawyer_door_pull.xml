@@ -2,16 +2,9 @@
 <mujoco model="sawyer">
    <include file="door_config.xml"></include>
     <worldbody>
-        <!--<camera pos="0 0 3.2" name="topview" />-->
-        <!-- <light directional="true" cutoff="40" exponent="10" diffuse=".4 .4 .4" specular=".7 .7 .7" pos="0 0 1.5" dir="0 0 -1"/> -->
-
         <include file="sawyer_xyz_base.xml"></include>
-        <!--<geom name="tableTop" type="plane" pos="0 0.6 0" size="1. 0.4 0.5" rgba=".6 .6 .5 1" contype="1" conaffinity="1" />-->
-        <!--<geom name="tableTop2" type="plane" pos="0.6 0 0" size="0.4 0.4 0.5" rgba=".6 .6 .5 1" contype="1" conaffinity="1" />-->
-        <!--<geom name="tableTop3" type="plane" pos="-0.6 0 0" size="0.4 0.4 0.5" rgba=".6 .6 .5 1" contype="1" conaffinity="1" />-->
 
         <body name="door" pos="0.1 0.65 0.1">
-            <!--quat="0.70711 0 0 0.70711">-->
                 <joint name="doorjoint" pos="-.21 0 0" axis="0 0 1"
                        type="hinge" limited="true" range="-1.5708 0" damping="0.1" armature="0" />
                 <geom type="box" pos="0 0 0" size="0.2 0.01 0.1"
