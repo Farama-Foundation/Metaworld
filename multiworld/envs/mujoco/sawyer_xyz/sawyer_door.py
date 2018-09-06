@@ -24,8 +24,8 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        goal_low=(-0.1, 0.42, 0.05, -1.0472),
-        goal_high=(0.0, 0.65, .075, 0),
+        goal_low=(-0.1, 0.42, 0.05, 0),
+        goal_high=(0.0, 0.65, .075, 1.0472),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -37,8 +37,8 @@ class SawyerDoorEnv(
         hand_high=(0., 0.65, .075),
         target_pos_scale=1,
         target_angle_scale=1,
-        min_angle=-1.5708,
-        max_angle=0,
+        min_angle=0,
+        max_angle=1.0472,
         xml_path='sawyer_xyz/sawyer_door_pull.xml',
         **sawyer_xyz_kwargs
     ):
