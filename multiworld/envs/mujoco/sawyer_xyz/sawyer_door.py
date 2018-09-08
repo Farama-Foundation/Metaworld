@@ -23,8 +23,8 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        goal_low=(-.25, .3, .12, -1.5708),
-        goal_high=(.25, .6, .12, 0),
+        goal_low=None,
+        goal_high=None,
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -57,7 +57,6 @@ class SawyerDoorEnv(
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float32)
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
@@ -65,6 +64,15 @@ class SawyerDoorEnv(
         self.state_space = Box(
             np.concatenate((hand_low, [min_angle])),
             np.concatenate((hand_high, [max_angle])),
+            dtype=np.float32,
+        )
+        if goal_low is None:
+            goal_low = self.state_space.low
+        if goal_high is None:
+            goal_high = self.state_space.high
+        self.goal_space = Box(
+            np.array(goal_low),
+            np.array(goal_high),
             dtype=np.float32,
         )
         self.observation_space = Dict([
