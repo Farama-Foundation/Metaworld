@@ -57,14 +57,15 @@ class SawyerDoorEnv(
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float32)
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
-        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
+        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.state_space = Box(
             np.concatenate((hand_low, [min_angle])),
             np.concatenate((hand_high, [max_angle])),
+            dtype=np.float32,
         )
         self.observation_space = Dict([
             ('observation', self.state_space),
