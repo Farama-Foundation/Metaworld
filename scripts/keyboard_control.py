@@ -8,7 +8,7 @@ import sys
 import gym
 
 import numpy as np
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
@@ -104,10 +104,6 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-    # print(env.data.qpos[:-1])
-    print(env.data.qpos[-1])
-    print(env.get_endeff_pos())
-
     env.render()
     if done:
         obs = env.reset()

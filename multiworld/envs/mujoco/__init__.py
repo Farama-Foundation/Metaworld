@@ -362,7 +362,7 @@ def register_custom_envs():
             target_angle_scale=1,
             min_angle=-1.5708,
             max_angle=0,
-            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            xml_path='sawyer_xyz/sawyer_door_pull.xml',
         )
     )
 

@@ -165,7 +165,6 @@ def sawyer_door_env_camera_v2(camera):
     camera.trackbodyid = -1
 
 def sawyer_door_env_camera_v3(camera):
-    # TODO: reformat or delete
     camera.trackbodyid = 0
     camera.distance = 1.0
 
