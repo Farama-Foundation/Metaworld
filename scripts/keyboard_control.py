@@ -51,16 +51,19 @@ char_to_action = {
 # env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
 env = SawyerDoorEnv(
-    # goal_low=(-0.1, 0.42, 0.05, -1.0472),
-    goal_low=(-0.1, 0.42, 0.05, -0.523599),
-    goal_high=(0.0, 0.65, .075, 0),
-    # hand_low=(-0.1, 0.42, 0.05),
-    hand_low=(-0.1, 0.525, 0.05),
+    # goal_low=(-0.1, 0.525, 0.05, 0),
+    # goal_high=(0.0, 0.65, .075, 0.523599),
+    # hand_low=(-0.1, 0.525, 0.05),
+    # hand_high=(0., 0.65, .075),
+    # max_angle=0.523599,
+    # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
+
+    goal_low=(-0.1, 0.42, 0.05, 0),
+    goal_high=(0.0, 0.65, .075, 1.0472),
+    hand_low=(-0.1, 0.42, 0.05),
     hand_high=(0., 0.65, .075),
-    # min_angle=-1.0472,
-    min_angle=-0.523599,
-    # xml_path='sawyer_xyz/sawyer_door_pull.xml',
-    xml_path='sawyer_xyz/sawyer_door_pull_30.xml',
+    max_angle=1.0472,
+    xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
 )
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
@@ -68,6 +71,7 @@ env = SawyerDoorEnv(
 # env = SawyerPushAndReachXYDoublePuckEnv()
 # env = SawyerPushAndReachXYZDoublePuckEnv()
 # env = gym.make('SawyerDoorPullEnv-v0')
+
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()

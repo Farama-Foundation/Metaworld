@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mujoco model="sawyer">
-   <include file="door_config.xml"></include>
+   <include file="door_hook_config.xml"></include>
     <worldbody>
-        <include file="sawyer_xyz_base_door.xml"></include>
+        <include file="sawyer_xyz_base_door_hook.xml"></include>
         <body name="door" pos="0 0.725 -.025">
                 <joint name="doorjoint" pos=".21 0 0" axis="0 0 1"
                        type="hinge" limited="true" range="0 0.523599" damping="0.1" armature="0" />
