@@ -4,7 +4,6 @@ from collections import OrderedDict
 import mujoco_py
 import numpy as np
 import sys
-
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from gym.spaces import Box, Dict
 from multiworld.core.serializable import Serializable
@@ -24,8 +23,8 @@ class SawyerDoorEnv(
 ):
     def __init__(
         self,
-        goal_low=(-0.1, 0.42, 0.05, 0),
-        goal_high=(0.0, 0.65, .075, 1.0472),
+        goal_low=(-.25, .3, .12, -1.5708),
+        goal_high=(.25, .6, .12, 0),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -33,13 +32,13 @@ class SawyerDoorEnv(
         fixed_goal=(0, .45, .12, -.25),
         reset_free=False,
         fixed_hand_z=0.12,
-        hand_low=(-0.1, 0.42, 0.05),
-        hand_high=(0., 0.65, .075),
+        hand_low=(-0.25, 0.3, .12),
+        hand_high=(0.25, 0.6, .12),
         target_pos_scale=1,
         target_angle_scale=1,
-        min_angle=0,
-        max_angle=1.0472,
-        xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+        min_angle=-1.5708,
+        max_angle=0,
+        xml_path='sawyer_xyz/sawyer_door_pull.xml',
         **sawyer_xyz_kwargs
     ):
         self.quick_init(locals())
@@ -52,7 +51,7 @@ class SawyerDoorEnv(
             **sawyer_xyz_kwargs
         )
         MultitaskEnv.__init__(self)
-        # self.initialize_camera(camera)
+
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
 
@@ -62,7 +61,7 @@ class SawyerDoorEnv(
         self._state_goal = None
         self.fixed_hand_z = fixed_hand_z
 
-        self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
+        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
         self.state_space = Box(
             np.concatenate((hand_low, [min_angle])),
             np.concatenate((hand_high, [max_angle])),
@@ -80,22 +79,12 @@ class SawyerDoorEnv(
         self.target_angle_scale = target_angle_scale
         self.reset_free = reset_free
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
-        self.reset_free = True
         self.reset()
-        self.reset_free = reset_free
-
-    def viewer_setup(self):
-        self.viewer.cam.trackbodyid = -1
-        self.viewer.cam.lookat[0] = -.2
-        self.viewer.cam.lookat[1] = .55
-        self.viewer.cam.lookat[2] =  0.6
-        self.viewer.cam.distance = 0.25
-        self.viewer.cam.elevation = -60
-        self.viewer.cam.azimuth = 360
 
     def step(self, action):
-        self.set_xyz_action(action)
-        u = np.zeros(7)
+        self.set_xy_action(action[:2], self.fixed_hand_z)
+        u = np.zeros(8)
+        u[7] = 1
         self.do_simulation(u, self.frame_skip)
         info = self._get_info()
         ob = self._get_obs()
@@ -184,12 +173,14 @@ class SawyerDoorEnv(
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  7.99195438e-02]))
+            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property
     def init_arm_angles(self):
-        return [ 1.7244448, -0.92036369,  0.10234232,  2.11178144,  2.97668632, -0.38664629, 0.54065733]
+        return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
+                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
+                1.49353907e+00]
 
     def _set_door_pos(self, pos):
         qpos = self.data.qpos.copy()
