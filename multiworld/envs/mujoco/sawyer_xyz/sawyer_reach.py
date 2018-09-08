@@ -33,8 +33,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
         self.hide_goal_markers = hide_goal_markers
-        self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
-        self.hand_space = Box(self.hand_low, self.hand_high)
+        self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]), dtype=np.float32)
+        self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
         self.observation_space = Dict([
             ('observation', self.hand_space),
             ('desired_goal', self.hand_space),
@@ -226,10 +226,11 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
             **kwargs
         )
         self.hand_z_position = hand_z_position
-        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]))
+        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.hand_space = Box(
             np.hstack((self.hand_space.low[:2], self.hand_z_position)),
-            np.hstack((self.hand_space.high[:2], self.hand_z_position))
+            np.hstack((self.hand_space.high[:2], self.hand_z_position)),
+            dtype=np.float32
         )
         self.observation_space = Dict([
             ('observation', self.hand_space),
