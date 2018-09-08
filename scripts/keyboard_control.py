@@ -8,7 +8,7 @@ import sys
 import gym
 
 import numpy as np
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
@@ -50,7 +50,7 @@ char_to_action = {
 
 # env = SawyerPushAndReachXYEnv()
 # env = SawyerPushAndReachXYZEnv()
-env = SawyerDoorEnv(
+env = SawyerDoorHookEnv(
     # goal_low=(-0.1, 0.525, 0.05, 0),
     # goal_high=(0.0, 0.65, .075, 0.523599),
     # hand_low=(-0.1, 0.525, 0.05),

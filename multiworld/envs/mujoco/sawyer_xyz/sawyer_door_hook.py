@@ -16,7 +16,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerDoorEnv(
+class SawyerDoorHookEnv(
     SawyerXYZEnv,
     MultitaskEnv,
     Serializable,
