@@ -164,6 +164,21 @@ def sawyer_door_env_camera_v2(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
+def sawyer_door_env_camera_v3(camera):
+    camera.trackbodyid = 0
+    camera.distance = 1.0
+
+    # 3rd person view
+    cam_dist = 0.25
+    rotation_angle = 360
+    cam_pos = np.array([-.2, .55, 0.6, cam_dist, -60, rotation_angle])
+
+    for i in range(3):
+        camera.lookat[i] = cam_pos[i]
+    camera.distance = cam_pos[3]
+    camera.elevation = cam_pos[4]
+    camera.azimuth = cam_pos[5]
+    camera.trackbodyid = -1
 
 def sawyer_pusher_camera_upright(camera):
     camera.trackbodyid = 0

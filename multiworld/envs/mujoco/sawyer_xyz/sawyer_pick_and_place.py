@@ -73,18 +73,22 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
+            dtype=np.float32
         )
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
+            dtype=np.float32
         )
         self.hand_space = Box(
             self.hand_low,
             self.hand_high,
+            dtype=np.float32
         )
         self.gripper_and_hand_and_obj_space = Box(
             np.hstack(([0.0], self.hand_low, obj_low)),
             np.hstack(([0.04], self.hand_high, obj_high)),
+            dtype=np.float32
         )
 
         self.observation_space = Dict([
@@ -440,6 +444,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         self.action_space = Box(
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
+            dtype=np.float32
         )
         self.hand_reset_pos = np.array([x_axis, .6, .2])
 
