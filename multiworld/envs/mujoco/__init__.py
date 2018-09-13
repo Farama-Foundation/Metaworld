@@ -2,7 +2,6 @@ import gym
 from gym.envs.registration import register
 import logging
 
-
 LOGGER = logging.getLogger(__name__)
 
 _REGISTERED = False
@@ -364,6 +363,49 @@ def register_custom_envs():
             max_angle=0,
             xml_path='sawyer_xyz/sawyer_door_pull.xml',
         )
+    )
+
+    """
+    Door Hook Env
+    """
+    register(
+        id='SawyerDoorHookEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'b5ac6f9',
+            'author': 'vitchyr',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.42, 0.05, 0),
+            goal_high=(0.0, 0.65, .075, 1.0472),
+            hand_low=(-0.1, 0.42, 0.05),
+            hand_high=(0., 0.65, .075),
+            max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+        )
+    )
+    register(
+        id='Image48SawyerDoorHookEnv-v0',
+        entry_point=create_Image48SawyerDoorHookEnv_v0,
+        tags={
+            'git-commit-hash': 'b5ac6f9',
+            'author': 'vitchyr',
+        },
+    )
+
+
+def create_Image48SawyerDoorHookEnv_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v3
+
+    wrapped_env = gym.make('SawyerDoorHookEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_door_env_camera_v3,
+        transpose=True,
+        normalize=True,
     )
 
 
