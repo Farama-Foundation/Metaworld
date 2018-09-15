@@ -76,7 +76,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # init_camera(viewer.cam)
             # sim.add_render_context(viewer)
         self._render_local = False
-        img_space = Box(0, 1, (self.image_length,))
+        img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces
         spaces['observation'] = img_space
