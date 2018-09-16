@@ -286,10 +286,3 @@ class SawyerDoorHookEnv(
         super().set_env_state(base_state)
         self._state_goal = goal
 
-    def __getstate__(self):
-        state = super().__getstate__()
-        return {**state, 'env_state': self.get_env_state()}
-
-    def __setstate__(self, state):
-        super().__setstate__(state)
-        self.set_env_state(state['env_state'])
