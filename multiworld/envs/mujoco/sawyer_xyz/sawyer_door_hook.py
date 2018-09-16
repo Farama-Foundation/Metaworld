@@ -285,4 +285,3 @@ class SawyerDoorHookEnv(
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
-
