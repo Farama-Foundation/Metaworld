@@ -24,8 +24,8 @@ class SawyerDoorHookEnv(
 ):
     def __init__(
         self,
-        goal_low=(-0.1, 0.45, 0.05, 0),
-        goal_high=(0.0, 0.65, .075, 1.0472),
+        goal_low=(-0.1, 0.45, 0.15, 0),
+        goal_high=(0.0, 0.65, .225, 1.0472),
         action_reward_scale=0,
         reward_type='angle_difference',
         indicator_threshold=(.02, .03),
@@ -33,8 +33,8 @@ class SawyerDoorHookEnv(
         fixed_goal=(0, .45, .12, -.25),
         reset_free=False,
         fixed_hand_z=0.12,
-        hand_low=(-0.1, 0.45, 0.05),
-        hand_high=(0., 0.65, .075),
+        hand_low=(-0.1, 0.45, 0.15),
+        hand_high=(0., 0.65, .225),
         target_pos_scale=1,
         target_angle_scale=1,
         min_angle=0,
