@@ -40,6 +40,14 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
 
+    def __getstate__(self):
+        state = super().__getstate__()
+        return {**state, 'env_state': self.get_env_state()}
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.set_env_state(state['env_state'])
+
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
         sim = self.sim
