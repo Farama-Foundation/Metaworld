@@ -24,7 +24,7 @@ class SawyerDoorHookEnv(
 ):
     def __init__(
         self,
-        goal_low=(-0.1, 0.42, 0.05, 0),
+        goal_low=(-0.1, 0.45, 0.05, 0),
         goal_high=(0.0, 0.65, .075, 1.0472),
         action_reward_scale=0,
         reward_type='angle_difference',
@@ -33,7 +33,7 @@ class SawyerDoorHookEnv(
         fixed_goal=(0, .45, .12, -.25),
         reset_free=False,
         fixed_hand_z=0.12,
-        hand_low=(-0.1, 0.42, 0.05),
+        hand_low=(-0.1, 0.45, 0.05),
         hand_high=(0., 0.65, .075),
         target_pos_scale=1,
         target_angle_scale=1,
@@ -81,6 +81,7 @@ class SawyerDoorHookEnv(
         self.target_angle_scale = target_angle_scale
         self.reset_free = reset_free
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
+        #ensure env does not start in weird positions
         self.reset_free = True
         self.reset()
         self.reset_free = reset_free
@@ -185,7 +186,7 @@ class SawyerDoorHookEnv(
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  7.99195438e-02]))
+            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  .225]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property
