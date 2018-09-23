@@ -125,7 +125,7 @@ Usage:
                                             <body name="hand" pos="0 0 0"
                                                   quat="-1 0 1 0">
                                                 <geom contype="2" conaffinity="2" name="horizontal_hook" type="box" size="0.01 0.03 0.01" pos="0 0.03 0"/>
-                                                <geom contype="2" conaffinity="2" name="down_hook" type="box" size="0.03 0.013 0.01" pos="0.01 0.05 0"/>
+                                                <geom contype="2" conaffinity="2" name="down_hook" type="box" size="0.03 0.01 0.01" pos="0.01 0.05 0"/>
                                                <!-- <geom contype="2" conaffinity="2" name="e" type="box" size="0.01 0.05 0.01" pos="-0.075 0.05 0"/>
                                                 <geom contype="2" conaffinity="2" name="f" type="box" size="0.03 0.01 0.01" pos="-0.075 0.09 0"/> /-->
                                             </body>
