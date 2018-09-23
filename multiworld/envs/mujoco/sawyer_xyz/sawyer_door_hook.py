@@ -222,8 +222,6 @@ class SawyerDoorHookEnv(
                 self.goal_space.high,
                 size=(batch_size, self.goal_space.low.size),
             )
-        # This only works for 2D control
-        goals[:, 2] = self.fixed_hand_z
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
