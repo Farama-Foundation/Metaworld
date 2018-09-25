@@ -420,6 +420,90 @@ def register_custom_envs():
         },
     )
 
+    register(
+        id='SawyerDoorHookResetFreeEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': '333776f',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.15, 0),
+            goal_high=(0.0, 0.65, .225, 1.0472),
+            hand_low=(-0.1, 0.45, 0.15),
+            hand_high=(0., 0.65, .225),
+            max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+    register(
+        id='Image48SawyerDoorHookResetFreeEnv-v1',
+        entry_point=create_Image48SawyerDoorHookResetFreeEnv_v1,
+        tags={
+            'git-commit-hash': '333776f',
+            'author': 'murtaza',
+        },
+    )
+
+    register(
+        id='SawyerDoorHookResetFreeEnv-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': '2879edb',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.15, 0),
+            goal_high=(0.0, 0.65, .225, 1.0472),
+            hand_low=(-0.1, 0.45, 0.15),
+            hand_high=(0., 0.65, .225),
+            max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+
+    register(
+        id='SawyerDoorHookResetFreeEnv-v3',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.15, 0),
+            goal_high=(0.0, 0.65, .225, 1.0472),
+            hand_low=(-0.1, 0.45, 0.15),
+            hand_high=(0., 0.65, .225),
+            max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+
+    register(
+        id='SawyerDoorHookResetFreeEnv-v4',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.2, 0.45, 0.1, 0),
+            goal_high=(0.2, 0.65, .25, 1.0472),
+            hand_low=(-0.2, 0.45, 0.15),
+            hand_high=(.2, 0.65, .25),
+            max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
@@ -496,6 +580,19 @@ def create_Image48SawyerDoorHookResetFreeEnv_v0():
     from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v3
 
     wrapped_env = gym.make('SawyerDoorHookResetFreeEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_door_env_camera_v3,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_Image48SawyerDoorHookResetFreeEnv_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v3
+
+    wrapped_env = gym.make('SawyerDoorHookResetFreeEnv-v1')
     return ImageEnv(
         wrapped_env,
         48,
