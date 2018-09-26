@@ -485,7 +485,7 @@ def register_custom_envs():
         )
     )
 
-    register(
+    register( #do not use!!!
         id='SawyerDoorHookResetFreeEnv-v4',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_door_hook:SawyerDoorHookEnv',
@@ -499,6 +499,24 @@ def register_custom_envs():
             hand_low=(-0.2, 0.45, 0.15),
             hand_high=(.2, 0.65, .25),
             max_angle=1.0472,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+    register(
+        id='SawyerDoorHookResetFreeEnv-v5',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.1, 0),
+            goal_high=(0.05, 0.65, .25, .83),
+            hand_low=(-0.1, 0.45, 0.1),
+            hand_high=(0.05, 0.65, .25),
+            max_angle=.83,
             xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
             reset_free=True,
         )
