@@ -522,6 +522,25 @@ def register_custom_envs():
         )
     )
 
+    register(
+        id='SawyerDoorHookResetFreeEnv-v6',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.4, 0.1, 0),
+            goal_high=(0.05, 0.65, .25, .93),
+            hand_low=(-0.1, 0.4, 0.1),
+            hand_high=(0.05, 0.65, .25),
+            max_angle=.93,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reset_free=True,
+        )
+    )
+
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
