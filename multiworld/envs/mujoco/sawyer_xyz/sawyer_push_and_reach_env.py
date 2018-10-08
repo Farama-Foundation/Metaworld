@@ -33,7 +33,6 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
-            reset_hand_with_puck=False,
             **kwargs
     ):
         self.quick_init(locals())
