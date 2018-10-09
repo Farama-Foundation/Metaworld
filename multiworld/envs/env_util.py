@@ -113,4 +113,4 @@ def concatenate_box_spaces(*spaces):
     """
     low = np.concatenate([space.low for space in spaces])
     high = np.concatenate([space.high for space in spaces])
-    return Box(low=low, high=high)
+    return Box(low=low, high=high, dtype=np.float32)
