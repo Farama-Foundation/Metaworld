@@ -209,6 +209,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.wrapped_env.set_goal(goal)
 
     def sample_goals(self, batch_size):
+        assert self.num_goals_presampled > 0
         if self.num_goals_presampled > 0:
             idx = np.random.randint(0, self.num_goals_presampled, batch_size)
             sampled_goals = {

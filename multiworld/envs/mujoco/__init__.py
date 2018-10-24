@@ -371,6 +371,23 @@ def register_custom_envs():
             reset_free=True,
         )
     )
+    register(
+        id='SawyerPickupEnv-v6',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+        )
+
+    )
+
 
 
 def create_image_48_sawyer_reach_xy_env_v0():
