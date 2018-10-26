@@ -372,11 +372,11 @@ def register_custom_envs():
         )
     )
     register(
-        id='SawyerPickupEnv-v6',
+        id='SawyerPickupEnv-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
         tags={
-            'git-commit-hash': 'ffdb56e',
+            'git-commit-hash': '30f23f7',
             'author': 'steven',
         },
         kwargs=dict(
