@@ -13,7 +13,6 @@ if v_wall.collides_with(init_xy, new_xy):
 ```
 """
 import abc
-from railrl.torch import pytorch_util as ptu
 
 
 class Wall(object, metaclass=abc.ABCMeta):
@@ -57,11 +56,6 @@ class Wall(object, metaclass=abc.ABCMeta):
 
     def contains_point(self, point):
         return (self.min_x < point[0] < self.max_x) and (self.min_y < point[1] < self.max_y)
-
-    def contains_points_pytorch(self, points):
-        less_op = points < ptu.Variable(ptu.FloatTensor([self.max_x, self.max_y]))
-        greater_op = points > ptu.Variable(ptu.FloatTensor([self.min_x, self.min_y]))
-        return less_op * greater_op
 
     def handle_collision(self, start_point, end_point):
         trajectory_segment = (
