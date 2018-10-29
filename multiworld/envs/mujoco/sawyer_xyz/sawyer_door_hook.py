@@ -185,8 +185,11 @@ class SawyerDoorHookEnv(
         # Do this to make sure the robot isn't in some weird configuration.
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
+        self._set_hand_pos(np.array([-.05, .635,  .225]))
+
+    def _set_hand_pos(self, pos):
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  .225]))
+            self.data.set_mocap_pos('mocap', pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property
