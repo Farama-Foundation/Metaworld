@@ -209,7 +209,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.wrapped_env.set_goal(goal)
 
     def sample_goals(self, batch_size):
-        assert self.num_goals_presampled > 0
         if self.num_goals_presampled > 0:
             idx = np.random.randint(0, self.num_goals_presampled, batch_size)
             sampled_goals = {
@@ -235,8 +234,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
-            reward = (dist<self.threshold).astype(float)-1
-            return reward
+            return (dist<self.threshold).astype(float)-1
         elif self.reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs)
         else:
