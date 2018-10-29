@@ -1,0 +1,14 @@
+<top>
+    <sensor>
+        <touch name="finger1_sensor" site="finger1_surf"/>
+        <touch name="finger2_sensor" site="finger2_surf"/>
+        <framepos name="object0_sensor" objname="object0" objtype="body"/>
+    </sensor>
+    <worldbody>
+        <body childclass="freejoint" name="object0" pos="0 0 0">
+            <joint type="free"/>
+            <geom conaffinity="7" contype="7" friction="1.0 0.1 0.02" mass="1" rgba="0.521925852634098 0.7981233255066195 0.49680679453068927 1" size="0.02 0.037016856623602455 0.02" type="box"/>
+            <geom conaffinity="7" contype="7" friction="1.0 0.1 0.02" mass="1" pos="0.020641605447804377 0.03503402369039647 0.0" rgba="0.8167400736059729 0.9700969705048326 0.8307317077172742 1" size="0.020641605447804377 0.02 0.02" type="box"/>
+        </body>
+    </worldbody>
+</top>
