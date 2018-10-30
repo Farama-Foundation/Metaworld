@@ -46,6 +46,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             ('proprio_desired_goal', self.hand_space),
             ('proprio_achieved_goal', self.hand_space),
         ])
+        self.reset()
 
     def step(self, action):
         self.set_xyz_action(action)

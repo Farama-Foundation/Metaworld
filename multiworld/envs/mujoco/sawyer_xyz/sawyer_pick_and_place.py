@@ -111,7 +111,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
-
+        self.reset()
 
     @property
     def model_name(self):
