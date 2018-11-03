@@ -40,7 +40,7 @@ def file_len(fname):
     return i + 1
 
 
-ASSET_BASE_DIR = '/'.join(os.path.abspath(multiworld.__file__).split('/')[:-2]) +  '/mjc_models/'#'/multiworld/envs/assets/multiobject_models/'
+ASSET_BASE_DIR = '/'.join(os.path.abspath(multiworld.__file__).split('/')[:-2]) +  '/multiworld/envs/assets/multiobject_models/'
 
 
 def create_object_xml(filename, num_objects, object_mass, friction_params, object_meshes,
