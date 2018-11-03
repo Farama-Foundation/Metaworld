@@ -67,7 +67,12 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
                     )
 
         self._base_sdim, self._base_adim, self.mode_rel = 5, 5, mode_rel
-        self.num_objects, self.skip_first, self.substeps = num_objects, skip_first, substeps
+       	self.hand_low = np.array((-0.03, 0.55, 0.05))
+        self.hand_high = np.array((-0.0, 0.65, 0.2))
+        self.mocap_high = self.hand_high
+        self.mocap_low = self.hand_low
+        self.action_scale = 1.0/100
+	self.num_objects, self.skip_first, self.substeps = num_objects, skip_first, substeps
         self.randomize_initial_pos = randomize_initial_pos
         self.finger_sensors, self._maxlen = finger_sensors, maxlen
         self._threshold = 0
