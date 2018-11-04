@@ -20,7 +20,7 @@ def register_custom_envs():
     """
 
     register(
-        id='SawyerReachXYEnv-v0',
+        id='SawyerReachXYEnv-v1',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
             'git-commit-hash': '2d95c75',
@@ -28,26 +28,27 @@ def register_custom_envs():
         },
         kwargs={
             'hide_goal_markers': True,
-            'norm_order':2,
+            'norm_order': 2,
         },
     )
 
     register(
-        id='Image48SawyerReachXYEnv-v0',
-        entry_point=create_image_48_sawyer_reach_xy_env_v0,
+        id='Image48SawyerReachXYEnv-v1',
+        entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'vitchyr'
+            'author': 'murtaza'
         },
     )
     register(
-        id='Image84SawyerReachXYEnv-v0',
-        entry_point=create_image_84_sawyer_reach_xy_env_v0,
+        id='Image84SawyerReachXYEnv-v1',
+        entry_point=create_image_84_sawyer_reach_xy_env_v1,
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'vitchyr'
+            'author': 'murtaza'
         },
     )
+
 
     """
     Pushing Tasks, XY
@@ -167,6 +168,7 @@ def register_custom_envs():
             xml_path='sawyer_xyz/sawyer_push_puck_arena.xml',
             reward_type='state_distance',
             reset_free=True,
+            clamp_puck_on_step=False,
         )
     )
 
@@ -228,7 +230,7 @@ def register_custom_envs():
             'git-commit-hash': '15b48d5',
             'author': 'murtaza',
         },
-        kwargs=dict(
+        kwargs = dict(
             goal_low=(-0.1, 0.45, 0.1, 0),
             goal_high=(0.05, 0.65, .25, .83),
             hand_low=(-0.1, 0.45, 0.1),
@@ -281,11 +283,11 @@ def register_custom_envs():
     )
 
 
-def create_image_48_sawyer_reach_xy_env_v0():
+def create_image_48_sawyer_reach_xy_env_v1():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera_v0
 
-    wrapped_env = gym.make('SawyerReachXYEnv-v0')
+    wrapped_env = gym.make('SawyerReachXYEnv-v1')
     return ImageEnv(
         wrapped_env,
         48,
@@ -295,11 +297,11 @@ def create_image_48_sawyer_reach_xy_env_v0():
     )
 
 
-def create_image_84_sawyer_reach_xy_env_v0():
+def create_image_84_sawyer_reach_xy_env_v1():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera_v0
 
-    wrapped_env = gym.make('SawyerReachXYEnv-v0')
+    wrapped_env = gym.make('SawyerReachXYEnv-v1')
     return ImageEnv(
         wrapped_env,
         84,
