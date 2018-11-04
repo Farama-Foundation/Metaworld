@@ -168,7 +168,6 @@ def register_custom_envs():
             xml_path='sawyer_xyz/sawyer_push_puck_arena.xml',
             reward_type='state_distance',
             reset_free=True,
-            clamp_puck_on_step=False,
         )
     )
 
