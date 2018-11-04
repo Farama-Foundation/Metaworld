@@ -37,7 +37,7 @@ def register_custom_envs():
         entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'vitchyr'
+            'author': 'murtaza'
         },
     )
     register(
@@ -45,7 +45,7 @@ def register_custom_envs():
         entry_point=create_image_84_sawyer_reach_xy_env_v1,
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'vitchyr'
+            'author': 'murtaza'
         },
     )
 
