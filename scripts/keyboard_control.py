@@ -48,31 +48,22 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv()
-# env = SawyerPushAndReachXYZEnv()
-env = SawyerDoorHookEnv(
-    # goal_low=(-0.1, 0.525, 0.05, 0),
-    # goal_high=(0.0, 0.65, .075, 0.523599),
-    # hand_low=(-0.1, 0.525, 0.05),
-    # hand_high=(0., 0.65, .075),
-    # max_angle=0.523599,
-    # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
-
-    goal_low=(-0.1, 0.4, 0.1, 0),
-    goal_high=(0.05, 0.65, .25, .93),
-    hand_low=(-0.1, 0.4, 0.1),
-    hand_high=(0.05, 0.65, .25),
-    max_angle=.93,
-    xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
-    reset_free=True,
+import gym
+import multiworld
+import pygame
+# env = gym.make('SawyerPushAndReachEnvEasy-v0')
+env = SawyerPushAndReachXYEnv(
+    goal_low=(-0.15, 0.4, 0.02, -.1, .5),
+    goal_high=(0.15, 0.75, 0.02, .1, .7),
+    puck_low=(-.3, .25),
+    puck_high=(.3, .9),
+    hand_low=(-0.15, 0.4, 0.05),
+    hand_high=(0.15, .75, 0.3),
+    norm_order=2,
+    xml_path='sawyer_xyz/sawyer_push_puck_small_arena.xml',
+    reward_type='state_distance',
+    reset_free=False,
 )
-# env = SawyerReachXYEnv()
-# env = SawyerReachXYZEnv()
-# env = SawyerPickAndPlaceEnv()
-# env = SawyerPushAndReachXYDoublePuckEnv()
-# env = SawyerPushAndReachXYZDoublePuckEnv()
-# env = gym.make('SawyerDoorPullEnv-v0')
-
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -103,9 +94,11 @@ while True:
             elif new_action is not None:
                 action[:3] = new_action[:3]
             else:
-                action = np.zeros(10)
-    obs, reward, _, info = env.step(action[:NDIM])
-    print(env.data.qpos[-1])
+                action = np.zeros(3)
+    env.step(action[:2])
+    print(env.get_puck_pos())
+    # goal = env.sample_valid_goal()
+    # env.set_to_goal(goal)
     env.render()
     if done:
         obs = env.reset()
