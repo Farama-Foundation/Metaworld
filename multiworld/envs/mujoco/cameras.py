@@ -57,14 +57,6 @@ def init_sawyer_camera_v3(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
-def sawyer_pick_and_place_camera(camera):
-    camera.lookat[0] = 0.0
-    camera.lookat[1] = .67
-    camera.lookat[2] = .1
-    camera.distance = .7
-    camera.elevation = 0
-    camera.azimuth = 180
-    camera.trackbodyid = 0
 
 def init_sawyer_camera_v4(camera):
     """
@@ -77,16 +69,6 @@ def init_sawyer_camera_v4(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
-
-def sawyer_pick_and_place_camera_slanted_angle(camera):
-    camera.lookat[0] = 0.0
-    camera.lookat[1] = .67
-    camera.lookat[2] = .1
-    camera.distance = .65
-    camera.elevation = -37.85
-    camera.azimuth = 180
-    camera.trackbodyid = 0
-
 
 def init_sawyer_camera_v5(camera):
     """
@@ -101,87 +83,57 @@ def init_sawyer_camera_v5(camera):
     camera.trackbodyid = -1
 
 
-def sawyer_xyz_reacher_camera(camera):
-    # TODO: reformat or delete
+def sawyer_pick_and_place_camera(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .67
+    camera.lookat[2] = .1
+    camera.distance = .7
+    camera.elevation = 0
+    camera.azimuth = 180
     camera.trackbodyid = 0
-    camera.distance = 1.0
 
-    # 3rd person view
-    cam_dist = 0.3
-    rotation_angle = 270
-    cam_pos = np.array([0, 1.0, 0.5, cam_dist, -30, rotation_angle])
 
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
+def sawyer_pick_and_place_camera_slanted_angle(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .67
+    camera.lookat[2] = .1
+    camera.distance = .65
+    camera.elevation = -37.85
+    camera.azimuth = 180
+    camera.trackbodyid = 0
+
+
+def sawyer_xyz_reacher_camera_v0(camera):
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 0.4
+    camera.elevation = -35
+    camera.azimuth = 270
     camera.trackbodyid = -1
 
 
 def sawyer_torque_reacher_camera(camera):
-    # TODO: reformat or delete
-    camera.trackbodyid = 0
-    camera.distance = 1.0
-
-    # 3rd person view
-    cam_dist = 0.3
-    rotation_angle = 270
-    cam_pos = np.array([0, 1.0, 0.65, cam_dist, -30, rotation_angle])
-
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
+    camera.distance = .3
+    camera.lookat[0] = 0
+    camera.lookat[1] = 1.0
+    camera.lookat[2] = 0.65
+    camera.elevation = -30
+    camera.azimuth = 270
     camera.trackbodyid = -1
 
-def sawyer_door_env_camera(camera):
-    camera.trackbodyid = 0
-    camera.distance = 1.0
-    cam_dist = 0.1
-    rotation_angle = 0
-    cam_pos = np.array([0, 0.725, .9, cam_dist, -90, rotation_angle])
 
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
+def sawyer_door_env_camera_v0(camera):
+    camera.distance = 0.25
+    camera.lookat[0] = -.2
+    camera.lookat[1] = 0.55
+    camera.lookat[2] = 0.6
+    camera.elevation = -60
+    camera.azimuth = 360
     camera.trackbodyid = -1
 
-def sawyer_door_env_camera_v2(camera):
-    camera.trackbodyid = 0
-    camera.distance = 1.0
-    cam_dist = 0.1
-    rotation_angle = 0
-    cam_pos = np.array([.1, 0.55, .9, cam_dist, -90, rotation_angle])
-
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
-    camera.trackbodyid = -1
-
-def sawyer_door_env_camera_v3(camera):
-    camera.trackbodyid = 0
-    camera.distance = 1.0
-
-    # 3rd person view
-    cam_dist = 0.25
-    rotation_angle = 360
-    cam_pos = np.array([-.2, .55, 0.6, cam_dist, -60, rotation_angle])
-
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
-    camera.trackbodyid = -1
 
 def sawyer_pusher_camera_upright(camera):
-    camera.trackbodyid = 0
     camera.distance = .45
     camera.lookat[0] = 0
     camera.lookat[1] = 0.85
@@ -190,8 +142,8 @@ def sawyer_pusher_camera_upright(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
+
 def sawyer_pusher_camera_upright_v2(camera):
-    camera.trackbodyid = 0
     camera.distance = .45
     camera.lookat[0] = 0
     camera.lookat[1] = 0.85
@@ -199,6 +151,17 @@ def sawyer_pusher_camera_upright_v2(camera):
     camera.elevation = -60
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+
+def sawyer_pusher_camera_upright_v3(camera):
+    camera.distance = .275
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.45
+    camera.elevation = -65
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
 
 def sawyer_pusher_camera_top_down(camera):
     camera.trackbodyid = 0
