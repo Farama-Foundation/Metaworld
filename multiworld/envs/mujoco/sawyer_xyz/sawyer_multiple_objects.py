@@ -33,15 +33,21 @@ def zangle_to_quat(zangle):
 BASE_DIR = '/'.join(str.split(multiworld.__file__, '/')[:-2])
 asset_base_path = BASE_DIR + '/multiworld/envs/assets/multi_object_sawyer_xyz/'
 
-low_bound = np.array([-0.27, 0.52, 0.1, 0, -1])
-high_bound = np.array([0.27, 0.95, 0.3, 2 * np.pi - 0.001, 1])
+low_bound = np.array([-0.27, 0.52, 0.05, 0, -1])
+high_bound = np.array([0.27, 0.95, 0.1, 2 * np.pi - 0.001, 1])
 NEUTRAL_JOINTS = np.array([1.65474475, - 0.53312487, - 0.65980174, 1.1841825, 0.62772584, 1.11682223, 1.31015104, -0.05, 0.05])
 
 class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
     def __init__(self, filename='sawyer_grasp.xml', mode_rel=np.array([True, True, True, True, False]), num_objects = 3, object_mass = 1, friction=1.0, finger_sensors=True,
                  maxlen=0.12, minlen=0.01, preload_obj_dict=None, object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'], obj_classname = 'freejoint',
                  block_height=0.02, block_width = 0.02, viewer_image_height = 84, viewer_image_width = 84,
-                 skip_first=100, substeps=100, randomize_initial_pos = False, state_goal = None, randomize_goal_at_reset = False,):
+                 skip_first=100, substeps=100,
+                 randomize_initial_pos = False,
+                 state_goal = None,
+                 randomize_goal_at_reset = False,
+                 fix_rotation = True,
+                 fix_reset_pos = True,
+                 fix_gripper = True):
         self.quick_init(locals())
 
         base_filename = asset_base_path + filename
@@ -67,7 +73,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
                     )
 
         self._base_sdim, self._base_adim, self.mode_rel = 5, 5, mode_rel
-       	self.hand_low = np.array((-0.03, 0.55, 0.05))
+        self.hand_low = np.array((-0.03, 0.55, 0.05))
         self.hand_high = np.array((-0.0, 0.65, 0.2))
         self.mocap_high = self.hand_high
         self.mocap_low = self.hand_low
@@ -84,6 +90,8 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self._object_names = ['obj_' + str(i) for i in range(num_objects)]
         self._initialized = False
         self._state_goal = state_goal
+        self.fix_rotation = fix_rotation
+        self.fix_gripper = fix_gripper
         self._randomize_goal_at_reset = randomize_goal_at_reset
 
         # self.finger_sensors = False # turning this off for now
@@ -104,7 +112,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         ])
 
         self._state_goal = self.sample_goal()
-
+        self.fix_reset_pos = fix_reset_pos
         o = self.reset()
 
     def _clip_gripper(self):
@@ -179,6 +187,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         return self._sdim
 
     def reset(self):
+        print('reset')
         last_rands = []
         if not self._initialized:
             for i in range(self.num_objects):
@@ -194,7 +203,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
                 self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
                 self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
                 self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
-
+            self._initialized = True
         else:
             for i in range(self.num_objects):
                 obji_xyz, rand_quat = self._reset_xyz[i], self._reset_quat[i]
@@ -349,6 +358,11 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         #     print('Sim reset (integrity)')
         #     raise ValueError
 
+        if self.fix_rotation:
+            action[3] = 0
+        if self.fix_gripper:
+            action[4] = 1
+
         target_qpos = np.clip(self._next_qpos(action), low_bound, high_bound)
         assert target_qpos.shape[0] == self._base_sdim
         finger_force = np.zeros(2)
@@ -385,7 +399,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self._previous_target_qpos = target_qpos
 
         ob = self._get_obs(finger_force)
-        self._post_step()
+        # self._post_step()
         reward = self.compute_rewards(action, ob)
         done = False
         info = self._get_info()
@@ -529,13 +543,17 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
 
 
 if __name__ == '__main__':
-    env = MultiSawyerEnv()
-    env.set_goal(env.sample_goals(1))
-    env.step(np.zeros(5))
-    env._clip_gripper()
-    # g = env.sample_goal()
-    img = env.render()[0]
+    env = MultiSawyerEnv(object_meshes=None, num_objects=3)
+    # env.set_goal(env.sample_goals(1))
+    for i in range(1000):
+        print(i)
+        a = np.array([np.random.uniform(-0.05, 0.05), np.random.uniform(-0.05, 0.05), 0.1, 0 ,  1])
+        env.step(a)
+        if i % 10 == 0:
+            env.reset()
+        img = env.render()[0]
+        cv2.imshow('window', img)
+        cv2.waitKey(10)
 
 
-    cv2.imshow('window', img)
-    cv2.waitKey(10000)
+
