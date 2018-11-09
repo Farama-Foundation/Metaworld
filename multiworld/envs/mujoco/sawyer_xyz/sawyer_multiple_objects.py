@@ -16,6 +16,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from gym.spaces import Box, Dict
+import time
 
 def quat_to_zangle(quat):
     angle = -(Quaternion(axis = [0,1,0], angle = np.pi).inverse * Quaternion(quat)).angle
@@ -38,16 +39,18 @@ high_bound = np.array([0.27, 0.95, 0.1, 2 * np.pi - 0.001, 1])
 NEUTRAL_JOINTS = np.array([1.65474475, - 0.53312487, - 0.65980174, 1.1841825, 0.62772584, 1.11682223, 1.31015104, -0.05, 0.05])
 
 class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
-    def __init__(self, filename='sawyer_grasp.xml', mode_rel=np.array([True, True, True, True, False]), num_objects = 3, object_mass = 1, friction=1.0, finger_sensors=True,
+    def __init__(self, filename='sawyer_multiobj.xml', mode_rel=np.array([True, True, True, True, False]), num_objects = 3, object_mass = 1, friction=1.0, finger_sensors=True,
                  maxlen=0.12, minlen=0.01, preload_obj_dict=None, object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'], obj_classname = 'freejoint',
                  block_height=0.02, block_width = 0.02, viewer_image_height = 84, viewer_image_width = 84,
                  skip_first=100, substeps=100,
+                 init_hand_xyz=(0, 0.4, 0.07),
                  randomize_initial_pos = False,
                  state_goal = None,
                  randomize_goal_at_reset = False,
                  fix_rotation = True,
                  fix_reset_pos = True,
-                 fix_gripper = True):
+                 fix_gripper = True,
+                 do_render = True):
         self.quick_init(locals())
 
         base_filename = asset_base_path + filename
@@ -82,7 +85,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self.randomize_initial_pos = randomize_initial_pos
         self.finger_sensors, self._maxlen = finger_sensors, maxlen
         self._threshold = 0
-        self._previous_target_qpos, self._n_joints = None, 9
+        self._previous_target_qpos, self._n_joints = None, 8
         self._object_pos = np.zeros((num_objects, 7))
         self._reset_xyz = np.zeros((num_objects, 3))
         self._reset_quat = np.zeros((num_objects, 4))
@@ -93,6 +96,8 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self.fix_rotation = fix_rotation
         self.fix_gripper = fix_gripper
         self._randomize_goal_at_reset = randomize_goal_at_reset
+        self.do_render = do_render
+        self.init_hand_xyz = np.array(init_hand_xyz)
 
         # self.finger_sensors = False # turning this off for now
         self.action_space = Box(np.array([-1, -1, -1, -1, -1]),
@@ -211,9 +216,9 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
                 self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
                 self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
 
-
-        self.sim.data.set_mocap_pos('mocap', np.array([0,0,2]))
-        self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
+        self._reset_hand()
+        # self.sim.data.set_mocap_pos('mocap', np.array([0,0,2]))
+        # self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
 
         #placing objects then resetting to neutral risks bad contacts
         try:
@@ -232,8 +237,8 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
             self.sim.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.17]))
             self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.pi))
         #reset gripper
-        self.sim.data.qpos[7:9] = NEUTRAL_JOINTS[7:9]
-        self.sim.data.ctrl[:] = [-1, 1]
+        # self.sim.data.qpos[7:9] = NEUTRAL_JOINTS[7:9]
+        # self.sim.data.ctrl[:] = [-1, 1]
 
         finger_force = np.zeros(2)
         for _ in range(self.skip_first):
@@ -259,6 +264,23 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         if self._randomize_goal_at_reset:
             self._state_goal = self.sample_goals(1)[0]
         return self._get_obs(finger_force)
+
+    def _reset_hand(self):
+        velocities = self.data.qvel.copy()
+        angles = self.data.qpos.copy()
+        angles[:7] = self.init_angles[:7]
+        self.set_state(angles.flatten(), velocities.flatten())
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', self.init_hand_xyz.copy())
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+    @property
+    def init_angles(self):
+        return [2.07332628e+00, -4.47460459e-01, -4.55678050e-01,
+                2.35962299e+00, 2.17558228e+00, 4.98524319e-01, 1.37302554e+00,
+                4.08324093e-02,
+                5.05442647e-04, 6.00496057e-01, 3.06443862e-02,
+                1, 0, 0, 0]
 
     def _get_obs(self, finger_sensors=None):
         obs, touch_offset = {}, 0
@@ -301,15 +323,16 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         # copy non-image data for environment's use (if needed)
         self._last_obs = copy.deepcopy(obs)
         # get images
-        obs['images'] = self.render()
+        if self.do_render:
+            obs['images'] = self.render()
+            obs['img'] = obs['images'][0]
 
         obj_image_locations = np.zeros((2, self.num_objects + 1, 2))
-        for i, cam in enumerate(['maincam', 'leftcam']):
+        for i, cam in enumerate(['topview']): # (['maincam', 'leftcam']):
             obj_image_locations[i, 0] = self.project_point(self.sim.data.get_body_xpos('hand')[:3], cam)
             for j in range(self.num_objects):
                 obj_image_locations[i, j + 1] = self.project_point(obs['object_poses_full'][j, :3], cam)
         obs['obj_image_locations'] = obj_image_locations
-        obs['img'] = obs['images'][0]
         return obs
 
 
@@ -357,6 +380,8 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         # if not self._sim_integrity():
         #     print('Sim reset (integrity)')
         #     raise ValueError
+        # print("step")
+        # start = time.time()
 
         if self.fix_rotation:
             action[3] = 0
@@ -367,35 +392,47 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         assert target_qpos.shape[0] == self._base_sdim
         finger_force = np.zeros(2)
 
-        xyz_interp = TwoPointCSpline(self.sim.data.get_body_xpos('hand').copy(), target_qpos[:3])
-        self.sim.data.set_mocap_quat('mocap', zangle_to_quat(target_qpos[3]))
-        for st in range(self.substeps):
-            alpha = 1.
-            if not self.substeps == 1:
-                alpha = st / (self.substeps - 1)
+        # print("motion start", time.time()-start)
+        # xyz_interp = TwoPointCSpline(self.sim.data.get_body_xpos('hand').copy(), target_qpos[:3])
+        # self.sim.data.set_mocap_quat('mocap', zangle_to_quat(target_qpos[3]))
+        # for st in range(self.substeps):
+        #     alpha = 1.
+        #     if not self.substeps == 1:
+        #         alpha = st / (self.substeps - 1)
 
-            self.sim.data.set_mocap_pos('mocap', xyz_interp.get(alpha)[0])
+        #     self.sim.data.set_mocap_pos('mocap', xyz_interp.get(alpha)[0])
 
-            if st < 3 * self.substeps // 4:
-                self.sim.data.ctrl[0] = self._previous_target_qpos[-1]
-                self.sim.data.ctrl[1] = -self._previous_target_qpos[-1]
-            else:
-                self.sim.data.ctrl[0] = target_qpos[-1]
-                self.sim.data.ctrl[1] = -target_qpos[-1]
+        #     if st < 3 * self.substeps // 4:
+        #         self.sim.data.ctrl[0] = self._previous_target_qpos[-1]
+        #         self.sim.data.ctrl[1] = -self._previous_target_qpos[-1]
+        #     else:
+        #         self.sim.data.ctrl[0] = target_qpos[-1]
+        #         self.sim.data.ctrl[1] = -target_qpos[-1]
 
-            for _ in range(20):
-                self._clip_gripper()
-                if self.finger_sensors:
-                    finger_force += copy.deepcopy(self.sim.data.sensordata[:2].squeeze())
-                try:
-                    self.sim.step()
-                except MujocoException:
-                    print('Sim reset (bad contact)')
-                    raise ValueError
+        #     for _ in range(20):
+        #         self._clip_gripper()
+        #         if self.finger_sensors:
+        #             finger_force += copy.deepcopy(self.sim.data.sensordata[:2].squeeze())
+        #         try:
+        #             self.sim.step()
+        #         except MujocoException:
+        #             print('Sim reset (bad contact)')
+        #             raise ValueError
+        self.set_xyz_action(action[:3])
+        u = np.zeros(2)
+        u[1] = 1
+        # u[7] = 1
+        self.do_simulation(u)
+        # while time.time()-start < 1:
+        #     img = self.render()
+        # cv2.imshow('window', img)
+        # cv2.waitKey(10)
+
+        # print("motion end", time.time()-start)
 
         finger_force /= self.substeps * 10
         if np.sum(finger_force) > 0:
-            print(finger_force)
+            print("finger force", finger_force)
         self._previous_target_qpos = target_qpos
 
         ob = self._get_obs(finger_force)
@@ -403,6 +440,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         reward = self.compute_rewards(action, ob)
         done = False
         info = self._get_info()
+        # print("step end", time.time()-start)
         return ob, reward, done, info
 
     def _get_info(self):
