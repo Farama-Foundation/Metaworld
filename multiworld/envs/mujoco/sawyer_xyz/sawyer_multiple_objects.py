@@ -39,18 +39,20 @@ high_bound = np.array([0.27, 0.95, 0.1, 2 * np.pi - 0.001, 1])
 NEUTRAL_JOINTS = np.array([1.65474475, - 0.53312487, - 0.65980174, 1.1841825, 0.62772584, 1.11682223, 1.31015104, -0.05, 0.05])
 
 class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
-    def __init__(self, filename='sawyer_multiobj.xml', mode_rel=np.array([True, True, True, True, False]), num_objects = 3, object_mass = 1, friction=1.0, finger_sensors=True,
-                 maxlen=0.12, minlen=0.01, preload_obj_dict=None, object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'], obj_classname = 'freejoint',
-                 block_height=0.02, block_width = 0.02, viewer_image_height = 84, viewer_image_width = 84,
-                 skip_first=100, substeps=100,
-                 init_hand_xyz=(0, 0.4, 0.07),
-                 randomize_initial_pos = False,
-                 state_goal = None,
-                 randomize_goal_at_reset = False,
-                 fix_rotation = True,
-                 fix_reset_pos = True,
-                 fix_gripper = True,
-                 do_render = True):
+    def __init__(self,
+        filename='sawyer_multiobj.xml',
+        mode_rel=np.array([True, True, True, True, False]),
+        num_objects = 3, object_mass = 1, friction=1.0, finger_sensors=True,
+        maxlen=0.12, minlen=0.01, preload_obj_dict=None,
+        object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'],
+        obj_classname = 'freejoint', block_height=0.02, block_width = 0.02,
+        viewer_image_height = 84, viewer_image_width = 84, skip_first=100,
+        substeps=100, init_hand_xyz=(0, 0.4, 0.07),
+        randomize_initial_pos = False, state_goal = None,
+        randomize_goal_at_reset = False, fix_rotation = True,
+        fix_reset_pos = True, fix_gripper = True, do_render = True,
+        match_orientation = False,
+    ):
         self.quick_init(locals())
 
         base_filename = asset_base_path + filename
@@ -98,6 +100,8 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self._randomize_goal_at_reset = randomize_goal_at_reset
         self.do_render = do_render
         self.init_hand_xyz = np.array(init_hand_xyz)
+        self.match_orientation = match_orientation
+        self.goal_dim_per_object = 7 if match_orientation else 3
 
         # self.finger_sensors = False # turning this off for now
         self.action_space = Box(np.array([-1, -1, -1, -1, -1]),
@@ -106,7 +110,11 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
         obs_dim = 7 * num_objects + 3
         obs_space = Box(np.array([-1] * obs_dim), np.array([1] * obs_dim), dtype=np.float32)
-        goal_space = Box(np.array([-1] * 7 * num_objects), np.array([1] * 7 * num_objects), dtype=np.float32)
+        goal_space = Box(
+            np.array([-1] * self.goal_dim_per_object * num_objects),
+            np.array([1] * self.goal_dim_per_object * num_objects),
+            dtype=np.float32,
+        )
         self.observation_space = Dict([
             ('observation', obs_space),
             ('desired_goal', goal_space),
@@ -192,50 +200,55 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         return self._sdim
 
     def reset(self):
-        print('reset')
-        last_rands = []
-        if not self._initialized:
-            for i in range(self.num_objects):
-                obji_xyz, rot = self.samp_xyz_rot()
-                #rejection sampling to ensure objects don't crowd each other
-                while len(last_rands) > 0 and min([np.linalg.norm(obji_xyz - obj_j) for obj_j in last_rands]) < self._maxlen:
-                    obji_xyz, rot = self.samp_xyz_rot()
-                last_rands.append(obji_xyz)
-
-                rand_quat = Quaternion(axis=[0, 0, -1], angle= rot).elements
-                self._reset_xyz[i] = obji_xyz
-                self._reset_quat[i] = rand_quat
-                self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
-                self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
-                self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
-            self._initialized = True
-        else:
-            for i in range(self.num_objects):
-                obji_xyz, rand_quat = self._reset_xyz[i], self._reset_quat[i]
-                self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
-                self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
-                self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
-
         self._reset_hand()
+
+        last_rands = []
+        # if not self._initialized:
+
+        for i in range(self.num_objects):
+            obji_xyz, rot = self.samp_xyz_rot()
+            #rejection sampling to ensure objects don't crowd each other
+            while len(last_rands) > 0 and min([np.linalg.norm(obji_xyz - obj_j) for obj_j in last_rands]) < self._maxlen:
+                obji_xyz, rot = self.samp_xyz_rot()
+            last_rands.append(obji_xyz)
+
+            rand_quat = Quaternion(axis=[0, 0, -1], angle= rot).elements
+            self._reset_xyz[i] = obji_xyz
+            self._reset_quat[i] = rand_quat
+            self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
+            self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
+            self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
+        self._initialized = True
+
+        # else:
+        #     for i in range(self.num_objects):
+        #         obji_xyz, rand_quat = self._reset_xyz[i], self._reset_quat[i]
+        #         self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
+        #         self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
+        #         self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
+
         # self.sim.data.set_mocap_pos('mocap', np.array([0,0,2]))
         # self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
 
+        for _ in range(5):
+            self.sim.step()
+
         #placing objects then resetting to neutral risks bad contacts
-        try:
-            for _ in range(5):
-                self.sim.step()
-            self.sim.data.qpos[:9] = NEUTRAL_JOINTS
-            for _ in range(5):
-                self.sim.step()
-        except MujocoException:
-            return self.reset()
-        if self.randomize_initial_pos:
-            xyz = np.random.uniform(low_bound[:3], high_bound[:3])
-            self.sim.data.set_mocap_pos('mocap', xyz)
-            self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
-        else:
-            self.sim.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.17]))
-            self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.pi))
+        # try:
+        #     for _ in range(5):
+        #         self.sim.step()
+        #     # self.sim.data.qpos[:9] = NEUTRAL_JOINTS
+        #     for _ in range(5):
+        #         self.sim.step()
+        # except MujocoException:
+        #     return self.reset()
+        # if self.randomize_initial_pos:
+        #     xyz = np.random.uniform(low_bound[:3], high_bound[:3])
+        #     self.sim.data.set_mocap_pos('mocap', xyz)
+        #     self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
+        # else:
+        #     self.sim.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.17]))
+        #     self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.pi))
         #reset gripper
         # self.sim.data.qpos[7:9] = NEUTRAL_JOINTS[7:9]
         # self.sim.data.ctrl[:] = [-1, 1]
@@ -243,7 +256,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         finger_force = np.zeros(2)
         for _ in range(self.skip_first):
             for _ in range(20):
-                self._clip_gripper()
+                # self._clip_gripper()
                 try:
                     self.sim.step()
                 except MujocoException:
@@ -276,11 +289,13 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
 
     @property
     def init_angles(self):
-        return [2.07332628e+00, -4.47460459e-01, -4.55678050e-01,
-                2.35962299e+00, 2.17558228e+00, 4.98524319e-01, 1.37302554e+00,
-                4.08324093e-02,
-                5.05442647e-04, 6.00496057e-01, 3.06443862e-02,
-                1, 0, 0, 0]
+        return [2.07889541e+00, -5.91292020e-01, -4.18959596e-01, 1.66977542e+00,
+                -2.66375702e+00, -5.89333989e-01, -4.13468527e-02]
+        # return [2.07332628e+00, -4.47460459e-01, -4.55678050e-01,
+        #         2.35962299e+00, 2.17558228e+00, 4.98524319e-01, 1.37302554e+00,
+        #         4.08324093e-02,
+        #         5.05442647e-04, 6.00496057e-01, 3.06443862e-02,
+        #         1, 0, 0, 0]
 
     def _get_obs(self, finger_sensors=None):
         obs, touch_offset = {}, 0
@@ -306,19 +321,20 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
             fullpose[:3] = self.sim.data.sensordata[touch_offset + i * 3:touch_offset + (i + 1) * 3]
 
             obs['object_poses_full'][i] = fullpose
-            obs['object_poses'][i, :2] = fullpose[:2]
-            obs['object_poses'][i, 2] = quat_to_zangle(fullpose[3:])
+            obs['object_poses'][i, :3] = fullpose[:3]
+            # obs['object_poses'][i, 2] = quat_to_zangle(fullpose[3:])
 
         flat_obs = self.get_endeff_pos()
-        object_poses = obs['object_poses_full'].copy().flatten()
-        state_obs = np.concatenate((flat_obs, object_poses))
+        object_poses_full = obs['object_poses_full'].copy().flatten()
+        object_poses_xyz = obs['object_poses'].copy().flatten()
+        state_obs = np.concatenate((flat_obs, object_poses_full))
 
         obs['observation']= state_obs
         obs['desired_goal'] = self._state_goal.flatten()
-        obs['achieved_goal'] = object_poses
+        obs['achieved_goal'] = object_poses_xyz
         obs['state_observation'] = state_obs
         obs['state_desired_goal'] = self._state_goal.flatten()
-        obs['state_achieved_goal'] = object_poses
+        obs['state_achieved_goal'] = object_poses_xyz
         # report object poses
         # copy non-image data for environment's use (if needed)
         self._last_obs = copy.deepcopy(obs)
@@ -328,7 +344,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
             obs['img'] = obs['images'][0]
 
         obj_image_locations = np.zeros((2, self.num_objects + 1, 2))
-        for i, cam in enumerate(['topview']): # (['maincam', 'leftcam']):
+        for i, cam in enumerate(['maincam', 'leftcam']):
             obj_image_locations[i, 0] = self.project_point(self.sim.data.get_body_xpos('hand')[:3], cam)
             for j in range(self.num_objects):
                 obj_image_locations[i, j + 1] = self.project_point(obs['object_poses_full'][j, :3], cam)
@@ -420,15 +436,17 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         #             raise ValueError
         self.set_xyz_action(action[:3])
         u = np.zeros(2)
-        u[1] = 1
+        # u[0] = 0
         # u[7] = 1
         self.do_simulation(u)
-        # while time.time()-start < 1:
-        #     img = self.render()
-        # cv2.imshow('window', img)
-        # cv2.waitKey(10)
 
         # print("motion end", time.time()-start)
+
+        # while time.time()-start < 0.1:
+        #     img = self.render()
+
+        # cv2.imshow('window', img)
+        # cv2.waitKey(10)
 
         finger_force /= self.substeps * 10
         if np.sum(finger_force) > 0:
@@ -440,17 +458,18 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         reward = self.compute_rewards(action, ob)
         done = False
         info = self._get_info()
-        # print("step end", time.time()-start)
+
         return ob, reward, done, info
 
     def _get_info(self):
         infos = dict()
         for i in range(self.num_objects):
-            # x = 7 * i
-            # y = 7 * i + 7
-            # infos[self._object_names[i] + '_distance'] = np.linalg.norm(self._last_obs['object_poses'][i]
-                                                                        # - self._state_goal[i][:3])
-            pass
+            x = i * self.goal_dim_per_object
+            y = x + self.goal_dim_per_object
+            obj_pos = self._last_obs['object_poses'][i]
+            obj_goal = self._state_goal[x:y]
+            name = self._object_names[i] + '_distance'
+            infos[name] = np.linalg.norm(obj_pos - obj_goal)
         return infos
 
     def _post_step(self):
@@ -540,7 +559,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         finger_force = np.zeros(2)
         for _ in range(self.skip_first):
             for _ in range(20):
-                self._clip_gripper()
+                # self._clip_gripper()
                 try:
                     self.sim.step()
                 except MujocoException:
@@ -560,14 +579,17 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         for i in range(batch_size):
             goals.append(self.sample_goal())
 
-        goals = np.concatenate(goals)
+        goals = np.array(goals)
 
         return  {'desired_goal': goals,
             'state_desired_goal': goals,
         }
 
     def sample_goal(self):
-        goal = np.zeros((self.num_objects, 7))
+        if self.match_orientation:
+            goal = np.zeros((self.num_objects, 7))
+        else:
+            goal = np.zeros((self.num_objects, 3))
         last_rands = []
         for i in range(self.num_objects):
             obji_xyz, rot = self.samp_xyz_rot()
@@ -576,7 +598,10 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
                 obji_xyz, rot = self.samp_xyz_rot()
             last_rands.append(obji_xyz)
             rand_quat = Quaternion(axis=[0, 0, -1], angle= rot).elements
-            goal[i] = np.concatenate((obji_xyz, rand_quat))
+            if self.match_orientation:
+                goal[i] = np.concatenate((obji_xyz, rand_quat))
+            else:
+                goal[i] = obji_xyz
         return goal.flatten()
 
 
