@@ -1,3 +1,8 @@
+"""This environment allows a Sawyer to interact with multiple custom objects.
+It is largely copied over from Frederik Ebert and Sudeep Dasari:
+https://github.com/febert/visual_mpc/ but adapted to the multiworld interface.
+"""
+
 import multiworld
 import numpy as np
 import cv2
