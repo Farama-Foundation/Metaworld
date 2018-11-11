@@ -27,6 +27,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             image_length=None,
             presampled_goals=None,
             non_presampled_goal_img_is_garbage=False,
+            recompute_reward=True,
     ):
         """
 
@@ -55,6 +56,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.transpose = transpose
         self.grayscale = grayscale
         self.normalize = normalize
+        self.recompute_reward = recompute_reward
         self.non_presampled_goal_img_is_garbage = non_presampled_goal_img_is_garbage
 
         if image_length is not None:
@@ -115,7 +117,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
-        reward = self.compute_reward(action, new_obs)
+        if self.recompute_reward:
+            reward = self.compute_reward(action, new_obs)
         self._update_info(info, obs)
         return new_obs, reward, done, info
 
