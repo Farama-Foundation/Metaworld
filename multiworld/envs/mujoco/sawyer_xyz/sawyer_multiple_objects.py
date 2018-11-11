@@ -59,6 +59,10 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         randomize_goal_at_reset = False, fix_rotation = True,
         fix_reset_pos = True, fix_gripper = True, do_render = False,
         match_orientation = False,
+        workspace_low = np.array([-0.2, 0.4, 0.05]),
+        workspace_high = np.array([0.2, 0.8, 0.1]),
+        hand_low = np.array([-0.2, 0.4, 0.05]),
+        hand_high = np.array([0.2, 0.8, 0.1]),
     ):
         self.quick_init(locals())
 
@@ -84,8 +88,8 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
                     )
 
         self._base_sdim, self._base_adim, self.mode_rel = 5, 5, mode_rel
-        self.hand_low = np.array((-0.03, 0.55, 0.05))
-        self.hand_high = np.array((-0.0, 0.65, 0.2))
+        self.hand_low = hand_low
+        self.hand_high = hand_high
         self.mocap_high = self.hand_high
         self.mocap_low = self.hand_low
         self.action_scale = 1.0/100
@@ -108,6 +112,8 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.init_hand_xyz = np.array(init_hand_xyz)
         self.match_orientation = match_orientation
         self.goal_dim_per_object = 7 if match_orientation else 3
+        self.workspace_low = workspace_low
+        self.workspace_high = workspace_high
 
         # self.finger_sensors = False # turning this off for now
         self.action_space = Box(np.array([-1, -1, -1, -1, -1]),
@@ -138,7 +144,10 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.sim.data.qpos[7:9] = np.clip(self.sim.data.qpos[7:9], [-0.055, 0.0027], [-0.0027, 0.055])
 
     def samp_xyz_rot(self):
-        rand_xyz = np.random.uniform(low_bound[:3] + self._maxlen / 2 + 0.02, high_bound[:3] - self._maxlen / 2 + 0.02)
+        rand_xyz = np.random.uniform(
+            self.workspace_low[:3] + self._maxlen / 2 + 0.02,
+            self.workspace_high[:3] - self._maxlen / 2 + 0.02
+        )
         rand_xyz[-1] = 0.05
         return rand_xyz, np.random.uniform(-np.pi / 2, np.pi / 2)
 
