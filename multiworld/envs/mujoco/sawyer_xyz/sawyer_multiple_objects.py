@@ -1,4 +1,3 @@
-from multiworld.envs.mujoco.base_mujoco_env import BaseMujocoEnv
 import multiworld
 import numpy as np
 import cv2
@@ -17,6 +16,9 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from gym.spaces import Box, Dict
 import time
+
+from multiworld.core.image_env import ImageEnv
+from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_upright_v2
 
 def quat_to_zangle(quat):
     angle = -(Quaternion(axis = [0,1,0], angle = np.pi).inverse * Quaternion(quat)).angle
@@ -38,7 +40,7 @@ low_bound = np.array([-0.27, 0.52, 0.05, 0, -1])
 high_bound = np.array([0.27, 0.95, 0.1, 2 * np.pi - 0.001, 1])
 NEUTRAL_JOINTS = np.array([1.65474475, - 0.53312487, - 0.65980174, 1.1841825, 0.62772584, 1.11682223, 1.31015104, -0.05, 0.05])
 
-class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
+class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(self,
         filename='sawyer_multiobj.xml',
         mode_rel=np.array([True, True, True, True, False]),
@@ -50,7 +52,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         substeps=100, init_hand_xyz=(0, 0.4, 0.07),
         randomize_initial_pos = False, state_goal = None,
         randomize_goal_at_reset = False, fix_rotation = True,
-        fix_reset_pos = True, fix_gripper = True, do_render = True,
+        fix_reset_pos = True, fix_gripper = True, do_render = False,
         match_orientation = False,
     ):
         self.quick_init(locals())
@@ -66,7 +68,6 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
 
         gen_xml = create_root_xml(base_filename)
         SawyerXYZEnv.__init__(self, model_name=gen_xml)
-        BaseMujocoEnv.__init__(self, viewer_image_height, viewer_image_width)
         clean_xml(gen_xml)
 
         if self.sim.model.nmocap > 0 and self.sim.model.eq_data is not None:
@@ -230,7 +231,7 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         # self.sim.data.set_mocap_pos('mocap', np.array([0,0,2]))
         # self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
 
-        for _ in range(5):
+        for _ in range(50):
             self.sim.step()
 
         #placing objects then resetting to neutral risks bad contacts
@@ -340,20 +341,17 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
         self._last_obs = copy.deepcopy(obs)
         # get images
         if self.do_render:
-            obs['images'] = self.render()
-            obs['img'] = obs['images'][0]
+            self.render()
+            # obs['images'] = self.render()
+            # obs['img'] = obs['images'][0]
 
-        obj_image_locations = np.zeros((2, self.num_objects + 1, 2))
-        for i, cam in enumerate(['maincam', 'leftcam']):
-            obj_image_locations[i, 0] = self.project_point(self.sim.data.get_body_xpos('hand')[:3], cam)
-            for j in range(self.num_objects):
-                obj_image_locations[i, j + 1] = self.project_point(obs['object_poses_full'][j, :3], cam)
-        obs['obj_image_locations'] = obj_image_locations
+        # obj_image_locations = np.zeros((2, self.num_objects + 1, 2))
+        # for i, cam in enumerate(['maincam', 'leftcam']):
+        #     obj_image_locations[i, 0] = self.project_point(self.sim.data.get_body_xpos('hand')[:3], cam)
+        #     for j in range(self.num_objects):
+        #         obj_image_locations[i, j + 1] = self.project_point(obs['object_poses_full'][j, :3], cam)
+        # obs['obj_image_locations'] = obj_image_locations
         return obs
-
-
-    def get_image(self):
-        return self.render()[0]
 
 
     def get_diagnostics(self, paths, prefix=''):
@@ -606,15 +604,23 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
 
 
 if __name__ == '__main__':
-    env = MultiSawyerEnv(object_meshes=None, num_objects=3)
+    env = MultiSawyerEnv(object_meshes=None, num_objects=3,
+        finger_sensors=False, do_render=False,)
+    env = ImageEnv(env,
+        non_presampled_goal_img_is_garbage=True,
+        recompute_reward=False,
+        init_camera=sawyer_pusher_camera_upright_v2,
+    )
     # env.set_goal(env.sample_goals(1))
     for i in range(1000):
-        print(i)
-        a = np.array([np.random.uniform(-0.05, 0.05), np.random.uniform(-0.05, 0.05), 0.1, 0 ,  1])
-        env.step(a)
-        if i % 10 == 0:
+        # print(i)
+        a = np.random.uniform(-1, 1, 5)
+        # a = np.array([np.random.uniform(-0.05, 0.05), np.random.uniform(-0.05, 0.05), 0.1, 0 ,  1])
+        o, _, _, _ = env.step(a)
+        if i % 100 == 0:
             env.reset()
-        img = env.render()[0]
+        img = o["image_observation"].reshape((84, 84, 3))
+        # print(img.shape)
         cv2.imshow('window', img)
         cv2.waitKey(10)
 
