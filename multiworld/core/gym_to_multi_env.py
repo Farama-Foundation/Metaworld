@@ -46,9 +46,9 @@ class GymToMultiEnv(ProxyEnv): # MultitaskEnv):
         return new_obs
 
     def _get_obs(self):
-        error
+        raise NotImplementedError()
 
-
+class MujocoGymToMultiEnv(GymToMultiEnv):
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
         old_state = self.sim.get_state()
