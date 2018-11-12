@@ -45,7 +45,7 @@ ASSET_BASE_DIR = '/'.join(os.path.abspath(multiworld.__file__).split('/')[:-2]) 
 
 def create_object_xml(filename, num_objects, object_mass, friction_params, object_meshes,
                       finger_sensors, maxlen, minlen, load_dict_list, obj_classname = None,
-                      block_height = 0.03, block_width = 0.03):
+                      block_height = 0.03, block_width = 0.03, cylinder_radius = 0.04):
     """
     :param hyperparams:
     :param load_dict_list: if not none load configuration, instead of sampling
@@ -178,7 +178,7 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             ET.SubElement(obj, "inertial", mass="1", pos="{} {} 0.0".format(l2, pos2), diaginertia=".001 .001 .001")
 
 
-            ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size="0.05 0.02",
+            ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
                                         rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
                                         contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
 
