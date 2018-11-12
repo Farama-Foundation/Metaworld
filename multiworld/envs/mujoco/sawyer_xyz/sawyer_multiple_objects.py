@@ -76,7 +76,11 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
 
 
         gen_xml = create_root_xml(base_filename)
-        SawyerXYZEnv.__init__(self, model_name=gen_xml)
+        SawyerXYZEnv.__init__(self,
+            model_name=gen_xml,
+            mocap_low=hand_low,
+            mocap_high=hand_high,
+        )
         clean_xml(gen_xml)
 
         if self.sim.model.nmocap > 0 and self.sim.model.eq_data is not None:
@@ -88,10 +92,10 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
                     )
 
         self._base_sdim, self._base_adim, self.mode_rel = 5, 5, mode_rel
-        self.hand_low = hand_low
-        self.hand_high = hand_high
-        self.mocap_high = self.hand_high
-        self.mocap_low = self.hand_low
+        self.hand_low = np.array(hand_low)
+        self.hand_high = np.array(hand_high)
+        self.workspace_low = np.array(workspace_low)
+        self.workspace_high = np.array(workspace_high)
         self.action_scale = 1.0/100
         self.num_objects, self.skip_first, self.substeps = num_objects, skip_first, substeps
         self.randomize_initial_pos = randomize_initial_pos
@@ -112,8 +116,6 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.init_hand_xyz = np.array(init_hand_xyz)
         self.match_orientation = match_orientation
         self.goal_dim_per_object = 7 if match_orientation else 3
-        self.workspace_low = workspace_low
-        self.workspace_high = workspace_high
 
         # self.finger_sensors = False # turning this off for now
         self.action_space = Box(np.array([-1, -1, -1, -1, -1]),
@@ -144,10 +146,9 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.sim.data.qpos[7:9] = np.clip(self.sim.data.qpos[7:9], [-0.055, 0.0027], [-0.0027, 0.055])
 
     def samp_xyz_rot(self):
-        rand_xyz = np.random.uniform(
-            self.workspace_low[:3] + self._maxlen / 2 + 0.02,
-            self.workspace_high[:3] - self._maxlen / 2 + 0.02
-        )
+        low = self.workspace_low[:3] # + self._maxlen / 2 + 0.02
+        high = self.workspace_high[:3] # - self._maxlen / 2 + 0.02
+        rand_xyz = np.random.uniform(low, high)
         rand_xyz[-1] = 0.05
         return rand_xyz, np.random.uniform(-np.pi / 2, np.pi / 2)
 
