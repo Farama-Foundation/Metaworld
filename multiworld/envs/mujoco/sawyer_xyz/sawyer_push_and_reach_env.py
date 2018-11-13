@@ -118,11 +118,11 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         u = np.zeros(8)
         u[7] = 1
         self.do_simulation(u)
-        self._set_goal_marker(self._state_goal)
         if self.clamp_puck_on_step:
             curr_puck_pos = self.get_puck_pos()[:2]
             curr_puck_pos = np.clip(curr_puck_pos, self.puck_space.low, self.puck_space.high)
             self._set_puck_xy(curr_puck_pos)
+        self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = self._get_info()
@@ -225,6 +225,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
 
     def _set_puck_xy(self, pos):
+        """
+        WARNING: this resets the sites (because set_state resets sights do).
+        """
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[8:11] = np.hstack((pos.copy(), np.array([self.init_puck_z])))
