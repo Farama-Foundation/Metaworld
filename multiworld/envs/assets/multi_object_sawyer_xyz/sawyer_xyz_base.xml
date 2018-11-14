@@ -126,7 +126,7 @@ Usage:
                                                     <body name="rightclaw" pos=".03 -.03 0.0" >
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
-                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.09" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
                                                                 euler="0 0 0.2"
                                                         />
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>

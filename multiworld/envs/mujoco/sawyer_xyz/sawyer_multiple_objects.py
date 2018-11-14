@@ -24,6 +24,15 @@ import time
 
 from multiworld.core.image_env import ImageEnv
 from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_upright_v2
+#[0.33802861 0.72943006 0.15373863]
+#[-0.3326288   0.70221613  0.14004561]
+#[0.32792462 0.23910806 0.10462233]
+#[-0.32757104  0.24410117  0.10482]
+#fix_z = 0.087
+
+low = [-0.31, 0.24, 0.0845]
+high = [0.32, 0.7, 0.14]
+
 
 def quat_to_zangle(quat):
     angle = -(Quaternion(axis = [0,1,0], angle = np.pi).inverse * Quaternion(quat)).angle
@@ -58,14 +67,14 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         substeps=100, init_hand_xyz=(0, 0.7, 0.1),
         randomize_initial_pos = False, state_goal = None,
         randomize_goal_at_reset = True,
-        hand_z_position=0.1,
+        hand_z_position=0.089,
         fix_z = True, fix_gripper = True, fix_rotation = True,
         fix_reset_pos = True, do_render = False,
         match_orientation = False,
-        workspace_low = np.array([-0.3, 0.5, 0.05]),
-        workspace_high = np.array([0.3, 0.9, 0.25]),
-        hand_low = np.array([-0.3, 0.5, 0.05]),
-        hand_high = np.array([0.3, 0.9, 0.25]),
+        workspace_low = np.array([-0.31, 0.24, 0]),
+        workspace_high = np.array([0.32, 0.7, 0.14]),
+        hand_low = np.array([-0.31, 0.24, 0.0]),
+        hand_high = np.array([0.32, 0.7, 0.14]),
     ):
         self.quick_init(locals())
 
@@ -99,6 +108,12 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.hand_high = np.array(hand_high)
         self.workspace_low = np.array(workspace_low)
         self.workspace_high = np.array(workspace_high)
+        self.object_low = self.workspace_low.copy()
+        self.object_high = self.workspace_high.copy()
+        self.object_low[0], self.object_low[1] = self.object_low[0] + cylinder_radius, \
+                                                 self.object_low[1] + cylinder_radius
+        self.object_high[0], self.object_high[1] = self.object_high[0] - cylinder_radius, \
+                                                 self.object_high[1] - cylinder_radius
         self.action_scale = 1.0/100
         self.num_objects, self.skip_first, self.substeps = num_objects, skip_first, substeps
         self.randomize_initial_pos = randomize_initial_pos
@@ -155,13 +170,14 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = self.sample_goal()
         self.fix_reset_pos = fix_reset_pos
         o = self.reset()
+        self.reset()
 
     def _clip_gripper(self):
         self.sim.data.qpos[7:9] = np.clip(self.sim.data.qpos[7:9], [-0.055, 0.0027], [-0.0027, 0.055])
 
     def samp_xyz_rot(self):
-        low = self.workspace_low[:3] # + self._maxlen / 2 + 0.02
-        high = self.workspace_high[:3] # - self._maxlen / 2 + 0.02
+        low = self.object_low[:3] # + self._maxlen / 2 + 0.02
+        high = self.object_high[:3] # - self._maxlen / 2 + 0.02
         rand_xyz = np.random.uniform(low, high)
         rand_xyz[-1] = 0.02
         return rand_xyz, np.random.uniform(-np.pi / 2, np.pi / 2)
@@ -203,7 +219,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
                 d = np.stack(d) / ratio
                 if round:
                     d = np.around(d).astype(np.int)
-                desig_pix[icam, i] = d
+                desig_pix[iscam, i] = d
         return desig_pix
 
     def get_goal_pix(self, cams, target_width, goal_obj_pose, round=True):

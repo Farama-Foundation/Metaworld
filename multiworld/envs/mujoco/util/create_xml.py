@@ -86,10 +86,13 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             l1 = dict['l1']
             l2 = dict['l2']
             pos2 = dict['pos2']
+
+
         save_dict_list.append(dict)
 
         obj_string = "object{}".format(i)
         print('using friction=({}, {}, {}), object mass{}'.format(f_sliding, f_torsion, f_rolling, object_mass))
+
 
         if object_meshes is not None:
             assets = ET.SubElement(root, "asset")
@@ -134,7 +137,6 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             else: object_pos, mass_per_elem, n_cvx_files = loaded_meshes[chosen_mesh]
 
             pos_str = "{} {} {}".format(object_pos[0], object_pos[1], object_pos[2])
-
 
             if obj_classname is not None:
                 obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str,
