@@ -62,7 +62,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         maxlen=0.12, minlen=0.01, preload_obj_dict=None,
         object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'],
         obj_classname = 'freejoint', block_height=0.02, block_width = 0.02,
-        cylinder_radius = 0.04,
+        cylinder_radius = 0.05,
         viewer_image_height = 84, viewer_image_width = 84, skip_first=100,
         substeps=100, init_hand_xyz=(0, 0.7, 0.1),
         randomize_initial_pos = False, state_goal = None,
@@ -114,7 +114,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
                                                  self.object_low[1] + cylinder_radius
         self.object_high[0], self.object_high[1] = self.object_high[0] - cylinder_radius, \
                                                  self.object_high[1] - cylinder_radius
-        self.action_scale = 1.0/100
+        self.action_scale = 5/100
         self.num_objects, self.skip_first, self.substeps = num_objects, skip_first, substeps
         self.randomize_initial_pos = randomize_initial_pos
         self.finger_sensors, self._maxlen = finger_sensors, maxlen
@@ -248,7 +248,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
     def reset(self):
         self._reset_hand()
 
-        gripper_pos = np.array([-0.03, 0.7, 0.02]) # self.init_hand_xyz.copy()
+        gripper_pos = np.array([-0.03, 0.3, self.hand_z_position]) # self.init_hand_xyz.copy()
         # gripper_pos[1] = 0.68
         # gripper_pos[2] = 0.02
         last_rands = [gripper_pos]
@@ -699,23 +699,17 @@ if __name__ == '__main__':
     env = MultiSawyerEnv(
         do_render=False,
         finger_sensors=False,
-        num_objects=1,
+        num_objects=3,
         object_meshes=None,
-        workspace_low = np.array([-0.05, 0.65, 0.05]),
-        workspace_high = np.array([0.05, 0.75, 0.25]),
-        hand_low = np.array([-0.05, 0.65, 0.05]),
-        hand_high = np.array([0.05, 0.75, 0.25]),
         fix_z=True,
         fix_gripper=True,
         fix_rotation=True,
-        cylinder_radius=0.02,
-        maxlen=0.06,
     )
-    # env = ImageEnv(env,
-    #     non_presampled_goal_img_is_garbage=True,
-    #     recompute_reward=False,
-    #     init_camera=sawyer_pusher_camera_upright_v2,
-    # )
+    env = ImageEnv(env,
+        non_presampled_goal_img_is_garbage=True,
+        recompute_reward=False,
+        init_camera=sawyer_pusher_camera_upright_v2,
+    )
     # env.set_goal(env.sample_goals(1))
     for i in range(10000):
         # print(i)
@@ -726,12 +720,9 @@ if __name__ == '__main__':
         if i % 100 == 0:
             env.reset()
         # print(env.sim.data.qpos[:7])
-        env.render()
-
-        # img = o["image_observation"].reshape((84, 84, 3))
-        # print(img.shape)
-        # cv2.imshow('window', img)
-        # cv2.waitKey(10)
+        img = o["image_observation"].transpose().reshape(84, 84, 3)
+        cv2.imshow('window', img)
+        cv2.waitKey(100)
 
 
 
