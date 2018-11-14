@@ -51,9 +51,9 @@ char_to_action = {
 # env = SawyerPushAndReachXYEnv()
 env = MultiSawyerEnv(do_render=False,
         finger_sensors=False,
-        num_objects=1,
+        num_objects=3,
         object_meshes=None,
-        fix_z=False,
+        fix_z=True,
         fix_gripper=True,
         fix_rotation=True,
         cylinder_radius=0.05,
@@ -97,6 +97,7 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
+    print(env.sim.data.qpos[:7])
     print(env.get_endeff_pos())
     env.render()
     if done:
