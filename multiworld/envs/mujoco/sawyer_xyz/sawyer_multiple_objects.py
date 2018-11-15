@@ -233,8 +233,8 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
             self._reset_quat[i] = rand_quat
             self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
             self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
-            self.sim.data.qvel[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = np.zeros((3))
-            self.sim.data.qvel[self._n_joints + 3 + i * 6: self._n_joints + 6 + i * 6] = np.zeros((3))
+            # self.sim.data.qvel[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = np.zeros((3))
+            # self.sim.data.qvel[self._n_joints + 3 + i * 6: self._n_joints + 6 + i * 6] = np.zeros((3))
             self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
         self._initialized = True
 
@@ -456,52 +456,60 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
 
 
     def set_to_goal(self, goal):
+        self._reset_hand()
+
         last_rands = []
         for i in range(self.num_objects):
-            obji_xyz, rot = goal[i][:3], goal[i][3:]
+            x, y = i * 3, i * 3 + 3
+            # print(x, y, goal)
+            obji_xyz, rot = goal["state_desired_goal"][x:y], Quaternion(axis=[0, 0, -1], angle=0).elements
             self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
             self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rot
 
-        self.sim.data.set_mocap_pos('mocap', np.array([0, 0, 2]))
-        self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
+        u = np.zeros(8)
+        self.do_simulation(u)
+
+        # self.sim.data.set_mocap_pos('mocap', np.array([0, 0, 2]))
+        # self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
 
         # placing objects then resetting to neutral risks bad contacts
-        try:
-            for _ in range(5):
-                self.sim.step()
-            self.sim.data.qpos[:9] = NEUTRAL_JOINTS
-            for _ in range(5):
-                self.sim.step()
-        except MujocoException:
-            return self.reset()
-        if self.randomize_initial_pos:
-            xyz = np.random.uniform(low_bound[:3], high_bound[:3])
-            self.sim.data.set_mocap_pos('mocap', xyz)
-            self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
-        else:
-            self.sim.data.set_mocap_pos('mocap', np.array([0, 0.5, 0]))
-            self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.pi))
-        # reset gripper
-        self.sim.data.qpos[7:9] = NEUTRAL_JOINTS[7:9]
-        self.sim.data.ctrl[:] = [-1, 1]
+        # try:
+        #     for _ in range(5):
+        #         self.sim.step()
+        #     self.sim.data.qpos[:9] = NEUTRAL_JOINTS
+        #     for _ in range(5):
+        #         self.sim.step()
+        # except MujocoException:
+        #     return self.reset()
+        # if self.randomize_initial_pos:
+        #     xyz = np.random.uniform(low_bound[:3], high_bound[:3])
+        #     self.sim.data.set_mocap_pos('mocap', xyz)
+        #     self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.random.uniform(low_bound[3], high_bound[3])))
+        # else:
+        #     self.sim.data.set_mocap_pos('mocap', np.array([0, 0.5, 0]))
+        #     self.sim.data.set_mocap_quat('mocap', zangle_to_quat(np.pi))
+        # # reset gripper
+        # self.sim.data.qpos[7:9] = NEUTRAL_JOINTS[7:9]
+        # self.sim.data.ctrl[:] = [-1, 1]
 
-        finger_force = np.zeros(2)
-        for _ in range(self.skip_first):
-            for _ in range(20):
-                try:
-                    self.sim.step()
-                except MujocoException:
-                    # if randomly generated start causes 'bad' contacts Mujoco will error. Have to reset again
-                    print('except')
-                    return self.reset()
+        # finger_force = np.zeros(2)
+        # for _ in range(self.skip_first):
+        #     for _ in range(20):
+        #         # self._clip_gripper()
+        #         try:
+        #             self.sim.step()
+        #         except MujocoException:
+        #             # if randomly generated start causes 'bad' contacts Mujoco will error. Have to reset again
+        #             print('except')
+        #             return self.reset()
 
-            if self.finger_sensors:
-                finger_force += self.sim.data.sensordata[:2]
-        finger_force /= 10 * self.skip_first
-        self._init_dynamics()
+        #     if self.finger_sensors:
+        #         finger_force += self.sim.data.sensordata[:2]
+        # finger_force /= 10 * self.skip_first
+        # self._init_dynamics()
 
-        obs = self._get_obs(finger_force)
-        print(obs["state_observation"][3:])
+        obs = self._get_obs()
+        # print(obs["state_observation"][3:])
         return obs
 
     def sample_goals(self, batch_size):

@@ -24,7 +24,7 @@ from pygame.locals import QUIT, KEYDOWN
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_multiple_objects import MultiSawyerEnv
+
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
 
@@ -49,15 +49,23 @@ char_to_action = {
 
 
 # env = SawyerPushAndReachXYEnv()
-env = MultiSawyerEnv(do_render=False,
-        finger_sensors=False,
-        num_objects=3,
-        object_meshes=None,
-        fix_z=True,
-        fix_gripper=True,
-        fix_rotation=True,
-        cylinder_radius=0.05,
-        maxlen=0.06,)
+# env = SawyerPushAndReachXYZEnv()
+env = SawyerDoorHookEnv(
+    # goal_low=(-0.1, 0.525, 0.05, 0),
+    # goal_high=(0.0, 0.65, .075, 0.523599),
+    # hand_low=(-0.1, 0.525, 0.05),
+    # hand_high=(0., 0.65, .075),
+    # max_angle=0.523599,
+    # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
+
+    goal_low=(-0.1, 0.4, 0.1, 0),
+    goal_high=(0.05, 0.65, .25, .93),
+    hand_low=(-0.1, 0.4, 0.1),
+    hand_high=(0.05, 0.65, .25),
+    max_angle=.93,
+    xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+    reset_free=True,
+)
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
@@ -97,8 +105,7 @@ while True:
             else:
                 action = np.zeros(10)
     obs, reward, _, info = env.step(action[:NDIM])
-    print(env.sim.data.qpos[:7])
-    print(env.get_endeff_pos())
+    print(env.data.qpos[-1])
     env.render()
     if done:
         obs = env.reset()
