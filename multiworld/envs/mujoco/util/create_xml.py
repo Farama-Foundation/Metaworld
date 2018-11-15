@@ -86,10 +86,13 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             l1 = dict['l1']
             l2 = dict['l2']
             pos2 = dict['pos2']
+
+
         save_dict_list.append(dict)
 
         obj_string = "object{}".format(i)
         print('using friction=({}, {}, {}), object mass{}'.format(f_sliding, f_torsion, f_rolling, object_mass))
+
 
         if object_meshes is not None:
             assets = ET.SubElement(root, "asset")
@@ -135,7 +138,6 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
 
             pos_str = "{} {} {}".format(object_pos[0], object_pos[1], object_pos[2])
 
-
             if obj_classname is not None:
                 obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str,
                                     childclass=obj_classname)
@@ -175,7 +177,7 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             #                rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
             #                contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
             #                )
-            ET.SubElement(obj, "inertial", mass="1", pos="{} {} 0.0".format(l2, pos2), diaginertia=".001 .001 .001")
+            ET.SubElement(obj, "inertial", mass="1", pos="{} {} 0.0".format(l2, pos2), diaginertia="0.01 0.01 0.01")
 
 
             ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
