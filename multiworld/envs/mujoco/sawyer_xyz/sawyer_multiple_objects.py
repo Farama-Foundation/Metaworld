@@ -383,7 +383,17 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         else:
             self.set_xyz_action(action[:3])
         u = np.zeros(8)
-        self.do_simulation(u)
+
+        try:
+            self.do_simulation(u)
+        except MujocoException:
+            print("MujocoException, skipping")
+
+        for i in range(self.num_objects):
+            x, y = self._n_joints + i * 7, self._n_joints + 3 + i * 7
+            pos = self.sim.data.qpos[x:y]
+            clipped_pos = np.clip(pos, self.workspace_low, self.workspace_high)
+            self.sim.data.qpos[x:y] = clipped_pos
 
         finger_force /= self.substeps * 10
         if np.sum(finger_force) > 0:
@@ -577,7 +587,7 @@ if __name__ == '__main__':
     #     cv2.imshow('window', img)
     #     cv2.waitKey(100)
 
-    size = 0.1
+    size = 0.05
     low = np.array([-size, 0.4 - size, 0])
     high = np.array([size, 0.4 + size, 0.1])
     env = MultiSawyerEnv(
@@ -598,9 +608,12 @@ if __name__ == '__main__':
     )
     for i in range(10000):
         a = np.random.uniform(-1, 1, 5)
-        o, _, _, _ = env.step(a)
+        o, r, _, _ = env.step(a)
         if i % 100 == 0:
-            env.reset()
+            o = env.reset()
+        # print(i, r)
+        # print(o["state_observation"])
+        # print(o["state_desired_goal"])
         env.render()
 
 
