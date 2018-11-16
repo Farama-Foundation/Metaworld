@@ -21,12 +21,12 @@ Usage:
           rgba="0 0 0 1" contype="15" conaffinity="15" />
     <body name="tabletop" pos="0 0.575 -0.45">
         <geom type="box" pos = "0 -0.1 0" size="0.38 0.3 0.45"
-          rgba=".6 .6 .5 1" contype="2" conaffinity="2" />
+          rgba=".6 .6 .5 1" contype="1" conaffinity="1" />
 
-        <geom type="box" pos = "0 0.19 0.45" size=".36 .001 .1" rgba="0 .1 .9 1" contype="2" conaffinity="2" />
-        <geom type="box" pos = "0 -0.39 0.45" size=".36 .001 .1" rgba="0 .1 .9 1" contype="2" conaffinity="2"/>
-        <geom type="box" pos = "0.36 -0.1 0.45" size=".001 .29 .1" rgba="0 .1 .9 1" contype="2" conaffinity="2"/>
-        <geom type="box" pos = "-0.36 -0.1 0.45" size=".001 .29 .1" rgba="0 .1 .9 1" contype="2" conaffinity="2" />
+        <geom type="box" pos = "0 0.19 0.45" size=".36 .001 .1" rgba="0 .1 .9 1" contype="1" conaffinity="1" />
+        <geom type="box" pos = "0 -0.39 0.45" size=".36 .001 .1" rgba="0 .1 .9 1" contype="1" conaffinity="1"/>
+        <geom type="box" pos = "0.36 -0.1 0.45" size=".001 .29 .1" rgba="0 .1 .9 1" contype="1" conaffinity="1"/>
+        <geom type="box" pos = "-0.36 -0.1 0.45" size=".001 .29 .1" rgba="0 .1 .9 1" contype="1" conaffinity="1" />
     </body>
 
 
@@ -132,11 +132,11 @@ Usage:
                                                 <body name="hand" pos="0 0 0" quat="-1 0 1 0">
                                                     <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
 
-                                                    <!-- <body name="rightclaw"
+                                                    <body name="rightclaw"
                                                           pos=".01 .015 0" >
                                                         <geom name="rightclaw_it" class="1" type="box" pos="0 0 0" size="0.075 0.0075 0.0075" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
-                                                    </body> -->
+                                                    </body>
 
                                                     <body name="leftclaw" pos=".01 .02 0">
                                                         <geom name="leftclaw_it" class="1" type="box" pos="0 0 0" size="0.075 0.0075 0.0075" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"  contype="1" conaffinity="1" />
