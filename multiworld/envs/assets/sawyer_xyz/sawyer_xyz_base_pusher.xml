@@ -20,7 +20,7 @@ Usage:
           <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
     <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"-->
           <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
-    <geom name="tableTop" type="plane" pos="0 0.6 -.1" size="0.4 0.4 0.5"
+    <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
 
     <body name="base" pos="0 0 0">
@@ -124,10 +124,24 @@ Usage:
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <body name="hand" pos="0 0 0"
                                                   quat="-1 0 1 0">
-                                                <geom contype="2" conaffinity="2" name="horizontal_hook" type="box" size="0.01 0.03 0.01" pos="0 0.03 0"/>
-                                                <geom contype="2" conaffinity="2" name="down_hook" type="box" size="0.03 0.01 0.01" pos="0.01 0.05 0"/>
-                                               <!-- <geom contype="2" conaffinity="2" name="e" type="box" size="0.01 0.05 0.01" pos="-0.075 0.05 0"/>
-                                                <geom contype="2" conaffinity="2" name="f" type="box" size="0.03 0.01 0.01" pos="-0.075 0.09 0"/> /-->
+                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01"/>
+                                                    <body name="rightclaw" pos=".03 -.03 0.0" >
+                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
+                                                        <geom
+                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                euler="0 0 0.2"
+                                                        />
+                                                        <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
+                                                        <site name="endeffector2" pos=".015 .01 0" size="0.008" rgba="0.0 0.0 0.0 0.0" />
+                                                    </body>
+                                                    <body name="leftclaw" pos=".03 .03 0">
+                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
+                                                        <geom
+                                                                name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                euler="0 0 -0.2"
+                                                        />
+                                                        <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />
+                                                    </body>
                                             </body>
 <!--  ================= END GRIPPER ================= /-->
                                         </body>
@@ -137,8 +151,8 @@ Usage:
                                     <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                                     <geom size="0.06" pos="0 0.01 0.26"
                                           rgba="0.2 0.2 0.2 0"
-                                          contype="0"
-                                          conaffinity="0"
+                                          contype="2"
+                                          conaffinity="2"
                                     />
                                 </body>
                             </body>
@@ -146,8 +160,8 @@ Usage:
                         <body name="right_l2_2" pos="0 0 0">
                             <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                             <geom size="0.06" pos="0 0 0.26" rgba="0.2 0.2 0.2 0"
-                                  contype="0"
-                                  conaffinity="0"
+                                  contype="2"
+                                  conaffinity="2"
                             />
                         </body>
                     </body>
