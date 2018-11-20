@@ -128,6 +128,17 @@ The `compute_reward` interface is slightly different from gym's.
 Rather than `compute_reward(desired_goal, achieved_goal, info)` our interface is
  `compute_reward(action, observation)`, where the observation is a dictionary.
 
+## Environments
+In order to be able to reproduce results as environments change across time, we have the following set of registered environments:
+
+`SawyerReachXYEnv-v1`: A MuJoCo environment with a 7-DoF Sawyer arm reaching goal positions. The end-effector (EE) is constrained to a 2-dimensional rectangle parallel to a table. The action controls EE position through the use of a mocap. The state is the XY position of the EE and the goal is an XY position of the EE.
+
+`SawyerPushAndReachEnvEasy-v0`, `SawyerPushAndReachEnvMedium-v0`, and `SawyerPushAndReachEnvHard-v0`:  A MuJoCo environment with a 7-DoF Sawyer arm and a small puck on a table that the arm must push to a target position. Control is the same as in `SawyerReachXYEnv-v1`.  The state is the XY position of the EE and the XY position of the puck and the goal is an XY position of the EE and an XY position of the puck. The end effector is constrained to only move in the XY plane. Note, these environments are primarily for debugging purposes.
+
+`SawyerPushAndReachArenaEnv-v0`, `SawyerPushAndReachArenaResetFreeEnv-v0`, `SawyerPushAndReachSmallArenaEnv-v0`, and `SawyerPushAndReachSmallArenaResetFreeEnv-v0`: These environments are the exact same as the pushing environments described above with three key differences: 1) the environment is now contained within an arena 2) the environments can be reset free meaning they do not reset the puck position on calls to `env.reset()` 3) the puck position is not clamped to be within the arena. These are the more realistic versions of the pushing environments and should be used for official results. 
+
+`SawyerDoorHookEnv-v0`, and `SawyerDoorHookResetFreeEnv-v0`: A MuJoCo environment with a 7-DoF Sawyer arm with a hook on the end effector and a door with a handle. Control is the same as in `SawyerReachXYEnv-v1`.  The state is the XY position of the EE and the angle of the door and the goal is an XY position of the EE and an angle of the door. The end effector can move in XYZ. In this environment, reset free means that neither the door nor the hand are reset to their initial position on calls to `env.reset()`. Note for this environment, it is recommended to use pre-sampled goals for vision-based tasks since it is not possible to execute `set_to_goal` for many sampled goal positions. 
+
 
 ## Extra features
 ### `fixed_goal`
