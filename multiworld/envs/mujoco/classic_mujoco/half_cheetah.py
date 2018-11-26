@@ -85,7 +85,7 @@ class HalfCheetahEnv(MujocoEnv, MultitaskEnv, Serializable):
         if self.reward_type == 'vel_distance':
             r = -distances
         elif self.reward_type == 'vel_success':
-            r = -(distances < self.indicator_threshold).astype(float)
+            r = -(distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r

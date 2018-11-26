@@ -176,7 +176,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             r = -np.abs(hand_diff)
         elif self.reward_type == 'hand_success':
             r = -(np.linalg.norm(hand_diff, ord=self.norm_order, axis=1)
-                  < self.indicator_threshold).astype(float)
+                  > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r

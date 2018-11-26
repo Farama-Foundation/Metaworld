@@ -37,7 +37,7 @@ class SawyerReachXYZEnv(sawyer_reaching.SawyerReachXYZEnv, MultitaskEnv):
         if self.reward_type == 'hand_distance':
             r = -distances
         elif self.reward_type == 'hand_success':
-            r = -(distances < self.indicator_threshold).astype(float)
+            r = -(distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
