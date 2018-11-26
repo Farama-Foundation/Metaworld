@@ -112,7 +112,7 @@ Usage:
                                     <inertial pos="0.0061133 -0.023697 0.076416" quat="0.404076 0.9135 0.0473125 0.00158335" mass="1.5625" diaginertia="0.00474131 0.00422857 0.00190672" />
                                     <joint name="right_j5" pos="0 0 0" axis="0 0 1" limited="true" range="-2.9761 2.9761" damping="10"/>
                                     <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 1" mesh="l5" />
-                                    <geom size="0.06" contype="0" conaffinity="0" pos="0 0 0.1" rgba="0.5 0.1 0.1 0" />
+                                    <geom size="0.06" pos="0 0 0.1" rgba="0.5 0.1 0.1 0" />
                                     <body name="right_hand_camera" pos="0.039552 -0.033 0.0695" quat="0.707107 0 0.707107 0">
                                         <inertial pos="0.039552 -0.033 0.0695" quat="0.707107 0 0.707107 0" mass="0" diaginertia="0 0 0" />
                                     </body>
@@ -123,14 +123,14 @@ Usage:
                                         <inertial pos="-8.0726e-06 0.0085838 -0.0049566" quat="0.479044 0.515636 -0.513069 0.491322" mass="0.3292" diaginertia="0.000360258 0.000311068 0.000214974" />
                                         <joint name="right_j6" pos="0 0 0" axis="0 0 1" limited="true" range="-4.7124 4.7124" damping="10"/>
                                         <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.5 0.1 0.1 1" mesh="l6" />
-                                        <geom size="0.055 0.025" contype="0" conaffinity="0" pos="0 0.015 -0.01" type="cylinder" rgba="0.5 0.1 0.1 0" />
+                                        <geom size="0.055 0.025" pos="0 0.015 -0.01" type="cylinder" rgba="0.5 0.1 0.1 0" />
                                         <body name="right_hand" pos="0 0 0.0245" quat="0.707107 0 0 0.707107">
                                             <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                                             <geom size="0.035 0.015" pos="0 0 0.02" type="cylinder" rgba="0.2 0.2 0.2 0"/>
 
 <!--  ================= BEGIN GRIPPER ================= /-->
-                                                <body name="claw" pos="0 0 0" quat="-1 0 1 0">
-                                                    <geom contype="0" conaffinity="0" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
+                                                <body name="hand" pos="0 0 0" quat="-1 0 1 0">
+                                                    <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
 
                                                     <!-- <body name="rightclaw"
                                                           pos=".01 .015 0" >
@@ -138,7 +138,7 @@ Usage:
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
                                                     </body> -->
 
-                                                    <body name="hand" pos=".01 .02 0">
+                                                    <body name="leftclaw" pos=".01 .02 0">
                                                         <geom name="leftclaw_it" class="1" type="box" pos="0 0 0" size="0.075 0.0075 0.0075" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"  contype="1" conaffinity="1" />
                                                         <site name="endeffector" pos="0 0 0" size="0.01" />
                                                         <!-- <body name="endeff" pos=".01 .02 0"> -->

@@ -198,8 +198,6 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         return self._sdim
 
     def sample_object_positions(self):
-        return [(np.array([0, 0.4, 0.02]), 0)]
-
         last_rands = [1]
         object_poses = []
         for i in range(self.num_objects):
@@ -234,12 +232,10 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
             self._reset_quat[i] = rand_quat
             self.sim.data.qpos[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = obji_xyz
             self.sim.data.qpos[self._n_joints + 3 + i * 7: self._n_joints + 7 + i * 7] = rand_quat
-            self.sim.data.qvel[self._n_joints + i * 6: self._n_joints + 3 + i * 6] = np.zeros((3))
+            self.sim.data.qvel[self._n_joints + i * 7: self._n_joints + 3 + i * 7] = np.zeros((3))
             self.sim.data.qvel[self._n_joints + 3 + i * 6: self._n_joints + 6 + i * 6] = np.zeros((3))
             self._object_pos[i] = np.concatenate((obji_xyz, rand_quat))
         self._initialized = True
-
-        # self.sim.forward()
 
         finger_force = np.zeros(2)
         for _ in range(self.skip_first):
@@ -266,6 +262,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
             self._state_goal = self.sample_goal()
 
         obs = self._get_obs(finger_force)
+        # print(obs["state_observation"][3:])
         return obs
 
     def _reset_hand(self):
@@ -304,10 +301,10 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         obs['qvel'] = copy.deepcopy(self.sim.data.qvel[:self._n_joints].squeeze())
 
         # control state
-        # obs['state'] = np.zeros(self._base_sdim)
-        # obs['state'][:3] = self.sim.data.get_body_xpos('hand')[:3]
-        # obs['state'][3] = quat_to_zangle(self.sim.data.get_body_xquat('hand'))
-        # obs['state'][-1] = self._previous_target_qpos[-1]
+        obs['state'] = np.zeros(self._base_sdim)
+        obs['state'][:3] = self.sim.data.get_body_xpos('hand')[:3]
+        obs['state'][3] = quat_to_zangle(self.sim.data.get_body_xquat('hand'))
+        obs['state'][-1] = self._previous_target_qpos[-1]
 
         obs['object_poses_full'] = np.zeros((self.num_objects, 7))
         obs['object_poses'] = np.zeros((self.num_objects, 3))
@@ -590,11 +587,7 @@ if __name__ == '__main__':
     #     cv2.imshow('window', img)
     #     cv2.waitKey(100)
 
-
-
-
-
-    size = 0.1
+    size = 0.05
     low = np.array([-size, 0.4 - size, 0])
     high = np.array([size, 0.4 + size, 0.1])
     env = MultiSawyerEnv(
@@ -602,7 +595,7 @@ if __name__ == '__main__':
         finger_sensors=False,
         num_objects=1,
         object_meshes=None,
-        # randomize_initial_pos=True,
+        randomize_initial_pos=True,
         fix_z=True,
         fix_gripper=True,
         fix_rotation=True,
@@ -612,7 +605,6 @@ if __name__ == '__main__':
         workspace_high = high,
         hand_low = low,
         hand_high = high,
-        init_hand_xyz=(0, 0.4-size, 0.089),
     )
     for i in range(10000):
         a = np.random.uniform(-1, 1, 5)
@@ -626,52 +618,3 @@ if __name__ == '__main__':
 
 
 
-
-
-    # from robosuite.devices import SpaceMouse
-
-    # device = SpaceMouse()
-    # size = 0.1
-    # low = np.array([-size, 0.4 - size, 0])
-    # high = np.array([size, 0.4 + size, 0.1])
-    # env = MultiSawyerEnv(
-    #     do_render=False,
-    #     finger_sensors=False,
-    #     num_objects=1,
-    #     object_meshes=None,
-    #     workspace_low = low,
-    #     workspace_high = high,
-    #     hand_low = low,
-    #     hand_high = high,
-    #     fix_z=True,
-    #     fix_gripper=True,
-    #     fix_rotation=True,
-    #     cylinder_radius=0.03,
-    #     maxlen=0.03,
-    #     init_hand_xyz=(0, 0.4-size, 0.089),
-    # )
-    # for i in range(10000):
-    #     state = device.get_controller_state()
-    #     dpos, rotation, grasp, reset = (
-    #         state["dpos"],
-    #         state["rotation"],
-    #         state["grasp"],
-    #         state["reset"],
-    #     )
-
-    #     # convert into a suitable end effector action for the environment
-    #     # current = env._right_hand_orn
-    #     # drotation = current.T.dot(rotation)  # relative rotation of desired from current
-    #     # dquat = T.mat2quat(drotation)
-    #     # grasp = grasp - 1.  # map 0 to -1 (open) and 1 to 0 (closed halfway)
-    #     # action = np.concatenate([dpos, dquat, [grasp]])
-
-    #     a = dpos * 10 # 200
-
-    #     # a[:3] = np.array((0, 0.7, 0.1)) - env.get_endeff_pos()
-    #     # a = np.array([np.random.uniform(-0.05, 0.05), np.random.uniform(-0.05, 0.05), 0.1, 0 ,  1])
-    #     o, _, _, _ = env.step(a)
-    #     if i % 100 == 0:
-    #         env.reset()
-    #     # print(env.sim.data.qpos[:7])
-    #     env.render()
