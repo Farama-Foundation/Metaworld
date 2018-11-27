@@ -30,7 +30,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             hide_goal_markers=False,
             oracle_reset_prob=0.0,
             presampled_goals=None,
-            num_goals_presampled=10,
+            num_goals_presampled=1000,
             p_obj_in_hand=.75,
 
             **kwargs
