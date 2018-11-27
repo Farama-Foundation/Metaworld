@@ -153,7 +153,7 @@ class SawyerDoorEnv(
             r = - angle_diff * self.target_angle_scale
 
         elif self.reward_type == 'hand_success':
-            r = -(angle_diff < self.indicator_threshold[0] and pos_dist <
+            r = -(angle_diff > self.indicator_threshold[0] or pos_dist >
                   self.indicator_threshold[1]).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
