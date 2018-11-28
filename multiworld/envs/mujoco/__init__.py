@@ -52,7 +52,6 @@ def register_custom_envs():
 
     """
     Pushing Tasks, XY
-    
     """
 
     register(
@@ -215,6 +214,26 @@ def register_custom_envs():
             reset_free=True,
             clamp_puck_on_step=False,
         )
+    )
+
+    """
+    NIPS submission pusher environment
+    """
+    register(
+        id='SawyerPushNIPS-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        tags={
+            'git-commit-hash': 'bede25d',
+            'author': 'ashvin',
+        },
+        kwargs=dict(
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+
     )
 
     """
