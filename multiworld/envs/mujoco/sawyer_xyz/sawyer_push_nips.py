@@ -18,14 +18,6 @@ import copy
 from multiworld.core.multitask_env import MultitaskEnv
 
 class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
-    INIT_BLOCK_LOW = np.array([-0.05, 0.55])
-    INIT_BLOCK_HIGH = np.array([0.05, 0.65])
-    PUCK_GOAL_LOW = INIT_BLOCK_LOW
-    PUCK_GOAL_HIGH = INIT_BLOCK_HIGH
-    HAND_GOAL_LOW = INIT_BLOCK_LOW
-    HAND_GOAL_HIGH = INIT_BLOCK_HIGH
-    FIXED_PUCK_GOAL = np.array([0.05, 0.6])
-    FIXED_HAND_GOAL = np.array([-0.05, 0.6])
     INIT_HAND_POS = np.array([0, 0.4, 0.02])
 
     def __init__(
@@ -35,6 +27,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             pos_action_scale=2. / 100,
             randomize_goals=True,
             hide_goal=False,
+            init_block_low=(-0.05, 0.55),
+            init_block_high=(0.05, 0.65),
+            puck_goal_low=(-0.05, 0.55),
+            puck_goal_high=(0.05, 0.65),
+            hand_goal_low=(-0.05, 0.55),
+            hand_goal_high=(0.05, 0.65),
+            fixed_puck_goal=(0.05, 0.6),
+            fixed_hand_goal=(-0.05, 0.6),
+            mocap_low=(-0.1, 0.5, 0.0),
+            mocap_high=(0.1, 0.7, 0.5),
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -45,6 +47,17 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         # MultitaskEnv.__init__(self, distance_metric_order=2)
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
+        self.init_block_low = np.array(init_block_low)
+        self.init_block_high = np.array(init_block_high)
+        self.puck_goal_low = np.array(puck_goal_low)
+        self.puck_goal_high = np.array(puck_goal_high)
+        self.hand_goal_low = np.array(hand_goal_low)
+        self.hand_goal_high = np.array(hand_goal_high)
+        self.fixed_puck_goal = np.array(fixed_puck_goal)
+        self.fixed_hand_goal = np.array(fixed_hand_goal)
+        self.mocap_low = np.array(mocap_low)
+        self.mocap_high = np.array(mocap_high)
+
         self.action_space = Box(
             np.array([-1, -1]),
             np.array([1, 1]),
@@ -53,8 +66,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array([-0.2, 0.5, -0.2, 0.5]),
             np.array([0.2, 0.7, 0.2, 0.7]),
         )
-        goal_low = np.concatenate((self.HAND_GOAL_LOW, self.PUCK_GOAL_LOW))
-        goal_high = np.concatenate((self.HAND_GOAL_HIGH, self.PUCK_GOAL_HIGH))
+        goal_low = np.concatenate((self.hand_goal_low, self.puck_goal_low))
+        goal_high = np.concatenate((self.hand_goal_high, self.puck_goal_high))
         self.goal_box = Box(
             goal_low,
             goal_high,
@@ -146,21 +159,26 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def mocap_set_action(self, action):
         pos_delta = action[None]
         new_mocap_pos = self.data.mocap_pos + pos_delta
-        new_mocap_pos[0, 0] = np.clip(
-            new_mocap_pos[0, 0],
-            -0.1,
-            0.1,
+        new_mocap_pos[0, :] = np.clip(
+            new_mocap_pos[0, :],
+            self.mocap_low,
+            self.mocap_high
         )
-        new_mocap_pos[0, 1] = np.clip(
-            new_mocap_pos[0, 1],
-            -0.1 + 0.6,
-            0.1 + 0.6,
-            )
-        new_mocap_pos[0, 2] = np.clip(
-            new_mocap_pos[0, 2],
-            0,
-            0.5,
-        )
+        # new_mocap_pos[0, 0] = np.clip(
+        #     new_mocap_pos[0, 0],
+        #     -0.1,
+        #     0.1,
+        # )
+        # new_mocap_pos[0, 1] = np.clip(
+        #     new_mocap_pos[0, 1],
+        #     -0.1 + 0.6,
+        #     0.1 + 0.6,
+        #     )
+        # new_mocap_pos[0, 2] = np.clip(
+        #     new_mocap_pos[0, 2],
+        #     0,
+        #     0.5,
+        # )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
@@ -211,19 +229,19 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def sample_goal_xyxy(self):
         if self.randomize_goals:
-            hand = np.random.uniform(self.HAND_GOAL_LOW, self.HAND_GOAL_HIGH)
-            puck = np.random.uniform(self.PUCK_GOAL_LOW, self.PUCK_GOAL_HIGH)
+            hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
+            puck = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
         else:
-            hand = self.FIXED_HAND_GOAL.copy()
-            puck = self.FIXED_PUCK_GOAL.copy()
+            hand = self.fixed_hand_goal.copy()
+            puck = self.fixed_puck_goal.copy()
         return np.hstack((hand, puck))
 
     def sample_puck_xy(self):
         raise NotImplementedError("Shouldn't you use "
                                   "SawyerPushAndReachXYEasyEnv? Ask Vitchyr")
-        pos = np.random.uniform(self.INIT_BLOCK_LOW, self.INIT_BLOCK_HIGH)
+        pos = np.random.uniform(self.init_block_low, self.init_block_high)
         while np.linalg.norm(self.get_endeff_pos()[:2] - pos) < 0.035:
-            pos = np.random.uniform(self.INIT_BLOCK_LOW, self.INIT_BLOCK_HIGH)
+            pos = np.random.uniform(self.init_block_low, self.init_block_high)
         return pos
 
     def set_puck_xy(self, pos):
@@ -443,19 +461,29 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
 class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
     """
-    Always start the block in the same position
+    Always start the block in the same position, and use a 40x20 puck space
     """
-    PUCK_GOAL_LOW = np.array([-0.2, 0.5])
-    PUCK_GOAL_HIGH = np.array([0.2, 0.7])
+
+    def __init__(
+            self,
+            **kwargs,
+    ):
+        self.quick_init(locals())
+        SawyerPushAndReachXYEnv.__init__(
+            self,
+            **kwargs,
+            puck_goal_low = (-0.2, 0.5),
+            puck_goal_high = (0.2, 0.7),
+        )
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
 
 class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
-    HAND_GOAL_LOW = np.array([-0.2, 0.5])
-    HAND_GOAL_HIGH = np.array([0.2, 0.7])
-    PUCK_GOAL_LOW = np.array([-0.2, 0.5])
-    PUCK_GOAL_HIGH = np.array([0.2, 0.7])
+    hand_goal_low = np.array([-0.2, 0.5])
+    hand_goal_high = np.array([0.2, 0.7])
+    puck_goal_low = np.array([-0.2, 0.5])
+    puck_goal_high = np.array([0.2, 0.7])
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
