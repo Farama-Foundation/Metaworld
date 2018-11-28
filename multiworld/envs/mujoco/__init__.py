@@ -393,14 +393,14 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
         tags={
-            'git-commit-hash': '30f23f7',
-            'author': 'steven',
+            'git-commit-hash': '1a7448d',
+            'author': 'ashvin',
         },
         kwargs=dict(
-            hand_low=(-0.1, 0.55, 0.05),
-            hand_high=(0.0, 0.65, 0.2),
-            action_scale=0.02,
-            hide_goal_markers=True,
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
         )
 
     )

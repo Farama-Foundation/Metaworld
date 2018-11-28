@@ -43,9 +43,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.randomize_goals = randomize_goals
         self._pos_action_scale = pos_action_scale
         self.hide_goal = hide_goal
-        self._goal_xyxy = self.sample_goal_xyxy()
-        # MultitaskEnv.__init__(self, distance_metric_order=2)
-        MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -57,6 +54,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fixed_hand_goal = np.array(fixed_hand_goal)
         self.mocap_low = np.array(mocap_low)
         self.mocap_high = np.array(mocap_high)
+
+        self._goal_xyxy = self.sample_goal_xyxy()
+        # MultitaskEnv.__init__(self, distance_metric_order=2)
+        MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
         self.action_space = Box(
             np.array([-1, -1]),
@@ -466,24 +467,39 @@ class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
 
     def __init__(
             self,
-            **kwargs,
+            **kwargs
     ):
         self.quick_init(locals())
         SawyerPushAndReachXYEnv.__init__(
             self,
-            **kwargs,
             puck_goal_low = (-0.2, 0.5),
             puck_goal_high = (0.2, 0.7),
+            **kwargs
         )
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
 
 class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
-    hand_goal_low = np.array([-0.2, 0.5])
-    hand_goal_high = np.array([0.2, 0.7])
-    puck_goal_low = np.array([-0.2, 0.5])
-    puck_goal_high = np.array([0.2, 0.7])
+    """
+    Fixed initial position, all spaces are 40cm x 20cm
+    """
+
+    def __init__(
+            self,
+            **kwargs
+    ):
+        self.quick_init(locals())
+        SawyerPushAndReachXYEnv.__init__(
+            self,
+            hand_goal_low = (-0.2, 0.5),
+            hand_goal_high = (0.2, 0.7),
+            puck_goal_low = (-0.2, 0.5),
+            puck_goal_high = (0.2, 0.7),
+            mocap_low=(-0.2, 0.5, 0.0),
+            mocap_high=(0.2, 0.7, 0.5),
+            **kwargs
+        )
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
