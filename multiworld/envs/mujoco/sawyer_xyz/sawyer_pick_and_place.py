@@ -30,7 +30,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             hide_goal_markers=False,
             oracle_reset_prob=0.0,
             presampled_goals=None,
-            num_goals_presampled=10,
+            num_goals_presampled=1000,
             p_obj_in_hand=.75,
 
             **kwargs
@@ -317,11 +317,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if self.reward_type == 'hand_distance':
             r = -hand_distances
         elif self.reward_type == 'hand_success':
-            r = -(hand_distances < self.indicator_threshold).astype(float)
+            r = -(hand_distances > self.indicator_threshold).astype(float)
         elif self.reward_type == 'obj_distance':
             r = -obj_distances
         elif self.reward_type == 'obj_success':
-            r = -(obj_distances < self.indicator_threshold).astype(float)
+            r = -(obj_distances > self.indicator_threshold).astype(float)
         elif self.reward_type == 'hand_and_obj_distance':
             r = -hand_and_obj_distances
         elif self.reward_type == 'touch_and_obj_distance':
@@ -333,7 +333,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         elif self.reward_type == 'touch_distance':
             r = -touch_distances
         elif self.reward_type == 'touch_success':
-            r = -(touch_distances < self.indicator_threshold).astype(float)
+            r = -(touch_distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r

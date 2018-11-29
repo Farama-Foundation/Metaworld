@@ -80,7 +80,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
-        spaces = self.wrapped_env.observation_space.spaces
+        spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
         spaces['achieved_goal'] = img_space
@@ -237,7 +237,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.reward_type=='image_distance':
             return -dist
         elif self.reward_type=='image_sparse':
-            return (dist<self.threshold).astype(float)-1
+            return -(dist > self.threshold).astype(float)
         elif self.reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs)
         else:

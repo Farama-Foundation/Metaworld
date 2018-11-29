@@ -65,7 +65,6 @@ def register_custom_envs():
 
     """
     Pushing Tasks, XY
-    
     """
 
     register(
@@ -231,6 +230,26 @@ def register_custom_envs():
     )
 
     """
+    NIPS submission pusher environment
+    """
+    register(
+        id='SawyerPushNIPS-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        tags={
+            'git-commit-hash': 'bede25d',
+            'author': 'ashvin',
+        },
+        kwargs=dict(
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+
+    )
+
+    """
     Door Hook Env
     """
 
@@ -290,6 +309,7 @@ def register_custom_envs():
             hand_high=(0.0, 0.65, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
+            num_goals_presampled=1000,
         )
 
     )
