@@ -73,7 +73,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             goal_low,
             goal_high,
         )
-        print(goal_low, goal_high)
         self.observation_space = Dict([
             ('observation', self.obs_box),
             ('state_observation', self.obs_box),
