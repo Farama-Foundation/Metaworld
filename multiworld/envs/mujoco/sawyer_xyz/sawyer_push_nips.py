@@ -1,21 +1,20 @@
 from collections import OrderedDict
 import numpy as np
-# from gym.envs.mujoco import MujocoEnv
 from gym.spaces import Box, Dict
 import mujoco_py
 
-from railrl.core import logger
-
-from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict, get_asset_full_path
-
-from railrl.core.serializable import Serializable
-# from railrl.envs.multitask.multitask_env import MultitaskEnv
+from multiworld.core.serializable import Serializable
+from multiworld.envs.env_util import (
+    get_stat_in_paths,
+    create_stats_ordered_dict,
+    get_asset_full_path,
+)
 
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 import copy
 
 from multiworld.core.multitask_env import MultitaskEnv
+
 
 class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     INIT_HAND_POS = np.array([0, 0.4, 0.02])
@@ -299,11 +298,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         return self._get_obs()
 
     def compute_rewards(self, action, obs, info=None):
-        r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
+        r = -np.linalg.norm(
+            obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
         return r
 
     def compute_reward(self, action, obs, info=None):
-        r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])
+        r = -np.linalg.norm(
+            obs['state_achieved_goal'] - obs['state_desired_goal'])
         return r
 
     # REPLACING REWARD FN
@@ -349,18 +350,19 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     @property
     def init_angles(self):
         return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
-                2.30672090e+00, 1.93111471e+00,  1.27854012e-01,
+                2.30672090e+00, 1.93111471e+00, 1.27854012e-01,
                 1.49353907e+00, 1.80196716e-03, 7.40415706e-01,
-                2.09895360e-02,  9.99999990e-01,  3.05766105e-05,
+                2.09895360e-02, 9.99999990e-01, 3.05766105e-05,
                 - 3.78462492e-06, 1.38684523e-04, - 3.62518873e-02,
-                6.13435141e-01, 2.09686080e-02,  7.07106781e-01,
+                6.13435141e-01, 2.09686080e-02, 7.07106781e-01,
                 1.48979724e-14, 7.07106781e-01, - 1.48999170e-14,
-                        0, 0.6, 0.02,
-                        1, 0, 1, 0,
+                0, 0.6, 0.02,
+                1, 0, 1, 0,
                 ]
 
-    def log_diagnostics(self, paths, logger=logger, prefix=""):
-        # super().log_diagnostics(paths)
+    def log_diagnostics(self, paths, logger=None, prefix=""):
+        if logger is None:
+            return
 
         statistics = OrderedDict()
         for stat_name in [
@@ -471,13 +473,14 @@ class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
         self.quick_init(locals())
         SawyerPushAndReachXYEnv.__init__(
             self,
-            puck_goal_low = (-0.2, 0.5),
-            puck_goal_high = (0.2, 0.7),
+            puck_goal_low=(-0.2, 0.5),
+            puck_goal_high=(0.2, 0.7),
             **kwargs
         )
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
+
 
 class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
     """
@@ -491,10 +494,10 @@ class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
         self.quick_init(locals())
         SawyerPushAndReachXYEnv.__init__(
             self,
-            hand_goal_low = (-0.2, 0.5),
-            hand_goal_high = (0.2, 0.7),
-            puck_goal_low = (-0.2, 0.5),
-            puck_goal_high = (0.2, 0.7),
+            hand_goal_low=(-0.2, 0.5),
+            hand_goal_high=(0.2, 0.7),
+            puck_goal_low=(-0.2, 0.5),
+            puck_goal_high=(0.2, 0.7),
             mocap_low=(-0.2, 0.5, 0.0),
             mocap_high=(0.2, 0.7, 0.5),
             **kwargs
