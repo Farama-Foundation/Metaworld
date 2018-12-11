@@ -1,7 +1,6 @@
 import random
 
 import cv2
-import mujoco_py
 import numpy as np
 import warnings
 from PIL import Image
