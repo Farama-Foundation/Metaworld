@@ -114,9 +114,14 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.viewer.cam.trackbodyid = -1
 
     def reset_model(self):
+        velocities = self.data.qvel.copy()
+        angles = self.data.qpos.copy()
+        angles[:7] = [1.7244448, -0.92036369,  0.10234232,  2.11178144,  2.97668632, -0.38664629, 0.54065733]
+        self.set_state(angles.flatten(), velocities.flatten())
         self._reset_hand()
         self.set_goal(self.sample_goal())
         self.sim.forward()
+        print(self.get_endeff_pos())
         return self._get_obs()
 
     def _reset_hand(self):
