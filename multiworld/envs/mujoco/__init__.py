@@ -249,6 +249,23 @@ def register_custom_envs():
 
     )
 
+    register(
+        id='SawyerPushNIPSHarder-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYHarderEnv',
+        tags={
+            'git-commit-hash': 'b5cac93',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+
+    )
+
     """
     Door Hook Env
     """
