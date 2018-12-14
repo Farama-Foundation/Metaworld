@@ -121,7 +121,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self._reset_hand()
         self.set_goal(self.sample_goal())
         self.sim.forward()
-        print(self.get_endeff_pos())
         return self._get_obs()
 
     def _reset_hand(self):
