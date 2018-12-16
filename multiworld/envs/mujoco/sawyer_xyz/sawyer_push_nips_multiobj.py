@@ -30,7 +30,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             frame_skip=50,
             pos_action_scale=2. / 100,
             randomize_goals=True,
-            hide_goal=False,
             puck_goal_low=(-0.1, 0.5),
             puck_goal_high=(0.1, 0.7),
             hand_goal_low=(-0.1, 0.5),
@@ -60,7 +59,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.reward_info = reward_info
         self.randomize_goals = randomize_goals
         self._pos_action_scale = pos_action_scale
-        self.hide_goal = hide_goal
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -86,7 +84,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         gen_xml = create_root_xml(base_filename)
         MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
         clean_xml(gen_xml)
-
 
         self.state_goal = self.sample_goal_xyxy()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
@@ -394,8 +391,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                         1, 0, 1, 0,
                 ]
 
-    def log_diagnostics(self, paths, logger=logger, prefix=""):
-        # super().log_diagnostics(paths)
+    def log_diagnostics(self, paths, logger=None, prefix=""):
+        if logger is None:
+            return
 
         statistics = OrderedDict()
         for stat_name in [
@@ -525,10 +523,14 @@ class SawyerTwoObjectNIPSEnv(SawyerMultiobjectEnv):
             hand_goal_high = (x, y2),
             puck_goal_low = (-x, y1),
             puck_goal_high = (x, y2),
-            mocap_low=(-x, y1, 0.0),
-            mocap_high=(x, y2, 0.5),
+            mocap_low=(-0.1, y1, 0.0),
+            mocap_high=(0.1, y2, 0.5),
 
             num_objects=2,
+            preload_obj_dict=[
+                dict(color2=(0.1, 0.1, 0.9)),
+                dict(color2=(0.1, 0.9, 0.1))
+            ],
             **kwargs
         )
 
@@ -545,6 +547,20 @@ class SawyerTwoObjectNIPSEnv(SawyerMultiobjectEnv):
         else:
             pos = self.FIXED_GOAL_INIT.copy()
         return np.hstack((hand, g1, g2))
+
+    def sample_goals(self, batch_size):
+        # goals = np.zeros((batch_size, self.goal_box.low.size))
+        # for b in range(batch_size):
+        #     goals[b, :] = self.sample_goal_xyxy()
+        goals = np.random.uniform(
+            self.low,
+            self.high,
+            size=(batch_size, self.low.size),
+        )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+        }
 
     def reset(self):
         velocities = self.data.qvel.copy()
