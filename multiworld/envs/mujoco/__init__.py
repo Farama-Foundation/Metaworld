@@ -46,6 +46,19 @@ def register_custom_envs():
     )
 
     register(
+        id='SawyerReachXYZEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYZEnv',
+        tags={
+            'git-commit-hash': 'bea5de',
+            'author': 'murtaza'
+        },
+        kwargs={
+            'hide_goal_markers': True,
+            'norm_order': 2,
+        },
+    )
+
+    register(
         id='Image48SawyerReachXYEnv-v1',
         entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
@@ -239,6 +252,23 @@ def register_custom_envs():
         tags={
             'git-commit-hash': 'bede25d',
             'author': 'ashvin',
+        },
+        kwargs=dict(
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+
+    )
+
+    register(
+        id='SawyerPushNIPSHarder-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYHarderEnv',
+        tags={
+            'git-commit-hash': 'b5cac93',
+            'author': 'murtaza',
         },
         kwargs=dict(
             hide_goal=True,
