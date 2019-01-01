@@ -54,11 +54,16 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             maxlen=0.12,
             minlen=0.01,
             preload_obj_dict=None,
+
+            reset_to_initial_position=True,
+            object_low=(-0.1, 0.5, 0.0),
+            object_high=(0.1, 0.7, 0.5),
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
         self.randomize_goals = randomize_goals
         self._pos_action_scale = pos_action_scale
+        self.reset_to_initial_position = reset_to_initial_position
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -70,6 +75,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fixed_hand_goal = np.array(fixed_hand_goal)
         self.mocap_low = np.array(mocap_low)
         self.mocap_high = np.array(mocap_high)
+        self.object_low = np.array(object_low)
+        self.object_high = np.array(object_high)
 
         self.num_objects = num_objects
 
@@ -128,6 +135,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.reset()
         self.reset_mocap_welds()
 
+        for i in range(self.num_objects):
+            self.set_object_xy(i, self.sample_puck_xy())
+
     @property
     def model_name(self):
         return get_asset_full_path(
@@ -170,6 +180,15 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
         u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
+
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        for i in range(self.num_objects):
+            x = 7 + i * 7
+            y = 10 + i * 7
+            qpos[x:y] = np.clip(qpos[x:y], self.object_low, self.object_high)
+        self.set_state(qpos, qvel)
+
         obs = self._get_obs()
         # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
         reward = self.compute_reward(a, obs)
@@ -325,8 +344,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
         # set_state resets the goal xy, so we need to explicit set it again
         self.state_goal = self.sample_goal_for_rollout()
-        for i in range(self.num_objects):
-            self.set_object_xy(i, self.sample_puck_xy())
+        if self.reset_to_initial_position:
+            for i in range(self.num_objects):
+                self.set_object_xy(i, self.sample_puck_xy())
         self.reset_mocap_welds()
         return self._get_obs()
 
