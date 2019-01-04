@@ -81,11 +81,11 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             pos2 = dict['pos2']= np.random.uniform(0.01, l1)
         else:
             dict = load_dict_list[i]
-            color1 = dict['color1']
-            color2 = dict['color2']
-            l1 = dict['l1']
-            l2 = dict['l2']
-            pos2 = dict['pos2']
+            color1 = dict.get('color1', (1, 0, 0))
+            color2 = dict.get('color2', (0, 1, 0))
+            l1 = dict.get('l1', 0)
+            l2 = dict.get('l2', 0)
+            pos2 = dict.get('pos2', (0, 0, 0))
 
 
         save_dict_list.append(dict)
@@ -166,7 +166,7 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             else: obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0")
 
 
-            ET.SubElement(obj, "joint", type="free")
+            ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
 
             # ET.SubElement(obj, "geom", type="box", size="{} {} {}".format(block_width, l1, block_height),
             #                rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(object_mass),
@@ -177,15 +177,16 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             #                rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
             #                contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
             #                )
-            ET.SubElement(obj, "inertial", mass="1", pos="{} {} 0.0".format(l2, pos2), diaginertia="1000 1000 1000")
+            ET.SubElement(obj, "inertial", mass="0.1", pos="0 0 0", diaginertia="100000 100000 100000")
 
+            # ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
+            #                             rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
+            #                             contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
+            ET.SubElement(obj, "geom", pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
+                                        rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]),
+                                        contype="18", conaffinity="20")
 
-            ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
-                                        rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
-                                        contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
-
-
-            ET.SubElement(obj, "site", name=obj_string, pos="{} {} 0.0".format(l2, pos2), size="0.01")
+            # ET.SubElement(obj, "site", name=obj_string, pos="{} {} 0.0".format(l2, pos2), size="0.01")
 
         if sensor_frame is None:
             sensor_frame = ET.SubElement(root, "sensor")
