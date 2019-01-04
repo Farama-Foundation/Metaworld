@@ -515,9 +515,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.sim.forward()
 
 
-class SawyerTwoObjectNIPSEnv(SawyerMultiobjectEnv):
+class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
     """
-    Fixed initial position, all spaces are Xcm x Ycm
+    This environment matches exactly the 2-object pushing environment in the RIG paper
     """
     PUCK1_GOAL_LOW = np.array([0.0, 0.5])
     PUCK1_GOAL_HIGH = np.array([0.2, 0.7])
