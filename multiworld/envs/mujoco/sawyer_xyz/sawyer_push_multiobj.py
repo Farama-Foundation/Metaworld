@@ -186,7 +186,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
             self.do_simulation(u, self.frame_skip)
 
-        self.render()
+        # self.render()
 
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
