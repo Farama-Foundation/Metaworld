@@ -88,7 +88,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         # Generate XML
         base_filename = asset_base_path + filename
-        # object_meshes = None
         friction_params = (0.1, 0.1, 0.02)
         self.obj_stat_prop = create_object_xml(base_filename, num_objects, object_mass,
                                                friction_params, object_meshes, finger_sensors,
