@@ -316,8 +316,12 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         qvel = self.data.qvel.flat.copy()
         x = 7 + i * 7
         y = 10 + i * 7
+        z = 14 + i * 7
         qpos[x:y] = np.hstack((pos.copy(), np.array([0.02])))
-        qvel[x:y] = [0, 0, 0]
+        qpos[y:z] = np.array([1, 0, 0, 0])
+        x = 7 + i * 6
+        y = 13 + i * 6
+        qvel[x:y] = 0
         self.set_state(qpos, qvel)
 
     def reset_mocap_welds(self):
