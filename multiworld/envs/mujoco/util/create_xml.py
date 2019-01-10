@@ -143,7 +143,7 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str)
 
-            ET.SubElement(obj, "joint", type="free")
+            ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
 
             #visual mesh
             ET.SubElement(obj, "geom", type="mesh", mesh = chosen_mesh + "_mesh",

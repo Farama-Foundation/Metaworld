@@ -45,19 +45,22 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             num_objects=1,
             filename='sawyer_multiobj.xml',
             object_mass=1,
-            object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'],
+            # object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'],
+            object_meshes=None,
             obj_classname = None,
             block_height=0.02,
             block_width = 0.02,
             cylinder_radius = 0.05,
             finger_sensors=False,
-            maxlen=0.12,
+            maxlen=0.06,
             minlen=0.01,
             preload_obj_dict=None,
 
             reset_to_initial_position=True,
             object_low=(-0.1, 0.5, 0.0),
             object_high=(0.1, 0.7, 0.5),
+            action_repeat=1,
+            fixed_start=True,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -77,12 +80,14 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.mocap_high = np.array(mocap_high)
         self.object_low = np.array(object_low)
         self.object_high = np.array(object_high)
+        self.action_repeat = action_repeat
 
         self.num_objects = num_objects
+        self.fixed_start = fixed_start
+        self.maxlen = maxlen
 
         # Generate XML
         base_filename = asset_base_path + filename
-        object_meshes = None
         friction_params = (0.1, 0.1, 0.02)
         self.obj_stat_prop = create_object_xml(base_filename, num_objects, object_mass,
                                                friction_params, object_meshes, finger_sensors,
@@ -132,11 +137,10 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
         # )
 
+        self.set_initial_object_positions()
+
         self.reset()
         self.reset_mocap_welds()
-
-        for i in range(self.num_objects):
-            self.set_object_xy(i, self.sample_puck_xy())
 
     @property
     def model_name(self):
@@ -177,9 +181,12 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             a,
             np.array([mocap_delta_z])
         ))
-        self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
         u = np.zeros(7)
-        self.do_simulation(u, self.frame_skip)
+        for _ in range(self.action_repeat):
+            self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
+            self.do_simulation(u, self.frame_skip)
+
+        # self.render()
 
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
@@ -309,8 +316,12 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         qvel = self.data.qvel.flat.copy()
         x = 7 + i * 7
         y = 10 + i * 7
+        z = 14 + i * 7
         qpos[x:y] = np.hstack((pos.copy(), np.array([0.02])))
-        qvel[x:y] = [0, 0, 0]
+        qpos[y:z] = np.array([1, 0, 0, 0])
+        x = 7 + i * 6
+        y = 13 + i * 6
+        qvel[x:y] = 0
         self.set_state(qpos, qvel)
 
     def reset_mocap_welds(self):
@@ -334,6 +345,27 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array([self.data.body_xquat[self.endeff_id]]),
         )
 
+    def set_initial_object_positions(self):
+        if self.fixed_start: # set object to middle of workspace always
+            for i in range(self.num_objects):
+                self.set_object_xy(i, np.array([0, 0.6]))
+        else: # set object to middle of workspace always
+            while True:
+                pos = [self.INIT_HAND_POS[:2], ]
+                for i in range(self.num_objects):
+                    r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                    pos.append(r)
+                touching = []
+                for i in range(self.num_objects + 1):
+                    for j in range(i):
+                        t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
+                        touching.append(t)
+                if not any(touching):
+                    break
+            pos.reverse()
+            for i in range(self.num_objects):
+                self.set_object_xy(i, pos[i])
+
     def reset(self):
         velocities = self.data.qvel.copy()
         angles = self.data.qpos.copy()
@@ -345,8 +377,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         # set_state resets the goal xy, so we need to explicit set it again
         self.state_goal = self.sample_goal_for_rollout()
         if self.reset_to_initial_position:
-            for i in range(self.num_objects):
-                self.set_object_xy(i, self.sample_puck_xy())
+            self.set_initial_object_positions()
         self.reset_mocap_welds()
         return self._get_obs()
 
