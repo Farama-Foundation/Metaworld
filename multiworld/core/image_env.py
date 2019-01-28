@@ -221,10 +221,12 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             warnings.warn("Sampling goal images is slow")
         img_goals = np.zeros((batch_size, self.image_length))
         goals = self.wrapped_env.sample_goals(batch_size)
+        pre_state = self.wrapped_env.get_env_state()
         for i in range(batch_size):
             goal = self.unbatchify_dict(goals, i)
             self.wrapped_env.set_to_goal(goal)
             img_goals[i, :] = self._get_flat_img()
+        self.wrapped_env.set_env_state(pre_state)
         goals['desired_goal'] = img_goals
         goals['image_desired_goal'] = img_goals
         return goals
