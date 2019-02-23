@@ -209,7 +209,7 @@
 
         <body mocap="true" name="mocap" pos="0 0 0">
             <!--For debugging, set the alpha to 1-->
-            <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1.0" size="0.1 0.02 0.02" type="box"></geom>-->
+            <!-- <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1.0" size="0.1 0.02 0.02" type="box"></geom> -->
             <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 0" size="0.1 0.02 0.02" type="box"></geom>
         </body>
 
@@ -253,9 +253,9 @@
                    damping="0" armature="0" />
             <geom name="puck-goal-marker" type="sphere" pos="0 0 0" size="0.02"
                   rgba=".9 .1 .1 0" contype="0" conaffinity="8"/>
-            <site name="puck-goal-site" pos="0 0 0" size="0.01" rgba="0 0 0 0" />
+            <site name="puck-goal-site" pos="0 0 0" size="0.01" rgba="1 0 0 1" />
+            
         </body>
-
     </worldbody>
 
     <actuator>

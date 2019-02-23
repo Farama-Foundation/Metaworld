@@ -11,6 +11,7 @@ try:
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 
+DEFAULT_SIZE = 500
 
 class MujocoEnv(gym.Env):
     """
@@ -31,6 +32,7 @@ class MujocoEnv(gym.Env):
         self.sim = mujoco_py.MjSim(self.model)
         self.data = self.sim.data
         self.viewer = None
+        self._viewers = {}
 
         self.metadata = {
             'render.modes': ['human', 'rgb_array'],
@@ -108,27 +110,38 @@ class MujocoEnv(gym.Env):
         for _ in range(n_frames):
             self.sim.step()
 
-    def render(self, mode='human'):
-        if mode == 'rgb_array':
-            self._get_viewer().render()
+    def render(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE, depth=False):
+        if 'rgb_array' in mode:
+            self._get_viewer(mode).render(width, height)
             # window size used for old mujoco-py:
-            width, height = 500, 500
-            width, height = 4000, 4000
-            data = self._get_viewer().read_pixels(width, height, depth=False)
+            data = self._get_viewer(mode).read_pixels(width, height, depth=depth)
             # original image is upside-down, so flip it
-            return data[::-1, :, :]
+            if not depth:
+                return data[::-1, :, :]
+            else:
+                return data[0][::-1, :, :], data[1][::-1, :]
         elif mode == 'human':
-            self._get_viewer().render()
+            self._get_viewer(mode).render()
 
     def close(self):
         if self.viewer is not None:
             self.viewer.finish()
             self.viewer = None
 
-    def _get_viewer(self):
+    def _get_viewer(self, mode):
+        self.viewer = self._viewers.get(mode)
         if self.viewer is None:
-            self.viewer = mujoco_py.MjViewer(self.sim)
+            if mode == 'human':
+                self.viewer = mujoco_py.MjViewer(self.sim)
+            elif 'rgb_array' in mode:
+                self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, 0)
             self.viewer_setup()
+            self._viewers[mode] = self.viewer
+        # if mode == 'rgb_array_y':
+        #     self.viewer_setup(view_angle='y')
+        # else:
+        #     self.viewer_setup(view_angle='x')
+        self.viewer_setup()
         return self.viewer
 
     def get_body_com(self, body_name):

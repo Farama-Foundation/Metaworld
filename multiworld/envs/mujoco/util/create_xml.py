@@ -45,7 +45,7 @@ ASSET_BASE_DIR = '/'.join(os.path.abspath(multiworld.__file__).split('/')[:-2]) 
 
 def create_object_xml(filename, num_objects, object_mass, friction_params, object_meshes,
                       finger_sensors, maxlen, minlen, load_dict_list, obj_classname = None,
-                      block_height = 0.03, block_width = 0.03, cylinder_radius = 0.04):
+                      block_height = 0.03, block_width = 0.03, cylinder_radius = 0.04, objjoint_xy=False):
     """
     :param hyperparams:
     :param load_dict_list: if not none load configuration, instead of sampling
@@ -165,8 +165,11 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0")
 
-
-            ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
+            if not objjoint_xy:
+                ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
+            else:
+                ET.SubElement(obj, "joint", name="obj{}_slidey".format(i), type="slide", pos="0 0 0", axis="0 1 0", range="-10.3213 10.3", damping="1.0")
+                ET.SubElement(obj, "joint", name="obj{}_slidex".format(i), type="slide", pos="0 0 0", axis="1 0 0", range="-10.3213 10.3", damping="1.0")
 
             # ET.SubElement(obj, "geom", type="box", size="{} {} {}".format(block_width, l1, block_height),
             #                rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(object_mass),
@@ -182,7 +185,7 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             # ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
             #                             rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
             #                             contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
-            ET.SubElement(obj, "geom", pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
+            ET.SubElement(obj, "geom", pos="0 0 0.02", type="cylinder", size=str(cylinder_radius) + " 0.015",
                                         rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]),
                                         contype="18", conaffinity="20")
 

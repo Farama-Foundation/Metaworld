@@ -209,7 +209,7 @@
 
         <body mocap="true" name="mocap" pos="0 0 0">
             <!--For debugging, set the alpha to 1-->
-            <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1.0" size="0.1 0.02 0.02" type="box"></geom>-->
+            <!-- <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1.0" size="0.1 0.02 0.02" type="box"></geom> -->
             <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 0" size="0.1 0.02 0.02" type="box"></geom>
         </body>
 
