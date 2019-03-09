@@ -21,7 +21,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
             **kwargs
     ):
-        self.quick_init(locals())
+        # self.quick_init(locals())
+
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
 
@@ -101,7 +102,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_reach.xml')
+        return get_asset_full_path('multi_object_sawyer_xyz/sawyer_reach.xml')
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0

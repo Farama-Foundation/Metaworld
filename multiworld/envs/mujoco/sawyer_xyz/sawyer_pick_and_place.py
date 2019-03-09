@@ -454,7 +454,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.r_[adjust_x, action]
 
     def step(self, action):
-        new_obj_pos = self.data.get_site_xpos('obj')
+        new_obj_pos = self.get_obj_pos()
         new_obj_pos[0] = self.x_axis
         self._set_obj_xyz(new_obj_pos)
         action = self.convert_2d_action(action)
@@ -463,7 +463,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def set_to_goal(self, goal):
         super().set_to_goal(goal)
         obj_pos = self.get_obj_pos()
-        obj_pos[0] = self.x_axis
+        obj_pos[0] = 0
         self._set_obj_xyz(obj_pos)
 
 

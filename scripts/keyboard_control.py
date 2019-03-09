@@ -9,6 +9,7 @@ import gym
 
 import numpy as np
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
@@ -19,11 +20,19 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
     SawyerPushAndReachXYZDoublePuckEnv,
 )
 
-import pygame
-from pygame.locals import QUIT, KEYDOWN
-
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepGoalEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
+
+
+
+
+import pygame
+from pygame.locals import QUIT, KEYDOWN
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -64,7 +73,8 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+# env = SawyerSweepEnv()
+env = SawyerReachXYZEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -96,7 +106,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+    env.step(action[:3])
     if done:
         obs = env.reset()
     env.render()

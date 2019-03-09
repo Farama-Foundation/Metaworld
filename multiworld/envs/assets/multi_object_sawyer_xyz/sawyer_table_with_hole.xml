@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+	<include file="shared_config.xml"></include>
+	<worldbody>
+		<include file="sawyer_xyz_base_no_table.xml"></include>
+        <site name="hand-goal-site" pos="0. 0. 0." size="0.05"
+			  rgba="1 0.5 0.5 0.5"/>
+
+    <body name="g1" pos="0.034 0.4 -0.05" axisangle="0 1 0 0.05">
+      <geom name="g1" rgba="1.0 0 1.0 1" type="box" size="0.003 0.01 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="g2" pos="-0.034 0.4 -0.05" axisangle="0 1 0 -0.05">
+      <geom name="g2" rgba="1.0 0 1.0 1" type="box" size="0.003 0.01 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="g3" pos="0.0 0.434 -0.05" axisangle="1 0 0 -0.05">
+      <geom name="g3" rgba="1.0 0 1.0 1" type="box" size="0.01 0.003 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="g4" pos="0.0 0.366 -0.05" axisangle="1 0 0 0.05">
+      <geom name="g4" rgba="1.0 0 1.0 1" type="box" size="0.01 0.003 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="fl" pos="0.0 0.4 -0.13">
+      <geom name="fl" rgba="1.0 0 1.0 1" type="box" size="0.2 0.2 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="w1" pos="0.216 0.4 -0.03">
+      <geom name="w1" rgba="1.0 0 1.0 1" type="box" size="0.183 0.3 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="w2" pos="-0.216 0.4 -0.03">
+      <geom name="w2" rgba="1.0 0 1.0 1" type="box" size="0.183 0.3 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="w3" pos="0.0 0.616 -0.03">
+      <geom name="w3" rgba="1.0 0 1.0 1" type="box" size="0.032 0.183 0.05" contype="1" conaffinity="1" />
+    </body>
+
+    <body name="w4" pos="0.0 0.184 -0.03">
+      <geom name="w4" rgba="1.0 0 1.0 1" type="box" size="0.032 0.183 0.05" contype="1" conaffinity="1" />
+    </body>
+
+	</worldbody>
+    <actuator></actuator>
+</mujoco>
