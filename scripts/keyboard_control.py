@@ -23,10 +23,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
 
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
-
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepGoalEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
+
 
 
 
@@ -74,7 +74,7 @@ import pygame
 #     reset_free=False,
 # )
 # env = SawyerSweepEnv()
-env = SawyerReachXYZEnv()
+env = SawyerSweepIntoGoalEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -106,7 +106,9 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
+            print(action)
     env.step(action[:3])
+    # time.sleep(1)
     if done:
         obs = env.reset()
     env.render()

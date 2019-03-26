@@ -15,8 +15,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             norm_order=1,
             indicator_threshold=0.06,
 
-            fix_goal=False,
-            fixed_goal=(0.15, 0.6, 0.3),
+            fix_goal=True,
+            fixed_goal=(0., 0.4, -0.12),
             hide_goal_markers=False,
 
             **kwargs
@@ -36,7 +36,12 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.hide_goal_markers = hide_goal_markers
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]), dtype=np.float32)
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
-        self.observation_space = Dict([
+        self.observation_space = Box(
+            np.hstack((self.hand_low, self.hand_low, 0)),
+            np.hstack((self.hand_high, self.hand_high, 1)),
+            dtype=np.float32
+        )
+        self.observation_dict = Dict([
             ('observation', self.hand_space),
             ('desired_goal', self.hand_space),
             ('achieved_goal', self.hand_space),
@@ -55,13 +60,20 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.do_simulation(np.array([1]))
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
+        ob_dict = self._get_obs_dict()
         ob = self._get_obs()
-        reward = self.compute_reward(action, ob)
+        reward = self.compute_reward(action, ob_dict)
         info = self._get_info()
         done = False
         return ob, reward, done, info
 
     def _get_obs(self):
+        e = self.get_endeff_pos()
+        flat_obs = np.concatenate([e, [0,0,0,0]])
+        return flat_obs
+
+
+    def _get_obs_dict(self):
         flat_obs = self.get_endeff_pos()
         return dict(
             observation=flat_obs,
@@ -254,3 +266,11 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
+
+if __name__ == '__main__':
+    env = SawyerReachXYZEnv()
+    for i in range(1000):
+        if i % 100 == 0:
+            env.reset()
+        env.step(np.array([0, 1, 1]))
+        env.render()

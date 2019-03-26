@@ -39,6 +39,7 @@ class SawyerSweepEnv(MultitaskEnv, SawyerXYZEnv):
             puck_radius=.07,
             **kwargs
     ):
+
         self.quick_init(locals())
         self.model_name=get_asset_full_path(xml_path)
         MultitaskEnv.__init__(self)
@@ -84,8 +85,8 @@ class SawyerSweepEnv(MultitaskEnv, SawyerXYZEnv):
         )
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
         self.observation_space = Box(
-            np.hstack(([0.0], self.hand_low, puck_low)),
-            np.hstack(([0.04], self.hand_high, puck_high)),
+            np.hstack((self.hand_low, self.hand_low, 0)),
+            np.hstack((self.hand_high, self.hand_high, 1)),
             dtype=np.float32
         )
         self.init_puck_z = init_puck_z
@@ -133,23 +134,24 @@ class SawyerSweepEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_obs_dict(self):
         flat_obs = self._get_obs()
+        goal = flat_obs[:6]
         return dict(
             observation=flat_obs,
             desired_goal=self._state_goal,
-            achieved_goal=flat_obs,
+            achieved_goal=goal,
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
-            state_achieved_goal=flat_obs,
+            state_achieved_goal=goal,
             proprio_observation=flat_obs,
             proprio_desired_goal=self._state_goal,
-            proprio_achieved_goal=flat_obs,
+            proprio_achieved_goal=goal,
         )
 
     def _get_obs(self):
         e = self.get_endeff_pos()
         b = self.get_puck_pos()[:3]
         # gripper = self.get_gripper_pos()
-        flat_obs = np.concatenate([e, b])
+        flat_obs = np.concatenate([e, b, [1]])
         # flat_obs_with_gripper = np.concatenate((e, b))
 
         # pdb.set_trace()
@@ -336,15 +338,25 @@ class SawyerSweepEnv(MultitaskEnv, SawyerXYZEnv):
 
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
-        hand_pos = achieved_goals[0][:3]
-        puck_pos = achieved_goals[0][3:]
 
-        # pdb.set_trace()
-        hand_distance = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order)
-        neg_puck_height = -puck_pos[2]
-        r = np.array([hand_distance + neg_puck_height])
-        # pdb.set_trace()
-        return np.array([hand_distance + neg_puck_height])
+        hand_pos = achieved_goals[:, :3]
+        puck_pos = achieved_goals[:, 3:]
+        hand_goals = desired_goals[:, :3]
+        puck_goals = desired_goals[:, 3:]
+        puck_zs = self.init_puck_z * np.ones((desired_goals.shape[0], 1))
+
+        # hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
+        # puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
+
+        touch_distances = np.linalg.norm(
+            hand_pos - puck_pos,
+            ord=self.norm_order,
+            axis=1,
+        )
+
+        puck_height = puck_pos[0][2]
+        r = np.array([-touch_distances - puck_height])
+        return r
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

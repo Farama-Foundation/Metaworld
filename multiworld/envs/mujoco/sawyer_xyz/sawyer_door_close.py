@@ -23,7 +23,6 @@ class SawyerDoorCloseEnv(SawyerDoor6DOFEnv):
         **sawyer_xyz_kwargs
     ):
         SawyerDoor6DOFEnv.__init__(
-            self,
         self,
         goal_low=None,
         goal_high=None,
