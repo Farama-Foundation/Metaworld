@@ -14,7 +14,7 @@ from multiworld.envs.env_util import (
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v0
-from multiworld.envs.mujoco.util.rotation import euler2quat
+from multiworld.envs.mujoco.utils.rotation import euler2quat
 # TODO: use euler as action instead of quat
 
 

@@ -8,9 +8,9 @@ import numpy as np
 import cv2
 import mujoco_py
 from pyquaternion import Quaternion
-from multiworld.envs.mujoco.util.create_xml import create_object_xml, create_root_xml, clean_xml
+from multiworld.envs.mujoco.utils.create_xml import create_object_xml, create_root_xml, clean_xml
 from collections import OrderedDict
-from multiworld.envs.mujoco.util.interpolation import TwoPointCSpline
+from multiworld.envs.mujoco.utils.interpolation import TwoPointCSpline
 
 from mujoco_py.builder import MujocoException
 import copy

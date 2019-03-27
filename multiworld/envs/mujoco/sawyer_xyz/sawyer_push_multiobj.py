@@ -15,7 +15,7 @@ import copy
 
 from multiworld.core.multitask_env import MultitaskEnv
 
-from multiworld.envs.mujoco.util.create_xml import create_object_xml, create_root_xml, clean_xml
+from multiworld.envs.mujoco.utils.create_xml import create_object_xml, create_root_xml, clean_xml
 import multiworld
 
 BASE_DIR = '/'.join(str.split(multiworld.__file__, '/')[:-2])

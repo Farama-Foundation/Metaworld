@@ -4,6 +4,8 @@ import mujoco_py
 
 from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
+from pyquaternion import Quaternion
+from multiworld.envs.env_util import quat_to_zangle, zangle_to_quat
 
 import copy
 
@@ -68,10 +70,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_low=None,
             mocap_high=None,
             action_scale=2./100,
+            action_rot_scale=1.,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.action_scale = action_scale
+        self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
         self.hand_high = np.array(hand_high)
         if mocap_low is None:
@@ -92,6 +96,45 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+    def set_xyz_action_rot(self, action):
+        action[:3] = np.clip(action[:3], -1, 1)
+        pos_delta = action[:3] * self.action_scale
+        new_mocap_pos = self.data.mocap_pos + pos_delta[None]
+        new_mocap_pos[0, :] = np.clip(
+            new_mocap_pos[0, :],
+            self.mocap_low,
+            self.mocap_high,
+        )
+        rot_axis = action[4:] / np.linalg.norm(action[4:])
+        action[3] = action[3] * self.action_rot_scale
+        self.data.set_mocap_pos('mocap', new_mocap_pos)
+        # replace this with learned rotation
+        quat = (Quaternion(axis=[0,1,0], angle=(np.pi)) * Quaternion(axis=list(rot_axis), angle=action[3])).elements
+        self.data.set_mocap_quat('mocap', quat)
+        # self.data.set_mocap_quat('mocap', np.array([np.cos(action[3]/2), np.sin(action[3]/2)*rot_axis[0], np.sin(action[3]/2)*rot_axis[1], np.sin(action[3]/2)*rot_axis[2]]))
+        # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+    def set_xyz_action_rotz(self, action):
+        action[:3] = np.clip(action[:3], -1, 1)
+        pos_delta = action[:3] * self.action_scale
+        new_mocap_pos = self.data.mocap_pos + pos_delta[None]
+        new_mocap_pos[0, :] = np.clip(
+            new_mocap_pos[0, :],
+            self.mocap_low,
+            self.mocap_high,
+        )
+        self.data.set_mocap_pos('mocap', new_mocap_pos)
+        zangle_delta = action[3] * self.action_rot_scale
+        new_mocap_zangle = quat_to_zangle(self.data.mocap_quat[0]) + zangle_delta
+        new_mocap_zangle = np.clip(
+            new_mocap_zangle,
+            -3.0,
+            3.0,
+        )
+        if new_mocap_zangle < 0:
+            new_mocap_zangle += 2 * np.pi
+        self.data.set_mocap_quat('mocap', zangle_to_quat(new_mocap_zangle))
 
     def set_xy_action(self, xy_action, fixed_z):
         delta_z = fixed_z - self.data.mocap_pos[0, 2]

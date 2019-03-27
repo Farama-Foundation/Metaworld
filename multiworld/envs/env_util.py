@@ -5,6 +5,7 @@ from numbers import Number
 
 import numpy as np
 from gym.spaces import Box
+from pyquaternion import Quaternion
 
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
@@ -114,3 +115,14 @@ def concatenate_box_spaces(*spaces):
     low = np.concatenate([space.low for space in spaces])
     high = np.concatenate([space.high for space in spaces])
     return Box(low=low, high=high, dtype=np.float32)
+
+def quat_to_zangle(quat):
+    angle = (Quaternion(axis = [0,1,0], angle = (np.pi/2)).inverse * Quaternion(quat)).angle
+    return angle
+    
+def zangle_to_quat(zangle):
+    """
+    :param zangle in rad
+    :return: quaternion
+    """
+    return (Quaternion(axis = [0,1,0], angle = (np.pi/2)) * Quaternion(axis=[-1, 0, 0], angle= zangle)).elements

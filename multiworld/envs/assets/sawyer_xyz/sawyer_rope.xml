@@ -1,0 +1,76 @@
+<mujoco model="rope">
+	<include file="shared_config.xml"></include>
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"></include>
+		<body name="bead_0" pos="0.0 0.0 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_0" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_1" pos="0.0 0.07 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_1" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_2" pos="0.0 0.14 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_2" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_3" pos="0.0 0.21000000000000002 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_3" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_4" pos="0.0 0.28 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_4" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_5" pos="0.0 0.35000000000000003 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_5" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="bead_6" pos="0.0 0.42000000000000004 0.0">
+			<joint type="free"/>
+			<geom type="sphere" size="0.03" rgba="0.5 0.5 0.5 1" mass="0.03" contype="7" conaffinity="7" friction="1.0 0.10 0.002" condim="6" solimp="0.99 0.99 0.01" solref="0.01 1" material="bead_material"/>
+			<site name="site_6" pos="0.0 0.0 0.0" type="sphere" size="0.01"/>
+		</body>
+		<body name="light" pos="0 0 1">
+			<light name="light0" mode="fixed" directional="false" active="true" castshadow="true"/>
+		</body>
+	</worldbody>
+	<tendon >
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_0"/>
+			<site site="site_1"/>
+		</spatial>
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_1"/>
+			<site site="site_2"/>
+		</spatial>
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_2"/>
+			<site site="site_3"/>
+		</spatial>
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_3"/>
+			<site site="site_4"/>
+		</spatial>
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_4"/>
+			<site site="site_5"/>
+		</spatial>
+		<spatial limited="true" range="0.0 0.07" width="0.005">
+			<site site="site_5"/>
+			<site site="site_6"/>
+		</spatial>
+	</tendon>
+	<asset >
+		<texture file="wood.png" name="table_texture"/>
+		<material name="table_material" rgba="1 1 1 1" shininess="0.3" specular="1" texture="table_texture"/>
+		<texture file="marble.png" name="bead_texture"/>
+		<material name="bead_material" rgba="1 1 1 1" shininess="0.3" specular="1" texture="bead_texture"/>
+	</asset>
+</mujoco>

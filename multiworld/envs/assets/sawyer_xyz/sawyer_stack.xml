@@ -3,32 +3,27 @@
     <include file="shared_config.xml"></include>
     <worldbody>
         <include file="sawyer_xyz_base.xml"></include>
-        <body name="obj" pos="0 0 0.1">
-            <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
-            <inertial pos="0 0 0" mass="1" diaginertia="100000 100000 100000"/>
-            <geom name="objbox" type="box" pos="0 0 0"
-                  size=".02 .02 .02" rgba="0.0 0.0 1.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
-
-                  />
-        <!-- <body name="obj2" pos="0 0 0.01">
-            <geom name="obj_T" type="box" pos="0 0 0"
-                  size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
+        <body name="obj" pos="0 0.6 0.02">
+            <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" />
+            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
             />
-        </body>
-
-            <site name="obj" pos="0 .0 0" size="0.035" rgba="0.0 0.0 1.0 1"/> -->
+            <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+            /> -->
+           <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
 
         <body name="goal" pos="0 0 0.1">
             <joint name="goaljoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="2" diaginertia="100000 100000 100000"/>
-            <geom name="goalbox" type="box" pos="0 0 0"
-                  size=".025 .025 .015" rgba="1.0 0.0 0.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=2.0, margin=0.0
-
-                  />
+            <geom name="goalGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+            />
         <!-- <body name="obj2" pos="0 0 0.01">
             <geom name="obj_T" type="box" pos="0 0 0"
                   size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
@@ -40,6 +35,8 @@
         </body>
     </worldbody>
     <actuator>
-        <motor gear="100" joint="rc_close"  />
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+       
     </actuator>
 </mujoco>

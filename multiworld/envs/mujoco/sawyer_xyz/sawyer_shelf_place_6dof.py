@@ -11,21 +11,23 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
-class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
+class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=None,
-            obj_high=None,
+            obj_low=(-0.1, 0.5, 0.02),
+            obj_high=(0.1, 0.6, 0.02),
             random_init=False,
-            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=None,
-            goal_high=None,
+            tasks = [{'goal': np.array([0., 0.85, 0.001]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.8, 0.001),
+            goal_high=(0.1, 0.9, 0.001),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rewMode = 'orig',
-            rotMode='rotz',#'fixed',
+            rotMode='fixed',#'fixed',
+            multitask=False,
+            multitask_num=1,
             **kwargs
     ):
         self.quick_init(locals())
@@ -52,12 +54,15 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
+        self.max_path_length = 150#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
+        self.multitask = multitask
+        self.multitask_num = multitask_num
+        self._state_goal_idx = np.zeros(multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -79,20 +84,22 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
                 np.array([-1, -1, -1, -np.pi/2, -np.pi/2, 0, -1]),
                 np.array([1, 1, 1, np.pi/2, np.pi/2, np.pi*2, 1]),
             )
-        self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+        self.obj_and_goal_space = Box(
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(goal_low, goal_high)
-        self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low)),
-                np.hstack((self.hand_high, obj_high, obj_high)),
-        )
-        # self.observation_space = Dict([
-        #     ('state_observation', self.hand_and_obj_space),
-        #     ('state_desired_goal', self.goal_space),
-        #     ('state_achieved_goal', self.goal_space),
-        # ])
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        if not multitask:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        else:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, np.ones(multitask_num))),
+            )
+        self.reset()
 
 
     def get_goal(self):
@@ -103,7 +110,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     @property
     def model_name(self):     
 
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_shelf_placing.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
@@ -117,14 +124,31 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.azimuth = 270
         # self.viewer.cam.trackbodyid = -1
         # side view
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0.2
+        # self.viewer.cam.lookat[1] = 0.75
+        # self.viewer.cam.lookat[2] = 0.4
+        # self.viewer.cam.distance = 0.4
+        # self.viewer.cam.elevation = -55
+        # self.viewer.cam.azimuth = 180
+        # self.viewer.cam.trackbodyid = -1
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0.2
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
+        self.viewer.cam.lookat[1] = 0.5
+        self.viewer.cam.lookat[2] = 0.6
         self.viewer.cam.distance = 0.4
         self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
+        self.viewer.cam.azimuth = 135
         self.viewer.cam.trackbodyid = -1
+        # robot view
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 0.4
+        # self.viewer.cam.lookat[2] = 0.4
+        # self.viewer.cam.distance = 0.4
+        # self.viewer.cam.elevation = -55
+        # self.viewer.cam.azimuth = 90
+        # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
         self.render()
@@ -152,12 +176,19 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
+        # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
+        if self.multitask:
+            assert hasattr(self, '_state_goal_idx')
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal_idx
+                ])
         return np.concatenate([
                 flat_obs,
                 self._state_goal
@@ -242,25 +273,27 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
+        self.sim.model.body_pos[self.model.body_name2id('shelf')] = np.array(task['goal'])
+        self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
         self.obj_init_angle = task['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
-                self.hand_and_obj_space.low,
-                self.hand_and_obj_space.high,
-                size=(self.hand_and_obj_space.low.size),
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=(self.obj_and_goal_space.low.size),
             )
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-2:]) < 0.1:
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = np.random.uniform(
-                    self.hand_and_obj_space.low,
-                    self.hand_and_obj_space.high,
-                    size=(self.hand_and_obj_space.low.size),
+                    self.obj_and_goal_space.low,
+                    self.obj_and_goal_space.high,
+                    size=(self.obj_and_goal_space.low.size),
                 )
-            self._state_goal = goal_pos[:3]
-            self.obj_init_pos = np.concatenate((goal_pos[-2:], self.obj_init_pos[-1]))
+            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
+            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
@@ -390,3 +423,38 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
+
+
+if __name__ == '__main__':
+    import time
+    env = SawyerShelfPlace6DOFEnv()
+    for _ in range(1000):
+        env.reset()
+        # for _ in range(10):
+        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.05]))
+        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        #     env.do_simulation([-1,1], env.frame_skip)
+        #     #self.do_simulation(None, self.frame_skip)
+        # for _ in range(10):
+        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
+        #     # env.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.25]))
+        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        #     env.do_simulation([-1,1], env.frame_skip)
+        #     #self.do_simulation(None, self.frame_skip)
+        for _ in range(100):
+            print('Before:', env.sim.model.site_pos[env.model.site_name2id('goal')] + env.sim.model.body_pos[env.model.body_name2id('shelf')])
+            env.sim.model.body_pos[env.model.body_name2id('shelf')] = np.array([0., np.random.uniform(0.8, 0.9), 0.001])
+            print("After: ", env.sim.model.site_pos[env.model.site_name2id('goal')] + env.sim.model.body_pos[env.model.body_name2id('shelf')])
+            env.render()
+            env.step(env.action_space.sample())
+            # if _ < 10:
+            #     env.step(np.array([0, 0, -1, 0, 0]))
+            # elif _ < 50:
+            #     env.step(np.array([0, 0, 0, 0, 1]))
+            # if _ < 10:
+            #     env.step(np.array([0, 0, -1, 0, 0]))
+            # else:
+            #     env.step(np.array([0, 1, 0, 0, 1]))
+                # env.step(np.array([0, 1, 0, 0, 0]))
+            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
+            time.sleep(0.05)

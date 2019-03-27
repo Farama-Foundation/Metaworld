@@ -11,21 +11,21 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
-class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
+class SawyerPickAndPlaceWsg6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
+            hand_low=(-0.5, 0.40, 0.1),
+            hand_high=(0.5, 1, 0.55),
             obj_low=None,
             obj_high=None,
             random_init=False,
-            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.7, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
+            hand_init_pos = (0, 0.6, 0.31),
             liftThresh = 0.04,
             rewMode = 'orig',
-            rotMode='rotz',#'fixed',
+            rotMode='quat',
             **kwargs
     ):
         self.quick_init(locals())
@@ -52,24 +52,13 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
+        self.max_path_length = 150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
-        if rotMode == 'fixed':
-            self.action_space = Box(
-                np.array([-1, -1, -1, -1]),
-                np.array([1, 1, 1, 1]),
-            )
-        elif rotMode == 'rotz':
-            self.action_rot_scale = 1./50
-            self.action_space = Box(
-                np.array([-1, -1, -1, -np.pi, -1]),
-                np.array([1, 1, 1, np.pi, 1]),
-            )
-        elif rotMode == 'quat':
+        if rotMode == 'quat':
             self.action_space = Box(
                 np.array([-1, -1, -1, 0, -1, -1, -1, -1]),
                 np.array([1, 1, 1, 2*np.pi, 1, 1, 1, 1]),
@@ -103,41 +92,28 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     @property
     def model_name(self):     
 
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz_wsg/sawyer_wsg_pickPlace.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
         self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.2
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
+        self.viewer.cam.lookat[0] = 0
+        self.viewer.cam.lookat[1] = 1.0
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.distance = 0.6
+        self.viewer.cam.elevation = -45
+        self.viewer.cam.azimuth = 270
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
         self.render()
         # self.set_xyz_action_rot(action[:7])
-        if self.rotMode == 'euler':
+        if self.rotMode != 'quat':
+            assert self.rotMode == 'euler'
             action_ = np.zeros(7)
             action_[:3] = action[:3]
             action_[3:] = euler2quat(action[3:6])
             self.set_xyz_action_rot(action_)
-        elif self.rotMode == 'fixed':
-            self.set_xyz_action(action[:3])
-        elif self.rotMode == 'rotz':
-            self.set_xyz_action_rotz(action[:4])
         else:
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
@@ -236,7 +212,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         adjustedPos = orig_init_pos[:2] + diff
 
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
+        return [adjustedPos[0], adjustedPos[1],0]
 
 
     def reset_model(self):
@@ -272,11 +248,9 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     def _reset_hand(self):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
             #self.do_simulation(None, self.frame_skip)
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def get_site_pos(self, siteName):
@@ -296,7 +270,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self.get_site_pos('finger2_surf'), self.get_site_pos('finger1_surf')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
@@ -308,21 +282,15 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
       
 
         def reachReward():
-            reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-            if reachDistxy < 0.05: #0.02
-                reachRew = -reachDist
-            else:
-                reachRew =  -reachDistxy - 2*zRew
+            reachRew = -reachDist + min(actions[-1], -1)/50
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
+            if reachDist < 0.02:
                 reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
-            if objPos[2] >= (heightTarget- tolerance):
+            if objPos[2] >= (heightTarget - tolerance):
                 return True
             else:
                 return False
@@ -341,11 +309,9 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
         def orig_pickReward():       
-            # hScale = 50
-            hScale = 100
+            hScale = 50
             if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
-            # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
             elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
                 return hScale* min(heightTarget, objPos[2])
             else:
@@ -361,7 +327,6 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
                 return 0
 
         def placeReward():
-            # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             if mode == 'general':
                 cond = self.pickCompleted and objGrasped()

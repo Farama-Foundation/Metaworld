@@ -11,7 +11,7 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
-class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
+class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             hand_low=(-0.5, 0.40, 0.05),
@@ -19,13 +19,14 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
             random_init=False,
-            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            # tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.04,
-            rewMode = 'orig',
-            rotMode='rotz',#'fixed',
+            liftThresh = 0.15,
+            rotMode='fixed',#'fixed',
+            rewMode='orig',
             **kwargs
     ):
         self.quick_init(locals())
@@ -52,7 +53,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
+        self.max_path_length = 200#150#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -83,16 +84,12 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
         )
-        self.goal_space = Box(goal_low, goal_high)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low)),
-                np.hstack((self.hand_high, obj_high, obj_high)),
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
         )
-        # self.observation_space = Dict([
-        #     ('state_observation', self.hand_and_obj_space),
-        #     ('state_desired_goal', self.goal_space),
-        #     ('state_achieved_goal', self.goal_space),
-        # ])
+        self.reset()
 
 
     def get_goal(self):
@@ -103,7 +100,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     @property
     def model_name(self):     
 
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_box.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
@@ -147,7 +144,6 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
-        #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
@@ -156,7 +152,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
+        objPos =  self.data.get_geom_xpos('handle').copy()
         flat_obs = np.concatenate((hand, objPos))
         return np.concatenate([
                 flat_obs,
@@ -165,7 +161,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
+        objPos =  self.data.get_geom_xpos('handle').copy()
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -190,7 +186,7 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        objPos =  self.data.get_geom_xpos('objGeom')
+        objPos =  self.data.get_geom_xpos('handle')
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
@@ -229,23 +225,14 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-    def adjust_initObjPos(self, orig_init_pos):
-        #This is to account for meshes for the geom and object are not aligned
-        #If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
-        adjustedPos = orig_init_pos[:2] + diff
-
-        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
-
 
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
         self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
+        self.obj_init_pos = task['obj_init_pos']
         self.obj_init_angle = task['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.data.get_geom_xpos('handle')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
@@ -259,7 +246,6 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
                     self.hand_and_obj_space.high,
                     size=(self.hand_and_obj_space.low.size),
                 )
-            self._state_goal = goal_pos[:3]
             self.obj_init_pos = np.concatenate((goal_pos[-2:], self.obj_init_pos[-1]))
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
@@ -290,8 +276,8 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs, mode = 'general'):
-        if isinstance(obs, dict):
+    def compute_reward(self, actions, obs, mode='orig'):
+        if isinstance(obs, dict): 
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -300,21 +286,22 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        placingGoal = self._state_goal
+        placeGoal = self._state_goal
 
+        placingDist = np.linalg.norm(objPos - placeGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
-
-        placingDist = np.linalg.norm(objPos - placingGoal)
-      
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
             zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            # reachRew = -reachDist
+            reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
             if reachDistxy < 0.05: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - 2*zRew
+                # reachRew =  -reachDistxy - zRew
+                reachRew =  -reachDistxyz
             #incentive to close fingers when reachDist is small
             if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1],0)/50
@@ -390,3 +377,31 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
+
+if __name__ == '__main__':
+    import time
+    env = SawyerBoxClose6DOFEnv()
+    for _ in range(1000):
+        env.reset()
+        # for _ in range(10):
+        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.05]))
+        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        #     env.do_simulation([-1,1], env.frame_skip)
+        #     #self.do_simulation(None, self.frame_skip)
+        for _ in range(10):
+            env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
+            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.do_simulation([-1,1], env.frame_skip)
+            #self.do_simulation(None, self.frame_skip)
+        for _ in range(100):
+            env.render()
+            # env.step(env.action_space.sample())
+            # env.step(np.array([0, -1, 0, 0, 0]))
+            if _ < 10:
+                env.step(np.array([0, 0, -1, 0, 0]))
+            elif _ < 50:
+                env.step(np.array([0, 0, 0, 0, 1]))
+            else:
+                env.step(np.array([0, 0, 1, 0, 1]))
+            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
+            time.sleep(0.05)
