@@ -8,23 +8,25 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
+class SawyerHandInsertEnv(SawyerXYZEnv, MultitaskEnv):
     def __init__(
             self,
             reward_type='hand_distance',
             norm_order=1,
             indicator_threshold=0.06,
-
+            hand_low=(-0.28, 0.3, -.12),
+            hand_high=(0.28, 0.9, 0.3),
             fix_goal=True,
             fixed_goal=(0., 0.4, -0.12),
             hide_goal_markers=False,
 
             **kwargs
     ):
-        # self.quick_init(locals())
+        self.quick_init(locals())
 
         MultitaskEnv.__init__(self)
-        SawyerXYZEnv.__init__(self, model_name=self.model_name, **kwargs)
+        SawyerXYZEnv.__init__(self, model_name=self.model_name,
+            hand_low=hand_low, hand_high=hand_high, **kwargs)
 
         self.reward_type = reward_type
         self.norm_order = norm_order
@@ -36,11 +38,6 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.hide_goal_markers = hide_goal_markers
         self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]), dtype=np.float32)
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
-        self.observation_space = Box(
-            np.hstack((self.hand_low, self.hand_low, 0)),
-            np.hstack((self.hand_high, self.hand_high, 1)),
-            dtype=np.float32
-        )
         self.observation_dict = Dict([
             ('observation', self.hand_space),
             ('desired_goal', self.hand_space),
@@ -52,6 +49,19 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             ('proprio_desired_goal', self.hand_space),
             ('proprio_achieved_goal', self.hand_space),
         ])
+
+        self.hand_low = np.array(hand_low)
+        self.hand_high = np.array(hand_high)
+        # self.observation_space = Box(
+        #     self.hand_low,
+        #     self.hand_high,
+        #     dtype=np.float32
+        # )
+        self.observation_space = Box(
+            np.hstack((self.hand_low, self.hand_low, 0)),
+            np.hstack((self.hand_high, self.hand_high, 1)),
+            dtype=np.float32
+        )
         self.reset()
 
     def step(self, action):
@@ -67,11 +77,16 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         done = False
         return ob, reward, done, info
 
+    # def _get_obs(self):
+    #     e = self.get_endeff_pos()
+    #     print('end effector pos', e)
+    #     flat_obs = np.concatenate([e, [0,0,0,0]])
+    #     return e
+
     def _get_obs(self):
         e = self.get_endeff_pos()
         flat_obs = np.concatenate([e, [0,0,0,0]])
         return flat_obs
-
 
     def _get_obs_dict(self):
         flat_obs = self.get_endeff_pos()
@@ -114,7 +129,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('multi_object_sawyer_xyz/sawyer_reach.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_table_with_hole_no_puck.xml')
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
@@ -196,7 +211,7 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
                   > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
-        return r
+        return np.array([r])
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -232,43 +247,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self._set_goal_marker(goal)
 
 
-class SawyerReachXYEnv(SawyerReachXYZEnv):
-    def __init__(self, *args,
-                 fixed_goal=(0.15, 0.6),
-                 hand_z_position=0.055, **kwargs):
-        self.quick_init(locals())
-        SawyerReachXYZEnv.__init__(
-            self,
-            *args,
-            fixed_goal=(fixed_goal[0], fixed_goal[1], hand_z_position),
-            **kwargs
-        )
-        self.hand_z_position = hand_z_position
-        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
-        self.hand_space = Box(
-            np.hstack((self.hand_space.low[:2], self.hand_z_position)),
-            np.hstack((self.hand_space.high[:2], self.hand_z_position)),
-            dtype=np.float32
-        )
-        self.observation_space = Dict([
-            ('observation', self.hand_space),
-            ('desired_goal', self.hand_space),
-            ('achieved_goal', self.hand_space),
-            ('state_observation', self.hand_space),
-            ('state_desired_goal', self.hand_space),
-            ('state_achieved_goal', self.hand_space),
-            ('proprio_observation', self.hand_space),
-            ('proprio_desired_goal', self.hand_space),
-            ('proprio_achieved_goal', self.hand_space),
-        ])
-
-    def step(self, action):
-        delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
-        action = np.hstack((action, delta_z))
-        return super().step(action)
-
 if __name__ == '__main__':
-    env = SawyerReachXYZEnv()
+    env = SawyerHandInsertEnv(fix_goal=True)
     for i in range(1000):
         if i % 100 == 0:
             env.reset()
