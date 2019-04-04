@@ -14,12 +14,12 @@ from multiworld.envs.mujoco.utils.rotation import euler2quat
 class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
+            hand_low=(-0.5, 0.35, 0.05),
             hand_high=(0.5, 1, 0.5),
             obj_low=None,
             obj_high=None,
             random_init=False,
-            tasks = [{'goal': np.array([0.2, 0.45]),  'stick_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.2, 0.6, 0.04]), 'obj_init_qpos':np.array([0., 0])}], 
+            tasks = [{'goal': np.array([0.2, 0.4]),  'stick_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.2, 0.69, 0.04]), 'obj_init_qpos':np.array([0., 0.09])}], 
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
@@ -141,13 +141,13 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self._set_goal_marker(np.concatenate((self._state_goal, [self.stick_init_pos[-1]])))
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward , reachRew, reachDist, pickRew, pullRew , pullDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
+        reward , reachRew, reachDist, pickRew, pullRew , pullDist, placeDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'pullRew': pullRew, 'epRew' : reward, 'pullDist': pullDist}
+        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'pullRew': pullRew, 'epRew' : reward, 'pullDist': pullDist, 'placeDist': placeDist}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -263,6 +263,7 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self.obj_init_pos = self.get_body_com('object').copy()
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal)
+        self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
         self.curr_path_length = 0
         #Can try changing this
         return self._get_obs()
@@ -302,6 +303,7 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         pullGoal = self._state_goal
 
         pullDist = np.linalg.norm(objPos[:2] - pullGoal)
+        placeDist = np.linalg.norm(stickPos - objPos)
         reachDist = np.linalg.norm(stickPos - fingerCOM)
 
         def reachReward():
@@ -362,21 +364,23 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             else:
                 cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
             if cond:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+                pullRew = 1000*(self.maxPlaceDist - placeDist) + c1*(np.exp(-(placeDist**2)/c2) + np.exp(-(placeDist**2)/c3))
+                if placeDist < 0.05:
+                    pullRew += 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
                 pullRew = max(pullRew,0)
-                return [pullRew , pullDist]
+                return [pullRew , pullDist, placeDist]
             else:
-                return [0 , pullDist]
+                return [0 , pullDist, placeDist]
 
         reachRew, reachDist = reachReward()
         if mode == 'general':
             pickRew = general_pickReward()
         else:
             pickRew = orig_pickReward()
-        pullRew , pullDist = pullReward()
+        pullRew , pullDist, placeDist = pullReward()
         assert ((pullRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + pullRew
-        return [reward, reachRew, reachDist, pickRew, pullRew, pullDist] 
+        return [reward, reachRew, reachDist, pickRew, pullRew, pullDist, placeDist] 
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

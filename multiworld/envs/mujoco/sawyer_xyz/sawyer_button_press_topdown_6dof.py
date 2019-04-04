@@ -27,6 +27,7 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -60,6 +61,7 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
+        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -139,7 +141,8 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -257,9 +260,10 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
             self._state_goal[2] -= 0.02
         # self._set_obj_xyz(self.obj_init_qpos)
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('button')] = button_pos
+        self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
         self.curr_path_length = 0
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._state_goal[2])
+        self.target_reward = 1000*self.maxDist + 1000*2
         #Can try changing this
         return self._get_obs()
 

@@ -18,7 +18,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			hand_high=(0.5, 1, 0.5),
 			obj_low=(-0.1, 0.8, 0.04),
 			obj_high=(0.1, 0.9, 0.04),
-			random_init=True,
+			random_init=False,
 			# tasks = [{'goal': 0.55,  'obj_init_pos':0.0, 'obj_init_angle': 0.3}], 
 			tasks = [{'goal': np.array([0., 0.55, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
 			goal_low=None,
@@ -27,6 +27,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			rotMode='fixed',#'fixed',
 			multitask=False,
 			multitask_num=1,
+			if_render=False,
 			**kwargs
 	):
 		self.quick_init(locals())
@@ -60,6 +61,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 		self.multitask = multitask
 		self.multitask_num = multitask_num
 		self._state_goal_idx = np.zeros(self.multitask_num)
+		self.if_render = if_render
 		if rotMode == 'fixed':
 			self.action_space = Box(
 				np.array([-1, -1, -1, -1]),
@@ -131,7 +133,8 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 		self.viewer.cam.trackbodyid = -1
 
 	def step(self, action):
-		self.render()
+		if self.if_render:
+			self.render()
 		# self.set_xyz_action_rot(action[:7])
 		if self.rotMode == 'euler':
 			action_ = np.zeros(7)
@@ -274,6 +277,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 		self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
 		self.curr_path_length = 0
 		self.maxPullDist = 0.2
+		self.target_reward = 1000*self.maxPullDist + 1000*2
 		#Can try changing this
 		return self._get_obs()
 
@@ -331,7 +335,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
 			# c1 = 10 ; c2 = 0.01 ; c3 = 0.001
 			if self.reachCompleted:
-				pullRew = 10*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+				pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
 				pullRew = max(pullRew,0)
 				return pullRew
 			else:

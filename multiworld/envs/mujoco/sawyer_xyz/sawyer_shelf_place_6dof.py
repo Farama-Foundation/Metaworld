@@ -28,6 +28,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -63,6 +64,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(multitask_num)
+        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -151,7 +153,8 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -299,6 +302,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.target_reward = 1000*self.maxPlacingDist + 1000*2
         #Can try changing this
         return self._get_obs()
 

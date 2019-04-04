@@ -5,10 +5,10 @@
         <include file="sawyer_xyz_base.xml"></include>
         <body name="hammer" pos="0 0.6 0.02">
           <inertial pos="0 0 0" mass="1" diaginertia="100000 100000 100000"/>
-          <!-- <geom name="hammerHandle" fromto="-0.1 0 0 0.1 0 0" rgba="1 0.3 0.3 1" size="0.02 0.1" type="cylinder" solimp="0.998 0.998 0.001" solref="0.02 1" conaffinity="1" contype="1" group="1"/>
-          <geom name="hammerHead" rgba="1 0.3 0.3 1" pos="0.12 0 0" size="0.02 0.04 0.02" type="box" solimp="0.998 0.998 0.001" solref="0.02 1" conaffinity="1" contype="1" group="1"/> -->
-          <geom name="hammerHandle" fromto="-0.1 0 0 0.1 0 0" rgba="1 0.3 0.3 1" size="0.02 0.1" type="cylinder" conaffinity="1" contype="1" group="1"/>
-          <geom name="hammerHead" rgba="1 0.3 0.3 1" pos="0.12 0 0" size="0.02 0.04 0.02" type="box" conaffinity="1" contype="1" group="1"/>
+          <geom name="hammerHandle" fromto="-0.1 0 0 0.1 0 0" rgba="1 0.3 0.3 1" size="0.02 0.1" type="cylinder" solimp="0.998 0.998 0.001" solref="0.02 1" conaffinity="1" contype="1" group="1"/>
+          <geom name="hammerHead" rgba="1 0.3 0.3 1" pos="0.12 0 0" size="0.02 0.04 0.02" type="box" solimp="0.998 0.998 0.001" solref="0.02 1" conaffinity="1" contype="1" group="1"/>
+          <!-- <geom name="hammerHandle" fromto="-0.1 0 0 0.1 0 0" rgba="1 0.3 0.3 1" size="0.02 0.1" type="cylinder" conaffinity="1" contype="1" group="1"/>
+          <geom name="hammerHead" rgba="1 0.3 0.3 1" pos="0.12 0 0" size="0.02 0.04 0.02" type="box" conaffinity="1" contype="1" group="1"/> -->
           <joint type="free" limited='false' damping="0.0005"/>
         </body>
 

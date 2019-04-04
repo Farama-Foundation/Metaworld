@@ -18,8 +18,11 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             obj_low=(-0.1, 0.6, 0.02),
             obj_high=(0.1, 0.7, 0.02),
-            random_init=True,
+            random_init=False,
             # task_types=['reach', 'push', 'pick_place'],
+            # tasks = [{'goal': np.array([-0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
+            #         {'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'push'},
+            #         {'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'}], 
             task_types=['pick_place', 'reach', 'push'],
             tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'},
                     {'goal': np.array([-0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
@@ -33,6 +36,9 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
+            if_render=False,
+            task_idx=0,
+            fix_task=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -70,6 +76,9 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
+        self.if_render = if_render
+        self.fix_task = fix_task
+        self.task_idx = task_idx
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -147,7 +156,8 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -278,11 +288,15 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        if self.sampleMode == 'equal':
-            self.task_idx = self.num_resets % self.num_tasks
-            task = self.tasks[self.task_idx]
+        if not self.fix_task:
+            if self.sampleMode == 'equal':
+                self.task_idx = self.num_resets % self.num_tasks
+                # self.task_idx = 0
+                task = self.tasks[self.task_idx]
+            else:
+                task = self.sample_task()
         else:
-            task = self.sample_task()
+            task = self.tasks[self.task_idx]
         self.task_type = task['type']
         self._state_goal = np.array(task['goal'])
         if not self.multitask:
@@ -319,6 +333,8 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
+        self.target_reward = self.target_rewards[self.task_idx]
         self.num_resets += 1
         # import pdb; pdb.set_trace()
         return self._get_obs()

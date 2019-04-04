@@ -4,6 +4,7 @@ from gym import error, spaces
 from gym.utils import seeding
 import numpy as np
 from os import path
+from collections import deque
 import gym
 from gym.spaces import Box
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_6dof import SawyerTwoObject6DOFEnv
@@ -35,8 +36,10 @@ except ImportError as e:
 	raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 
 DEFAULT_SIZE = 500
-ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv,
-			SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv,
+# 			SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
+ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv,
+			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
 
 class MultiTaskMujocoEnv(gym.Env):
 	"""
@@ -44,30 +47,49 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	def __init__(self):
 		self.mujoco_envs = []
+		self.scores = {i:deque(maxlen=10) for i in range(len(ENV_LIST))}
+		self.sample_probs = np.array([1./(len(ENV_LIST)) for _ in range(len(ENV_LIST))])
+		self.target_scores = []
+		self.sample_tau = 0.05
 		for i, env in enumerate(ENV_LIST):
-			self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST)+2))
+			if i < 2:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=True, fix_task=True, task_idx=i))
+			else:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=True))
 			# set the one-hot task representation
-			if i != 0:
-				self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)+2))
-				self.mujoco_envs[i]._state_goal_idx[i+2] = 1.
+			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
+			self.mujoco_envs[i]._state_goal_idx[i] = 1.
+			self.target_scores.append(self.mujoco_envs[i].target_reward)
 		# TODO: make sure all observation spaces across tasks are the same / use self-attention
 		self.num_resets = 0
-		self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
+		self.task_idx = self.num_resets % len(ENV_LIST)
 		self.action_space = self.mujoco_envs[self.task_idx].action_space
 		self.observation_space = self.mujoco_envs[self.task_idx].observation_space
-		self.goal_space = Box(np.zeros(len(ENV_LIST)+2), np.ones(len(ENV_LIST)+2))
+		self.goal_space = Box(np.zeros(len(ENV_LIST)), np.ones(len(ENV_LIST)))
 		self.reset()
+		self.num_resets -= 1
 
 	def seed(self, seed=None):
 		self.np_random, seed = seeding.np_random(seed)
 		return [seed]
 
 	def step(self, action):
-		return self.mujoco_envs[self.task_idx].step(action)
+		ob, reward, done, info = self.mujoco_envs[self.task_idx].step(action)
+		if done:
+			self.scores[self.task_idx].append(reward)
+		return ob, reward, done, info
 
 	def reset(self):
-		# self.task_idx = np.random.choice([0, 0] + list(range(len(self.mujoco_envs))))
-		self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
+		# self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
+		if self.num_resets < len(ENV_LIST)*2:
+			self.task_idx = self.num_resets % len(ENV_LIST)
+		else:
+			if self.num_resets % (5*len(ENV_LIST)) == 0:
+				avg_scores = [np.mean(self.scores[i]) for i in range(len(ENV_LIST))]
+				self.sample_probs = np.exp((np.array(self.target_scores) - np.array(avg_scores))/np.array(self.target_scores)/self.sample_tau)
+				self.sample_probs = self.sample_probs / self.sample_probs.sum()
+				print('Sampling prob is', self.sample_probs)
+			self.task_idx = np.random.choice(range(len(ENV_LIST)), p=self.sample_probs)
 		self.num_resets += 1
 		return self.mujoco_envs[self.task_idx].reset()
 

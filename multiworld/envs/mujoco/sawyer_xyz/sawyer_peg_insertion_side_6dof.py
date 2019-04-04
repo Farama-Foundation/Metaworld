@@ -28,6 +28,7 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
             rewMode='orig',
             multitask=False,
             multitask_num=1,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -63,6 +64,7 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
+        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -134,7 +136,8 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -259,6 +262,7 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.obj_init_pos = self.get_body_com('peg')
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.curr_path_length = 0
         #Can try changing this
         return self._get_obs()

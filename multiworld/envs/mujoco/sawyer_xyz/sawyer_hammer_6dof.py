@@ -18,7 +18,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             obj_low=(-0.1, 0.5, 0.02),
             obj_high=(0.1, 0.6, 0.02),
-            random_init=True,
+            random_init=False,
             # tasks = [{'goal': np.array([0.24, 0.74, 0.11]),  'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.65, 0.11]), 'obj_init_qpos':0.}], 
             tasks = [{'goal': np.array([0.24, 0.85, 0.05]), 'screw_init_pos':np.array([0.24, 0.71, 0.11]), 'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.71, 0.11])}], 
             goal_low=(0., 0.85, 0.05),

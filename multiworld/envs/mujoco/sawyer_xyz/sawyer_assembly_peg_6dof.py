@@ -393,8 +393,8 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
             if self.placeCompleted:
-                # placeRew = -200*actions[-1] + 1000*(self.maxPlacingDist - placingDistFinal) + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
-                placeRew += 2000*(self.heightTarget - placingDistFinal)# + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
+                placeRew += 1000*(heightTarget - placingDistFinal) + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
+                # placeRew += 2000*(self.heightTarget - placingDistFinal)# + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
             placeRew = max(placeRew,0)
             if mode == 'genetal':
                 cond = self.pickCompleted and objGrasped()

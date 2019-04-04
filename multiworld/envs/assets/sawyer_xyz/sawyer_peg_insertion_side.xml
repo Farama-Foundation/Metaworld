@@ -6,8 +6,8 @@
 
         <body name="peg" pos="0 0.6 0.02">
           <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/>
-          <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" solref="0.02 1" conaffinity="1" contype="1" group="1"/>
-          <!-- <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" conaffinity="1" contype="1" group="1"/> -->
+          <!-- <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" solref="0.02 1" conaffinity="1" contype="1" group="1"/> -->
+          <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" conaffinity="1" contype="1" group="1"/>
           <joint type="free" limited="false" damping="0.005"/>
           <site name="pegHead" pos="-0.04 0 0" size="0.005" rgba="0 0.8 0 1"/>
         </body>
