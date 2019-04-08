@@ -45,8 +45,10 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
-	def __init__(self):
+	def __init__(self,
+				adaptive_sampling=False):
 		self.mujoco_envs = []
+		self.adaptive_sampling = adaptive_sampling
 		self.scores = {i:deque(maxlen=10) for i in range(len(ENV_LIST))}
 		self.sample_probs = np.array([1./(len(ENV_LIST)) for _ in range(len(ENV_LIST))])
 		self.target_scores = []
@@ -81,7 +83,7 @@ class MultiTaskMujocoEnv(gym.Env):
 
 	def reset(self):
 		# self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
-		if self.num_resets < len(ENV_LIST)*2:
+		if self.num_resets < len(ENV_LIST)*2 or not self.adaptive_sampling:
 			self.task_idx = self.num_resets % len(ENV_LIST)
 		else:
 			if self.num_resets % (5*len(ENV_LIST)) == 0:
