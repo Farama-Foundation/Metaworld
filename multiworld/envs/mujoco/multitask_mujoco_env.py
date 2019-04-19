@@ -45,21 +45,27 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
-	def __init__(self):
+	def __init__(self,
+				if_render=False,
+				adaptive_sampling=True):
 		self.mujoco_envs = []
-		self.scores = {i:deque(maxlen=10) for i in range(len(ENV_LIST))}
-		self.sample_probs = np.array([1./(len(ENV_LIST)) for _ in range(len(ENV_LIST))])
-		self.target_scores = []
-		self.sample_tau = 0.05
+		self.adaptive_sampling = adaptive_sampling
+		if adaptive_sampling:
+			self.scores = {i:deque(maxlen=10) for i in range(len(ENV_LIST))}
+			self.current_score = 0.
+			self.sample_probs = np.array([1./(len(ENV_LIST)) for _ in range(len(ENV_LIST))])
+			self.target_scores = []
+			self.sample_tau = 0.05
 		for i, env in enumerate(ENV_LIST):
-			if i < 2:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=True, fix_task=True, task_idx=i))
+			if i < 3:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=i))
 			else:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=True))
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render))
 			# set the one-hot task representation
 			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
 			self.mujoco_envs[i]._state_goal_idx[i] = 1.
-			self.target_scores.append(self.mujoco_envs[i].target_reward)
+			if adaptive_sampling:
+				self.target_scores.append(self.mujoco_envs[i].target_reward)
 		# TODO: make sure all observation spaces across tasks are the same / use self-attention
 		self.num_resets = 0
 		self.task_idx = self.num_resets % len(ENV_LIST)
@@ -75,22 +81,27 @@ class MultiTaskMujocoEnv(gym.Env):
 
 	def step(self, action):
 		ob, reward, done, info = self.mujoco_envs[self.task_idx].step(action)
-		if done:
-			self.scores[self.task_idx].append(reward)
+		# TODO: need to figure out how to calculate target scores in this case!
+		if self.adaptive_sampling:
+			self.current_score += reward
+			if done:
+				self.scores[self.task_idx].append(reward)
+				# self.scores[self.task_idx].append(self.current_score)
 		return ob, reward, done, info
 
 	def reset(self):
 		# self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
-		if self.num_resets < len(ENV_LIST)*2:
+		if self.num_resets < len(ENV_LIST)*2 or not self.adaptive_sampling:
 			self.task_idx = self.num_resets % len(ENV_LIST)
 		else:
-			if self.num_resets % (5*len(ENV_LIST)) == 0:
+			if self.num_resets % (8*len(ENV_LIST)) == 0:
 				avg_scores = [np.mean(self.scores[i]) for i in range(len(ENV_LIST))]
 				self.sample_probs = np.exp((np.array(self.target_scores) - np.array(avg_scores))/np.array(self.target_scores)/self.sample_tau)
 				self.sample_probs = self.sample_probs / self.sample_probs.sum()
 				print('Sampling prob is', self.sample_probs)
 			self.task_idx = np.random.choice(range(len(ENV_LIST)), p=self.sample_probs)
 		self.num_resets += 1
+		self.current_score = 0.
 		return self.mujoco_envs[self.task_idx].reset()
 
 	@property

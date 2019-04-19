@@ -262,6 +262,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
+        self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal)
         self.curr_path_length = 0
         #Can try changing this
@@ -302,6 +303,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         pushGoal = self._state_goal
 
         pushDist = np.linalg.norm(objPos[:2] - pushGoal)
+        placeDist = np.linalg.norm(objPos - stickPos)
         reachDist = np.linalg.norm(stickPos - fingerCOM)
 
         def reachReward():
@@ -362,7 +364,9 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             else:
                 cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
             if cond:
-                pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
+                pushRew = 1000*(self.maxPlaceDist - placeDist) + c1*(np.exp(-(placeDist**2)/c2) + np.exp(-(placeDist**2)/c3))
+                if placeDist < 0.05:
+                    pushRew += 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
                 pushRew = max(pushRew,0)
                 return [pushRew , pushDist]
             else:
