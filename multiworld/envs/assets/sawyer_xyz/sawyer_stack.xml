@@ -4,11 +4,13 @@
     <worldbody>
         <include file="sawyer_xyz_base.xml"></include>
         <body name="obj" pos="0 0.6 0.02">
-            <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" />
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
-            <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
-                  size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+            <joint name="objjoint" type="free" limited='false' damping=".01" armature="0"/>
+            <!-- <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" /> -->
+            <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e-05 8.80012e-05 8.80012e-05" />
+            <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
+            <geom name="objGeom" type="box" pos="0 0 0" margin="0.001"
+                  size="0.02 0.02 0.02" rgba="0 0 1 1"
+                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
             />
             <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
@@ -18,20 +20,22 @@
         </body>
 
         <body name="goal" pos="0 0 0.1">
-            <joint name="goaljoint" type="free" limited='false' damping="0" armature="0" />
+            <joint name="goaljoint" type="free" limited='false' damping=".01" armature="0"/>
+            <!-- <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" /> -->
+            <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e-05 8.80012e-05 8.80012e-05" />
+            <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
+            <geom name="goalGeom" type="box" pos="0 0 0" margin="0.001"
+                  size="0.02 0.02 0.02" rgba="1 0 0 1"
+                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
+            />
+
+<!--             <joint name="goaljoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="2" diaginertia="100000 100000 100000"/>
             <geom name="goalGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="1" 
             />
-        <!-- <body name="obj2" pos="0 0 0.01">
-            <geom name="obj_T" type="box" pos="0 0 0"
-                  size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
-            />
-        </body>
-
-            <site name="obj" pos="0 .0 0" size="0.035" rgba="0.0 0.0 1.0 1"/> -->
+ -->
         </body>
     </worldbody>
     <actuator>

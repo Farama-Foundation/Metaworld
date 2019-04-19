@@ -150,7 +150,7 @@ Usage:
                                             <body name="hand" pos="0 0 0.12" quat="-1 0 1 0">
 
                                                 <site name="endEffector" pos="0.04 0 0" size="0.01" rgba='1 1 1 0' />
-                                                <geom name="rail" type="box" pos="-0.05 0 0" density="7850" size="0.005 0.055 0.005"  rgba="0.5 0.5 0.5 1.0"  />
+                                                <geom name="rail" type="box" pos="-0.05 0 0" density="7850" size="0.005 0.055 0.005"  rgba="0.5 0.5 0.5 1.0" condim="3" friction="2 0.1 0.002"   />
 
                                                 <!--IMPORTANT: For rougher contact with gripper, set higher friciton values for the other interacting objects -->
                                                 <body name="rightclaw" pos="0 -0.05 0" >

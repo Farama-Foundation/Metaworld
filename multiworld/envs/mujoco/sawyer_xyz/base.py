@@ -128,6 +128,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         zangle_delta = action[3] * self.action_rot_scale
         new_mocap_zangle = quat_to_zangle(self.data.mocap_quat[0]) + zangle_delta
+
+        new_mocap_zangle = action[3]
         new_mocap_zangle = np.clip(
             new_mocap_zangle,
             -3.0,
