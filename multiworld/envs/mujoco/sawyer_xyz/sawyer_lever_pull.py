@@ -158,24 +158,25 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
+        reward = self.compute_reward(action, obs_dict)
+        print('reward', reward)
         self.curr_path_length +=1
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None}
+        return ob, reward, done
    
 
-    def get_button_angle(self):
-        return np.array([self.data.get_joint_qpos('buttonjoint')])
+    def get_angle(self):
+        return np.array([self.data.get_joint_qpos('joint')])
 
     def get_mocap_quat(self):
         return self.data.get_mocap_quat('mocap')
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        angle = self.get_button_angle()
+        angle = self.get_angle()
         # flat_obs = np.concatenate((hand, objPos))
         # if self.multitask:
         #     assert hasattr(self, '_state_goal_idx')
@@ -192,7 +193,7 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.site_xpos[self.model.site_name2id('buttonStart')]
+        objPos =  self.data.get_geom_xpos('lever')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -208,7 +209,7 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        objPos =  self.data.get_geom_xpos('handle')
+        objPos =  self.data.get_geom_xpos('lever')
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
@@ -266,12 +267,12 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
             button_pos[2] += 0.07
             self._state_goal = button_pos
             self._state_goal[2] -= 0.02
+
         # self._set_obj_xyz(self.obj_init_qpos)
         # self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         # print(button_pos)
             self.sim.model.body_pos[self.model.body_name2id('button')] = button_pos
         self.curr_path_length = 0
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._state_goal[2])
         #Can try changing this
         return self._get_obs()
 
@@ -297,36 +298,9 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
-            obs = obs['state_observation']
-
-        objPos = obs[3:6]
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
-
-        pressGoal = self._state_goal[2]
-
-        pressDist = np.abs(objPos[2] - pressGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-        reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-        # if reachDistxy < 0.05:
-        #     reachRew = -reachDist
-        # else:
-        #     reachRew =  -reachDistxyz
-        # reachRew += max(actions[-1],0)/50
-        reachRew = -reachDist
-        # reward = reachRew -pressDist*2
-        c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-        if reachDist < 0.05:
-            # pressRew = -pressDist
-            pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
-        else:
-            pressRew = 0
-        reward = reachRew + pressRew
-
-        return [reward, reachDist, pressDist] 
+        actual_angle = self.get_angle()
+        return actual_angle
+        # return np.linalg.norm(actual_angle - goal_angle)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -352,7 +326,7 @@ if __name__ == '__main__':
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            # print(env.data.site_xpos[env.model.site_name2id('buttonStart')])
+            print(env.data.site_xpos[env.model.site_name2id('buttonStart')])
             env.render()
             # env.step(env.action_space.sample())
             # if _ < 10:

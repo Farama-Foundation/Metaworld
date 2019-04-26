@@ -30,18 +30,17 @@ from robosuite.utils.transform_utils import mat2quat
 from multiworld.envs.env_util import quat_to_zangle, zangle_to_quat
 
 
-
-
 import gym
 import multiworld
 
 space_mouse = SpaceMouse()
-env = SawyerDialTurn6DOFEnv(rotMode = 'rotz')
+env = SawyerLeverPull6DOFEnv(rotMode = 'rotz')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
 closed = False
+
 
 while True:
     done = False
@@ -65,22 +64,20 @@ while True:
     # drotation = current.T.dot(rotation)  # relative rotation of desired from current
     # dquat = T.mat2quat(drotation)
 
-    # print('current', current_z)
-    # print('desired', desired_z)
-    # print(dpos)
+    print('current', current_z)
+    print('desired', desired_z)
+
+
+    print('diff unclipped', desired_z - current_z)
+    diff = desired_z - current_z
+    print('diff', diff)
 
     gripper = grasp
     if gripper == 1:
         closed = not closed
 
-    # print('diff', desired_z - current_z)
-    env.step(np.hstack([dpos/.005, desired_z, closed]))
+    env.step(np.hstack([dpos/.005, 0, closed]))
 
-    # control = space_mouse.control
-    # gripper = space_mouse.control_gripper
-    # if gripper == 1:
-    #     closed = not closed
-    # env.step(np.hstack([control, closed]))
 
     if done:
         obs = env.reset()

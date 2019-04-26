@@ -2,7 +2,7 @@
 <mujoco>
     <include file="shared_config.xml"></include>
     <worldbody>
-        <include file="sawyer_xyz_base.xml"></include>
+        <include file="sawyer_xyz_base_no_table.xml"></include>
 
         <body name="lever" pos="0 0.7 .05">
           <inertial pos="0 0 0" mass="1." diaginertia="8.80012e-0 8.80012e-0 8.80012e-0"/>

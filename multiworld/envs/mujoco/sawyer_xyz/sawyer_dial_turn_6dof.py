@@ -158,13 +158,14 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
+        reward = self.compute_reward(action, obs_dict)
+        print('reward', reward)
         self.curr_path_length +=1
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None}
+        return ob, reward, done
    
 
     def get_angle(self):
@@ -175,7 +176,7 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        angle = self.get_button_angle()
+        angle = self.get_angle()
         # flat_obs = np.concatenate((hand, objPos))
         # if self.multitask:
         #     assert hasattr(self, '_state_goal_idx')
@@ -192,7 +193,7 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('lever')
+        objPos =  self.data.get_geom_xpos('dial')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -208,7 +209,7 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        objPos =  self.data.get_geom_xpos('lever')
+        objPos =  self.data.get_geom_xpos('dial')
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
@@ -266,12 +267,12 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
             button_pos[2] += 0.07
             self._state_goal = button_pos
             self._state_goal[2] -= 0.02
+
         # self._set_obj_xyz(self.obj_init_qpos)
         # self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         # print(button_pos)
             self.sim.model.body_pos[self.model.body_name2id('button')] = button_pos
         self.curr_path_length = 0
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._state_goal[2])
         #Can try changing this
         return self._get_obs()
 
@@ -298,7 +299,8 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
         actual_angle = self.get_angle()
-        return = np.linalg.norm(actual_angle - goal_angle)
+        return actual_angle
+        # return np.linalg.norm(actual_angle - goal_angle)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
