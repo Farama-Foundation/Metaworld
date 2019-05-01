@@ -13,8 +13,6 @@ class TaskBased(SawyerXYZEnv, ParametricWorld, metaclass=abc.ABCMeta):
     Attributes:
         task_schema(:obj:`gym.Space`): A space representing valid tasks
             in this environment
-        state_desired_goal (np.ndarray): A state-space goal compatible with
-            rlkit-based algorithms
     """
 
     @property

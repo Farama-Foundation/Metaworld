@@ -5,10 +5,13 @@ import numpy as np
 from multiworld.core.multitask_env import MultitaskEnv
 
 
-class GoalConditioned(MultitaskEnv, gym.Wrapper):
+class ContinuousMultitask(MultitaskEnv, gym.Wrapper):
     """
-    A MultitaskEnv wrapper which represents a World of tasks which are
-    continously-parameterized by a single goal state.
+    A MultitaskEnv wrapper which represents a World of continously-
+    parameterized tasks.
+
+    Every call to `reset()`, the wrapper samples a new task uniformly from the
+    underlying task parameterization.
 
     Args:
         env(:obj:`TaskBased`): A `TaskBased` World to wrap
@@ -19,7 +22,7 @@ class GoalConditioned(MultitaskEnv, gym.Wrapper):
 
         # Augment the observation space with a state goal
         base = self.env.observation_space.spaces.copy()
-        base['goal'] = self.env.task_schema.spaces['obj_init_pos']
+        base['task'] = self.env.task_schema
         self.observation_space = gym.spaces.Dict(base)
 
     def sample_goals(self, batch_size):
@@ -29,9 +32,7 @@ class GoalConditioned(MultitaskEnv, gym.Wrapper):
         }
 
     def get_goal(self):
-        return {
-            'state_desired_goal': self.env.state_desired_goal,
-        }
+        return self.env.get_goal()
 
     def compute_rewards(self, actions, obs):
         return self.env.compute_rewards(actions, obs)
@@ -48,10 +49,11 @@ class GoalConditioned(MultitaskEnv, gym.Wrapper):
         return self._augment_observation(o), r, d, i
 
     def reset(self):
+        self.env.task = self.env.task_schema.sample()
         return self._augment_observation(self.env.reset())
 
     def _augment_observation(self, o):
-        o['goal'] = self.env.state_desired_goal
+        o['task'] = self.env.task
         return o
 
 
@@ -61,10 +63,8 @@ if __name__ == '__main__':
     from .sawyer_window_open_6dof import SawyerWindowOpen6DOFEnv
 
     world = SawyerWindowOpen6DOFEnv()
-    env = GoalConditioned(world)
+    env = ContinuousMultitask(world)
     for _ in range(1000):
-        t = world.task_schema.sample()
-        world.task = t
         env.reset()
         for _ in range(100):
             env.render()

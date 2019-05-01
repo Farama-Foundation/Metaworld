@@ -44,9 +44,7 @@ class DiscreteMultitask(MultitaskEnv, gym.Wrapper):
         }
 
     def get_goal(self):
-        return {
-            'state_desired_goal': self.env.state_desired_goal,
-        }
+        return self.env.get_goal()
 
     def compute_rewards(self, actions, obs):
         return self.env.compute_rewards(actions, obs)
@@ -90,5 +88,4 @@ if __name__ == '__main__':
         for _ in range(100):
             env.render()
             step = env.step(np.array([1, 0, 0, 1]))
-            print(step[0])
             time.sleep(0.05)

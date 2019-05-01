@@ -5,65 +5,47 @@ from gym.spaces import  Dict , Box
 
 from multiworld.envs.env_util import get_stat_in_paths, \
 	create_stats_ordered_dict, get_asset_full_path
-from multiworld.core.multitask_env import MultitaskEnv
-from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.task_based import TaskBased
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
-class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
+
+class SawyerWindowOpen6DOFEnv(TaskBased):
+
+	task_schema = Dict({
+		'hand_init_pos': Box(low=np.array([-0.5, 0.40, 0.05]), high=np.array([0.5, 1, 0.5]), dtype=np.float32),
+		'obj_init_pos': Box(low=np.array([-0.1, 0.7, 0.15]), high=np.array([0.1, 0.9, 0.16]), dtype=np.float32),
+		'obj_init_angle': Box(low=-np.pi/4, high=np.pi/4, shape=(1,), dtype=np.float32),
+	})
+
+	default_task = {
+		'hand_init_pos': np.array([0.1, 0.785, 0.15], dtype=np.float32),
+		'obj_init_pos':np.array([-0.1, 0.785, 0.15], dtype=np.float32),
+		'obj_init_angle': np.array([0.3], dtype=np.float32),
+	}
+
 	def __init__(
 			self,
-			hand_low=(-0.5, 0.40, 0.05),
-			hand_high=(0.5, 1, 0.5),
-			obj_low=(-0.1, 0.7, 0.16),
-			obj_high=(0.1, 0.9, 0.16),
-			random_init=False,
-			# tasks = [{'goal': 0.55,  'obj_init_pos':0.0, 'obj_init_angle': 0.3}], 
-			tasks = [{'goal': np.array([0.1, 0.785, 0.15]),  'obj_init_pos':np.array([-0.1, 0.785, 0.15]), 'obj_init_angle': 0.3}], 
-			goal_low=None,
-			goal_high=None,
-			hand_init_pos = (0, 0.6, 0.2),
-			liftThresh = 0.02,
-			rewMode = 'orig',
+			liftThresh=0.02,
+			rewMode='orig',
 			rotMode='fixed',#'fixed',
-			multitask=False,
-			multitask_num=1,
-			if_render=False,
+			if_render=True,
 			**kwargs
 	):
 		self.quick_init(locals())
-		SawyerXYZEnv.__init__(
+		TaskBased.__init__(
 			self,
 			frame_skip=5,
 			action_scale=1./100,
-			hand_low=hand_low,
-			hand_high=hand_high,
 			model_name=self.model_name,
 			**kwargs
 		)
-		if obj_low is None:
-			obj_low = self.hand_low
+		self.task = self.default_task
 
-		if goal_low is None:
-			goal_low = self.hand_low
-
-		if obj_high is None:
-			obj_high = self.hand_high
-		
-		if goal_high is None:
-			goal_high = self.hand_high
-
-		self.random_init = random_init
 		self.max_path_length = 150
-		self.tasks = tasks
-		self.num_tasks = len(tasks)
 		self.rewMode = rewMode
 		self.rotMode = rotMode
-		self.hand_init_pos = np.array(hand_init_pos)
-		self.multitask = multitask
-		self.multitask_num = multitask_num
-		self._state_goal_idx = np.zeros(self.multitask_num)
 		self.if_render = if_render
 		self.liftThresh = liftThresh
 		if rotMode == 'fixed':
@@ -87,23 +69,13 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 				np.array([-1, -1, -1, -np.pi/2, -np.pi/2, 0, -1]),
 				np.array([1, 1, 1, np.pi/2, np.pi/2, np.pi*2, 1]),
 			)
-		self.obj_and_goal_space = Box(
-			np.array(obj_low),
-			np.array(obj_high),
-		)
-		self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-		if not multitask:
-			self.observation_space = Box(
-					np.hstack((self.hand_low, obj_low, goal_low)),
-					np.hstack((self.hand_high, obj_high, goal_high)),
-			)
-		else:
-			self.observation_space = Box(
-					np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-					np.hstack((self.hand_high, obj_high, np.zeros(multitask_num))),
-			)
+
 		self.reset()
 
+		self.observation_space = Dict({
+			'hand': self.task_schema.spaces['hand_init_pos'],
+			'obj': self.task_schema.spaces['obj_init_pos'],
+		})
 
 	def get_goal(self):
 		return {
@@ -115,6 +87,27 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 
 		return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
 		#return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
+
+	@property
+	def task(self):
+		return self._task
+
+	@task.setter
+	def task(self, t):
+		self.validate_task(t)
+		self._task = t
+		self.obj_init_pos = t['obj_init_pos']
+		self.obj_init_angle = t['obj_init_angle']
+		self.hand_init_pos = t['hand_init_pos']
+
+		# Derive goal from the task
+		self._state_goal = self.goal_from_task(t)
+
+	@staticmethod
+	def goal_from_task(task):
+		goal = task['obj_init_pos'].copy()
+		goal[0] += 0.2
+		return goal
 
 	def viewer_setup(self):
 		# top view
@@ -172,22 +165,13 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 			done = True
 		else:
 			done = False
-		return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew}
-   
+		return obs_dict, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew}
+
 	def _get_obs(self):
 		hand = self.get_endeff_pos()
 		objPos =  self.data.get_geom_xpos('handle').copy()
 		flat_obs = np.concatenate((hand, objPos))
-		if self.multitask:
-			assert hasattr(self, '_state_goal_idx')
-			return np.concatenate([
-					flat_obs,
-					self._state_goal_idx
-				])
-		return np.concatenate([
-				flat_obs,
-				self._state_goal
-			])
+		return flat_obs
 
 	def _get_obs_dict(self):
 		hand = self.get_endeff_pos()
@@ -195,6 +179,8 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 		objPos[0] -= 0.01
 		flat_obs = np.concatenate((hand, objPos))
 		return dict(
+			hand=hand,
+			obj=objPos,
 			state_observation=flat_obs,
 			state_desired_goal=self._state_goal,
 			state_achieved_goal=objPos,
@@ -221,7 +207,7 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 		self.data.site_xpos[self.model.site_name2id('objSite')] = (
 			objPos
 		)
-	
+
 
 	def _set_obj_xyz_quat(self, pos, angle):
 		quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -241,46 +227,10 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 		self.set_state(qpos, qvel)
 
 
-	def sample_goals(self, batch_size):
-		#Required by HER-TD3
-		goals = []
-		for i in range(batch_size):
-			task = self.tasks[np.random.randint(0, self.num_tasks)]
-			goals.append(task['goal'])
-		return {
-			'state_desired_goal': goals,
-		}
-
-
-	def sample_task(self):
-		task_idx = np.random.randint(0, self.num_tasks)
-		return self.tasks[task_idx]
-
-
 	def reset_model(self):
 		self._reset_hand()
-		task = self.sample_task()
-		self._state_goal = np.array(task['goal'])
-		self.obj_init_pos = task['obj_init_pos']
-		# self.obj_init_angle = task['obj_init_angle']
 		self.objHeight = self.data.get_geom_xpos('handle')[2]
 		self.heightTarget = self.objHeight + self.liftThresh
-		if self.random_init:
-			# self.obj_init_pos = np.random.uniform(-0.2, 0)
-			# self._state_goal = np.squeeze(np.random.uniform(
-			#     self.goal_space.low,
-			#     np.array(self.data.get_geom_xpos('handle').copy()[1] + 0.05),
-			# ))
-			obj_pos = np.random.uniform(
-				self.obj_and_goal_space.low,
-				self.obj_and_goal_space.high,
-				size=(self.obj_and_goal_space.low.size),
-			)
-			# self.obj_init_qpos = goal_pos[-1]
-			self.obj_init_pos = obj_pos
-			goal_pos = obj_pos.copy()
-			goal_pos[0] += 0.2
-			self._state_goal = goal_pos
 		self._set_goal_marker(self._state_goal)
 		# self._set_obj_xyz(self.obj_init_pos)
 		#self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
@@ -294,7 +244,7 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 		self.maxPullDist = 0.2
 		self.target_reward = 1000*self.maxPullDist + 1000*2
 		#Can try changing this
-		return self._get_obs()
+		return self._get_obs_dict()
 
 	def _reset_hand(self):
 		for _ in range(10):
