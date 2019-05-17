@@ -25,6 +25,7 @@ Usage:
         <mesh name="l4" file="l4.stl" />
         <mesh name="l5" file="l5.stl" />
         <mesh name="l6" file="l6.stl" />
+        <mesh name="eGripperBase" file="eGripperBase.stl" />
     </asset>
 
     <visual>

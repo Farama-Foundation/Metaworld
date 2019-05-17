@@ -406,12 +406,3 @@ class SawyerSweepEnv(MultitaskEnv, SawyerXYZEnv):
         super().set_env_state(base_state)
         self._state_goal = goal
         self._set_goal_marker(goal)
-
-
-if __name__ == '__main__':
-    env = SawyerSweepEnv(fix_goal=True)
-    for i in range(1000):
-        if i % 100 == 0:
-            env.reset()
-        env.step(np.array([0, 1, 1]))
-        env.render()

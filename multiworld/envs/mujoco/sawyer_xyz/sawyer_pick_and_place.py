@@ -258,7 +258,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(np.array([-1]))
-        error = self.data.get_site_xpos('endeffector') - hand_goal
+        error = self.data.get_site_xpos('endEffector') - hand_goal
         corrected_obj_pos = state_goal[3:] + error
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
@@ -523,4 +523,3 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
         pickup_env.generate_uncorrected_env_goals(num_presampled_goals)
     )
     return image_env_goals
-

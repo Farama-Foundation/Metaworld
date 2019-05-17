@@ -186,8 +186,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
             self.do_simulation(u, self.frame_skip)
 
-        # self.render()
-
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         for i in range(self.num_objects):
@@ -630,10 +628,3 @@ class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
 
         self.reset_mocap_welds()
         return self._get_obs()
-
-if __name__ == '__main__':
-    import time
-    env = SawyerTwoObjectEnv()
-    for _ in range(1000000):
-        env.render()
-        time.sleep(0.05)

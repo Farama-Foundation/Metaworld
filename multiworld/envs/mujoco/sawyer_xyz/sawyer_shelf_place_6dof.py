@@ -427,38 +427,3 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-
-if __name__ == '__main__':
-    import time
-    env = SawyerShelfPlace6DOFEnv()
-    for _ in range(1000):
-        env.reset()
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.05]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     env.do_simulation([-1,1], env.frame_skip)
-        #     #self.do_simulation(None, self.frame_skip)
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
-        #     # env.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.25]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     env.do_simulation([-1,1], env.frame_skip)
-        #     #self.do_simulation(None, self.frame_skip)
-        for _ in range(100):
-            print('Before:', env.sim.model.site_pos[env.model.site_name2id('goal')] + env.sim.model.body_pos[env.model.body_name2id('shelf')])
-            env.sim.model.body_pos[env.model.body_name2id('shelf')] = np.array([0., np.random.uniform(0.8, 0.9), 0.001])
-            print("After: ", env.sim.model.site_pos[env.model.site_name2id('goal')] + env.sim.model.body_pos[env.model.body_name2id('shelf')])
-            env.render()
-            env.step(env.action_space.sample())
-            # if _ < 10:
-            #     env.step(np.array([0, 0, -1, 0, 0]))
-            # elif _ < 50:
-            #     env.step(np.array([0, 0, 0, 0, 1]))
-            # if _ < 10:
-            #     env.step(np.array([0, 0, -1, 0, 0]))
-            # else:
-            #     env.step(np.array([0, 1, 0, 0, 1]))
-                # env.step(np.array([0, 1, 0, 0, 0]))
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
-            time.sleep(0.05)

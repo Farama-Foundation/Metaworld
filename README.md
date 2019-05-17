@@ -12,6 +12,29 @@ Each environment in /metaworld/multiworld/envs/mujoco/sawyer_xyz is an gym envir
  python /metaworld/multiworld/envs/mujoco/sawyer_xyz/button_press_topdown_6dof.py
 ```
 
+# Testing
+The /metaworld/tests/multiworld/envs/mujoco/sawyer_xyz/test_sawyer_parameterized.py file quickly runs every environment with pytest. To run tests, navigate to root dir and run 
+
+```
+pytest
+```
+
+
+# Running Demo code for existing environment
+
+/metaworld/scripts/demo_sawyer.py is a command line program to run demo code for environment in /metaworld/multiworld/envs/mujoco/sawyer_xyz
+
+To run this program, you need to know the environment name and use command 
+
+`demo_sawyer.py --env your_env_name`
+
+for example:
+
+
+```
+ ./scripts/demo_sawyer.py --env SawyerNutAssembly6DOFEnv
+```
+
 
 # Pull Request Guidelines
 

@@ -444,9 +444,3 @@ class SawyerPushAndReachXYDoublePuckEnv(SawyerPushAndReachXYZDoublePuckEnv):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
-
-if __name__ == "__main__":
-    env = SawyerPushAndReachXYZDoublePuckEnv()
-    while True:
-        env.render()
-        env.reset()

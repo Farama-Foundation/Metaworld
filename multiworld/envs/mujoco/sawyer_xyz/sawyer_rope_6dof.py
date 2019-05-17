@@ -191,7 +191,6 @@ class SawyerRope6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -357,16 +356,3 @@ class SawyerRope6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
-
-
-if __name__ == '__main__':
-    import time
-    env = SawyerRope6DOFEnv()
-    for _ in range(1000):
-        env.reset()
-        for _ in range(50):
-            env.render()
-            env.step(env.action_space.sample())
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
-            time.sleep(0.05)
-

@@ -403,14 +403,3 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':
-    import time
-    env = SawyerBinPicking6DOFEnv()
-    for _ in range(1000):
-        env.reset()
-        for _ in range(50):
-            env.render()
-            env.step(env.action_space.sample())
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
-            time.sleep(0.05)
