@@ -36,7 +36,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
+            if_render=True,
             task_idx=0,
             fix_task=False,
             **kwargs
@@ -187,7 +187,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         #                             'pickRew':pickRew, 'placeRew': placeRew,
         #                             'epRew' : reward, 'placingDist': placingDist}
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -299,11 +299,12 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             task = self.tasks[self.task_idx]
         self.task_type = task['type']
         self._state_goal = np.array(task['goal'])
-        if not self.multitask:
-            self._state_goal_idx = np.zeros((len(self.tasks)))
-        else:
-            self._state_goal_idx = np.zeros((self.multitask_num))
-        self._state_goal_idx[self.task_idx] = 1.
+        if not self.fix_task:
+            if not self.multitask:
+                self._state_goal_idx = np.zeros((len(self.tasks)))
+            else:
+                self._state_goal_idx = np.zeros((self.multitask_num))
+            self._state_goal_idx[self.task_idx] = 1.
         self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
         self.obj_init_angle = task['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -373,12 +374,18 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         goal = self._state_goal
 
         def compute_reward_reach(actions, obs, mode):
-            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+            c1 = 500 ; c2 = 0.01 ; c3 = 0.001
             reachDist = np.linalg.norm(fingerCOM - goal)
-            reachRew = 1000*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
-            reachRew = max(reachRew,0)
             # reachRew = -reachDist
-            reward = reachRew
+            # if reachDist < 0.1:
+            #     reachNearRew = 1000*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
+            # else:
+            #     reachNearRew = 0.
+            reachRew = c1*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
+            reachRew = max(reachRew, 0)
+            # reachNearRew = max(reachNearRew,0)
+            # reachRew = -reachDist
+            reward = reachRew# + reachNearRew
             return [reward, reachRew, reachDist, None, None, None, None, None]
 
         def compute_reward_push(actions, obs, mode):
@@ -390,6 +397,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             if reachDist < 0.05:
                 # pushRew = -pushDist
                 pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
+                pushRew = max(pushRew, 0)
             else:
                 pushRew = 0
             reward = reachRew + pushRew

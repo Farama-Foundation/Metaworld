@@ -372,6 +372,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             reward = max(r_reach, r_lift, r_stack)
         else:
             reward = 1.0 if r_stack > 0 else 0.0
+            
 
         return (reward, r_reach, r_lift, r_stack, dist, horiz_dist, stack_dist)
 

@@ -38,16 +38,21 @@ except ImportError as e:
 DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv,
 # 			SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
-ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv,
-			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv,
+# 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
+ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv,
+# 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
 
 class MultiTaskMujocoEnv(gym.Env):
 	"""
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
 	def __init__(self,
-				if_render=False,
-				adaptive_sampling=True):
+				if_render=True,
+				adaptive_sampling=False):
 		self.mujoco_envs = []
 		self.adaptive_sampling = adaptive_sampling
 		if adaptive_sampling:
@@ -59,8 +64,13 @@ class MultiTaskMujocoEnv(gym.Env):
 		for i, env in enumerate(ENV_LIST):
 			if i < 3:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=i))
+				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=2))
 			else:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render))
+			# if i < 2:#3:
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=i+1))
+			# else:
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render))
 			# set the one-hot task representation
 			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
 			self.mujoco_envs[i]._state_goal_idx[i] = 1.
@@ -69,6 +79,8 @@ class MultiTaskMujocoEnv(gym.Env):
 		# TODO: make sure all observation spaces across tasks are the same / use self-attention
 		self.num_resets = 0
 		self.task_idx = self.num_resets % len(ENV_LIST)
+		# only sample from pushing task
+		# self.task_idx = 2
 		self.action_space = self.mujoco_envs[self.task_idx].action_space
 		self.observation_space = self.mujoco_envs[self.task_idx].observation_space
 		self.goal_space = Box(np.zeros(len(ENV_LIST)), np.ones(len(ENV_LIST)))
@@ -87,6 +99,7 @@ class MultiTaskMujocoEnv(gym.Env):
 			if done:
 				self.scores[self.task_idx].append(reward)
 				# self.scores[self.task_idx].append(self.current_score)
+		assert ob[-len(ENV_LIST):].argmax() == self.task_idx
 		return ob, reward, done, info
 
 	def reset(self):
@@ -100,6 +113,8 @@ class MultiTaskMujocoEnv(gym.Env):
 				self.sample_probs = self.sample_probs / self.sample_probs.sum()
 				print('Sampling prob is', self.sample_probs)
 			self.task_idx = np.random.choice(range(len(ENV_LIST)), p=self.sample_probs)
+		# only sample from pushing tasks
+		# self.task_idx = 2
 		self.num_resets += 1
 		self.current_score = 0.
 		return self.mujoco_envs[self.task_idx].reset()

@@ -307,6 +307,7 @@ class SawyerButtonPress6DOFEnv(SawyerXYZEnv):
             pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
         else:
             pressRew = 0
+        pressRew = max(pressRew, 0)
         reward = -reachDist + pressRew
 
         return [reward, reachDist, pressDist] 

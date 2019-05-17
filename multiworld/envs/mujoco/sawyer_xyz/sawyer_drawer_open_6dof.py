@@ -179,7 +179,8 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 
 	def _get_obs_dict(self):
 		hand = self.get_endeff_pos()
-		objPos =  (self.data.get_geom_xpos('handle').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
+		# objPos =  (self.data.get_geom_xpos('handle').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
+		objPos =  self.data.get_geom_xpos('handle').copy()
 		flat_obs = np.concatenate((hand, objPos))
 		return dict(
 			state_observation=flat_obs,
@@ -340,9 +341,12 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 				return pullRew
 			else:
 				return 0
+			# pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+			pullRew = max(pullRew,0)
+			return pullRew
 		# pullRew = -pullDist
 		pullRew = pullReward()
-		reward = reachRew + pullRew - actions[-1]/50
+		reward = reachRew + pullRew# - actions[-1]/50
 	  
 		return [reward, reachDist, pullDist] 
 

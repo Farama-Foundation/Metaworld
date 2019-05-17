@@ -321,6 +321,7 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
         if reachDist < 0.05:
             # pullRew = -pullDist
             pullRew = 1000*(self.maxDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+            pullRew = max(pullRew, 0)
         else:
             pullRew = 0
         reward = -reachDist + pullRew

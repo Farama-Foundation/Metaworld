@@ -90,6 +90,7 @@ class SawyerDoor6DOFEnv(
         )
         # self.observation_space = Dict([
         #     ('observation', self.state_space),
+        
         #     ('desired_goal', self.goal_space),
         #     ('achieved_goal', self.state_space),
         #     ('state_observation', self.state_space),
