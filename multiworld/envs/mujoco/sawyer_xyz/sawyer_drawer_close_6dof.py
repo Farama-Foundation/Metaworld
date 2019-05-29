@@ -16,7 +16,7 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.04),
+            obj_low=(-0.1, 0.9, 0.04),
             obj_high=(0.1, 0.9, 0.04),
             random_init=False,
             # tasks = [{'goal': 0.75,  'obj_init_pos':-0.2, 'obj_init_angle': 0.3}], 

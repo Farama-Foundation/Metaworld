@@ -295,8 +295,8 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
-            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
+            # self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
+            # self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)

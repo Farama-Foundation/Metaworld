@@ -257,8 +257,8 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
-            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
+            # self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
+            # self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self._set_obj_xyz(self.obj_init_pos)
         self.obj_init_pos = self.get_body_com('peg')
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget

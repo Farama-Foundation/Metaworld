@@ -41,8 +41,8 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv,
 # 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
-# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
-ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv]
+ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv,
 # 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
 
@@ -52,6 +52,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	def __init__(self,
 				if_render=True,
+				random_init=False,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
 		self.adaptive_sampling = adaptive_sampling
@@ -62,15 +63,15 @@ class MultiTaskMujocoEnv(gym.Env):
 			self.target_scores = []
 			self.sample_tau = 0.05
 		for i, env in enumerate(ENV_LIST):
-			if i < 3:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=i))
-				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=2))
-			else:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render))
-			# if i < 2:#3:
-			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render, fix_task=True, task_idx=i+1))
+			# if i < 3:
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i))
+			# 	# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=2))
 			# else:
-			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=False, if_render=if_render))
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
+			if i < 2:#3:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i+1))
+			else:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			# set the one-hot task representation
 			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
 			self.mujoco_envs[i]._state_goal_idx[i] = 1.
