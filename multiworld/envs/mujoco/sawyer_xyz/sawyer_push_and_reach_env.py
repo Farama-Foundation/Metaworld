@@ -444,12 +444,3 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
-
-
-if __name__ == '__main__':
-    env = SawyerPushAndReachXYEnv(num_resets_before_puck_reset=int(1e6))
-    for i in range(1000):
-        if i % 100 == 0:
-            env.reset()
-        env.step([0, 1])
-        env.render()

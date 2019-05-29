@@ -123,7 +123,6 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -388,32 +387,3 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':
-    import time
-    env = SawyerStickPush6DOFEnv()
-    for _ in range(1000):
-        env.reset()
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.05]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     env.do_simulation([-1,1], env.frame_skip)
-        #     #self.do_simulation(None, self.frame_skip)
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
-        #     # env.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.25]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     env.do_simulation([-1,1], env.frame_skip)
-        #     #self.do_simulation(None, self.frame_skip)
-        for _ in range(100):
-            env.render()
-            env.step(env.action_space.sample())
-            if _ < 10:
-                env.step(np.array([0, 0, -1, 0, 0]))
-            elif _ < 20:
-                env.step(np.array([0, 0, 0, 0, 1]))
-            else:
-                env.step(np.array([1, 0, 0, 0, 1]))
-                # env.step(np.array([0, 1, 0, 0, 0]))
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
-            time.sleep(0.05)

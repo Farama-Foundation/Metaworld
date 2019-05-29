@@ -1,4 +1,4 @@
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_6dof import SawyerReachXYZ6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_6dof import SawyerReach6DOFEnv
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 
@@ -103,32 +103,3 @@ class SawyerThrowEnv(SawyerPickAndPlaceEnv):
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
-
-
-if __name__ == '__main__':
-
-  env = SawyerThrowEnv()
-  for i in range(1000):
-    if i % 100 == 0:
-        env.reset()
-    env.step(np.array([0, 0, 0, 1]))
-    env.render()
-
-
-  # while True:
-
-  #  obs = env.reset()
-
-  #  """
-  #  Sample a goal (object will be in hand as p_obj_in_hand=1) and try to set
-  #  the env state to the goal. I think there's a small chance this can fail
-  #  and the object falls out.
-  #  """
-  #  env.set_to_goal(
-  #      {'state_desired_goal': env.generate_uncorrected_env_goals(1)['state_desired_goal'][0]}
-  #  )
-  #  # Close gripper for 20 timesteps
-  #  action = np.array([0, 0, 1])
-  #  for _ in range(20):
-  #      obs, _, _, _ = env.step(action)
-  #      env.render()

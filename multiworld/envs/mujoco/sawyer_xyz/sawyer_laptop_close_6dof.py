@@ -269,29 +269,3 @@ class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':
-    import time
-    env = SawyerLaptopClose6DOFEnv()
-    for _ in range(1000):
-        env.reset()
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.9, 0.22]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     # env.do_simulation([-1,1], env.frame_skip)
-        #     env.do_simulation([1,-1], env.frame_skip)
-        # env._set_obj_xyz(np.array([-0.2, 0.8, 0.05]))
-        # for _ in range(10):
-        #     env.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.05]))
-        #     env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        #     env.do_simulation([-1,1], env.frame_skip)
-        #     #self.do_simulation(None, self.frame_skip)
-        for _ in range(100):
-            env.render()
-            # env.step(env.action_space.sample())
-            # env.step(np.array([0, -1, 0, 0, 1]))
-            env.step(np.array([0, 0, 0, 0, 1]))
-            print(env.get_laptop_angle())
-            # env.step(np.array([0, 1, 0, 0, 0]))
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
-            time.sleep(0.05)

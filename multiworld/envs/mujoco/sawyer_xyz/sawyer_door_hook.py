@@ -287,10 +287,3 @@ class SawyerDoorHookEnv(
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
-
-if __name__ == '__main__':
-    import time
-    env = SawyerDoorHookEnv()
-    for _ in range(1000000):
-        env.render()
-        time.sleep(0.05)

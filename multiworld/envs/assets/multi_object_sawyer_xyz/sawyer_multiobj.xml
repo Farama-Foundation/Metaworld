@@ -158,23 +158,27 @@
                                                 <geom size="0.035 0.015" pos="0 0 0.02" type="cylinder" rgba="0.2 0.2 0.2 0"/>
 
 <!--  ================= BEGIN GRIPPER ================= /-->
-                                                <body name="claw" pos="0 0 0" quat="-1 0 1 0">
-                                                    <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01" />
-
-                                                    <body name="rightclaw"
-                                                          pos=".01 .015 0" >
-                                                        <geom name="rightclaw_it" class="1" type="box" pos="0 0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
+                                            <body name="hand" pos="0 0 0"
+                                                  quat="-1 0 1 0">
+                                                <geom class="1" name="Geomclaw" type="box" size="0.01 0.04 0.01"/>
+                                                    <body name="rightclaw" pos=".03 -.03 0.0" >
+                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
+                                                        <geom
+                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.09" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                euler="0 0 0.2"
+                                                        />
+                                                        <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
+                                                        <site name="endeffector2" pos=".015 .01 0" size="0.008" rgba="0.0 0.0 0.0 0.0" />
                                                     </body>
-
-                                                    <body name="leftclaw" pos=".01 .02 0">
-                                                        <geom name="leftclaw_it" class="1" type="box" pos="0 0 0" size="0.05 0.005 0.005" friction="0.001 0.005 0.0001" rgba="0.0 1.0 0.0 1.0"/>
-                                                        <site name="endeffector" pos="0 0 0" size="0.01" />
-                                                        <!-- <body name="endeff" pos=".01 .02 0"> -->
-                                                            <!-- <geom name="leftclaw_it" class="1" type="capsule" fromto="0 0 0 .05 0.0 0.0"    size="0.005" /> -->
-                                                            <!-- <site name="endeffector" pos="0 0 0" size="0.01" /> -->
-                                                        <!-- </body> -->
+                                                    <body name="leftclaw" pos=".03 .03 0">
+                                                        <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
+                                                        <geom
+                                                                name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                euler="0 0 -0.2"
+                                                        />
+                                                        <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />
                                                     </body>
-                                                </body>
+                                            </body>
 <!--  ================= END GRIPPER ================= /-->
 
                                             </body>
