@@ -14,6 +14,9 @@ Usage:
 -->
 
 <mujoco>
+    <include file="visual_config.xml"></include>
+
+
     <asset>
         <mesh name="pedestal" file="pedestal.stl" />
         <mesh name="base" file="base.stl" />

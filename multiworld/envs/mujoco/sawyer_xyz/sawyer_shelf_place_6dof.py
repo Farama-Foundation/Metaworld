@@ -427,3 +427,11 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
+
+
+if __name__ == '__main__':
+    import time
+    env = SawyerShelfPlace6DOFEnv()
+    for _ in range(1000000):
+        env.render()
+        time.sleep(0.05)
