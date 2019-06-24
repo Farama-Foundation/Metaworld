@@ -98,8 +98,8 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, np.ones(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         self.reset()
 
@@ -190,6 +190,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             assert hasattr(self, '_state_goal_idx')
             return np.concatenate([
                     flat_obs,
+                    self._state_goal,
                     self._state_goal_idx
                 ])
         return np.concatenate([
@@ -295,8 +296,8 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            # self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
-            # self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
+            self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
+            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)

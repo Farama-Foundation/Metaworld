@@ -26,6 +26,21 @@ Usage:
         <mesh name="l5" file="sawyer/l5.stl" />
         <mesh name="l6" file="sawyer/l6.stl" />
         <mesh name="eGripperBase" file="sawyer/eGripperBase.stl" />
+
+        <mesh name="mug_mesh" file="objects/mug.stl"  scale="0.0006 0.0006 0.0006"/>
+
+        <texture type="skybox" builtin="gradient" rgb1=".50 .495 .48" rgb2=".50 .495 .48" width="32" height="32"></texture>
+        <texture file="marble.png" name="marble" />
+        <texture file="navy_blue.png" name="navy_blue" />
+        <texture file="wood_light.png" name="table_texture" type="2d"/>
+        <texture file="wood_light.png" name="wood_texture"/>
+        <texture file="tennis.png" name="tennis_green"/>
+
+        <material name="marble" shininess="0.3" rgba="0.9 0.9 0.9 1" specular="1" texture="marble"/>
+        <material name="navy_blue" shininess="0.3" rgba="0.9 0.9 0.9 1" specular="1" texture="navy_blue"/>
+        <material name="tennis_green" shininess="0.3" rgba="0.9 0.9 0.9 1" specular="1" texture="tennis_green"/>
+        <material name="wood_material" rgba="1 1 1 1" shininess="0.1" specular="0.4" texture="wood_texture" />
+        <material name="table_material" rgba="1 1 1 1" shininess="0.1" specular="0.4" texture="table_texture" />
     </asset>
 
     <visual>

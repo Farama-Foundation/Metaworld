@@ -37,6 +37,8 @@
             />
  -->
         </body>
+        <site name="goal_unstack" pos="0 0.6 0.02" size="0.02" 
+              rgba="0 0.8 0 1"/>
     </worldbody>
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>

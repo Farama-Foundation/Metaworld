@@ -20,7 +20,8 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
             obj_high=(0.1, 0.9, 0.04),
             random_init=False,
             # tasks = [{'goal': 0.75,  'obj_init_pos':-0.2, 'obj_init_angle': 0.3}], 
-            tasks = [{'goal': np.array([0., 0.75, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
+            # tasks = [{'goal': np.array([0., 0.75, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0., 0.7, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
@@ -95,8 +96,8 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -169,6 +170,7 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
             assert hasattr(self, '_state_goal_idx')
             return np.concatenate([
                     flat_obs,
+                    self._state_goal,
                     self._state_goal_idx
                 ])
         return np.concatenate([
@@ -222,7 +224,7 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9] = pos[0]
+        qpos[9] = pos
         # qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
@@ -264,17 +266,17 @@ class SawyerDrawerClose6DOFEnv(SawyerXYZEnv):
             # self.obj_init_qpos = goal_pos[-1]
             self.obj_init_pos = obj_pos
             goal_pos = obj_pos.copy()
-            goal_pos[1] -= 0.15
+            # goal_pos[1] -= 0.15
+            goal_pos[1] -= 0.2
             self._state_goal = goal_pos
         self._set_goal_marker(self._state_goal)
-        # self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         drawer_cover_pos = self.obj_init_pos.copy()
         drawer_cover_pos[2] -= 0.02
         self.sim.model.body_pos[self.model.body_name2id('drawer')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('drawer_cover')] = drawer_cover_pos
         self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
-        self._set_obj_xyz(np.array([-0.2, 0.8, 0.05]))
+        self._set_obj_xyz(-0.2)
         self.curr_path_length = 0
         self.maxDist = np.abs(self.data.get_geom_xpos('handle')[1] - self._state_goal[1])
         self.target_reward = 1000*self.maxDist + 1000*2

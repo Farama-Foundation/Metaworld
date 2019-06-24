@@ -107,13 +107,13 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, np.ones(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         self.num_resets = 0
         self.reset()
@@ -195,7 +195,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         flat_obs = np.concatenate((hand, objPos))
         return np.concatenate([
                 flat_obs,
-                # self._state_goal
+                self._state_goal,
                 self._state_goal_idx
             ])
 
@@ -315,17 +315,19 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
+            self._state_goal = goal_pos[3:]
             while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
                 goal_pos = np.random.uniform(
                     self.obj_and_goal_space.low,
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
+                self._state_goal = goal_pos[3:]
             if self.task_type == 'push':
-                # self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
                 self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             else:
-                # self._state_goal = goal_pos[-3:]
+                self._state_goal = goal_pos[-3:]
                 self.obj_init_pos = goal_pos[:3]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
@@ -374,7 +376,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         goal = self._state_goal
 
         def compute_reward_reach(actions, obs, mode):
-            c1 = 500 ; c2 = 0.01 ; c3 = 0.001
+            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             reachDist = np.linalg.norm(fingerCOM - goal)
             # reachRew = -reachDist
             # if reachDist < 0.1:

@@ -20,6 +20,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			obj_high=(0.1, 0.9, 0.04),
 			random_init=False,
 			# tasks = [{'goal': 0.55,  'obj_init_pos':0.0, 'obj_init_angle': 0.3}], 
+			# tasks = [{'goal': np.array([0., 0.55, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
 			tasks = [{'goal': np.array([0., 0.55, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
 			goal_low=None,
 			goal_high=None,
@@ -95,8 +96,8 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			)
 		else:
 			self.observation_space = Box(
-					np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-					np.hstack((self.hand_high, obj_high, np.zeros(multitask_num))),
+					np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+					np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
 			)
 		self.reset()
 
@@ -164,12 +165,14 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
    
 	def _get_obs(self):
 		hand = self.get_endeff_pos()
-		objPos =  (self.data.get_geom_xpos('handle').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
+		# objPos =  (self.data.get_geom_xpos('handle').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
+		objPos =  self.data.get_geom_xpos('handle').copy()
 		flat_obs = np.concatenate((hand, objPos))
 		if self.multitask:
 			assert hasattr(self, '_state_goal_idx')
 			return np.concatenate([
 					flat_obs,
+					self._state_goal,
 					self._state_goal_idx
 				])
 		return np.concatenate([
@@ -180,7 +183,9 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 	def _get_obs_dict(self):
 		hand = self.get_endeff_pos()
 		# objPos =  (self.data.get_geom_xpos('handle').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
-		objPos =  self.data.get_geom_xpos('handle').copy()
+		# objPos =  self.data.get_geom_xpos('handle').copy()
+		# objPos =  self.get_site_pos('handleStart')
+		objPos =  (self.get_site_pos('handleStart').copy() + self.data.get_geom_xpos('drawer_wall2').copy()) / 2
 		flat_obs = np.concatenate((hand, objPos))
 		return dict(
 			state_observation=flat_obs,
@@ -224,7 +229,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 	def _set_obj_xyz(self, pos):
 		qpos = self.data.qpos.flat.copy()
 		qvel = self.data.qvel.flat.copy()
-		qpos[9] = pos[0]
+		qpos[9] = pos
 		# qvel[9:15] = 0
 		self.set_state(qpos, qvel)
 
@@ -267,6 +272,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			self.obj_init_pos = obj_pos
 			goal_pos = obj_pos.copy()
 			goal_pos[1] -= 0.35
+			# goal_pos[1] -= 0.3
 			self._state_goal = goal_pos
 		self._set_goal_marker(self._state_goal)
 		# self._set_obj_xyz(self.obj_init_pos)
@@ -316,12 +322,13 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 
 		pullDist = np.abs(objPos[1] - pullGoal[1])
 		reachDist = np.linalg.norm(objPos - fingerCOM)
-		reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-		zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-		if reachDistxy < 0.05: #0.02
-			reachRew = -reachDist
-		else:
-			reachRew =  -reachDistxy - zDist
+		# reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+		# zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+		# if reachDistxy < 0.05: #0.02
+		# 	reachRew = -reachDist
+		# else:
+		# 	reachRew =  -reachDistxy - zDist
+		reachRew = -reachDist
 
 		def reachCompleted():
 			if reachDist < 0.05:
@@ -331,6 +338,8 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 
 		if reachCompleted():
 			self.reachCompleted = True
+		else:
+			self.reachCompleted = False
 
 		def pullReward():
 			c1 = 1000 ; c2 = 0.01 ; c3 = 0.001

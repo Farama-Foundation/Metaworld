@@ -10,10 +10,18 @@
           <geom rgba="1 1 0.1 1" type="box" contype="1" size="0.01 0.015 0.08" name="window_frame_left" conaffinity="1" pos="-0.09 0 0" mass="0.1" solimp="0.99 0.99 0.01" solref="0.01 1" friction="1 0.1 0.002" condim="3"/>
           <geom rgba="1 1 0.1 1" type="box" contype="1" size="0.01 0.015 0.08" name="window_frame_right" conaffinity="1" pos="0.09 0 0" mass="0.1" solimp="0.99 0.99 0.01" solref="0.01 1" friction="1 0.1 0.002" condim="3"/>
           <geom rgba="1 1 0.1 0" type="box" contype="1" size="0.08 0.015 0.08" name="glass" conaffinity="1" pos="0 0 0" mass="0.1" solimp="0.99 0.99 0.01" solref="0.01 1" friction="1 0.1 0.002" condim="3"/>
-          <geom type="box" pos="0 -0.085 0" size="0.01 0.01 0.05" rgba="0 0 0 1" contype="1" conaffinity="1" name="handle"/>
-          <geom type="box" pos="0 -0.045 -0.04" size="0.01 0.03 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
-          <geom type="box" pos="0 -0.045 0.04" size="0.01 0.03 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
+          <!-- <geom type="box" pos="0 -0.085 0" size="0.003 0.01 0.05" rgba="0 0 0 1" contype="1" conaffinity="1" name="handle"/>
+          <geom type="box" pos="0 -0.045 -0.04" size="0.003 0.03 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
+          <geom type="box" pos="0 -0.045 0.04" size="0.003 0.03 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
           <joint type="slide" range="0 0.2" axis="1 0 0" name="window_slidex" pos="0 0 0" damping="1.0"/>
+          <site name="handleOpenStart" pos="-0.02 -0.085 0." size="0.005" rgba="1 0 0 1"/>
+          <site name="handleCloseStart" pos="0.02 -0.085 0." size="0.005" rgba="0 1 0 1"/> -->
+          <geom type="box" pos="0 -0.055 0" size="0.003 0.01 0.05" rgba="0 0 0 1" contype="1" conaffinity="1" name="handle"/>
+          <geom type="box" pos="0 -0.03 -0.04" size="0.003 0.015 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
+          <geom type="box" pos="0 -0.03 0.04" size="0.003 0.015 0.01" rgba="0 0 0 1" contype="1" conaffinity="1"/>
+          <joint type="slide" range="0 0.2" axis="1 0 0" name="window_slidex" pos="0 0 0" damping="1.0"/>
+          <site name="handleOpenStart" pos="-0.02 -0.055 0." size="0.005" rgba="1 0 0 1"/>
+          <site name="handleCloseStart" pos="0.02 -0.055 0." size="0.005" rgba="0 1 0 1"/>
           <!-- <joint type="slide" range="0. 0.00000001" axis="1 0 0" name="goal_slidex" pos="0 0 0" damping="1.0"/>
           <joint type="slide" range="0. 0.00000001" axis="0 0 1" name="goal_slidez" pos="0 0 0" damping="1.0"/> -->
         </body>

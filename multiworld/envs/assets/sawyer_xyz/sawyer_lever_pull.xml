@@ -9,9 +9,12 @@
           <geom name="lever" rgba="0.3 1 0.3 1" size=".03 .1 .03" type="box" margin="0.001"
                 contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002" 
             />
-          <joint type="hinge" range="-3 3" axis="1 0 0" name="joint" pos="0 .07 0" damping="1" armature="0"/>
-          
+          <joint type="hinge" range="0 1.5708" axis="1 0 0" name="joint" pos="0 .07 0" damping="1" armature="0"/>
+          <site name="leverStart" pos="0 -0.1 0.03" size="0.005" rgba="1 0 0 1"/>
         </body>
+
+        <site name="goal" pos="0. 0.75 -0.12" size="0.02" 
+              rgba=".8 0 0 1"/>
 
 <!--         <body name="box" pos="0 0.8 0.05">
           <geom rgba="0.3 0.3 1 1" type="box" contype="1" size="0.1 0.05 0.05" name="box_left" conaffinity="1" pos="0 0 0" mass="1000" solimp="0.99 0.99 0.01" solref="0.01 1"/>

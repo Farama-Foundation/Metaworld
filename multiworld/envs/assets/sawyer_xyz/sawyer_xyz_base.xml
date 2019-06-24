@@ -161,7 +161,8 @@ Usage:
                                                     <!-- <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true"  type="slide"/>  -->
 
                                                     <!-- <site name="rightEndEffector" pos="0.0 0.005 0" size="0.044 0.008 0.012" type='box' /> -->
-                                                    <site name="rightEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+                                                    <!-- <site name="rightEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
+                                                    <site name="rightEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
 
                                                 </body>
 
@@ -169,7 +170,9 @@ Usage:
                                                     <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="0 1 1 1.0"  />
                                                     <joint name="l_close" pos="0 0 0" axis="0 1 0" range= "-0.03 0" armature="100" damping="1000" limited="true"  type="slide"/>
                                                     <!-- <site name="leftEndEffector" pos="0.0 -0.005 0" size="0.044 0.008 0.012" type='box' /> -->
-                                                    <site name="leftEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+                                                    <!-- <site name="leftEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
+                                                    <site name="leftEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+
 
                                       
                                                 </body>
@@ -209,7 +212,7 @@ Usage:
         <!--For debugging, set the alpha to 1-->
         <!--<geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.5 0.5 0.5 1" size="0.1 0.02 0.02" type="box"></geom>-->
         <geom conaffinity="0" contype="0" pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.01" type="sphere"></geom>
-        <site pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.01" type="sphere"></site>
+        <site name="mocap" pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.01" type="sphere"></site>
     </body>
 
 </mujoco>

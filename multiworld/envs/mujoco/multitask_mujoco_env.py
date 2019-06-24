@@ -29,6 +29,36 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_6dof import S
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_6dof import SawyerShelfPlace6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorClose6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_window_open_6dof import SawyerWindowOpen6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_window_close_6dof import SawyerWindowClose6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweep6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoal6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTurn6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button_6dof import SawyerCoffeeButton6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_6dof import SawyerCoffeePush6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull_6dof import SawyerCoffeePull6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClose6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown_6dof import SawyerPegInsertionTopdown6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_topdown_6dof import SawyerPegUnplugTopdown6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_6dof import SawyerPegUnplugSide6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccer6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketball6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall_6dof import SawyerReachPushPickPlaceWall6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_unstack_6dof import SawyerUnStack6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_back_6dof import SawyerPushBack6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHole6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof import SawyerShelfRemove6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_6dof import SawyerNutDisassemble6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLock6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
+
 
 try:
 	import mujoco_py
@@ -41,10 +71,27 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv, SawyerDrawerOpen6DOFEnv,
 # 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
-ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerShelfPlace6DOFEnv,
 # 			SawyerDrawerClose6DOFEnv, SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerPegInsertionSide6DOFEnv]
+# ENV_LIST = [SawyerDoor6DOFEnv, SawyerDoorClose6DOFEnv]
+# ENV_LIST = [SawyerHandInsert6DOFEnv, SawyerSweep6DOFEnv, SawyerSweepIntoGoal6DOFEnv, SawyerLeverPull6DOFEnv, SawyerDialTurn6DOFEnv]
+# ENV_LIST = [SawyerHandInsert6DOFEnv, SawyerSweepIntoGoal6DOFEnv, SawyerSweep6DOFEnv, SawyerDrawerOpen6DOFEnv]
+# ENV_LIST = [SawyerHammer6DOFEnv, SawyerNutAssembly6DOFEnv, SawyerBinPicking6DOFEnv]
+# ENV_LIST = [SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv]
+# ENV_LIST = [SawyerWindowOpen6DOFEnv, SawyerWindowClose6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlace6DOFEnv, SawyerLeverPull6DOFEnv, SawyerDialTurn6DOFEnv,
+# 			SawyerButtonPress6DOFEnv, SawyerButtonPressTopdown6DOFEnv, SawyerDoor6DOFEnv, SawyerDoorClose6DOFEnv,
+# 			SawyerWindowOpen6DOFEnv, SawyerWindowClose6DOFEnv, SawyerHandInsert6DOFEnv, SawyerSweep6DOFEnv, SawyerSweepIntoGoal6DOFEnv,
+# 			SawyerDrawerOpen6DOFEnv, SawyerDrawerClose6DOFEnv]
+# ENV_LIST = [SawyerStack6DOFEnv, SawyerStack6DOFEnv]
+# ENV_LIST = [SawyerCoffeeButton6DOFEnv, SawyerCoffeePush6DOFEnv, SawyerCoffeePull6DOFEnv,
+# 			SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv, SawyerPegUnplugSide6DOFEnv, SawyerSoccer6DOFEnv, SawyerBasketball6DOFEnv]
+# ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerFaucetOpen6DOFEnv, SawyerFaucetClose6DOFEnv]
+ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerUnStack6DOFEnv, SawyerPushBack6DOFEnv,
+			SawyerPickOutOfHole6DOFEnv, SawyerShelfRemove6DOFEnv, SawyerNutDisassemble6DOFEnv, SawyerDoorLock6DOFEnv, SawyerDoorUnlock6DOFEnv, SawyerSweepTool6DOFEnv,
+			SawyerGolfPutting6DOFEnv, SawyerFaucetOpen6DOFEnv, SawyerFaucetClose6DOFEnv]
 
 class MultiTaskMujocoEnv(gym.Env):
 	"""
@@ -52,7 +99,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	def __init__(self,
 				if_render=True,
-				random_init=False,
+				random_init=True,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
 		self.adaptive_sampling = adaptive_sampling
@@ -68,8 +115,12 @@ class MultiTaskMujocoEnv(gym.Env):
 			# 	# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=2))
 			# else:
 			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
-			if i < 2:#3:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i+1))
+			# if i < 2:#3:
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i+1))
+			# else:
+			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
+			if env is SawyerReachPushPickPlace6DOFEnv or env is SawyerReachPushPickPlaceWall6DOFEnv:
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
 			else:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			# set the one-hot task representation

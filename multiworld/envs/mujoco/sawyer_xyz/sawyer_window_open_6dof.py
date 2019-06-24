@@ -20,7 +20,8 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 			obj_high=(0.1, 0.9, 0.16),
 			random_init=False,
 			# tasks = [{'goal': 0.55,  'obj_init_pos':0.0, 'obj_init_angle': 0.3}], 
-			tasks = [{'goal': np.array([0.1, 0.785, 0.15]),  'obj_init_pos':np.array([-0.1, 0.785, 0.15]), 'obj_init_angle': 0.3}], 
+			# tasks = [{'goal': np.array([0.1, 0.785, 0.15]),  'obj_init_pos':np.array([-0.1, 0.785, 0.15]), 'obj_init_angle': 0.3}], 
+			tasks = [{'goal': np.array([0.08, 0.785, 0.15]),  'obj_init_pos':np.array([-0.1, 0.785, 0.15]), 'obj_init_angle': 0.3}], 
 			goal_low=None,
 			goal_high=None,
 			hand_init_pos = (0, 0.6, 0.2),
@@ -99,8 +100,8 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 			)
 		else:
 			self.observation_space = Box(
-					np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-					np.hstack((self.hand_high, obj_high, np.zeros(multitask_num))),
+					np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+					np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
 			)
 		self.reset()
 
@@ -176,12 +177,15 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
    
 	def _get_obs(self):
 		hand = self.get_endeff_pos()
-		objPos =  self.data.get_geom_xpos('handle').copy()
+		# objPos =  self.data.get_geom_xpos('handle').copy()
+		# objPos[0] -= 0.01
+		objPos =  self.get_site_pos('handleOpenStart')
 		flat_obs = np.concatenate((hand, objPos))
 		if self.multitask:
 			assert hasattr(self, '_state_goal_idx')
 			return np.concatenate([
 					flat_obs,
+					self._state_goal,
 					self._state_goal_idx
 				])
 		return np.concatenate([
@@ -191,8 +195,9 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 
 	def _get_obs_dict(self):
 		hand = self.get_endeff_pos()
-		objPos =  self.data.get_geom_xpos('handle').copy()
-		objPos[0] -= 0.01
+		# objPos =  self.data.get_geom_xpos('handle').copy()
+		# objPos[0] -= 0.01
+		objPos =  self.get_site_pos('handleOpenStart')
 		flat_obs = np.concatenate((hand, objPos))
 		return dict(
 			state_observation=flat_obs,
@@ -279,7 +284,8 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 			# self.obj_init_qpos = goal_pos[-1]
 			self.obj_init_pos = obj_pos
 			goal_pos = obj_pos.copy()
-			goal_pos[0] += 0.2
+			# goal_pos[0] += 0.2
+			goal_pos[0] += 0.18
 			self._state_goal = goal_pos
 		self._set_goal_marker(self._state_goal)
 		# self._set_obj_xyz(self.obj_init_pos)
@@ -304,7 +310,7 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 			#self.do_simulation(None, self.frame_skip)
 		rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
 		self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-		self.pickCompleted = False
+		self.reachCompleted = False
 
 	def get_site_pos(self, siteName):
 		_id = self.model.site_names.index(siteName)
@@ -332,9 +338,22 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
 		reachDist = np.linalg.norm(objPos - fingerCOM)
 		heightTarget = self.heightTarget
 
+		def reachCompleted():
+			if reachDist < 0.05:
+				return True
+			else:
+				return False
+
+		if reachCompleted():
+			self.reachCompleted = True
+		else:
+		    self.reachCompleted = False
+
+		# c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
 		c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
 		reachRew = -reachDist
-		if reachDist < 0.05:
+		# if reachDist < 0.05:
+		if self.reachCompleted:
 			# pushRew = -pushDist
 			pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
 		else:
