@@ -13,6 +13,6 @@ def step_env(env, max_path_length=100, iterations=1):
 
 def close_env(env):
     """Close env helper."""
-	if env.viewer is not None:
-		glfw.destroy_window(env.viewer.window)
-	env.viewer = None
+    if env.viewer is not None:
+        glfw.destroy_window(env.viewer.window)
+    env.viewer = None

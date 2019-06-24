@@ -21,6 +21,8 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_stack_6dof import SawyerStack6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTurn6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
+
 
 
 
@@ -34,13 +36,12 @@ import gym
 import multiworld
 
 space_mouse = SpaceMouse()
-env = SawyerLeverPull6DOFEnv(rotMode = 'rotz')
+env = SawyerReachPushPickPlace6DOFEnv(rotMode = 'rotz')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
 closed = False
-
 
 while True:
     done = False
@@ -55,29 +56,29 @@ while True:
     )
 
     # convert into a suitable end effector action for the environment
-    current = env.get_mocap_quat()
+    # current = env.get_mocap_quat()
 
-    desired_quat = mat2quat(rotation)
-    current_z = quat_to_zangle(current)
-    desired_z = quat_to_zangle(desired_quat)
+    # desired_quat = mat2quat(rotation)
+    # current_z = quat_to_zangle(current)
+    # desired_z = quat_to_zangle(desired_quat)
 
-    # drotation = current.T.dot(rotation)  # relative rotation of desired from current
-    # dquat = T.mat2quat(drotation)
+    # # drotation = current.T.dot(rotation)  # relative rotation of desired from current
+    # # dquat = T.mat2quat(drotation)
+    
+    # print('current', current_z)
+    # print('desired', desired_z)
 
-    print('current', current_z)
-    print('desired', desired_z)
 
-
-    print('diff unclipped', desired_z - current_z)
-    diff = desired_z - current_z
-    print('diff', diff)
+    # print('diff unclipped', desired_z - current_z)
+    # diff = desired_z - current_z
+    # print('diff', diff)
 
     gripper = grasp
     if gripper == 1:
         closed = not closed
 
-    env.step(np.hstack([dpos/.005, 0, closed]))
+    obs, reward, done, _ = env.step(np.hstack([dpos/.005, 0, closed]))
+    # print(obs)
 
-
-    if done:
-        obs = env.reset()
+    # if done:
+    #     obs = env.reset()
