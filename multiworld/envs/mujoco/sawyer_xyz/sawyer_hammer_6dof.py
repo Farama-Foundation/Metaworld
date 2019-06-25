@@ -381,7 +381,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         hammerRew , hammerDist, screwDist = hammerReward()
         assert ((hammerRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + hammerRew
-        return [reward, reachRew, reachDist, pickRew, hammerRew, hammerDist, screwDist] 
+        return [reward, reachRew, reachDist, pickRew, hammerRew, hammerDist, screwDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

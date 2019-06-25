@@ -98,8 +98,8 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -172,6 +172,7 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
             assert hasattr(self, '_state_goal_idx')
             return np.concatenate([
                     flat_obs,
+                    self._state_goal,
                     self._state_goal_idx
                 ])
         return np.concatenate([

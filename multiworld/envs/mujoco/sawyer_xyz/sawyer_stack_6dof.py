@@ -24,6 +24,9 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             liftThresh = 0.04,
             rewMode = 'dense',
             rotMode='fixed',#'fixed',
+            multitask=False,
+            multitask_num=1,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -56,6 +59,10 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
+        self.multitask = multitask
+        self.multitask_num = multitask_num
+        self._state_goal_idx = np.zeros(self.multitask_num)
+        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -82,10 +89,16 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((obj_low, obj_high)),
         )
         self.goal_space = Box(goal_low, goal_high)
-        self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low)),
-                np.hstack((self.hand_high, obj_high, obj_high)),
-        )
+        if not multitask:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, obj_low)),
+                    np.hstack((self.hand_high, obj_high, obj_high)),
+            )
+        else:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+            )
         # self.observation_space = Dict([
         #     ('state_observation', self.hand_and_obj_space),
         #     ('state_desired_goal', self.goal_space),
@@ -127,6 +140,8 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -157,6 +172,13 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
+        if self.multitask:
+            assert hasattr(self, '_state_goal_idx')
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                    self._state_goal_idx
+                ])
         return np.concatenate([
                 flat_obs,
                 self._state_goal
@@ -256,8 +278,8 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
-            self._state_goal = np.concatenate((goal_pos[-3:-1], self.obj_init_pos[-1]))
-            self.obj_init_pos = np.concatenate((goal_pos[:2], self.obj_init_pos[-1]))
+            self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._set_goal_xyz(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
