@@ -16,12 +16,12 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.05),
-            obj_high=(0.1, 0.9, 0.05),
+            obj_low=(-0.1, 0.85, 0.05),
+            obj_high=(0.1, 0.85, 0.05),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.8, 0.03]), 'obj_init_pos':np.array([0, 0.88, 0.05])}], 
-            goal_low=(-0.1, 0.8, 0.03),
-            goal_high=(0.1, 0.9, 0.03),
+            tasks = [{'goal': np.array([0, 0.8, 0.02]), 'obj_init_pos':np.array([0, 0.85, 0.05])}], 
+            goal_low=(-0.1, 0.85, 0.02),
+            goal_high=(0.1, 0.85, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
@@ -152,6 +152,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
+        self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
@@ -162,7 +163,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.03)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -192,6 +193,15 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
+
+    def _set_goal_marker(self, goal):
+        """
+        This should be use ONLY for visualization. Use self._state_goal for
+        logging, learning, etc.
+        """
+        self.data.site_xpos[self.model.site_name2id('goal')] = (
+            goal[:3]
+        )
 
     def _set_objCOM_marker(self):
         """
@@ -244,8 +254,6 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
         hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = task['obj_init_pos']
         self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + np.array(task['goal'])[-1]*2]))
-        self.objHeight = self.get_body_com('peg').copy()[2]
-        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -257,8 +265,11 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1]]))
             self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + goal_pos[-1]*2]))
         self._set_obj_xyz(self.obj_init_pos)
+        self._set_goal_marker(self._state_goal)
         self.obj_init_pos = self.get_body_com('peg')
-        self.maxPlacingDist = np.abs(self._state_goal[-1] - self.obj_init_pos[-1])
+        self.objHeight = self.get_body_com('peg').copy()[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+        self.maxPlacingDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.curr_path_length = 0
         #Can try changing this
@@ -300,13 +311,13 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 
-        placingDist = np.abs(objPos[-1] - placingGoal[-1])
+        placingDist = np.linalg.norm(objPos - placingGoal)
       
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - heightTarget)
             if reachDistxy < 0.05: #0.02
                 reachRew = -reachDist
             else:
@@ -315,6 +326,13 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             #incentive to close fingers when reachDist is small
             if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1],0)/50
+            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
+            # if reachDistxy < 0.05: #0.02
+            #     reachRew = -reachDist + 0.1
+            #     if reachDist < 0.05:
+            #         reachRew += max(actions[-1],0)/50
+            # else:
+            #     reachRew =  -reachDistxy
             return reachRew , reachDist
 
         def pickCompletionCriteria():

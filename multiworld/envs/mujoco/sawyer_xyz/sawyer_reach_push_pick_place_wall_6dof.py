@@ -16,17 +16,22 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.05, 0.6, 0.02),
-            obj_high=(0.05, 0.65, 0.02),
+            # obj_low=(-0.05, 0.6, 0.02),
+            # obj_high=(0.05, 0.65, 0.02),
+            obj_low=(-0.05, 0.6, 0.015),
+            obj_high=(0.05, 0.65, 0.015),
             random_init=False,
             # task_types=['reach', 'push', 'pick_place'],
             # tasks = [{'goal': np.array([-0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
             #         {'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'push'},
             #         {'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'}], 
             task_types=['pick_place', 'reach', 'push'],
-            tasks = [{'goal': np.array([0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'},
-                    {'goal': np.array([-0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
-                    {'goal': np.array([0.05, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'push'}], 
+            # tasks = [{'goal': np.array([0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'},
+            #         {'goal': np.array([-0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
+            #         {'goal': np.array([0.05, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'push'}], 
+            tasks = [{'goal': np.array([0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'pick_place'},
+                    {'goal': np.array([-0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'reach'},
+                    {'goal': np.array([0.05, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'push'}], 
             goal_low=(-0.05, 0.85, 0.05),
             goal_high=(0.05, 0.9, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
@@ -187,7 +192,11 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
         #                             'pickRew':pickRew, 'placeRew': placeRew,
         #                             'epRew' : reward, 'placingDist': placingDist}
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist}
+        if self.task_type == 'reach':
+            success = float(reachDist <= 0.05)
+        else:
+            success = float(goalDist <= 0.07)
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

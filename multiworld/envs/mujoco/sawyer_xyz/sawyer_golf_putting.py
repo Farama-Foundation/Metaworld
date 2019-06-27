@@ -16,12 +16,12 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.6, 0.02),
-            obj_high=(0.1, 0.7, 0.02),
+            obj_low=(0, 0.6, 0.02),
+            obj_high=(0, 0.6, 0.02),
             random_init=False,
-            tasks = [{'goal': np.array([0., 0.7, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.7, 0.02),
-            goal_high=(0.1, 0.75, 0.02),
+            tasks = [{'goal': np.array([0., 0.75, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.05, 0.75, 0.02),
+            goal_high=(0.05, 0.77, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh=0.02,
             rotMode='fixed',#'fixed',
@@ -289,7 +289,7 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
                 size=(self.obj_and_goal_space.low.size),
             )
             self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[1] - self._state_goal[1]) < 0.07:
+            while np.linalg.norm(goal_pos[1] - self._state_goal[1]) < 0.1:
                 goal_pos = np.random.uniform(
                     self.obj_and_goal_space.low,
                     self.obj_and_goal_space.high,
@@ -314,6 +314,7 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
+        self.pushCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -364,6 +365,11 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
         if pickCompletionCriteria():
             self.pickCompleted = True
 
+        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.8 <= objPos[1] < 0.9:
+            self.pushCompleted = True
+            pushDist = 0
+            ballDist = 0
+            reachDist = 0
 
         def objDropped():
             return (graspPos[2] < (self.clubHeight + 0.005)) and (pushDist >0.02) and (reachDist > 0.02) 
@@ -377,7 +383,7 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
         def orig_pickReward():       
             # hScale = 50
             hScale = 100
-            if self.pickCompleted and not(objDropped()):
+            if self.pushCompleted or (self.pickCompleted and not(objDropped())):
                 return hScale*heightTarget
             # elif (reachDist < 0.1) and (hammerPos[2]> (self.hammerHeight + 0.005)) :
             elif (reachDist < 0.1) and (graspPos[2]> (self.clubHeight + 0.005)) :
@@ -401,7 +407,11 @@ class SawyerGolfPutting6DOFEnv(SawyerXYZEnv):
                 cond = self.pickCompleted and objGrasped()
             else:
                 cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
-            if cond:
+            if self.pushCompleted:
+                pushRew = 1000*(self.maxPushDist - pushDist - ballDist) + c1*(np.exp(-((pushDist+ballDist)**2)/c2) + np.exp(-((pushDist+ballDist)**2)/c3))
+                pushRew = max(pushRew,0)
+                return [pushRew , pushDist, ballDist]
+            elif cond:
                 pushRew = 1000*(self.maxPushDist - pushDist - ballDist) + c1*(np.exp(-((pushDist+ballDist)**2)/c2) + np.exp(-((pushDist+ballDist)**2)/c3))
                 pushRew = max(pushRew,0)
                 return [pushRew , pushDist, ballDist]

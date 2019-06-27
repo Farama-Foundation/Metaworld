@@ -165,7 +165,7 @@ class SawyerButtonPress6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -258,9 +258,10 @@ class SawyerButtonPress6DOFEnv(SawyerXYZEnv):
             button_pos[1] -= 0.12
             button_pos[2] += 0.07
             self._state_goal = button_pos
-        # self._set_obj_xyz(self.obj_init_qpos)
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
+        self._set_obj_xyz(0)
+        self._state_goal = self.get_site_pos('hole')
         self.curr_path_length = 0
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._state_goal[1])
         self.target_reward = 1000*self.maxDist + 1000*2

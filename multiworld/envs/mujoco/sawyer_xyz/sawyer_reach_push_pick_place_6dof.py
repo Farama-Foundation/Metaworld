@@ -187,7 +187,11 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         #                             'pickRew':pickRew, 'placeRew': placeRew,
         #                             'epRew' : reward, 'placingDist': placingDist}
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist}
+        if self.task_type == 'reach':
+            success = float(reachDist <= 0.05)
+        else:
+            success = float(goalDist <= 0.07)
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

@@ -17,6 +17,7 @@
           <geom name="RoundNut-8" pos="0.06 0 0.0" size="0.03 0.01125 0.02" type="box" solimp="0.998 0.998 0.001" solref="0.02 1" density="100" friction="0.95 0.3 0.1" rgba="1 0 0 1" group="1" condim="4" conaffinity="1" contype="1"/>
           <joint name="RoundNut" type="free" limited='false' damping="0.0005"/>
           <site rgba="1 0 0 1" size="0.002 0.002 0.002" pos="0 0 0" type="sphere" name="RoundNut"/>
+          <site rgba="1 1 1 1" size="0.005 0.005 0.005" pos="0.09 0 0.0" type="sphere" name="RoundNut-8"/>
         </body>
         <body name="peg" pos="0.1 0.8 0.05">
           <!-- <geom pos="0 0 0" size="0.02 0.05" type="cylinder" friction="1 0.005 0.0001"/> -->

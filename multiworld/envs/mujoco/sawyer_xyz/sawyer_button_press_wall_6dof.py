@@ -10,24 +10,23 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
-import pdb
 
-class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
+class SawyerButtonPressWall6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, -0.15),
+            hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.05),
-            obj_high=(0.1, 0.85, 0.05),
-            random_init=False,
-            # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
-            tasks = [{'goal': np.array([-0.1, 0.785, 0.115]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
+            obj_low=(-0.05, 0.85, 0.05),
+            obj_high=(0.05, 0.9, 0.05),
+            random_init=True,
+            # tasks = [{'goal': np.array([0, 0.78, 0.12]), 'obj_init_pos':np.array([0., 0.75, 0.12]), 'obj_init_qpos':0.}], 
+            tasks = [{'goal': np.array([0, 0.84, 0.12]), 'obj_init_pos':np.array([0, 0.9, 0.05])}], 
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
-            multitask_num=None,
+            multitask_num=1,
             if_render=False,
             **kwargs
     ):
@@ -91,13 +90,13 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low)),
-                    np.hstack((self.hand_high, obj_high, goal_high)),
+                    np.hstack((self.hand_low, obj_low, obj_low)),
+                    np.hstack((self.hand_high, obj_high, obj_high)),
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, obj_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, obj_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -110,7 +109,7 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
     @property
     def model_name(self):     
 
-        return get_asset_full_path('sawyer_xyz/sawyer_faucet.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_button_press_wall.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
@@ -158,28 +157,19 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
+        obs_dict = self._get_obs_dict()
+        reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
    
-
-    def get_angle(self):
-        return np.array([self.data.get_joint_qpos('joint')])
-
-    def get_mocap_quat(self):
-        return self.data.get_mocap_quat('mocap')
-
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('handleStartClose')
-        # angle = self.get_angle()
+        objPos =  self.data.site_xpos[self.model.site_name2id('buttonStart')]
         flat_obs = np.concatenate((hand, objPos))
         if self.multitask:
             assert hasattr(self, '_state_goal_idx')
@@ -188,14 +178,14 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
                     self._state_goal,
                     self._state_goal_idx
                 ])
-        return np.hstack([
+        return np.concatenate([
                 flat_obs,
-                self._state_goal,
+                self._state_goal
             ])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('handleStartClose')
+        objPos =  self.data.site_xpos[self.model.site_name2id('buttonStart')]
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -216,17 +206,6 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             objPos
         )
     
-    def _set_goal_marker(self, goal):
-        """
-        This should be use ONLY for visualization. Use self._state_goal for
-        logging, learning, etc.
-        """
-        self.data.site_xpos[self.model.site_name2id('goal_close')] = (
-            goal[:3]
-        )
-        self.data.site_xpos[self.model.site_name2id('goal_open')] = (
-            np.array([10.0, 10.0, 10.0])
-        )
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -274,18 +253,18 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
                 size=(self.obj_and_goal_space.low.size),
             )
             # self.obj_init_qpos = goal_pos[-1]
-            self.obj_init_pos = goal_pos[:3]
-            final_pos = goal_pos.copy()
-            final_pos += np.array([-0.1, -0.015, 0.065])
-            self._state_goal = final_pos
-
-        # self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        # print(button_pos)
-        self.sim.model.body_pos[self.model.body_name2id('faucet')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('faucetBase')] = self.obj_init_pos
-        self._set_goal_marker(self._state_goal)
-        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+            self.obj_init_pos = goal_pos
+            button_pos = goal_pos.copy()
+            button_pos[1] -= 0.06
+            button_pos[2] += 0.07
+            self._state_goal = button_pos
+        self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
+        self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
+        self._set_obj_xyz(0)
+        self._state_goal = self.get_site_pos('hole')
         self.curr_path_length = 0
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._state_goal[1])
+        self.target_reward = 1000*self.maxDist + 1000*2
         #Can try changing this
         return self._get_obs()
 
@@ -297,7 +276,7 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             #self.do_simulation(None, self.frame_skip)
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
+        self.pickCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -316,50 +295,24 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        leftFinger = self.get_site_pos('leftEndEffector')
+        fingerCOM  =  leftFinger
 
-        pullGoal = self._state_goal
+        pressGoal = self._state_goal[1]
 
-        pullDist = np.linalg.norm(objPos - pullGoal)
+        pressDist = np.abs(objPos[1] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
-        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-        # zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-        # if reachDistxy < 0.05: #0.02
-        #     reachRew = -reachDist
-        # else:
-        #     reachRew =  -reachDistxy - zDist
-        reachRew = -reachDist
-
-        def reachCompleted():
-            if reachDist < 0.05:
-                return True
-            else:
-                return False
-
-        if reachCompleted():
-            self.reachCompleted = True
+        # reward = -reachDist -pressDist*2
+        c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+        if reachDist < 0.05:
+            # pressRew = -pressDist
+            pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
         else:
-            self.reachCompleted = False
+            pressRew = 0
+        pressRew = max(pressRew, 0)
+        reward = -reachDist + pressRew
 
-        def pullReward():
-            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            # c1 = 10 ; c2 = 0.01 ; c3 = 0.001
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-            # pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-            # pullRew = max(pullRew,0)
-            # return pullRew
-        # pullRew = -pullDist
-        pullRew = pullReward()
-        reward = reachRew + pullRew# - actions[-1]/50
-        # reward = pullRew# - actions[-1]/50
-      
-        return [reward, reachDist, pullDist] 
+        return [reward, reachDist, pressDist] 
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -367,21 +320,3 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':  
-    import time 
-    env = SawyerFaucetClose6DOFEnv()    
-    for _ in range(1000):   
-        env.reset()
-        print(env.get_body_com('faucet'))
-        print(env.get_site_pos('handleStartClose'))
-        for _ in range(50): 
-            env.render()
-            env.step(env.action_space.sample()) 
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))   
-            if _ % 2 == 0: 
-                env._set_obj_xyz(0)
-            else:
-                env._set_obj_xyz(1.5708)
-            time.sleep(0.05)
-        print(env.get_site_pos('handleStartClose'))

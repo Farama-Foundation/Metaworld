@@ -16,14 +16,17 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.001),
-            obj_high=(0.1, 0.9, 0.001),
+            obj_low=(-0.1, 0.75, 0.001),
+            obj_high=(0.1, 0.85, 0.001),
             random_init=False,
-            tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.85, 0.001]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.02),
-            goal_high=(0.1, 0.6, 0.02),
+            # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.6, 0.02),
+            # goal_high=(0.1, 0.6, 0.02),
+            tasks = [{'goal': np.array([0., 0.6, 0.015]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.6, 0.015),
+            goal_high=(0.1, 0.6, 0.015),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.04,
+            liftThresh = 0.06,
             rewMode = 'orig',
             rotMode='fixed',#'fixed',
             multitask=False,
@@ -180,7 +183,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -278,11 +281,10 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
         self._reset_hand()
         task = self.sample_task()
         self.sim.model.body_pos[self.model.body_name2id('shelf')] = np.array(task['obj_init_pos'])
-        self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.22])
+        # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
+        self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
         self._state_goal = np.array(task['goal'])
         self.obj_init_angle = task['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -296,10 +298,13 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[:3]
-            self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.22])
+            # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
+            self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
             self._state_goal = goal_pos[-3:]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
+        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
@@ -347,15 +352,23 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+            # zRew = np.linalg.norm(fingerCOM[-1] - self.heightTarget)
+            # if reachDistxy < 0.05: #0.02
+            #     reachRew = -reachDist
+            # else:
+            #     reachRew =  -reachDistxy - 2*zRew
+            # #incentive to close fingers when reachDist is small
+            # if reachDist < 0.05:
+            #     reachRew = -reachDist + max(actions[-1],0)/50
+            # return reachRew , reachDist
+            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.heightTarget])) - fingerCOM)
             if reachDistxy < 0.05: #0.02
-                reachRew = -reachDist
+                reachRew = -reachDist + 0.1
+                if reachDist < 0.05:
+                    reachRew += max(actions[-1],0)/50
             else:
-                reachRew =  -reachDistxy - 2*zRew
-            #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
-                reachRew = -reachDist + max(actions[-1],0)/50
+                reachRew =  -reachDistxy
             return reachRew , reachDist
 
         def pickCompletionCriteria():
@@ -382,19 +395,19 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             # hScale = 50
             hScale = 100
             if self.pickCompleted and not(objDropped()):
-                return hScale*heightTarget
+                return hScale*(heightTarget - self.objHeight + 0.02)
             # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
             elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-                return hScale* min(heightTarget, objPos[2])
+                return hScale* (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
             else:
                 return 0
 
         def general_pickReward():
             hScale = 50
             if self.pickCompleted and objGrasped():
-                return hScale*heightTarget
+                return hScale*(heightTarget - self.objHeight + 0.02)
             elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
-                return hScale* min(heightTarget, objPos[2])
+                return hScale* (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
             else:
                 return 0
 

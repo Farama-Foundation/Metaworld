@@ -16,10 +16,10 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.),
-            obj_high=(0.1, 0.9, 0.),
+            obj_low=(-0.05, 0.75, 0.),
+            obj_high=(0.05, 0.8, 0.),
             random_init=False,
-            tasks = [{'goal': np.array([0., 0.6, 0]),  'obj_init_pos':np.array([0, 0.8, 0.]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0., 0.6, 0]),  'obj_init_pos':np.array([0, 0.75, 0.]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.05),
             goal_high=(0.1, 0.7, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
@@ -163,7 +163,7 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.07)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -282,7 +282,7 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
                 self._state_goal = goal_pos[3:]
             self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            machine_pos = goal_pos[:3] - np.array([0, -0.1, -0.27])
+            machine_pos = goal_pos[:3] - np.array([0, -0.15, -0.27])
             button_pos = machine_pos + np.array([0., -0.12, 0.05])
             self.sim.model.body_pos[self.model.body_name2id('coffee_machine')] = machine_pos
             self.sim.model.body_pos[self.model.body_name2id('button')] = button_pos
@@ -330,6 +330,24 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
         reachDist = np.linalg.norm(fingerCOM - objPos)
         pullDist = np.linalg.norm(objPos[:2] - goal[:2])
         reachRew = -reachDist
+        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        # zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
+        # if reachDistxy < 0.05: #0.02
+        #     reachRew = -reachDist
+        # else:
+        #     reachRew =  -reachDistxy - 2*zRew
+        # #incentive to close fingers when reachDist is small
+        # if reachDist < 0.05:
+        #     reachRew = -reachDist + max(actions[-1],0)/50
+
+        reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
+        if reachDistxy < 0.05: #0.02
+            reachRew = -reachDist + 0.1
+            if reachDist < 0.05:
+                reachRew += max(actions[-1],0)/50
+        else:
+            reachRew =  -reachDistxy
+
         if reachDist < 0.05:
             # pullRew = -pullDist
             pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))

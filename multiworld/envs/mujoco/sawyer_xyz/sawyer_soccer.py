@@ -163,7 +163,7 @@ class SawyerSoccer6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.07)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

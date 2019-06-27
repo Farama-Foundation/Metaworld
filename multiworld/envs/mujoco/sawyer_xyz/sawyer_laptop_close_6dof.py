@@ -147,7 +147,7 @@ class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'angleDiff': angle_diff, 'epRew' : reward}
+        return ob, reward, done, {'reachDist': reachDist, 'angleDiff': angle_diff, 'epRew' : reward, 'success': float(angle_diff <= 0.2)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

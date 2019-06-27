@@ -161,7 +161,7 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
 			done = True
 		else:
 			done = False
-		return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None}
+		return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
    
 	def _get_obs(self):
 		hand = self.get_endeff_pos()

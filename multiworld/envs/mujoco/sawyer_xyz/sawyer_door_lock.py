@@ -18,7 +18,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             hand_low=(-0.5, 0.40, -0.15),
             hand_high=(0.5, 1, 0.5),
             obj_low=(-0.1, 0.8, 0.1),
-            obj_high=(0.1, 0.9, 0.1),
+            obj_high=(0.1, 0.85, 0.1),
             random_init=False,
             # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
             tasks = [{'goal': np.array([0, 0.85, 0.1]), 'obj_init_pos':np.array([0, 0.85, 0.1])}], 
@@ -167,7 +167,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
    
 
     def get_angle(self):
@@ -178,7 +178,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('lockStart')
+        objPos = self.get_site_pos('lockStartLock')
         # angle = self.get_angle()
         flat_obs = np.concatenate((hand, objPos))
         if self.multitask:
@@ -195,7 +195,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('lockStart')
+        objPos =  self.get_site_pos('lockStartLock')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -224,6 +224,10 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('goal_lock')] = (
             goal[:3]
         )
+        self.data.site_xpos[self.model.site_name2id('goal_unlock')] = (
+            np.array([10., 10., 10.])
+        )
+
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -263,7 +267,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         task = self.sample_task()
         door_pos = task['obj_init_pos']
         self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
-        self._state_goal = door_pos + np.array([0, -0.02, 0.01])
+        self._state_goal = door_pos + np.array([0, -0.04, -0.03])
         # self.obj_init_qpos = task['obj_init_qpos']
         if self.random_init:
             goal_pos = np.random.uniform(
@@ -273,13 +277,15 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             )
             # self.obj_init_qpos = goal_pos[-1]
             door_pos = goal_pos
-            self._state_goal = goal_pos + np.array([0, -0.02, 0.01])
+            self._state_goal = goal_pos + np.array([0, -0.04, -0.03])
 
         # self._set_obj_xyz(self.obj_init_qpos)
         # self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         # print(button_pos)
         self.sim.model.body_pos[self.model.body_name2id('door')] = door_pos
         self.sim.model.body_pos[self.model.body_name2id('lock')] = door_pos
+        for _ in range(self.frame_skip):
+            self.sim.step()
         self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
         self._set_goal_marker(self._state_goal)
         self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
@@ -368,15 +374,15 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
 
 if __name__ == '__main__':  
     import time 
-    env = SawyerDoorLock6DOFEnv()    
+    env = SawyerDoorLock6DOFEnv(random_init=True)    
     for _ in range(1000):   
         env.reset()
         print(env.get_body_com('door'))
-        print(env.get_site_pos('lockStart'))
+        print(env.get_site_pos('lockStartLock'))
         env._set_obj_xyz(1.5708)
         for _ in range(50): 
             env.render()
             env.step(env.action_space.sample()) 
             # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))    
             time.sleep(0.05)
-        print(env.get_site_pos('lockStart'))
+        print(env.get_site_pos('lockStartLock'))

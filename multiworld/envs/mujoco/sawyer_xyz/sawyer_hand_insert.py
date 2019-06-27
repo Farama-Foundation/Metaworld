@@ -163,7 +163,7 @@ class SawyerHandInsert6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': None, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': None, 'epRew' : reward, 'pickRew':None, 'success': float(reachDist <= 0.05)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

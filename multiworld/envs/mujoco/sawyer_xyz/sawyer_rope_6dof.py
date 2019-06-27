@@ -216,7 +216,7 @@ class SawyerRope6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         ob_dict = self._get_obs_dict()
         reward, abs_cos, is_success = self.compute_reward(action, ob_dict)
         done = False
-        return ob, reward, done, {'reward': reward, 'abs_cos': abs_cos, 'is_success': is_success}
+        return ob, reward, done, {'reward': reward, 'abs_cos': abs_cos, 'success': is_success}
 
     def _get_obs(self):
         hand = self.get_endeff_pos()

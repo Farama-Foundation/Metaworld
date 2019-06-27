@@ -16,10 +16,10 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.75, 0.02),
-            obj_high=(0.1, 0.85, 0.02),
+            obj_low=(0., 0.8, 0.02),
+            obj_high=(0., 0.8, 0.02),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([0.1, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([0, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.02),
             goal_high=(0.1, 0.7, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
@@ -135,7 +135,8 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -158,11 +159,12 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        # graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        graspPos =  self.get_site_pos('RoundNut-8')
         flat_obs = np.concatenate((hand, graspPos))
         if self.multitask:
             assert hasattr(self, '_state_goal_idx')
@@ -178,7 +180,8 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        # graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        graspPos =  self.get_site_pos('RoundNut-8')
         objPos = self.get_body_com('RoundNut')
         flat_obs = np.concatenate((hand, graspPos))
         return dict(
@@ -249,8 +252,6 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         self._state_goal = np.array(task['goal'])
         self.obj_init_pos = np.array(task['obj_init_pos'])
         self.obj_init_angle = task['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -271,6 +272,8 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = peg_top_pos
         self._set_obj_xyz(self.obj_init_pos)
         self._set_goal_marker(self._state_goal)
+        self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
@@ -321,15 +324,23 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            # reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
+            # zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            # if reachDistxy < 0.05: #0.02
+            #     reachRew = -reachDist
+            # else:
+            #     reachRew =  -reachDistxy - zRew
+            # #incentive to close fingers when reachDist is small
+            # if reachDist < 0.05:
+            #     reachRew = -reachDist + max(actions[-1],0)/50
+            # return reachRew , reachDist
+            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
             if reachDistxy < 0.05: #0.02
-                reachRew = -reachDist
+                reachRew = -reachDist + 0.1
+                if reachDist < 0.05:
+                    reachRew += max(actions[-1],0)/50
             else:
-                reachRew =  -reachDistxy - zRew
-            #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
-                reachRew = -reachDist + max(actions[-1],0)/50
+                reachRew =  -reachDistxy
             return reachRew , reachDist
 
         def pickCompletionCriteria():

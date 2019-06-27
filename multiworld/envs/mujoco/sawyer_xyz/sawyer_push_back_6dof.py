@@ -17,7 +17,7 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
             obj_low=(-0.1, 0.8, 0.02),
-            obj_high=(0.1, 0.9, 0.02),
+            obj_high=(0.1, 0.85, 0.02),
             random_init=False,
             tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.02),
@@ -163,7 +163,7 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.07)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -323,6 +323,15 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
         reachDist = np.linalg.norm(fingerCOM - objPos)
         pushDist = np.linalg.norm(objPos[:2] - goal[:2])
         reachRew = -reachDist
+        reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
+        if reachDistxy < 0.05: #0.02
+            reachRew = -reachDist
+        else:
+            reachRew =  -reachDistxy - 2*zRew
+        #incentive to close fingers when reachDist is small
+        if reachDist < 0.05:
+            reachRew = -reachDist + max(actions[-1],0)/50
 
         def reachCompleted():
             if reachDist < 0.05:
@@ -332,12 +341,6 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
 
         if reachCompleted():
             self.reachCompleted = True
-
-
-        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0:
-            reachRew = 0
-            reachDist = 0
-            pushDist = 0
 
         if self.reachCompleted:
             # pushRew = -pushDist

@@ -166,7 +166,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': placeDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': placeDist, 'success': float(placeDist <= 0.07)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -359,12 +359,23 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 np.array(obj_pos) - np.array(goal_pos)
             )
         # r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
-        r_reach = -dist
+        # r_reach = -dist
+        dist_xy = np.linalg.norm(np.concatenate((obj_pos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
+        if dist_xy < 0.05: #0.02
+            r_reach = -dist + 0.1
+            if dist < 0.04:
+                #incentive to close fingers when reachDist is small
+                r_reach + max(0, action[-1])/50
+        else:
+            r_reach =  -dist_xy
+        #incentive to close fingers when reachDist is small
+        # if dist < 0.05:
+        #     r_reach = -dist + max(action[-1],0)/50
 
         # collision checking
         touch_left_finger = False
         touch_right_finger = False
-        touch_obj_goal = True
+        touch_obj_goal = False
 
         for i in range(self.sim.data.ncon):
             c = self.sim.data.contact[i]
@@ -378,7 +389,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 touch_right_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.goal_geom_id:
                 touch_obj_goal = True
-            if c.geom1 == self.goal_geom_id and c.geom2 == self.obj_geom_id:
+            if c.geom1 == self.goal_geom_id or c.geom2 == self.obj_geom_id:
                 touch_obj_goal = True
 
         # additional grasping reward
@@ -388,7 +399,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.04
+        obj_lifted = obj_height > table_height + 0.08
         r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
 
         # Aligning is successful when obj is right above cubeB

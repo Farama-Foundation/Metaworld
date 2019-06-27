@@ -5,11 +5,11 @@
         <include file="sawyer_xyz_base_no_table.xml"></include>
 
         <body name="dial" pos="0 0.7 0.">
-          <inertial pos="0 0 0" mass="1." diaginertia="8.80012e-0 8.80012e-0 8.80012e-0"/>
+          <!-- <inertial pos="0 0 0" mass="1." diaginertia="8.80012e-0 8.80012e-0 8.80012e-0"/> -->
           <geom name="dial" rgba="0.3 1 0.3 1" size=".03 .03 .03" type="box" margin="0.001"
                 contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002" 
             />
-          <joint type="hinge" range="-3.14 3.14" axis="0 0 1" name="joint" pos="0 0 0" damping="1" armature="0"/>
+          <joint type="hinge" range="-3.14 3.14" axis="0 0 1" name="joint" pos="0 0 0" damping="1" armature="0" limited="true"/>
           
           <!-- <site name="dialStart" pos="0.03 -0.03 0.03" size="0.005" rgba="0 0 1 1"/> -->
           <site name="dialStart" pos="0 -0.03 0.03" size="0.005" rgba="0 0 1 1"/>

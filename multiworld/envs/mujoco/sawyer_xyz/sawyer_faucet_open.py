@@ -17,8 +17,8 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, -0.15),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.05),
-            obj_high=(0.1, 0.9, 0.05),
+            obj_low=(-0.05, 0.8, 0.05),
+            obj_high=(0.05, 0.85, 0.05),
             random_init=False,
             # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
             tasks = [{'goal': np.array([0.1, 0.8, 0.115]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
@@ -167,7 +167,7 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
    
 
     def get_angle(self):
@@ -178,7 +178,7 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('handleStart')
+        objPos = self.get_site_pos('handleStartOpen')
         # angle = self.get_angle()
         flat_obs = np.concatenate((hand, objPos))
         if self.multitask:
@@ -195,7 +195,7 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('handleStart')
+        objPos =  self.get_site_pos('handleStartOpen')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -223,6 +223,9 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
         """
         self.data.site_xpos[self.model.site_name2id('goal_open')] = (
             goal[:3]
+        )
+        self.data.site_xpos[self.model.site_name2id('goal_close')] = (
+            np.array([10.0, 10.0, 10.0])
         )
 
     def _set_obj_xyz_quat(self, pos, angle):
@@ -273,7 +276,7 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
             # self.obj_init_qpos = goal_pos[-1]
             self.obj_init_pos = goal_pos[:3]
             final_pos = goal_pos.copy()
-            final_pos += np.array([0.1, 0., 0.065])
+            final_pos += np.array([0.1, -0.015, 0.065])
             self._state_goal = final_pos
 
         # self._set_obj_xyz(self.obj_init_qpos)
@@ -319,15 +322,7 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
         pullGoal = self._state_goal
 
-        pullDist = np.linalg.norm(objPos - pullGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-        # zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-        # if reachDistxy < 0.05: #0.02
-        #     reachRew = -reachDist
-        # else:
-        #     reachRew =  -reachDistxy - zDist
-        reachRew = -reachDist
+        , 'success': float(pullDist <= 0.07)
 
         def reachCompleted():
             if reachDist < 0.05:
@@ -371,12 +366,15 @@ if __name__ == '__main__':
     env = SawyerFaucetOpen6DOFEnv()    
     for _ in range(1000):   
         env.reset()
-        print(env.get_body_com('faucet'))
-        print(env.get_site_pos('handleStart'))
-        env._set_obj_xyz(1.5708)
-        for _ in range(50): 
+        # env._set_obj_xyz(1.5708*2)
+        for _ in range(10):
+            env.data.set_mocap_pos('mocap', np.array([-0.15, 0.7, 0.115]))
+            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.do_simulation([-1,1], env.frame_skip)
+        for _ in range(100): 
             env.render()
-            env.step(env.action_space.sample()) 
+            # env.step(env.action_space.sample()) 
+            env.step(np.array([1., 0., 0., 1.])) 
             # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))    
             time.sleep(0.05)
-        print(env.get_site_pos('handleStart'))
+        print(np.linalg.norm(env.get_site_pos('handleStartOpen') - env._state_goal))

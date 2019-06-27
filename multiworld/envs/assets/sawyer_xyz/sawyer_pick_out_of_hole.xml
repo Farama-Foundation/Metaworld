@@ -3,30 +3,18 @@
   <include file="shared_config.xml"></include>
   <worldbody>
     <include file="sawyer_xyz_base_no_table.xml"></include>
-        <body name="club" pos="0 0.6 0.02">
-            <joint name="clubjoint" type="free" limited='false' damping="0.0" armature="0" />
-            <inertial pos="0 0 0.04" mass="0.01" diaginertia="100000 100000 100000"/>
-            <geom name="handle" type="box" pos="0 0 0.08" solimp="0.99 0.99 0.01"
-                  size="0.01 0.01 0.06" rgba="0 0 0 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
-            />
-            <geom name="clubHead" type="box" pos="-0.02 0.01 0"
-                  size="0.03 0.02 0.02" rgba="0 0 1 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
-            />
-            <!-- <geom name="clubHead" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
-                  size="0.03 0.005 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
-            /> -->
-            <site name="handleStart" pos="0 0 0.1" size="0.01" />
-        </body>
-
+        <!-- <body name="obj" pos="0 0.6 0.02"> -->
         <body name="obj" pos="0 0.6 0.02">
             <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" />
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
-            <geom name="objGeom" type="sphere" pos="0 0 0" solimp="0.99 0.99 0.01"
-                  size="0.02" rgba="0 0 0 1" solref="0.01 1"
+            <!-- <inertial pos="0 0 0" mass=".75" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04"/> -->
+            <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="0 0 0 1" solref="0.01 1"
                   contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+            /> -->
+            <geom name="objGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="wood"
             />
             <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
@@ -35,26 +23,28 @@
            <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
 
-        <site name="goal" pos="0. 0.9 0.02" size="0.02" 
+        <!-- <site name="goal" pos="0. 0.84 0.02" size="0.02" 
+              rgba="0 0 0.8 1"/> -->
+        <site name="goal" pos="0. 0.84 0.02" size="0.015" 
               rgba="0 0 0.8 1"/>
 
-    <geom name="tableTop" type="plane" pos="0 0.6 -0.1" size="0.4 0.4 0.5"
+    <geom name="tableTop" type="plane" pos="0 0.6 -0.05" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
 
-    <body name="w1" pos="0.23 0.6 -0.05">
-      <geom name="w1" rgba=".6 .6 .5 1" type="box" size="0.17 0.4 0.05" contype="15" conaffinity="15" />
+    <body name="w1" pos="0.26 0.6 -0.025">
+      <geom name="w1" rgba=".6 .6 .5 1" type="box" size="0.14 0.4 0.025" contype="15" conaffinity="15" />
     </body>
 
-    <body name="w2" pos="-0.23 0.6 -0.05">
-      <geom name="w2" rgba=".6 .6 .5 1" type="box" size="0.17 0.4 0.05" contype="15" conaffinity="15" />
+    <body name="w2" pos="-0.26 0.6 -0.025">
+      <geom name="w2" rgba=".6 .6 .5 1" type="box" size="0.14 0.4 0.025" contype="15" conaffinity="15" />
     </body>
 
-    <body name="w3" pos="0.0 0.98 -0.05">
-      <geom name="w3" rgba=".6 .6 .5 1" type="box" size="0.06 0.02 0.05" contype="15" conaffinity="15" />
+    <body name="w3" pos="0.0 0.98 -0.025">
+      <geom name="w3" rgba=".6 .6 .5 1" type="box" size="0.12 0.02 0.025" contype="15" conaffinity="15" />
     </body>
 
-    <body name="w4" pos="0.0 0.52 -0.05">
-      <geom name="w4" rgba=".6 .6 .5 1" type="box" size="0.06 0.32 0.05" contype="15" conaffinity="15" />
+    <body name="w4" pos="0.0 0.46 -0.025">
+      <geom name="w4" rgba=".6 .6 .5 1" type="box" size="0.12 0.26 0.025" contype="15" conaffinity="15" />
     </body>
 
     <!-- <body name="g1" pos="0.034 0.4 -0.15" axisangle="0 1 0 0.05">

@@ -145,7 +145,8 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist, 'placingDistFinal': placingDistFinal}
+        # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist, 'placingDistFinal': placingDistFinal}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDistFinal, 'success': float(placingDistFinal <= 0.08)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

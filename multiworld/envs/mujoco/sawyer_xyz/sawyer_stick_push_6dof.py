@@ -146,7 +146,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'pushRew': pushRew, 'epRew' : reward, 'pushDist': pushDist}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pushDist, 'success': float(pushDist <= 0.08)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
