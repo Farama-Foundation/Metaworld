@@ -101,12 +101,12 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerFaucetOpen6DOFEnv, SawyerFaucetClose6DOFEnv]
 # ENV_LIST = [SawyerCoffeePull6DOFEnv, SawyerPegUnplugSide6DOFEnv]
 # ENV_LIST = [SawyerPickOutOfHole6DOFEnv, SawyerPegUnplugSide6DOFEnv]
-# ENV_LIST = [SawyerUnStack6DOFEnv, SawyerNutDisassemble6DOFEnv]
+ENV_LIST = [SawyerUnStack6DOFEnv, SawyerShelfRemove6DOFEnv]
 # ENV_LIST = [SawyerFaucetClose6DOFEnv, SawyerDoorUnlock6DOFEnv]
 # ENV_LIST = [SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv]
 # ENV_LIST = [SawyerFaucetClose6DOFEnv, SawyerGolfPutting6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv]
-ENV_LIST = [SawyerButtonPressWall6DOFEnv, SawyerButtonPressTopdownWall6DOFEnv]
+# ENV_LIST = [SawyerButtonPressWall6DOFEnv, SawyerButtonPressTopdownWall6DOFEnvt]
 
 
 

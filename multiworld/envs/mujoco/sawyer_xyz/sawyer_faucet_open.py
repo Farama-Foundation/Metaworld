@@ -322,8 +322,6 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
         pullGoal = self._state_goal
 
-        , 'success': float(pullDist <= 0.07)
-
         def reachCompleted():
             if reachDist < 0.05:
                 return True

@@ -345,7 +345,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # the center of the cube
         table_height = 0.
         obj_pos = self.sim.data.body_xpos[self.obj_body_id]
-        goal_pos = self.sim.data.body_xpos[self.goal_body_id]
+        goal_pos = self._state_goal
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
         dist = np.linalg.norm(fingerCOM - obj_pos)
@@ -359,15 +359,15 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 np.array(obj_pos) - np.array(goal_pos)
             )
         # r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
-        # r_reach = -dist
-        dist_xy = np.linalg.norm(np.concatenate((obj_pos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-        if dist_xy < 0.05: #0.02
-            r_reach = -dist + 0.1
-            if dist < 0.04:
-                #incentive to close fingers when reachDist is small
-                r_reach + max(0, action[-1])/50
-        else:
-            r_reach =  -dist_xy
+        r_reach = -dist
+        # dist_xy = np.linalg.norm(np.concatenate((obj_pos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
+        # if dist_xy < 0.05: #0.02
+        #     r_reach = -dist + 0.1
+        #     if dist < 0.04:
+        #         #incentive to close fingers when reachDist is small
+        #         r_reach + max(0, action[-1])/50
+        # else:
+        #     r_reach =  -dist_xy
         #incentive to close fingers when reachDist is small
         # if dist < 0.05:
         #     r_reach = -dist + max(action[-1],0)/50

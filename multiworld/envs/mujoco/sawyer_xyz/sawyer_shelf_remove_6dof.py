@@ -26,7 +26,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             goal_low=(-0.1, 0.6, 0.015),
             goal_high=(0.1, 0.6, 0.015),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.06,
+            liftThresh = 0.08,
             rewMode = 'orig',
             rotMode='fixed',#'fixed',
             multitask=False,
@@ -352,24 +352,24 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            # zRew = np.linalg.norm(fingerCOM[-1] - self.heightTarget)
-            # if reachDistxy < 0.05: #0.02
-            #     reachRew = -reachDist
-            # else:
-            #     reachRew =  -reachDistxy - 2*zRew
-            # #incentive to close fingers when reachDist is small
-            # if reachDist < 0.05:
-            #     reachRew = -reachDist + max(actions[-1],0)/50
-            # return reachRew , reachDist
-            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.heightTarget])) - fingerCOM)
+            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - self.heightTarget)
             if reachDistxy < 0.05: #0.02
-                reachRew = -reachDist + 0.1
-                if reachDist < 0.05:
-                    reachRew += max(actions[-1],0)/50
+                reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy
+                reachRew =  -reachDistxy - 2*zRew
+            #incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
+            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.heightTarget])) - fingerCOM)
+            # if reachDistxy < 0.05: #0.02
+            #     reachRew = -reachDist + 0.1
+            #     if reachDist < 0.05:
+            #         reachRew += max(actions[-1],0)/50
+            # else:
+            #     reachRew =  -reachDistxy
+            # return reachRew , reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
