@@ -341,7 +341,13 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
-        self.target_reward = self.target_rewards[self.task_idx]
+        if self.task_type == 'reach':
+            idx = 1
+        elif self.task_type == 'push':
+            idx = 2
+        else:
+            idx = 0
+        self.target_reward = self.target_rewards[idx]
         self.num_resets += 1
         # import pdb; pdb.set_trace()
         return self._get_obs()
