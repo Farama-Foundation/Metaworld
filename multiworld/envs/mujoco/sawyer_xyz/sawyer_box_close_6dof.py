@@ -11,6 +11,8 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
+
 class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
@@ -19,6 +21,7 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
             random_init=False,
+            obs_type='plain',
             # tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=None,
@@ -27,6 +30,8 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             liftThresh = 0.15,
             rotMode='fixed',#'fixed',
             rewMode='orig',
+            multitask=False,
+            multitask_num=1,
             **kwargs
     ):
         self.quick_init(locals())
@@ -39,6 +44,10 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -59,6 +68,11 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
+
+        self.multitask = multitask
+        self.multitask_num = multitask_num
+        self._state_goal_idx = np.zeros(self.multitask_num)
+
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -85,10 +99,21 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low)),
-                np.hstack((self.hand_high, obj_high, goal_high)),
-        )
+        if not multitask and self.obs_type == 'with_goal_id':
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
+            )
+        else:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
+            )
         self.reset()
 
 
@@ -154,10 +179,16 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('handle').copy()
         flat_obs = np.concatenate((hand, objPos))
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        if self.obs_type == 'with_goal_and_id':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                    self._state_goal_idx
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()

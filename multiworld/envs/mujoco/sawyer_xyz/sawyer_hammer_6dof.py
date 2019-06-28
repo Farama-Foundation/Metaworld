@@ -10,6 +10,8 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
+
 
 class SawyerHammer6DOFEnv(SawyerXYZEnv):
     def __init__(
@@ -20,11 +22,14 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             obj_high=(0.1, 0.6, 0.02),
             random_init=False,
             # tasks = [{'goal': np.array([0.24, 0.74, 0.11]),  'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.65, 0.11]), 'obj_init_qpos':0.}], 
+            obs_type='plain',
             tasks = [{'goal': np.array([0.24, 0.85, 0.05]), 'screw_init_pos':np.array([0.24, 0.71, 0.11]), 'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.71, 0.11])}], 
             goal_low=(0., 0.85, 0.05),
             goal_high=(0.3, 0.9, 0.05),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.09,
+            multitask=False,
+            multitask_num=1,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             **kwargs
@@ -51,6 +56,11 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         if goal_high is None:
             goal_high = self.hand_high
 
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
+
         self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 200#150
@@ -58,6 +68,9 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
+        self.multitask = multitask
+        self.multitask_num = multitask_num
+        self._state_goal_idx = np.zeros(self.multitask_num)
         self.hand_init_pos = np.array(hand_init_pos)
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -85,10 +98,21 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
-                np.hstack((self.hand_high, obj_high, obj_high, obj_high, goal_high)),
-        )
+        if not multitask and self.obs_type == 'with_goal_id':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, obj_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, obj_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, obj_low, obj_low)),
+                np.hstack((self.hand_high, obj_high, obj_high, obj_high,)),
+            )
+        else:
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, obj_high, obj_high, goal_high, np.zeros(multitask_num))),
+            )
         self.reset()
 
 
@@ -157,10 +181,16 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         hammerHeadPos = self.data.get_geom_xpos('hammerHead').copy()
         objPos =  self.data.site_xpos[self.model.site_name2id('screwHead')]
         flat_obs = np.concatenate((hand, hammerPos, hammerHeadPos, objPos))
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        if self.obs_type == 'with_goal_and_id':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                    self._state_goal_idx
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()

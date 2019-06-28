@@ -10,6 +10,8 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
+
 
 class SawyerDoor6DOFEnv(SawyerXYZEnv):
     def __init__(
@@ -21,6 +23,7 @@ class SawyerDoor6DOFEnv(SawyerXYZEnv):
             random_init=False,
             # tasks = [{'goal': 0.55,  'obj_init_pos':0.0, 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([-0.2, 0.7, 0.15]),  'obj_init_pos':np.array([0.1, 0.95, 0.1]), 'obj_init_angle': 0.3}], 
+            obs_type='plain',
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
@@ -40,6 +43,12 @@ class SawyerDoor6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
+
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -88,15 +97,20 @@ class SawyerDoor6DOFEnv(SawyerXYZEnv):
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask:
+        if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low)),
-                    np.hstack((self.hand_high, obj_high, goal_high)),
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
             )
         else:
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
         self.reset()
@@ -167,17 +181,16 @@ class SawyerDoor6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('handle').copy()
         flat_obs = np.concatenate((hand, objPos))
-        if self.multitask:
-            assert hasattr(self, '_state_goal_idx')
+        if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
                 ])
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()

@@ -33,7 +33,7 @@ Usage:
         <mesh name="l6" file="sawyer/l6.stl" />
         <mesh name="eGripperBase" file="sawyer/eGripperBase.stl" />
 
-        <mesh name="mug_mesh" file="objects/mug.stl"  scale="0.0006 0.0006 0.0006"/>
+        <!-- <mesh name="mug_mesh" file="objects/mug.stl"  scale="0.0006 0.0006 0.0006"/> -->
 
         <texture type="skybox" builtin="gradient" rgb1=".50 .495 .48" rgb2=".50 .495 .48" width="32" height="32"></texture>
         <texture file="marble.png" name="marble" />

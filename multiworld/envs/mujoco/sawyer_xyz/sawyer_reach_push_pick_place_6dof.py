@@ -10,6 +10,8 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
+
 
 class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
     def __init__(
@@ -27,6 +29,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'pick_place'},
                     {'goal': np.array([-0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'reach'},
                     {'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3, 'type':'push'}], 
+            obs_type='plain',
             goal_low=(-0.1, 0.8, 0.05),
             goal_high=(0.1, 0.9, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
@@ -51,6 +54,11 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
+
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -105,10 +113,15 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask:
+        if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
             )
         else:
             self.observation_space = Box(
@@ -197,11 +210,16 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
-        return np.concatenate([
-                flat_obs,
-                self._state_goal,
-                self._state_goal_idx
-            ])
+        if self.obs_type == 'with_goal_and_id':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                    self._state_goal_idx
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
@@ -341,7 +359,13 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
-        self.target_reward = self.target_rewards[self.task_idx]
+        if self.task_type == 'reach':
+            idx = 1
+        elif self.task_type == 'push':
+            idx = 2
+        else:
+            idx = 0
+        self.target_reward = self.target_rewards[idx]
         self.num_resets += 1
         # import pdb; pdb.set_trace()
         return self._get_obs()

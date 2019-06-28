@@ -27,7 +27,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_hammer_6dof import SawyerHammer6DO
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_6dof import SawyerButtonPress6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_6dof import SawyerButtonPressTopdown6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_6dof import SawyerShelfPlace6DOFEnv
+# from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_6dof import SawyerShelfPlace6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorClose6DOFEnv
@@ -41,7 +41,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTu
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button_6dof import SawyerCoffeeButton6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_6dof import SawyerCoffeePush6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull_6dof import SawyerCoffeePull6DOFEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
+# from multiworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClose6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown_6dof import SawyerPegInsertionTopdown6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_topdown_6dof import SawyerPegUnplugTopdown6DOFEnv
@@ -60,8 +60,11 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
-
-
+'''
+CoRL environment lists
+Please edit multiworld.envs.mujoco.sawyer_xyz.env_lists to add new lists
+'''
+from multiworld.envs.mujoco.sawyer_xyz.env_lists import EASY_MODE_LIST
 
 try:
 	import mujoco_py
@@ -106,7 +109,8 @@ ENV_LIST = [SawyerUnStack6DOFEnv, SawyerShelfRemove6DOFEnv]
 # ENV_LIST = [SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv]
 # ENV_LIST = [SawyerFaucetClose6DOFEnv, SawyerGolfPutting6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv]
-# ENV_LIST = [SawyerButtonPressWall6DOFEnv, SawyerButtonPressTopdownWall6DOFEnvt]
+# ENV_LIST = [SawyerButtonPressWall6DOFEnv, SawyerButtonPressTopdownWall6DOFEnv]
+# ENV_LIST = EASY_MODE_LIST
 
 
 
@@ -137,6 +141,7 @@ class MultiTaskMujocoEnv(gym.Env):
 			# else:
 			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			if env is SawyerReachPushPickPlace6DOFEnv or env is SawyerReachPushPickPlaceWall6DOFEnv:
+				# TODO: this could cause flaws in task_idx if SawyerReachPushPickPlace6DOFEnv/SawyerReachPushPickPlaceWall6DOFEnv is not the first environment
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
 			else:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
