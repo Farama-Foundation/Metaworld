@@ -60,4 +60,3 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
-

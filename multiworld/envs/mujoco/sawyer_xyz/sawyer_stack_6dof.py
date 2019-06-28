@@ -8,6 +8,8 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera, sawyer_pick_and_place_camera_slanted_angle
 
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
+
 
 class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
@@ -20,6 +22,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             tasks = [{'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=None,
             goal_high=None,
+            obs_type='plain',
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rewMode = 'dense',
@@ -39,6 +42,12 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
+
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -89,15 +98,20 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             np.hstack((obj_low, obj_high)),
         )
         self.goal_space = Box(goal_low, goal_high)
-        if not multitask:
+        if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low)),
-                    np.hstack((self.hand_high, obj_high, obj_high)),
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
             )
         else:
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         # self.observation_space = Dict([
         #     ('state_observation', self.hand_and_obj_space),
@@ -171,17 +185,16 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
-        if self.multitask:
-            assert hasattr(self, '_state_goal_idx')
+        if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
                 ])
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
