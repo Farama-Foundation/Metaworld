@@ -55,7 +55,7 @@ class SawyerPegUnplugSide6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#200#150
+        self.max_path_length = 200#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -167,8 +167,8 @@ class SawyerPegUnplugSide6DOFEnv(SawyerXYZEnv):
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
-        # objPos =  self.get_site_pos('pegEnd')
+        # objPos =  self.get_body_com('peg')
+        objPos =  self.get_site_pos('pegEnd')
         flat_obs = np.concatenate((hand, objPos))
         if self.multitask:
             assert hasattr(self, '_state_goal_idx')
@@ -184,8 +184,8 @@ class SawyerPegUnplugSide6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
-        # objPos =  self.get_site_pos('pegEnd')
+        # objPos =  self.get_body_com('peg')
+        objPos =  self.get_site_pos('pegEnd')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -228,8 +228,8 @@ class SawyerPegUnplugSide6DOFEnv(SawyerXYZEnv):
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
+        qpos[9] = pos
+        qvel[9] = 0
         self.set_state(qpos, qvel)
 
     def sample_goals(self, batch_size):
@@ -265,8 +265,9 @@ class SawyerPegUnplugSide6DOFEnv(SawyerXYZEnv):
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = hole_pos
             self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
+        self.sim.model.body_pos[self.model.body_name2id('peg')] = self.obj_init_pos
         self._set_goal_marker(self._state_goal)
-        self._set_obj_xyz(self.obj_init_pos)
+        self._set_obj_xyz(0)
         # here we are grasping along the x axis
         # self.objHeight = self.get_site_pos('pegEnd').copy()[0]
         self.objHeight = self.get_body_com('peg').copy()[0]

@@ -382,10 +382,10 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
             else:
                 cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
             if cond:
-                if placingDistHead <= 0.04:
-                    placeRew = 1000*(self.maxPlacingDist - placingDistHead) + c1*(np.exp(-(placingDistHead**2)/c2) + np.exp(-(placingDistHead**2)/c3))
-                else:
+                if placingDistHead <= 0.05:
                     placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+                else:
+                    placeRew = 1000*(self.maxPlacingDist - placingDistHead) + c1*(np.exp(-(placingDistHead**2)/c2) + np.exp(-(placingDistHead**2)/c3))
                 placeRew = max(placeRew,0)
                 return [placeRew , placingDist]
             else:

@@ -16,10 +16,10 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.6, 0.05),
-            obj_high=(0.1, 0.7, 0.05),
+            obj_low=(-0.1, 0.6, 0.04),
+            obj_high=(0.1, 0.7, 0.04),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.85, 0.02]), 'obj_init_pos':np.array([0, 0.6, 0.05])}], 
+            tasks = [{'goal': np.array([0, 0.85, 0.02]), 'obj_init_pos':np.array([0, 0.6, 0.04])}], 
             goal_low=(-0.1, 0.85, 0.05),
             goal_high=(0.1, 0.85, 0.05),
             hand_init_pos = (0, 0.6, 0.2),
@@ -55,7 +55,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#200#150
+        self.max_path_length = 200#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -320,13 +320,13 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             reachRew = -reachDist# + min(actions[-1], -1)/50
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
             zRew = np.linalg.norm(fingerCOM[-1] - heightTarget)
-            if reachDistxy < 0.05: #0.02
+            if reachDistxy < 0.04: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - zRew
+                reachRew =  -reachDistxy - 2*zRew
             # reachRew = -reachDist
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
+            if reachDist < 0.04:
                 reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
 
@@ -378,10 +378,10 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             else:
                 cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
             if cond:
-                if placingDistHead <= 0.04:
-                    placeRew = 1000*(self.maxPlacingDist - placingDistHead) + c1*(np.exp(-(placingDistHead**2)/c2) + np.exp(-(placingDistHead**2)/c3))
-                else:
+                if placingDistHead <= 0.05:
                     placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+                else:
+                    placeRew = 1000*(self.maxPlacingDist - placingDistHead) + c1*(np.exp(-(placingDistHead**2)/c2) + np.exp(-(placingDistHead**2)/c3))
                 placeRew = max(placeRew,0)
                 return [placeRew , placingDist]
             else:

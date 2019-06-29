@@ -399,8 +399,9 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.08
-        r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
+        obj_lifted = obj_height > table_height + 0.08# and (touch_right_finger or touch_left_finger)
+        # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
+        r_lift = 100.0 if obj_lifted and not touch_obj_goal else 0.0
 
         # Aligning is successful when obj is right above cubeB
         r_place = 0.

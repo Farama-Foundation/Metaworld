@@ -22,11 +22,11 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
             # goal_low=(-0.1, 0.6, 0.02),
             # goal_high=(0.1, 0.6, 0.02),
-            tasks = [{'goal': np.array([0., 0.6, 0.015]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.015),
-            goal_high=(0.1, 0.6, 0.015),
+            tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.6, 0.02),
+            goal_high=(0.1, 0.6, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.08,
+            liftThresh = 0.1,
             rewMode = 'orig',
             rotMode='fixed',#'fixed',
             multitask=False,
@@ -58,7 +58,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#200#150
+        self.max_path_length = 200#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -281,8 +281,8 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
         self._reset_hand()
         task = self.sample_task()
         self.sim.model.body_pos[self.model.body_name2id('shelf')] = np.array(task['obj_init_pos'])
-        # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
-        self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
+        self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
+        # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
         self._state_goal = np.array(task['goal'])
         self.obj_init_angle = task['obj_init_angle']
         if self.random_init:
@@ -298,8 +298,8 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[:3]
-            # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
-            self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
+            self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.12])
+            # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
             self._state_goal = goal_pos[-3:]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
@@ -354,12 +354,12 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             reachRew = -reachDist# + min(actions[-1], -1)/50
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
             zRew = np.linalg.norm(fingerCOM[-1] - self.heightTarget)
-            if reachDistxy < 0.05: #0.02
+            if reachDistxy < 0.04: #0.02
                 reachRew = -reachDist
             else:
                 reachRew =  -reachDistxy - 2*zRew
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
+            if reachDist < 0.04:
                 reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
             # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.heightTarget])) - fingerCOM)

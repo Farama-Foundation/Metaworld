@@ -16,10 +16,10 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.85, 0.05),
-            obj_high=(0.1, 0.85, 0.05),
+            obj_low=(-0.1, 0.85, 0.04),
+            obj_high=(0.1, 0.85, 0.04),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.8, 0.02]), 'obj_init_pos':np.array([0, 0.85, 0.05])}], 
+            tasks = [{'goal': np.array([0, 0.8, 0.02]), 'obj_init_pos':np.array([0, 0.85, 0.04])}], 
             goal_low=(-0.1, 0.85, 0.02),
             goal_high=(0.1, 0.85, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
@@ -55,7 +55,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#200#150
+        self.max_path_length = 200#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -163,7 +163,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.03)}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.06)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -253,7 +253,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('box')] = np.array(task['goal'])
         hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = task['obj_init_pos']
-        self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + np.array(task['goal'])[-1]*2]))
+        self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + np.array(task['goal'])[-1]*4]))
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -263,7 +263,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1]]))
-            self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + goal_pos[-1]*2]))
+            self._state_goal = np.concatenate((hole_pos[:2], [self.obj_init_pos[-1] + goal_pos[-1]*4]))
         self._set_obj_xyz(self.obj_init_pos)
         self._set_goal_marker(self._state_goal)
         self.obj_init_pos = self.get_body_com('peg')
@@ -321,7 +321,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             if reachDistxy < 0.05: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - zRew
+                reachRew =  -reachDistxy - 2*zRew
             # reachRew = -reachDist
             #incentive to close fingers when reachDist is small
             if reachDist < 0.05:

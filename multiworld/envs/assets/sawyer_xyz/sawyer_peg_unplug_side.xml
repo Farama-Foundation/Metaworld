@@ -8,7 +8,8 @@
           <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/>
           <!-- <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.08" type="cylinder" solref="0.02 1" conaffinity="1" contype="1" group="1"/> -->
           <geom name="peg" fromto="-0.04 0 0 0.04 0 0" rgba="0.3 1 0.3 1" size="0.02 0.04" type="cylinder" conaffinity="1" contype="1" group="1"/>
-          <joint type="free" limited="false" damping="0.005"/>
+          <!-- <joint type="free" limited="false" damping="0.005"/> -->
+          <joint type="slide" range="0 0.3" axis="1 0 0" name="goal_slidex" pos="0 0 0" damping="1.0" limited="true"/>
           <site name="pegHead" pos="-0.04 0 0" size="0.005" rgba="0.8 0 0 1"/>
           <site name="pegEnd" pos="0.04 0 0" size="0.005" rgba="0.8 0 0 1"/>
         </body>

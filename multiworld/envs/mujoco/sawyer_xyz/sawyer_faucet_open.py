@@ -322,6 +322,16 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
         pullGoal = self._state_goal
 
+        pullDist = np.linalg.norm(objPos - pullGoal)
+        reachDist = np.linalg.norm(objPos - fingerCOM)  
+        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])    
+        # zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])   
+        # if reachDistxy < 0.05: #0.02  
+        #     reachRew = -reachDist 
+        # else: 
+        #     reachRew =  -reachDistxy - zDist  
+        reachRew = -reachDist
+
         def reachCompleted():
             if reachDist < 0.05:
                 return True

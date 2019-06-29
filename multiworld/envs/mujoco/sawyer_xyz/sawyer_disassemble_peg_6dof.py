@@ -324,29 +324,29 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            # reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
-            # zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-            # if reachDistxy < 0.05: #0.02
-            #     reachRew = -reachDist
-            # else:
-            #     reachRew =  -reachDistxy - zRew
-            # #incentive to close fingers when reachDist is small
-            # if reachDist < 0.05:
-            #     reachRew = -reachDist + max(actions[-1],0)/50
-            # return reachRew , reachDist
-            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-            if reachDistxy < 0.05: #0.02
-                reachRew = -reachDist + 0.1
-                if reachDist < 0.05:
-                    reachRew += max(actions[-1],0)/50
+            reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+            if reachDistxy < 0.04: #0.02
+                reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy
+                reachRew =  -reachDistxy - zRew
+            #incentive to close fingers when reachDist is small
+            if reachDist < 0.04:
+                reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
+            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
+            # if reachDistxy < 0.05: #0.02
+            #     reachRew = -reachDist + 0.1
+            #     if reachDist < 0.05:
+            #         reachRew += max(actions[-1],0)/50
+            # else:
+            #     reachRew =  -reachDistxy
+            # return reachRew , reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
             # if objPos[2] >= (heightTarget- tolerance):
-            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.04:
+            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.05:
                 return True
             else:
                 return False
@@ -383,7 +383,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             if self.placeCompleted or (self.pickCompleted and not(objDropped())):
                 return hScale*heightTarget
             # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-            elif (reachDist < 0.04) and (objPos[2]> (self.objHeight + 0.005)) :
+            elif (reachDist < 0.05) and (objPos[2]> (self.objHeight + 0.005)) :
                 return hScale* min(heightTarget, objPos[2])
             else:
                 return 0

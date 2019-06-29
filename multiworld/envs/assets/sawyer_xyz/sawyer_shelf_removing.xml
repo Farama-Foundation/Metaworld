@@ -12,14 +12,14 @@
             />
         </body> -->
 
-        <body name="obj" pos="0 0.85 0.116">
+        <body name="obj" pos="0 0.85 0.121">
 
             <joint name="objjoint" type="free" limited='false' damping="0." armature="0."/>
 
             <!-- <inertial pos="0 0 0" mass=".01" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04"/> -->
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01"
-                  size="0.03 0.015" rgba="1 0 0 1" solref="0.01 1"
+                  size="0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
                   contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="wood"
             />
         </body>
@@ -40,7 +40,7 @@
           <!-- <joint type="slide" range="-0.2 0." axis="0 1 0" name="goal_slidey" pos="0 0 0" damping="1.0"/> -->
         </body>
           <!-- <site name="goal" pos="0 0.6 0.02" size="0.02" rgba="0 0.8 0 1"/> -->
-          <site name="goal" pos="0 0.6 0.015" size="0.015" rgba="0 0.8 0 1"/>
+          <site name="goal" pos="0 0.6 0.02" size="0.015" rgba="0 0.8 0 1"/>
        
     </worldbody>
     <!-- <sensor>
