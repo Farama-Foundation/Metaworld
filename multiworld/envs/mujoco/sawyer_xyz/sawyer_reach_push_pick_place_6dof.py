@@ -203,7 +203,7 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         if self.task_type == 'reach':
             success = float(reachDist <= 0.05)
         else:
-            success = float(goalDist <= 0.07)
+            success = float(goal_dist <= 0.07)
         return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
    
     def _get_obs(self):
