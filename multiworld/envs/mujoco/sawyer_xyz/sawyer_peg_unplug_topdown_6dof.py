@@ -16,12 +16,12 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.85, 0.04),
-            obj_high=(0.1, 0.85, 0.04),
+            obj_low=(-0.1, 0.85, 0.03),
+            obj_high=(0.1, 0.85, 0.03),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.8, 0.02]), 'obj_init_pos':np.array([0, 0.85, 0.04])}], 
-            goal_low=(-0.1, 0.85, 0.02),
-            goal_high=(0.1, 0.85, 0.02),
+            tasks = [{'goal': np.array([0, 0.8, 0.015]), 'obj_init_pos':np.array([0, 0.85, 0.03])}], 
+            goal_low=(-0.1, 0.85, 0.015),
+            goal_high=(0.1, 0.85, 0.015),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
@@ -163,7 +163,7 @@ class SawyerPegUnplugTopdown6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.06)}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

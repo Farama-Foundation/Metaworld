@@ -16,12 +16,17 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=None,
-            obj_high=None,
+            # obj_low=(-0.1, 0.6, 0.015),
+            # obj_high=(-0.1, 0.7, 0.015),
+            obj_low=(-0.1, 0.6, 0.02),
+            obj_high=(-0.1, 0.65, 0.02),
             random_init=False,
+            # tasks = [{'goal': np.array([0.1, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.8, 0.015),
+            # goal_high=(-0.1, 0.85, 0.015),
             tasks = [{'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=None,
-            goal_high=None,
+            goal_low=(-0.1, 0.75, 0.02),
+            goal_high=(-0.1, 0.8, 0.02),
             obs_type='plain',
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
@@ -94,10 +99,10 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 np.array([1, 1, 1, np.pi/2, np.pi/2, np.pi*2, 1]),
             )
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, obj_low)),
-            np.hstack((obj_low, obj_high)),
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_low, goal_high)),
         )
-        self.goal_space = Box(goal_low, goal_high)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
@@ -172,14 +177,15 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachRew, liftRew, stackRew, reachDist, stackHorizonDist, stackDist= self.compute_reward(action, obs_dict, mode=self.rewMode)
+        # reward, reachRew, liftRew, stackRew, reachDist, stackHorizonDist, stackDist= self.compute_reward(action, obs_dict, mode=self.rewMode)
+        reward, reachRew, liftRew, reachDist, stackHorizonDist, success = self.compute_reward(action, obs_dict, mode=self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': stackDist, 'success': float(stack <= 0.07)}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': stackHorizonDist, 'success': success}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -296,7 +302,8 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        # self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(self.obj_init_pos[:-1] - self._state_goal[:-1])
         #Can try changing this
         return self._get_obs()
 
@@ -355,7 +362,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         stack_dist = np.linalg.norm(
                 np.array(obj_pos) - np.array(goal_pos)
             )
-        r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
+        r_reach = -dist
 
         # collision checking
         touch_left_finger = False
@@ -374,141 +381,97 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 touch_right_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.goal_geom_id:
                 touch_obj_goal = True
-            if c.geom1 == self.goal_geom_id and c.geom2 == self.obj_geom_id:
+            if c.geom1 == self.goal_geom_id or c.geom2 == self.obj_geom_id:
                 touch_obj_goal = True
 
         # additional grasping reward
         if touch_left_finger and touch_right_finger:
-            r_reach += 0.25
+            r_reach += 10#0.25
 
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.04
-        r_lift = 1.0 if obj_lifted else 0.0
+        obj_lifted = obj_lifted = obj_height > table_height + 0.04# and (touch_right_finger or touch_left_finger)
+        # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
+        r_lift = 100.0 if obj_lifted else 0.0
 
         # Aligning is successful when obj is right above cubeB
         if obj_lifted:
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
-            r_lift += 1.0 * (1 - np.tanh(horiz_dist * 10.0))
+            # r_place += 3.0 * (1 - np.tanh(place_dist * 10.0))
+            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+            r_lift += 1000*(self.maxPlacingDist - horiz_dist) + c1*(np.exp(-(horiz_dist**2)/c2) + np.exp(-(horiz_dist**2)/c3))
 
         # stacking is successful when the block is lifted and
         # the gripper is not holding the object
         r_stack = 0
         not_touching = not touch_left_finger and not touch_right_finger
         if not_touching and r_lift > 0 and touch_obj_goal:
-            r_stack = 2.0
+            r_stack = 2000.0
             # r_stack = 4.0
 
         if mode == 'dense':
+            # reward = max(r_reach, r_lift, r_place)
             reward = max(r_reach, r_lift, r_stack)
         else:
-            reward = 1.0 if r_stack > 0 else 0.0
+            reward = 1.0 if horiz_dist < 0.03 else 0.0
             
 
-        return (reward, r_reach, r_lift, r_stack, dist, horiz_dist, stack_dist)
+        return (reward, r_reach, r_lift, dist, horiz_dist, float(r_stack > 0))
+        # r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
 
-    # def compute_rewards(self, actions, obsBatch):
-    #     #Required by HER-TD3
-    #     assert isinstance(obsBatch, dict) == True
-    #     obsList = obsBatch['state_observation']
-    #     rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
-    #     return np.array(rewards)
+        # # collision checking
+        # touch_left_finger = False
+        # touch_right_finger = False
+        # touch_obj_goal = False
 
-    # def compute_reward(self, actions, obs, mode = 'general'):
-    #     if isinstance(obs, dict):
-    #         obs = obs['state_observation']
+        # for i in range(self.sim.data.ncon):
+        #     c = self.sim.data.contact[i]
+        #     if c.geom1 == self.l_finger_geom_ids and c.geom2 == self.obj_geom_id:
+        #         touch_left_finger = True
+        #     if c.geom1 == self.obj_geom_id and c.geom2 == self.l_finger_geom_ids:
+        #         touch_left_finger = True
+        #     if c.geom1 == self.r_finger_geom_ids and c.geom2 == self.obj_geom_id:
+        #         touch_right_finger = True
+        #     if c.geom1 == self.obj_geom_id and c.geom2 == self.r_finger_geom_ids:
+        #         touch_right_finger = True
+        #     if c.geom1 == self.obj_geom_id and c.geom2 == self.goal_geom_id:
+        #         touch_obj_goal = True
+        #     if c.geom1 == self.goal_geom_id and c.geom2 == self.obj_geom_id:
+        #         touch_obj_goal = True
 
-    #     objPos = obs[3:6]
+        # # additional grasping reward
+        # if touch_left_finger and touch_right_finger:
+        #     r_reach += 0.25
 
-    #     rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-    #     fingerCOM  =  (rightFinger + leftFinger)/2
+        # # lifting is successful when the cube is above the table top
+        # # by a margin
+        # obj_height = obj_pos[2]
+        # obj_lifted = obj_height > table_height + 0.04
+        # r_lift = 1.0 if obj_lifted else 0.0
 
-    #     heightTarget = self.heightTarget
-    #     placingGoal = self._state_goal
+        # # Aligning is successful when obj is right above cubeB
+        # if obj_lifted:
+        #     # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
+        #     # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
+        #     r_lift += 1.0 * (1 - np.tanh(horiz_dist * 10.0))
 
-    #     reachDist = np.linalg.norm(objPos - fingerCOM)
+        # # stacking is successful when the block is lifted and
+        # # the gripper is not holding the object
+        # r_stack = 0
+        # not_touching = not touch_left_finger and not touch_right_finger
+        # if not_touching and r_lift > 0 and touch_obj_goal:
+        #     r_stack = 2.0
+        #     # r_stack = 4.0
 
-    #     placingDist = np.linalg.norm(objPos - placingGoal)
-      
+        # if mode == 'dense':
+        #     reward = max(r_reach, r_lift, r_stack)
+        # else:
+        #     reward = 1.0 if r_stack > 0 else 0.0
+            
 
-    #     def reachReward():
-    #         reachRew = -reachDist# + min(actions[-1], -1)/50
-    #         reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-    #         zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-    #         if reachDistxy < 0.05: #0.02
-    #             reachRew = -reachDist
-    #         else:
-    #             reachRew =  -reachDistxy - 2*zRew
-    #         #incentive to close fingers when reachDist is small
-    #         if reachDist < 0.05:
-    #             reachRew = -reachDist + max(actions[-1],0)/50
-    #         return reachRew , reachDist
-
-    #     def pickCompletionCriteria():
-    #         tolerance = 0.01
-    #         if objPos[2] >= (heightTarget- tolerance):
-    #             return True
-    #         else:
-    #             return False
-
-    #     if pickCompletionCriteria():
-    #         self.pickCompleted = True
-
-
-    #     def objDropped():
-    #         return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
-    #         # Object on the ground, far away from the goal, and from the gripper
-    #         #Can tweak the margin limits
-       
-    #     def objGrasped(thresh = 0):
-    #         sensorData = self.data.sensordata
-    #         return (sensorData[0]>thresh) and (sensorData[1]> thresh)
-
-    #     def orig_pickReward():       
-    #         # hScale = 50
-    #         hScale = 100
-    #         if self.pickCompleted and not(objDropped()):
-    #             return hScale*heightTarget
-    #         # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-    #         elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-    #             return hScale* min(heightTarget, objPos[2])
-    #         else:
-    #             return 0
-
-    #     def general_pickReward():
-    #         hScale = 50
-    #         if self.pickCompleted and objGrasped():
-    #             return hScale*heightTarget
-    #         elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
-    #             return hScale* min(heightTarget, objPos[2])
-    #         else:
-    #             return 0
-
-    #     def placeReward():
-    #         # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
-    #         c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-    #         if mode == 'general':
-    #             cond = self.pickCompleted and objGrasped()
-    #         else:
-    #             cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
-    #         if cond:
-    #             placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-    #             placeRew = max(placeRew,0)
-    #             return [placeRew , placingDist]
-    #         else:
-    #             return [0 , placingDist]
-
-    #     reachRew, reachDist = reachReward()
-    #     if mode == 'general':
-    #         pickRew = general_pickReward()
-    #     else:
-    #         pickRew = orig_pickReward()
-    #     placeRew , placingDist = placeReward()
-    #     assert ((placeRew >=0) and (pickRew>=0))
-    #     reward = reachRew + pickRew + placeRew
-    #     return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
+        # return (reward, r_reach, r_lift, r_stack, dist, horiz_dist, stack_dist)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

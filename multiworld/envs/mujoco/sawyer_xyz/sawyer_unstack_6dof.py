@@ -14,12 +14,17 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.06),
-            obj_high=(0.1, 0.9, 0.06),
+            # obj_low=(0, 0.85, 0.045),
+            # obj_high=(0, 0.85, 0.045),
+            obj_low=(0, 0.8, 0.06),
+            obj_high=(0, 0.75, 0.06),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([0.1, 0.8, 0.06]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.02),
-            goal_high=(0.1, 0.7, 0.02),
+            # tasks = [{'goal': np.array([0, 0.6, 0.015]),  'obj_init_pos':np.array([0, 0.85, 0.045]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.6, 0.015),
+            # goal_high=(0.1, 0.6, 0.015),
+            tasks = [{'goal': np.array([0, 0.6, 0.08]),  'obj_init_pos':np.array([0, 0.8, 0.06]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.6, 0.08),
+            goal_high=(0.1, 0.6, 0.08),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rewMode = 'dense',
@@ -159,7 +164,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachRew, liftRew, placeRew, reachDist, placeDist= self.compute_reward(action, obs_dict, mode=self.rewMode)
+        reward, reachRew, liftRew, reachDist, placeDist= self.compute_reward(action, obs_dict, mode=self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
@@ -272,6 +277,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         task = self.sample_task()
         self._state_goal = np.array(task['goal'])
         self.obj_init_pos = task['obj_init_pos']
+        # bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.03])
         bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.04])
         self.obj_init_angle = task['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -290,6 +296,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 )
             self._state_goal = goal_pos[-3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            # bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.03])
             bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.04])
         self._set_goal_marker(self._state_goal)
         self._set_goal_xyz(bottom_obj_pos)
@@ -394,7 +401,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
 
         # additional grasping reward
         if touch_left_finger and touch_right_finger:
-            r_reach += 0.25
+            r_reach += 10#0.25
 
         # lifting is successful when the cube is above the table top
         # by a margin
@@ -404,13 +411,12 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         r_lift = 100.0 if obj_lifted and not touch_obj_goal else 0.0
 
         # Aligning is successful when obj is right above cubeB
-        r_place = 0.
         if obj_lifted and not touch_obj_goal:
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
             # r_place += 3.0 * (1 - np.tanh(place_dist * 10.0))
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            r_place = 1000*(self.maxPlacingDist - place_dist) + c1*(np.exp(-(place_dist**2)/c2) + np.exp(-(place_dist**2)/c3))
+            r_lift += 1000*(self.maxPlacingDist - place_dist) + c1*(np.exp(-(place_dist**2)/c2) + np.exp(-(place_dist**2)/c3))
 
         # stacking is successful when the block is lifted and
         # the gripper is not holding the object
@@ -422,12 +428,12 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
 
         if mode == 'dense':
             # reward = max(r_reach, r_lift, r_place)
-            reward = r_reach + r_lift + r_place
+            reward = max(r_reach, r_lift)
         else:
             reward = 1.0 if place_dist < 0.03 else 0.0
             
 
-        return (reward, r_reach, r_lift, r_place, dist, place_dist)
+        return (reward, r_reach, r_lift, dist, place_dist)
 
     # def compute_rewards(self, actions, obsBatch):
     #     #Required by HER-TD3

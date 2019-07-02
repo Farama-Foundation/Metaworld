@@ -11,21 +11,24 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
 
-class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
+class SawyerShelfRemoveFront6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.6, 0.03),
-            obj_high=(0.1, 0.7, 0.03),
+            obj_low=(-0.1, 0.8, 0.121),
+            obj_high=(0.1, 0.85, 0.121),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.85, 0.015]), 'obj_init_pos':np.array([0, 0.6, 0.03])}], 
-            goal_low=(-0.1, 0.85, 0.05),
-            goal_high=(0.1, 0.85, 0.05),
+            # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.6, 0.02),
+            # goal_high=(0.1, 0.6, 0.02),
+            tasks = [{'goal': np.array([0., 0.7, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.121]), 'obj_init_angle': 0.3}], 
+            goal_low=(0, 0.68, 0.02),
+            goal_high=(0, 0.68, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.04,
+            liftThresh = 0.1,
+            rewMode = 'orig',
             rotMode='fixed',#'fixed',
-            rewMode='orig',
             multitask=False,
             multitask_num=1,
             if_render=False,
@@ -63,7 +66,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
+        self._state_goal_idx = np.zeros(multitask_num)
         self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -93,13 +96,13 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low)),
-                    np.hstack((self.hand_high, obj_high, obj_high)),
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         else:
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         self.reset()
 
@@ -112,7 +115,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
     @property
     def model_name(self):     
 
-        return get_asset_full_path('sawyer_xyz/sawyer_peg_insertion_topdown.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_shelf_removing.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
@@ -126,14 +129,31 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.azimuth = 270
         # self.viewer.cam.trackbodyid = -1
         # side view
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0.2
+        # self.viewer.cam.lookat[1] = 0.75
+        # self.viewer.cam.lookat[2] = 0.4
+        # self.viewer.cam.distance = 0.4
+        # self.viewer.cam.elevation = -55
+        # self.viewer.cam.azimuth = 180
+        # self.viewer.cam.trackbodyid = -1
         self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.4
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
+        self.viewer.cam.lookat[0] = 0.2
+        self.viewer.cam.lookat[1] = 0.5
+        self.viewer.cam.lookat[2] = 0.6
         self.viewer.cam.distance = 0.4
         self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
+        self.viewer.cam.azimuth = 135
         self.viewer.cam.trackbodyid = -1
+        # robot view
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 0.4
+        # self.viewer.cam.lookat[2] = 0.4
+        # self.viewer.cam.distance = 0.4
+        # self.viewer.cam.elevation = -55
+        # self.viewer.cam.azimuth = 90
+        # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
         if self.if_render:
@@ -152,9 +172,10 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
+        self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
+        reward, reachDist, pushDistxy, success = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
@@ -162,11 +183,11 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':None, 'epRew' : reward, 'goalDist': pushDistxy, 'success': float(success)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
+        objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
         if self.multitask:
             assert hasattr(self, '_state_goal_idx')
@@ -182,7 +203,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
+        objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -192,13 +213,22 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
+    
+    def _set_goal_marker(self, goal):
+        """
+        This should be use ONLY for visualization. Use self._state_goal for
+        logging, learning, etc.
+        """
+        self.data.site_xpos[self.model.site_name2id('goal')] = (
+            goal[:3]
+        )
 
     def _set_objCOM_marker(self):
         """
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        objPos =  self.data.get_geom_xpos('handle')
+        objPos =  self.data.get_geom_xpos('objGeom')
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
@@ -221,6 +251,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
+
     def sample_goals(self, batch_size):
         #Required by HER-TD3
         goals = []
@@ -236,13 +267,25 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
+    def adjust_initObjPos(self, orig_init_pos):
+        #This is to account for meshes for the geom and object are not aligned
+        #If this is not done, the object could be initialized in an extreme position
+        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        adjustedPos = orig_init_pos[:2] + diff
+
+        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
+        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
+
 
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array(task['goal'])
-        self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
-        self.obj_init_pos = task['obj_init_pos']
+        # self.sim.model.body_pos[self.model.body_name2id('shelf')] = np.array(task['obj_init_pos'])
+        # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, -0.05, 0.12])
+        self.obj_init_pos = np.array(task['obj_init_pos'])
+        # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
+        self._state_goal = np.array(task['goal'])
+        self.obj_init_angle = task['obj_init_angle']
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -255,16 +298,21 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
-            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
+            # self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[:3]
+            # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, -0.05, 0.12])
+            self.obj_init_pos = goal_pos[:3]
+            # self.obj_init_pos = self.sim.model.body_pos[self.model.body_name2id('shelf')] + np.array([0, 0, 0.115])
+            self._state_goal = goal_pos[-3:]
+        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
-        self.obj_init_pos = self.get_body_com('peg')
-        self.objHeight = self.get_body_com('peg').copy()[2]
+        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeightTrue = self.data.get_geom_xpos('objGeom')[2] - self.data.get_geom_xpos('cover')[2]
         self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
-        self.target_reward = 1000*self.maxPlacingDist + 1000*2
+        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
+        # self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal[:2])
+        self.target_reward = 1000*self.maxPushDist + 1000*2
         #Can try changing this
         return self._get_obs()
 
@@ -276,7 +324,7 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             #self.do_simulation(None, self.frame_skip)
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.pickCompleted = False
+        self.reachCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -289,113 +337,63 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs, mode='orig'):
+    def compute_reward(self, actions, obs, mode = 'general'):
         if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
-        pegHeadPos = self.get_site_pos('pegHead')
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        heightTarget = self.heightTarget
-        placingGoal = self._state_goal
+        pushGoal = self._state_goal
 
+        pushDist = np.abs(max(objPos[-1], pushGoal[-1]) - pushGoal[-1])
         reachDist = np.linalg.norm(objPos - fingerCOM)
+        pushDistxy = np.linalg.norm(objPos[:-1] - pushGoal[:-1])
+        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        # zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+        # if reachDistxy < 0.05: #0.02
+        #     reachRew = -reachDist
+        # else:
+        #     reachRew =  -reachDistxy - zDist
+        reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
+        if reachDistxy < 0.05: #0.02
+            reachRew = -reachDist
+        else:
+            reachRew =  -reachDistxy - 2*zRew
+        #incentive to close fingers when reachDist is small
+        if reachDist < 0.05:
+            reachRew = -reachDist + max(actions[-1],0)/50
+        pushRewxy = -pushDistxy
 
-        placingDistHead = np.linalg.norm(pegHeadPos - placingGoal)
-        placingDist = np.linalg.norm(objPos - placingGoal)
-      
-
-        def reachReward():
-            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-            # if reachDistxy < 0.05: #0.02
-            #     reachRew = -reachDist + 0.1
-            #     if reachDist < 0.05:
-            #         reachRew += max(actions[-1],0)/50
-            # else:
-            #     reachRew =  -reachDistxy
-            # return reachRew , reachDist
-            reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - heightTarget)
-            if reachDistxy < 0.04: #0.02
-                reachRew = -reachDist
-            else:
-                reachRew =  -reachDistxy - 2*zRew
-            # reachRew = -reachDist
-            #incentive to close fingers when reachDist is small
-            if reachDist < 0.04:
-                reachRew = -reachDist + max(actions[-1],0)/50
-            return reachRew , reachDist
-
-        def pickCompletionCriteria():
-            tolerance = 0.01
-            if objPos[2] >= (heightTarget- tolerance):
+        def reachCompleted():
+            if reachDist < 0.05:
                 return True
             else:
                 return False
 
-        if pickCompletionCriteria():
-            self.pickCompleted = True
+        if reachCompleted():
+            self.reachCompleted = True
 
+        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.1:
+            reachRew = 0
+            pushDistxy = 0
+            reachDist = 0
 
-        def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
-            # Object on the ground, far away from the goal, and from the gripper
-            #Can tweak the margin limits
-       
-        def objGrasped(thresh = 0):
-            sensorData = self.data.sensordata
-            return (sensorData[0]>thresh) and (sensorData[1]> thresh)
-
-        def orig_pickReward():       
-            # hScale = 50
-            hScale = 100
-            if self.pickCompleted and not(objDropped()):
-                return hScale*heightTarget
-            # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-            elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-                return hScale* min(heightTarget, objPos[2])
-            else:
-                return 0
-
-        def general_pickReward():
-            hScale = 50
-            if self.pickCompleted and objGrasped():
-                return hScale*heightTarget
-            elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
-                return hScale* min(heightTarget, objPos[2])
-            else:
-                return 0
-
-        def placeReward():
-            # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
+        def pushReward():
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            if mode == 'general':
-                cond = self.pickCompleted and objGrasped()
+            if self.reachCompleted:
+                pushRew = 1000*(self.maxPushDist - pushDistxy) + c1*(np.exp(-(pushDistxy**2)/c2) + np.exp(-(pushDistxy**2)/c3))
+                pushRew = max(pushRew,0)
+                return pushRew
             else:
-                cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
-            if cond:
-                if placingDistHead <= 0.05:
-                    placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-                else:
-                    placeRew = 1000*(self.maxPlacingDist - placingDistHead) + c1*(np.exp(-(placingDistHead**2)/c2) + np.exp(-(placingDistHead**2)/c3))
-                placeRew = max(placeRew,0)
-                return [placeRew , placingDist]
-            else:
-                return [0 , placingDist]
-
-        reachRew, reachDist = reachReward()
-        if mode == 'general':
-            pickRew = general_pickReward()
-        else:
-            pickRew = orig_pickReward()
-        placeRew , placingDist = placeReward()
-        assert ((placeRew >=0) and (pickRew>=0))
-        reward = reachRew + pickRew + placeRew
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]  
+                return 0
+        pushRew = pushReward()
+        reward = reachRew + pushRew
+      
+        return [reward, reachDist, pushDistxy, objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.1]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -406,12 +404,11 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
 
 if __name__ == '__main__':  
     import time 
-    env = SawyerPegInsertionTopdown6DOFEnv(random_init=True)    
+    env =SawyerShelfRemove6DOFEnv(random_init=True)    
     for _ in range(1000):   
         env.reset()
-        # env._set_obj_xyz(np.array([0, 0.88, 0.04]))
         for _ in range(50): 
             env.render()
-            env.step(env.action_space.sample()) 
+            env.step(env.action_space.sample())
             # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))   
             time.sleep(0.05)
