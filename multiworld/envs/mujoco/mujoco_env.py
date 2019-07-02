@@ -90,6 +90,13 @@ class MujocoEnv(gym.Env):
 			self.viewer_setup()
 		return ob
 
+	def reset_to_idx(self, idx):
+		self.sim.reset()
+		ob = self.reset_model_to_idx(idx)
+		if self.viewer is not None:
+			self.viewer_setup()
+		return ob
+
 	def set_state(self, qpos, qvel):
 		assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
 		old_state = self.sim.get_state()

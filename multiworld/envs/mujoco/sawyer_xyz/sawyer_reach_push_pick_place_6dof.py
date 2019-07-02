@@ -370,6 +370,62 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         # import pdb; pdb.set_trace()
         return self._get_obs()
 
+    def reset_model_to_idx(self, idx):
+        self._reset_hand()
+        task = self.tasks[idx]
+        
+        self.task_type = task['type']
+        self._state_goal = np.array(task['goal'])
+        if not self.fix_task:
+            if not self.multitask:
+                self._state_goal_idx = np.zeros((len(self.tasks)))
+            else:
+                self._state_goal_idx = np.zeros((self.multitask_num))
+            self._state_goal_idx[self.task_idx] = 1.
+        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
+        self.obj_init_angle = task['obj_init_angle']
+        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+        if self.random_init:
+            goal_pos = np.random.uniform(
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=(self.obj_and_goal_space.low.size),
+            )
+            self._state_goal = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+                goal_pos = np.random.uniform(
+                    self.obj_and_goal_space.low,
+                    self.obj_and_goal_space.high,
+                    size=(self.obj_and_goal_space.low.size),
+                )
+                self._state_goal = goal_pos[3:]
+            if self.task_type == 'push':
+                self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            else:
+                self._state_goal = goal_pos[-3:]
+                self.obj_init_pos = goal_pos[:3]
+        self._set_goal_marker(self._state_goal)
+        self._set_obj_xyz(self.obj_init_pos)
+        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
+        self.curr_path_length = 0
+        self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
+        if self.task_type == 'reach':
+            idx = 1
+        elif self.task_type == 'push':
+            idx = 2
+        else:
+            idx = 0
+        self.target_reward = self.target_rewards[idx]
+        self.num_resets += 1
+        # import pdb; pdb.set_trace()
+        return self._get_obs()
+
+
     def _reset_hand(self):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
