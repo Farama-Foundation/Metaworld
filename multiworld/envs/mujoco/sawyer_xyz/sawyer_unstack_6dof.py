@@ -14,12 +14,12 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.06),
-            obj_high=(0.1, 0.9, 0.06),
+            obj_low=(0, 0.85, 0.045),
+            obj_high=(0, 0.85, 0.045),
             random_init=False,
-            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([0.1, 0.8, 0.06]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.02),
-            goal_high=(0.1, 0.7, 0.02),
+            tasks = [{'goal': np.array([0, 0.6, 0.015]),  'obj_init_pos':np.array([0, 0.85, 0.045]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.6, 0.015),
+            goal_high=(0.1, 0.6, 0.015),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rewMode = 'dense',
@@ -290,7 +290,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 )
             self._state_goal = goal_pos[-3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.04])
+            bottom_obj_pos = self.obj_init_pos + np.array([0., 0., -0.03])
         self._set_goal_marker(self._state_goal)
         self._set_goal_xyz(bottom_obj_pos)
         self._set_obj_xyz(self.obj_init_pos)
@@ -394,12 +394,12 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
 
         # additional grasping reward
         if touch_left_finger and touch_right_finger:
-            r_reach += 0.25
+            r_reach += 10#0.25
 
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.08# and (touch_right_finger or touch_left_finger)
+        obj_lifted = obj_height > table_height + 0.08 and (touch_right_finger or touch_left_finger)
         # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
         r_lift = 100.0 if obj_lifted and not touch_obj_goal else 0.0
 

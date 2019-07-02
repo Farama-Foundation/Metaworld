@@ -53,6 +53,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_unstack_6dof import SawyerUnStack6
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_back_6dof import SawyerPushBack6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHole6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof import SawyerShelfRemove6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_front_6dof import SawyerShelfRemoveFront6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_6dof import SawyerNutDisassemble6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLock6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock6DOFEnv
@@ -60,6 +61,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_6dof import SawyerHandlePress6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_6dof import SawyerHandlePull6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_6dof import SawyerHandlePressSide6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side_6dof import SawyerHandlePullSide6DOFEnv
 '''
 CoRL environment lists
 Please edit multiworld.envs.mujoco.sawyer_xyz.env_lists to add new lists
@@ -104,11 +109,15 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerFaucetOpen6DOFEnv, SawyerFaucetClose6DOFEnv]
 # ENV_LIST = [SawyerCoffeePull6DOFEnv, SawyerPegUnplugSide6DOFEnv]
 # ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerPegUnplugSide6DOFEnv]
-# ENV_LIST = [SawyerUnStack6DOFEnv, SawyerShelfRemove6DOFEnv]
+ENV_LIST = [SawyerShelfRemove6DOFEnv, SawyerShelfRemoveFront6DOFEnv]
 # ENV_LIST = [SawyerFaucetClose6DOFEnv, SawyerDoorUnlock6DOFEnv]
-ENV_LIST = [SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv]
+# ENV_LIST = [SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv]
 # ENV_LIST = [SawyerButtonPressWall6DOFEnv, SawyerButtonPressTopdownWall6DOFEnv]
+# ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerNutDisassemble6DOFEnv]
+# ENV_LIST = [SawyerStack6DOFEnv, SawyerUnStack6DOFEnv]
+# ENV_LIST = [SawyerHandlePress6DOFEnv, SawyerHandlePull6DOFEnv]
+# ENV_LIST = [SawyerHandlePressSide6DOFEnv, SawyerHandlePullSide6DOFEnv]
 # ENV_LIST = EASY_MODE_LIST
 
 

@@ -289,7 +289,6 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
-        self.placeCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -329,7 +328,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             if reachDistxy < 0.04: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - zRew
+                reachRew =  -reachDistxy - 2*zRew
             #incentive to close fingers when reachDist is small
             if reachDist < 0.04:
                 reachRew = -reachDist + max(actions[-1],0)/50
@@ -364,23 +363,10 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def placeCompletionCriteria():
-            # if abs(objPos[0] - placingGoal[0]) < 0.03 and \
-            #     abs(objPos[1] - placingGoal[1]) < 0.03 and \
-            #     objPos[2] < self.objHeight + 0.05:
-            if abs(objPos[0] - placingGoal[0]) < 0.03 and \
-                abs(objPos[1] - placingGoal[1]) < 0.03:
-               return True
-            else:
-               return False
-        
-        if placeCompletionCriteria():
-            self.placeCompleted = True
-
         def orig_pickReward():       
             # hScale = 50
             hScale = 100
-            if self.placeCompleted or (self.pickCompleted and not(objDropped())):
+            if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
             # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
             elif (reachDist < 0.05) and (objPos[2]> (self.objHeight + 0.005)) :
