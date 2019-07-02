@@ -16,12 +16,17 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.6, 0.015),
-            obj_high=(-0.1, 0.7, 0.015),
+            # obj_low=(-0.1, 0.6, 0.015),
+            # obj_high=(-0.1, 0.7, 0.015),
+            obj_low=(-0.1, 0.6, 0.02),
+            obj_high=(-0.1, 0.65, 0.02),
             random_init=False,
-            tasks = [{'goal': np.array([0.1, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.8, 0.015),
-            goal_high=(-0.1, 0.85, 0.015),
+            # tasks = [{'goal': np.array([0.1, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.8, 0.015),
+            # goal_high=(-0.1, 0.85, 0.015),
+            tasks = [{'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.1, 0.75, 0.02),
+            goal_high=(-0.1, 0.8, 0.02),
             obs_type='plain',
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
@@ -173,7 +178,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
         # reward, reachRew, liftRew, stackRew, reachDist, stackHorizonDist, stackDist= self.compute_reward(action, obs_dict, mode=self.rewMode)
-        reward, reachRew, liftRew, stackRew, reachDist, stackHorizonDist, success = self.compute_reward(action, obs_dict, mode=self.rewMode)
+        reward, reachRew, liftRew, reachDist, stackHorizonDist, success = self.compute_reward(action, obs_dict, mode=self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
@@ -391,13 +396,12 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         r_lift = 100.0 if obj_lifted else 0.0
 
         # Aligning is successful when obj is right above cubeB
-        r_place = 0.
         if obj_lifted:
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
             # r_place += 3.0 * (1 - np.tanh(place_dist * 10.0))
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            r_place = 1000*(self.maxPlacingDist - horiz_dist) + c1*(np.exp(-(horiz_dist**2)/c2) + np.exp(-(horiz_dist**2)/c3))
+            r_lift += 1000*(self.maxPlacingDist - horiz_dist) + c1*(np.exp(-(horiz_dist**2)/c2) + np.exp(-(horiz_dist**2)/c3))
 
         # stacking is successful when the block is lifted and
         # the gripper is not holding the object
@@ -409,12 +413,12 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
 
         if mode == 'dense':
             # reward = max(r_reach, r_lift, r_place)
-            reward = r_reach + r_lift + r_place
+            reward = max(r_reach, r_lift, r_stack)
         else:
             reward = 1.0 if horiz_dist < 0.03 else 0.0
             
 
-        return (reward, r_reach, r_lift, r_place, dist, horiz_dist, float(r_stack > 0))
+        return (reward, r_reach, r_lift, dist, horiz_dist, float(r_stack > 0))
         # r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
 
         # # collision checking

@@ -65,6 +65,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_6dof import SawyerHan
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_6dof import SawyerHandlePull6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_6dof import SawyerHandlePressSide6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side_6dof import SawyerHandlePullSide6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_6dof import SawyerPlateSlide6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_6dof import SawyerPlateSlideBack6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side_6dof import SawyerPlateSlideSide6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import SawyerPlateSlideBackSide6DOFEnv
 '''
 CoRL environment lists
 Please edit multiworld.envs.mujoco.sawyer_xyz.env_lists to add new lists
@@ -109,7 +113,7 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerFaucetOpen6DOFEnv, SawyerFaucetClose6DOFEnv]
 # ENV_LIST = [SawyerCoffeePull6DOFEnv, SawyerPegUnplugSide6DOFEnv]
 # ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerPegUnplugSide6DOFEnv]
-ENV_LIST = [SawyerShelfRemove6DOFEnv, SawyerShelfRemoveFront6DOFEnv]
+# ENV_LIST = [SawyerShelfRemove6DOFEnv, SawyerShelfRemoveFront6DOFEnv]
 # ENV_LIST = [SawyerFaucetClose6DOFEnv, SawyerDoorUnlock6DOFEnv]
 # ENV_LIST = [SawyerPegInsertionTopdown6DOFEnv, SawyerPegUnplugTopdown6DOFEnv]
 # ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv]
@@ -117,7 +121,8 @@ ENV_LIST = [SawyerShelfRemove6DOFEnv, SawyerShelfRemoveFront6DOFEnv]
 # ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerNutDisassemble6DOFEnv]
 # ENV_LIST = [SawyerStack6DOFEnv, SawyerUnStack6DOFEnv]
 # ENV_LIST = [SawyerHandlePress6DOFEnv, SawyerHandlePull6DOFEnv]
-# ENV_LIST = [SawyerHandlePressSide6DOFEnv, SawyerHandlePullSide6DOFEnv]
+# ENV_LIST = [SawyerPlateSlide6DOFEnv, SawyerPlateSlideBack6DOFEnv]
+ENV_LIST = [SawyerPlateSlideSide6DOFEnv, SawyerPlateSlideBackSide6DOFEnv]
 # ENV_LIST = EASY_MODE_LIST
 
 
