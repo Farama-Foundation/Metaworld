@@ -161,6 +161,7 @@ class MultiTaskMujocoEnv(gym.Env):
 			# set the one-hot task representation
 			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
 			self.mujoco_envs[i]._state_goal_idx[i] = 1.
+			self.mujoco_envs[i].max_path_length = 200
 			if adaptive_sampling:
 				self.target_scores.append(self.mujoco_envs[i].target_reward)
 		# TODO: make sure all observation spaces across tasks are the same / use self-attention

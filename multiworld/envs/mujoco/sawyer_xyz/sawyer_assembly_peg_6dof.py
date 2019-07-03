@@ -28,6 +28,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             hand_init_pos = (0, 0.6, 0.2),
             multitask=False,
             multitask_num=1,
+            if_render=False,
             liftThresh = 0.15,
             rewMode = 'orig',
             rotMode='fixed',
@@ -68,6 +69,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
+        self.if_render = if_render
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
@@ -147,7 +149,8 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)

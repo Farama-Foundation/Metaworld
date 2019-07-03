@@ -118,7 +118,7 @@ HARD_MODE_LIST = [
     SawyerStack6DOFEnv,
     SawyerUnStack6DOFEnv,
     SawyerShelfPlace6DOFEnv,
-    SawyerLaptopClose6DOFEnv,
+    SawyerPushBack6DOFEnv,
     SawyerLeverPull6DOFEnv,
     SawyerDialTurn6DOFEnv,
     SawyerBinPicking6DOFEnv,

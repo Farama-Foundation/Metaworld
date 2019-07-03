@@ -30,6 +30,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             liftThresh = 0.09,
             multitask=False,
             multitask_num=1,
+            if_render=False,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             **kwargs
@@ -70,6 +71,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.rotMode = rotMode
         self.multitask = multitask
         self.multitask_num = multitask_num
+        self.if_render = if_render
         self._state_goal_idx = np.zeros(self.multitask_num)
         self.hand_init_pos = np.array(hand_init_pos)
         if rotMode == 'fixed':
@@ -148,7 +150,8 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        self.render()
+        if self.if_render:
+            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
