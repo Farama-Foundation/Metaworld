@@ -23,6 +23,9 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTu
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close_6dof import SawyerLaptopClose6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_hammer_6dof import SawyerHammer6DOFEnv
 
 
 from robosuite.devices import SpaceMouse
@@ -35,7 +38,7 @@ import gym
 import multiworld
 
 space_mouse = SpaceMouse()
-env = SawyerLaptopClose6DOFEnv(rotMode = 'rotz')
+env = SawyerHammer6DOFEnv(rotMode = 'rotz')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
