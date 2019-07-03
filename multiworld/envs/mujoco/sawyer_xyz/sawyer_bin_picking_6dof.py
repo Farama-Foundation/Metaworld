@@ -423,7 +423,7 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
         else:
             pickRew = orig_pickReward()
         placeRew , placingDist = placeReward()
-        assert ((placeRew >=0) and (pickRew>=0))
+        # assert ((placeRew >=0) and (pickRew>=0))
         if self.placeCompleted:
             reachRew = 0
             reachDist = 0
