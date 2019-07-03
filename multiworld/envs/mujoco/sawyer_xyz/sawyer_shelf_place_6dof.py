@@ -24,7 +24,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             goal_high=(0.1, 0.9, 0.001),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
-            obs_type='plain'
+            obs_type='plain',
             rewMode = 'orig',
             rotMode='fixed',#'fixed',
             multitask=False,
@@ -66,6 +66,7 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(multitask_num)
         self.if_render = if_render
+        self.obs_type = obs_type
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
