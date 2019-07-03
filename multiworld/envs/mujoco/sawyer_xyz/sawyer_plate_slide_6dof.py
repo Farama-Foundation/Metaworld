@@ -281,7 +281,7 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             goal_pos = obj_pos[3:]
             self._state_goal = goal_pos
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
-        self.sim.model.body_pos[self.model.body_name2id('cabinet')] = goal_pos
+        self.sim.model.body_pos[self.model.body_name2id('cabinet')] = self._state_goal
         self._set_obj_xyz(np.zeros(2))
         self.curr_path_length = 0
         self.maxDist = np.linalg.norm(self.obj_init_pos[:-1] - self._state_goal[:-1])
