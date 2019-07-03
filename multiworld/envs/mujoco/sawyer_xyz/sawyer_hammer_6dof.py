@@ -23,7 +23,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             random_init=False,
             # tasks = [{'goal': np.array([0.24, 0.74, 0.11]),  'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.65, 0.11]), 'obj_init_qpos':0.}], 
             obs_type='plain',
-            tasks = [{'goal': np.array([0.24, 0.85, 0.05]), 'screw_init_pos':np.array([0.24, 0.71, 0.11]), 'hammer_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_pos':np.array([0.24, 0.71, 0.11])}], 
+            tasks = [{'hammer_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=(0., 0.85, 0.05),
             goal_high=(0.3, 0.9, 0.05),
             hand_init_pos = (0, 0.6, 0.2),
@@ -179,8 +179,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         hammerPos = self.get_body_com('hammer').copy()
         hammerHeadPos = self.data.get_geom_xpos('hammerHead').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('screwHead')]
-        flat_obs = np.concatenate((hand, hammerPos, hammerHeadPos, objPos))
+        flat_obs = np.concatenate((hand, hammerPos, hammerHeadPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
@@ -243,17 +242,6 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
 
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
@@ -262,11 +250,10 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array(task['goal'])
-        self.sim.model.body_pos[self.model.body_name2id('screw')] = np.array(task['screw_init_pos'])
+        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array([0.24, 0.85, 0.05])
+        self.sim.model.body_pos[self.model.body_name2id('screw')] = np.array([0.24, 0.71, 0.11])
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('box')]
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_qpos = task['obj_init_qpos']
+        self.obj_init_pos = np.array([0.24, 0.71, 0.11])
         self.hammer_init_pos = task['hammer_init_pos']
         self.hammerHeight = self.get_body_com('hammer').copy()[2]
         self.heightTarget = self.hammerHeight + self.liftThresh

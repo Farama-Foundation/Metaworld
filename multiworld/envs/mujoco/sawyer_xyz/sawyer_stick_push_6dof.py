@@ -19,13 +19,15 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
             random_init=False,
-            tasks = [{'goal': np.array([0.35, 0.6]),  'stick_init_pos':np.array([0., 0.6, 0.02]), 'obj_init_pos':np.array([0.2, 0.6, 0.04]), 'obj_init_qpos':np.array([0., 0])}], 
+            tasks = [{'stick_init_pos':np.array([0., 0.6, 0.02])}], 
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
             rewMode='orig',
+            obs_type='plain',
+            multitask=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -58,6 +60,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
+        self.multitask = multitask
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -79,15 +82,31 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
                 np.array([-1, -1, -1, -np.pi/2, -np.pi/2, 0, -1]),
                 np.array([1, 1, 1, np.pi/2, np.pi/2, np.pi*2, 1]),
             )
+
+        # For now, fix the object initial position.
+        self.obj_init_pos = np.array([0.2, 0.6, 0.04])
+        self.obj_init_qpos = np.array([0.0, 0.0])
         self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low[:2]-np.array(tasks[0]['obj_init_pos'])[:2])),
-            np.hstack((self.hand_high, obj_high[:2]-np.array(tasks[0]['obj_init_pos'])[:2])),
+            np.hstack((self.hand_low, obj_low[:2]-np.array(self.obj_init_pos[:2]))),
+            np.hstack((self.hand_high, obj_high[:2]-np.array(self.obj_init_pos[:2]))),
         )
         self.goal_space = Box(np.array(goal_low)[:2], np.array(goal_high)[:2])
-        self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, goal_low[:2])),
-                np.hstack((self.hand_high, obj_high, goal_low, goal_high[:2])),
-        )
+        self.obs_type = obs_type
+        if not multitask and self.obs_type == 'with_goal_id':
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
+            )
+        else:
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
+            )
         self.reset()
 
 
@@ -151,12 +170,17 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
-        objPos =  self.get_body_com('object').copy()
-        flat_obs = np.concatenate((hand, stickPos, objPos))
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        flat_obs = np.concatenate((hand, stickPos))
+        if self.obs_type == 'with_goal_and_id':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                    self._state_goal_idx
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
@@ -168,6 +192,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             state_desired_goal=self._state_goal,
             state_achieved_goal=objPos,
         )
+
+
 
     def _get_info(self):
         pass
@@ -217,17 +243,6 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
 
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
@@ -236,9 +251,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        self.obj_init_qpos = task['obj_init_qpos']
+        self._state_goal = np.array([0.35, 0.6])
         self.stick_init_pos = task['stick_init_pos']
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
