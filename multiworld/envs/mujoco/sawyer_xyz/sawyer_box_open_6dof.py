@@ -291,7 +291,7 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
                     self.hand_and_obj_space.high,
                     size=(self.hand_and_obj_space.low.size),
                 )
-            self.obj_init_pos = np.concatenate((goal_pos[-2:], self.obj_init_pos[-1]))
+            self.obj_init_pos = np.concatenate((goal_pos[-2:], [self.obj_init_pos[-1]]))
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)

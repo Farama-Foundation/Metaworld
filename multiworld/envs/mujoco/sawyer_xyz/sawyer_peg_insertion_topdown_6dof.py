@@ -43,6 +43,10 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 

@@ -179,7 +179,7 @@ class SawyerCoffeeButton6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
+        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.02)}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
