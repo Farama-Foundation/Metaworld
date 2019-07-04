@@ -16,8 +16,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=None,
-            obj_high=None,
+            obj_low=(-0.1, 0.5, 0.02),
+            obj_high=(0.1, 0.6, 0.02),
             random_init=False,
             tasks = [{'stick_init_pos':np.array([0., 0.6, 0.02])}], 
             goal_low=None,
@@ -91,10 +91,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         # For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.04])
         self.obj_init_qpos = np.array([0.0, 0.0])
-        self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low[:2]-np.array(self.obj_init_pos[:2]))),
-            np.hstack((self.hand_high, obj_high[:2]-np.array(self.obj_init_pos[:2]))),
-        )
+        self.obj_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low)[:2], np.array(goal_high)[:2])
         self.obs_type = obs_type
         if not multitask and self.obs_type == 'with_goal_id':
@@ -259,23 +256,23 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
         self.stick_init_pos = task['stick_init_pos']
+        self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
-                self.hand_and_obj_space.low,
-                self.hand_and_obj_space.high,
-                size=(self.hand_and_obj_space.low.size),
+                self.obj_space.low,
+                self.obj_space.high,
+                size=(self.obj_space.low.size),
             )
             while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
                 goal_pos = np.random.uniform(
-                    self.hand_and_obj_space.low,
-                    self.hand_and_obj_space.high,
-                    size=(self.hand_and_obj_space.low.size),
+                    self.obj_space.low,
+                    self.obj_space.high,
+                    size=(self.obj_space.low.size),
                 )
-            self.stick_init_pos = np.concatenate((goal_pos[:2], self.stick_init_pos[-1]))
+            self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
             # self.obj_init_qpos = goal_pos[-2:]
         self._set_goal_marker(self._state_goal)
         self._set_stick_xyz(self.stick_init_pos)
@@ -283,7 +280,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.obj_init_pos = self.get_body_com('object').copy()
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal)
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal[:2])
         self.curr_path_length = 0
         #Can try changing this
         return self._get_obs()

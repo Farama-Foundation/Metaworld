@@ -42,7 +42,7 @@ import gym
 import multiworld
 
 space_mouse = SpaceMouse()
-env = SawyerBinPicking6DOFEnv(rotMode = 'fixed')
+env = SawyerStickPush6DOFEnv(random_init=True)
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -86,5 +86,5 @@ while True:
     obs, reward, done, _ = env.step(np.hstack([dpos/.005, 0, closed]))
     # print(obs)
 
-    # if done:
-    #     obs = env.reset()
+    if done:
+        obs = env.reset()

@@ -102,18 +102,18 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, obj_high, obj_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, obj_low)),
-                np.hstack((self.hand_high, obj_high, obj_high, obj_high,)),
+                np.hstack((self.hand_low, obj_low)),
+                np.hstack((self.hand_high, obj_high)),
             )
         else:
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, obj_high, obj_high, goal_high, np.zeros(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -182,12 +182,17 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         hammerPos = self.get_body_com('hammer').copy()
         hammerHeadPos = self.data.get_geom_xpos('hammerHead').copy()
-        flat_obs = np.concatenate((hand, hammerPos, hammerHeadPos))
+        flat_obs = np.concatenate((hand, hammerPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
+                ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
@@ -273,13 +278,13 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
                     size=(self.hand_and_obj_space.low.size),
                 )
             self.hammer_init_pos = np.concatenate((goal_pos[:2], [self.hammer_init_pos[-1]]))
-            screw_pos = goal_pos[-3:].copy()
-            screw_pos[1] -= 0.14
-            screw_pos[2] += 0.06
-            # self.obj_init_qpos = goal_pos[-1]
-            self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
-            self.sim.model.body_pos[self.model.body_name2id('screw')] = screw_pos
-            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('box')]
+            # screw_pos = goal_pos[-3:].copy()
+            # screw_pos[1] -= 0.14
+            # screw_pos[2] += 0.06
+            # # self.obj_init_qpos = goal_pos[-1]
+            # self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
+            # self.sim.model.body_pos[self.model.body_name2id('screw')] = screw_pos
+            # self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self._set_hammer_xyz(self.hammer_init_pos)
         # self._set_obj_xyz(self.obj_init_qpos)
         # self.obj_init_pos = self.data.site_xpos[self.model.site_name2id('screwHead')]
@@ -317,8 +322,8 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             obs = obs['state_observation']
 
         hammerPos = obs[3:6]
-        hammerHeadPos = obs[6:9]
-        objPos = obs[9:12]
+        hammerHeadPos = self.data.get_geom_xpos('hammerHead').copy()
+        objPos = self.data.site_xpos[self.model.site_name2id('screwHead')]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
