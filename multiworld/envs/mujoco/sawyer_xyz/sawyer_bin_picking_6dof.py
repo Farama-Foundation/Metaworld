@@ -109,8 +109,8 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low[:2], np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high[:2], np.ones(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         # task = self.sample_task()
         # self._state_goal = np.array(task['goal'])
@@ -289,10 +289,10 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
         self._set_goal_xyz(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
-        self._state_goal = self.get_body_com("bin_goal")[:2]
+        self._state_goal = self.get_body_com("bin_goal")
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._state_goal)[:-1]) + self.heightTarget
         #Can try changing this
         return self._get_obs()
 
@@ -332,7 +332,7 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 
-        placingDist = np.linalg.norm(objPos[:2] - placingGoal)
+        placingDist = np.linalg.norm(objPos[:2] - placingGoal[:-1])
       
 
         def reachReward():

@@ -177,11 +177,12 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
+        objPos =  self.get_body_com('object').copy()
         flat_obs = np.concatenate((hand, stickPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
-                    self._state_goal,
+                    objPos,
                     self._state_goal_idx
                 ])
         elif self.obs_type == 'plain':
@@ -258,7 +259,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self._state_goal = np.array([0.35, 0.6])
+        self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
         self.stick_init_pos = task['stick_init_pos']
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
@@ -268,15 +269,15 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
                 self.hand_and_obj_space.high,
                 size=(self.hand_and_obj_space.low.size),
             )
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-2:] - np.array(self.obj_init_pos)[:2]) < 0.1:
+            while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
                 goal_pos = np.random.uniform(
                     self.hand_and_obj_space.low,
                     self.hand_and_obj_space.high,
                     size=(self.hand_and_obj_space.low.size),
                 )
             self.stick_init_pos = np.concatenate((goal_pos[:2], self.stick_init_pos[-1]))
-            self.obj_init_qpos = goal_pos[-2:]
-        self._set_goal_marker(np.concatenate((self._state_goal, [self.stick_init_pos[-1]])))
+            # self.obj_init_qpos = goal_pos[-2:]
+        self._set_goal_marker(self._state_goal)
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
@@ -321,7 +322,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         heightTarget = self.heightTarget
         pushGoal = self._state_goal
 
-        pushDist = np.linalg.norm(objPos[:2] - pushGoal)
+        pushDist = np.linalg.norm(objPos[:2] - pushGoal[:2])
         placeDist = np.linalg.norm(objPos - stickPos)
         reachDist = np.linalg.norm(stickPos - fingerCOM)
 
