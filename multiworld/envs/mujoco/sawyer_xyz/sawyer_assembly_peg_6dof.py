@@ -96,18 +96,23 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
 
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, obj_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low,)),
-                np.hstack((self.hand_high, obj_high, obj_high,)),
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
+            )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, obj_high, goal_high, np.zeros(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
         # self.observation_space = Dict([
@@ -179,13 +184,19 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
     def _get_obs(self):
         hand = self.get_endeff_pos()
         graspPos =  self.data.get_geom_xpos('RoundNut-8')
-        objPos = self.get_body_com('RoundNut')
-        flat_obs = np.concatenate((hand, graspPos, objPos))
+        # objPos = self.get_body_com('RoundNut')
+        # flat_obs = np.concatenate((hand, graspPos, objPos))
+        flat_obs = np.concatenate((hand, graspPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
+                ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
@@ -195,8 +206,9 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
         graspPos =  self.data.get_geom_xpos('RoundNut-8')
-        objPos = self.get_body_com('RoundNut')
-        flat_obs = np.concatenate((hand, graspPos, objPos))
+        # objPos = self.get_body_com('RoundNut')
+        # flat_obs = np.concatenate((hand, graspPos, objPos))
+        flat_obs = np.concatenate((hand, graspPos))
         return dict(
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
@@ -319,7 +331,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             obs = obs['state_observation']
 
         graspPos = obs[3:6]
-        objPos = obs[6:9]
+        objPos = self.get_body_com('RoundNut')
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2

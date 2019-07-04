@@ -42,6 +42,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -186,13 +190,13 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
-                    objPos,#self._state_goal,
+                    objPos,
                     self._state_goal_idx
                 ])
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
-                    objPos,#self._state_goal,
+                    objPos
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs, objPos])  # TODO ZP do we need the concat?

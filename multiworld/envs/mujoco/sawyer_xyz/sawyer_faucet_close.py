@@ -20,6 +20,7 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             obj_low=(-0.1, 0.8, 0.05),
             obj_high=(0.1, 0.85, 0.05),
             random_init=False,
+            obs_type='plain',
             # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
             tasks = [{'goal': np.array([-0.1, 0.785, 0.115]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
             goal_low=None,
@@ -89,15 +90,25 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask:
+        if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low)),
-                    np.hstack((self.hand_high, obj_high, goal_high)),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
+            )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -181,17 +192,21 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         objPos = self.get_site_pos('handleStartClose')
         # angle = self.get_angle()
         flat_obs = np.concatenate((hand, objPos))
-        if self.multitask:
-            assert hasattr(self, '_state_goal_idx')
+        if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
                 ])
-        return np.hstack([
-                flat_obs,
-                self._state_goal,
-            ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
