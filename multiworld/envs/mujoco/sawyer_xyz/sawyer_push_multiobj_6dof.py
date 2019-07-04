@@ -89,7 +89,7 @@ class SawyerMultiobject6DOFEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.target_object_idx = target_object_idx
         self.fixed_start = fixed_start
         self.maxlen = maxlen
-
+        
         # Generate XML
         base_filename = asset_base_path + filename
         friction_params = (0.1, 0.1, 0.02)

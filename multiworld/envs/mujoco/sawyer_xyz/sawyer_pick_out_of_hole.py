@@ -27,6 +27,7 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             goal_high=(0.1, 0.7, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.11,
+            obs_type='plain',
             rotMode='fixed',#'fixed',
             rewMode = 'orig',
             multitask=False,
@@ -44,6 +45,10 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -94,15 +99,25 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask:
+        if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
+            )
+        elif not multitask and self.obs_type == 'plain':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low)),
+                np.hstack((self.hand_high, obj_high)),
+            )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
         # self.observation_space = Dict([
@@ -176,17 +191,21 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
-        if self.multitask:
-            assert hasattr(self, '_state_goal_idx')
+        if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
                 ])
-        return np.concatenate([
-                flat_obs,
-                self._state_goal
-            ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
+                ])
+        elif self.obs_type == 'plain':
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
+        else:
+            return np.concatenate([flat_obs, self._state_goal_idx])
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()

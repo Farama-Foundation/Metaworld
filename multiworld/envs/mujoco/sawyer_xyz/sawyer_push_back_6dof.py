@@ -24,6 +24,7 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             goal_high=(0.1, 0.7, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
+            obs_type='plain',
             multitask=False,
             multitask_num=1,
             if_render=True,
@@ -39,6 +40,10 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 

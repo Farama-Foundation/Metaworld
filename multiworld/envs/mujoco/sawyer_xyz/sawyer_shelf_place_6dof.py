@@ -42,6 +42,10 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -66,7 +70,6 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(multitask_num)
         self.if_render = if_render
-        self.obs_type = obs_type
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),

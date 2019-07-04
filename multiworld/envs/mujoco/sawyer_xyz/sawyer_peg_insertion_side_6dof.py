@@ -104,6 +104,11 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
                     np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
                     np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
+            )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
@@ -186,6 +191,11 @@ class SawyerPegInsertionSide6DOFEnv(SawyerXYZEnv):
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
+                ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal,
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?

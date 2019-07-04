@@ -10,7 +10,7 @@ from multiworld.envs.env_util import quat_to_zangle, zangle_to_quat
 import copy
 
 
-OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id']
+OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal']
 
 
 class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
