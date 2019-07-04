@@ -7,6 +7,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera, sawyer_pick_and_place_camera_slanted_angle
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 
 class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):

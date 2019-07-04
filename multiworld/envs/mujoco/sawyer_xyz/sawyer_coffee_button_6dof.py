@@ -10,6 +10,7 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 class SawyerCoffeeButton6DOFEnv(SawyerXYZEnv):
     def __init__(
@@ -40,6 +41,10 @@ class SawyerCoffeeButton6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 

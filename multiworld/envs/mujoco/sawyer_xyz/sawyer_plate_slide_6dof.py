@@ -21,7 +21,6 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             obj_low=(0., 0.6, 0.015),
             obj_high=(0., 0.6, 0.015),
             random_init=False,
-            obs_type='plain',
             # tasks = [{'goal': 0.75,  'obj_init_pos':-0.2, 'obj_init_angle': 0.3}], 
             # tasks = [{'goal': np.array([0., 0.75, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([0., 0.85, 0.02]),  'obj_init_pos':np.array([0., 0.6, 0.015]), 'obj_init_angle': 0.3}], 

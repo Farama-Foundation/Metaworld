@@ -10,7 +10,7 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
-import pdb
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
     def __init__(

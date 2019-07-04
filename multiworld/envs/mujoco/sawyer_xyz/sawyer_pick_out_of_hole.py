@@ -10,6 +10,7 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from multiworld.envs.mujoco.utils.rotation import euler2quat
+from multiworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
     def __init__(
