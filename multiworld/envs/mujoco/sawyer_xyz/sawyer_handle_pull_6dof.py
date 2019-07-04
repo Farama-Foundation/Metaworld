@@ -98,18 +98,23 @@ class SawyerHandlePull6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
                 np.hstack((self.hand_high, obj_high,)),
             )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
+            )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -185,11 +190,15 @@ class SawyerHandlePull6DOFEnv(SawyerXYZEnv):
         objPos =  self.data.site_xpos[self.model.site_name2id('handleStart')]
         flat_obs = np.concatenate((hand, objPos))
         if self.obs_type == 'with_goal_and_id':
-            assert hasattr(self, '_state_goal_idx')
             return np.concatenate([
                     flat_obs,
                     self._state_goal,
                     self._state_goal_idx
+                ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    self._state_goal
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
