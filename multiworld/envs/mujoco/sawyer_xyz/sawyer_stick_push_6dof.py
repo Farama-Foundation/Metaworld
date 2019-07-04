@@ -42,6 +42,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        assert obs_type in OBS_TYPE
+        if multitask:
+            obs_type = 'with_goal_and_id'
+        self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -96,18 +100,23 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.obs_type = obs_type
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
                 np.hstack((self.hand_high, obj_high,)),
             )
+        elif not multitask and self.obs_type == 'with_goal':
+            self.observation_space = Box(
+                np.hstack((self.hand_low, obj_low, goal_low)),
+                np.hstack((self.hand_high, obj_high, goal_high)),
+            )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, goal_high, np.ones(multitask_num))),
+                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
+                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
 
@@ -181,6 +190,11 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
                     flat_obs,
                     objPos,
                     self._state_goal_idx
+                ])
+        elif self.obs_type == 'with_goal':
+            return np.concatenate([
+                    flat_obs,
+                    objPos
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
