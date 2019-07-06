@@ -76,6 +76,12 @@ EASY_MODE_LIST = [
     SawyerWindowClose6DOFEnv,
 ]
 
+GRAD_MODE_LIST = [
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+]
+
 # hard mode for CoRL
 HARD_MODE_LIST = [
     SawyerReachPushPickPlace6DOFEnv,
