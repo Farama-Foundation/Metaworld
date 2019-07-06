@@ -372,7 +372,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         stack_dist = np.linalg.norm(
                 np.array(obj_pos) - np.array(goal_pos)
             )
-        r_reach = -dist
+        r_reach = (1 - np.tanh(10.0 * dist)) * 0.25#-dist
 
         # collision checking
         touch_left_finger = False

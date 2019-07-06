@@ -385,8 +385,8 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         place_dist = np.linalg.norm(
                 np.array(obj_pos) - np.array(goal_pos)
             )
-        # r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
-        r_reach = -dist
+        r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
+        # r_reach = -dist
         # dist_xy = np.linalg.norm(np.concatenate((obj_pos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
         # if dist_xy < 0.05: #0.02
         #     r_reach = -dist + 0.1

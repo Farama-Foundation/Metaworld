@@ -65,6 +65,8 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import 
 # easy mode for CoRL
 EASY_MODE_LIST = [
     SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
     SawyerDoor6DOFEnv,
     SawyerDrawerOpen6DOFEnv,
     SawyerDrawerClose6DOFEnv,
