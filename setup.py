@@ -23,7 +23,7 @@ extras['dev'] = [
 
 
 setup(
-    name='multiworld',
+    name='metaworld',
     packages=find_packages(),
     install_requires=required,
     extras_require=extras,

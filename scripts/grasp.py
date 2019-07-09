@@ -1,9 +1,9 @@
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
    SawyerPickAndPlaceEnv,
    SawyerPickAndPlaceEnvYZ,
 )
-# from multiworld.core.image_env import ImageEnv
-# from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
+# from metaworld.core.image_env import ImageEnv
+# from metaworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
 import numpy as np
 
 env = SawyerPickAndPlaceEnvYZ(
