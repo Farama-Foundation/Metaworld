@@ -5,15 +5,15 @@ Metaworld is a multitask manipulation environment that is currently under develo
 
 
 # Basics
-Each environment in /metaworld/multiworld/envs/mujoco/sawyer_xyz is an gym environment. To play with the environment, for example, do 
+Each environment in /metaworld/metaworld/envs/mujoco/sawyer_xyz is an gym environment. To play with the environment, for example, do 
 
 
 ```
- python /metaworld/multiworld/envs/mujoco/sawyer_xyz/button_press_topdown_6dof.py
+ python /metaworld/metaworld/envs/mujoco/sawyer_xyz/button_press_topdown_6dof.py
 ```
 
 # Testing
-The /metaworld/tests/multiworld/envs/mujoco/sawyer_xyz/test_sawyer_parameterized.py file quickly runs every environment with pytest. To run tests, navigate to root dir and run 
+The /metaworld/tests/metaworld/envs/mujoco/sawyer_xyz/test_sawyer_parameterized.py file quickly runs every environment with pytest. To run tests, navigate to root dir and run 
 
 ```
 pytest
@@ -22,7 +22,7 @@ pytest
 
 # Running Demo code for existing environment
 
-/metaworld/scripts/demo_sawyer.py is a command line program to run demo code for environment in /metaworld/multiworld/envs/mujoco/sawyer_xyz
+/metaworld/scripts/demo_sawyer.py is a command line program to run demo code for environment in /metaworld/metaworld/envs/mujoco/sawyer_xyz
 
 To run this program, you need to know the environment name and use command 
 
@@ -84,5 +84,5 @@ This is helpful practice anyway when determining if your new environment is lear
 
 ## 8. (Optional) We also welcome help contributing to adding textures for the existing environments.
 [a]Also say that they need to define a shaped reward function? Or both a shaped reward function and a success rate metric?
-[b]Maybe also ask for the contributor to provide a reasonable camera viewpoint for future vision-based experiments?# multiworld
+[b]Maybe also ask for the contributor to provide a reasonable camera viewpoint for future vision-based experiments?# metaworld
 Multitask Environments for RL

@@ -5,11 +5,11 @@ Metaworld is a multitask manipulation environment that is currently under develo
 
 
 # Basics
-Each environment in /metaworld/multiworld/envs/mujoco/sawyer_xyz is an gym environment. To play with the environment, for example, do 
+Each environment in /metaworld/metaworld/envs/mujoco/sawyer_xyz is an gym environment. To play with the environment, for example, do 
 
 
 ```
- python /metaworld/multiworld/envs/mujoco/sawyer_xyz/button_press_topdown_6dof.py
+ python /metaworld/metaworld/envs/mujoco/sawyer_xyz/button_press_topdown_6dof.py
 ```
 
 

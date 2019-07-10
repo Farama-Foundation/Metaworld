@@ -8,26 +8,25 @@ import sys
 import gym
 
 import numpy as np
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
-#     SawyerPickAndPlaceEnv
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
-#     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
-#     SawyerPushAndReachXYDoublePuckEnv,
-#     SawyerPushAndReachXYZDoublePuckEnv,
-# )
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
-#     SawyerReachXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
+    SawyerPickAndPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
+    SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    SawyerPushAndReachXYDoublePuckEnv,
+    SawyerPushAndReachXYZDoublePuckEnv,
+)
 
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_box_open_6dof import SawyerBoxOpen6DOFEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
+    SawyerReachXYZEnv
+
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
 
 
 
@@ -60,7 +59,7 @@ char_to_action = {
 
 
 import gym
-import multiworld
+import metaworld
 import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
 # env = SawyerPushAndReachXYEnv(
