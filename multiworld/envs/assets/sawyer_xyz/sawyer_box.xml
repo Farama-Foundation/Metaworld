@@ -5,13 +5,13 @@
         <include file="sawyer_xyz_base.xml"></include>
 
         <body name="box" pos="0. 0.8 0.">
-          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.1 0.001" name="box_bottom" conaffinity="1" pos="0 0 0.005" mass="1000" friction="2 0.1 0.002" />
-          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.001 0.05" name="box_wall1" conaffinity="1" pos="0.0 0.1 0.054" mass="1000" friction="2 0.1 0.002" />
-          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.001 0.05" name="box_wall2" conaffinity="1" pos="0.0 -0.1 0.054" mass="1000" friction="2 0.1 0.002" />
-          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.001 0.1 0.05" name="box_wall3" conaffinity="1" pos="0.1 0 0.054" mass="1000" friction="2 0.1 0.002" />
-          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.001 0.1 0.05" name="box_wall4" conaffinity="1" pos="-0.1 0 0.054" mass="1000" friction="2 0.1 0.002" />
+          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.1 0.001" name="box_bottom" conaffinity="1" pos="0 0 0.001" mass="1000" friction="2 0.1 0.002" />
+          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.001 0.04" name="box_wall1" conaffinity="1" pos="0.0 0.1 0.042" mass="1000" friction="2 0.1 0.002" />
+          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.1 0.001 0.04" name="box_wall2" conaffinity="1" pos="0.0 -0.1 0.042" mass="1000" friction="2 0.1 0.002" />
+          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.001 0.1 0.04" name="box_wall3" conaffinity="1" pos="0.1 0 0.042" mass="1000" friction="2 0.1 0.002" />
+          <geom rgba="1 0.3 0.3 1" type="box" contype="1" size="0.001 0.1 0.04" name="box_wall4" conaffinity="1" pos="-0.1 0 0.042" mass="1000" friction="2 0.1 0.002" />
         </body>
-        <body name="cover" pos="0. 0.8 0.155">
+        <body name="cover" pos="0. 0.8 0.083">
           <inertial pos="0 0 0" mass="1" diaginertia="100000 100000 10000"/>
 
           <geom rgba="0.3 0.3 1 1" type="box" contype="1" size="0.106 0.106 0.001" name="cover_top" conaffinity="1" pos="0 0 0" mass="1" friction="2 0.1 0.002" />

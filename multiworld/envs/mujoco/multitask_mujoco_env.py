@@ -129,8 +129,9 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerSweepIntoGoal6DOFEnv, SawyerBinPicking6DOFEnv]
 # ENV_LIST = [SawyerShelfPlace6DOFEnv, SawyerWindowClose6DOFEnv]
 # ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxClose6DOFEnv]
-# ENV_LIST = [SawyerStickPull6DOFEnv, SawyerStickPush6DOFEnv]
-ENV_LIST = [SawyerLeverPull6DOFEnv, SawyerDialTurn6DOFEnv]
+# ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxOpen6DOFEnv]
+# ENV_LIST = [SawyerStickPull6DOFEnv, SawyerNutDisassemble6DOFEnv]
+ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerDialTurn6DOFEnv]
 # ENV_LIST = [SawyerCoffeePush6DOFEnv, SawyerCoffeePull6DOFEnv]
 
 
@@ -141,7 +142,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
 	def __init__(self,
-				if_render=False,
+				if_render=True,
 				random_init=False,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
@@ -164,7 +165,8 @@ class MultiTaskMujocoEnv(gym.Env):
 			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			if env is SawyerReachPushPickPlace6DOFEnv or env is SawyerReachPushPickPlaceWall6DOFEnv:
 				# TODO: this could cause flaws in task_idx if SawyerReachPushPickPlace6DOFEnv/SawyerReachPushPickPlaceWall6DOFEnv is not the first environment
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
+				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=2))
 			else:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			# set the one-hot task representation
@@ -181,7 +183,7 @@ class MultiTaskMujocoEnv(gym.Env):
 		self.action_space = self.mujoco_envs[self.task_idx].action_space
 		self.observation_space = self.mujoco_envs[self.task_idx].observation_space
 		self.goal_space = Box(np.zeros(len(ENV_LIST)), np.ones(len(ENV_LIST)))
-		self.reset()
+		# self.reset()
 		self.num_resets -= 1
 
 	def seed(self, seed=None):

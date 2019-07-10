@@ -18,16 +18,16 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=None,
-            obj_high=None,
+            obj_low=(-0.05, 0.55, 0.02),
+            obj_high=(0.05, 0.6, 0.02),
             random_init=False,
             obs_type='plain',
             # tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
-            tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=None,
-            goal_high=None,
+            tasks = [{'goal': np.array([0.0, 0.9, 0.193]),  'obj_init_pos':np.array([0., 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            goal_low=(-0.05, 0.9, 0.193),
+            goal_high=(0.05, 0.9, 0.193),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.15,
+            liftThresh = 0.12,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             multitask=False,
@@ -96,9 +96,9 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
                 np.array([-1, -1, -1, -np.pi/2, -np.pi/2, 0, -1]),
                 np.array([1, 1, 1, np.pi/2, np.pi/2, np.pi*2, 1]),
             )
-        self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+        self.obj_and_goal_space = Box(
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
@@ -277,21 +277,24 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         self.obj_init_pos = task['obj_init_pos']
         self.obj_init_angle = task['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('handle')[2]
+        self.boxheight = self.get_body_com('box')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
-                self.hand_and_obj_space.low,
-                self.hand_and_obj_space.high,
-                size=(self.hand_and_obj_space.low.size),
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=(self.obj_and_goal_space.low.size),
             )
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-2:]) < 0.1:
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
                 goal_pos = np.random.uniform(
-                    self.hand_and_obj_space.low,
-                    self.hand_and_obj_space.high,
-                    size=(self.hand_and_obj_space.low.size),
+                    self.obj_and_goal_space.low,
+                    self.obj_and_goal_space.high,
+                    size=(self.obj_and_goal_space.low.size),
                 )
-            self.obj_init_pos = np.concatenate((goal_pos[-2:], [self.obj_init_pos[-1]]))
+            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            self._state_goal = goal_pos[-3:]
         self._set_goal_marker(self._state_goal)
+        self.sim.model.body_pos[self.model.body_name2id('box')] = np.concatenate((self._state_goal[:2], [self.boxheight]))
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
@@ -344,8 +347,8 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             if reachDistxy < 0.05: #0.02
                 reachRew = -reachDist
             else:
-                # reachRew =  -reachDistxy - zRew
-                reachRew =  -reachDistxyz
+                reachRew =  -reachDistxy - 2*zRew
+                # reachRew =  -reachDistxyz
             #incentive to close fingers when reachDist is small
             if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1],0)/50
