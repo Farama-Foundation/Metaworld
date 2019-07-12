@@ -326,7 +326,8 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             obs = obs['state_observation']
 
         graspPos = obs[3:6]
-        objPos = self.get_body_com('RoundNut')
+        # objPos = self.get_body_com('RoundNut')
+        objPos = graspPos
         
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
@@ -339,6 +340,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         # placingDist = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.heightTarget])))
         # placingDistFinal = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.objHeight])))
         placingDist = np.linalg.norm(objPos - placingGoal)
+        # placingDist = np.linalg.norm(graspPos - placingGoal)
       
 
         def reachReward():

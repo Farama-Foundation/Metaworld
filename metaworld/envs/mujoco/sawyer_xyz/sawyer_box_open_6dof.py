@@ -26,7 +26,7 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
             goal_low=(-0.05, 0.6, 0.3),
             goal_high=(0.05, 0.6, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.05,
+            liftThresh = 0.06,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             multitask=False,
@@ -342,16 +342,16 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - heightTarget)
+            zDist = np.linalg.norm(fingerCOM[-1] - heightTarget)
             reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [heightTarget])) - fingerCOM)
             # reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [heightTarget])) - fingerCOM)
-            if reachDistxy < 0.04: #0.02
+            if reachDistxy < 0.05 and zDist < 0.02: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - 2*zRew
+                reachRew =  -reachDistxy - 2*zDist
                 # reachRew =  -reachDistxyz
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.04:
+            if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1],0)/50
             return reachRew , reachDist
 

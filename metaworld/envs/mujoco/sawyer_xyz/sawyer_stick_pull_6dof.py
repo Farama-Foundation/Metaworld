@@ -276,7 +276,8 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self.stick_init_pos = task['stick_init_pos']
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
-        self._state_goal = np.array([0.2, 0.4, self.stick_init_pos[-1]])
+        # self._state_goal = np.array([0.2, 0.4, self.stick_init_pos[-1]])
+        self._state_goal = np.array([0.3, 0.4, self.stick_init_pos[-1]])
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_space.low,
@@ -392,6 +393,7 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
 
         def pullReward():
             # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
+            # c1 = 500 ; c2 = 0.02 ; c3 = 0.002
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             if mode == 'general':
                 cond = self.pickCompleted and objGrasped()
@@ -400,7 +402,9 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             if cond:
                 pullRew = 1000*(self.maxPlaceDist - placeDist) + c1*(np.exp(-(placeDist**2)/c2) + np.exp(-(placeDist**2)/c3))
                 if placeDist < 0.05:
+                    # c4 = 2000 ; c5 = 0.001 ; c6 = 0.0001
                     pullRew += 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+                    # pullRew += 1000*(self.maxPullDist - pullDist) + c4*(np.exp(-(pullDist**2)/c5) + np.exp(-(pullDist**2)/c6))
                 pullRew = max(pullRew,0)
                 return [pullRew , pullDist, placeDist]
             else:
