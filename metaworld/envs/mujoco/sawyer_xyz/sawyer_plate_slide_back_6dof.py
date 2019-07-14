@@ -99,8 +99,8 @@ class SawyerPlateSlideBack6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(

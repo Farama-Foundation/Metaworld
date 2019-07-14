@@ -12,6 +12,7 @@ from pyquaternion import Quaternion
 from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
+
 class SawyerDoorUnlock6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
@@ -28,7 +29,7 @@ class SawyerDoorUnlock6DOFEnv(SawyerXYZEnv):
             hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
-            multitask_num=None,
+            multitask_num=1,
             if_render=False,
             **kwargs
     ):

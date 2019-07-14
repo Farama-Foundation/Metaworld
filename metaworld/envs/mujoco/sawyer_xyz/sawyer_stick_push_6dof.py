@@ -192,6 +192,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         objPos =  self.get_body_com('object').copy()
         flat_obs = np.concatenate((hand, stickPos))
         # WARNING: goal is still not provided as an observation, instead we are providing object position.
+        # (ZP) This is violating the API. Let's define the plain observation as 
+        # [hand_position, stick_position, obj_position]?
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
@@ -218,8 +220,6 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             state_desired_goal=self._state_goal,
             state_achieved_goal=objPos,
         )
-
-
 
     def _get_info(self):
         pass
