@@ -28,7 +28,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
-            multitask_num=None,
+            multitask_num=1,
             if_render=False,
             **kwargs
     ):

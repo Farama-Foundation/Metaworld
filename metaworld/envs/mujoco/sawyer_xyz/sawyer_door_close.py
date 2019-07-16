@@ -28,7 +28,7 @@ class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
         obj_high=obj_high,
         random_init=random_init,
         obs_type=obs_type,
-        tasks = tasks, 
+        tasks=tasks, 
         goal_low=goal_low,
         goal_high=goal_high,
         hand_init_pos=hand_init_pos,

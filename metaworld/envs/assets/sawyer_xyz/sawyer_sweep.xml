@@ -3,8 +3,8 @@
   <include file="shared_config.xml"></include>
   <worldbody>
     <include file="sawyer_xyz_base_no_table.xml"></include>
-        <geom name="tableTop" type="plane" pos="0 0.55 0" size="0.4 0.35 0.5"
-          rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
+        <geom name="tableTop" type="box" pos="0 0.55 -0.05" size="0.4 0.4 0.05"
+          rgba=".6 .6 .5 1" contype="1" conaffinity="1" friction="2 0.1 0.002" material="light_wood_v3"/>
 
         <body name="obj" pos="0 0.6 0.02">
             <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" />
