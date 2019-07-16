@@ -17,8 +17,8 @@
             <geom type="box" pos="0.02 0 -0.025" size="0.02 0.005 0.005" rgba="0 0 0 1" contype="1" conaffinity="1"/>
         </body> -->
         <body name="object" pos="0.2 0.6 0.08">
-            <joint type="slide" range="-10.3213 10.3" axis="1 0 0" name="obj_slidex" pos="0 0 0" damping="1"/>
-            <joint type="slide" range="-10.3213 10.3" axis="0 1 0" name="obj_slidey" pos="0 0 0" damping="1"/>
+            <joint type="slide" range="-0.2 0.2" axis="1 0 0" name="obj_slidex" pos="0 0 0" damping="1" limited="true"/>
+            <joint type="slide" range="-0.2 0.2" axis="0 1 0" name="obj_slidey" pos="0 0 0" damping="1" limited="true"/>
             <!-- <inertial mass="0.001" pos="0 0 0" diaginertia="100000 100000 100000"/> -->
             <!-- <geom conaffinity="1" contype="1" mass="0.1" rgba="0 0 1 1" size="0.04 0.04 0.06" type="box" solimp="0.99 0.99 0.01" solref="0.01 1"/>
             <geom type="box" pos="0 -0.095 0" size="0.005 0.005 0.04" rgba="0 0 0 1" contype="1" conaffinity="1" name="handle" solimp="0.99 0.99 0.01" solref="0.01 1"/>

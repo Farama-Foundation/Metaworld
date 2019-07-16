@@ -17,8 +17,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.5, 0.02),
-            obj_high=(0.1, 0.6, 0.02),
+            obj_low=(-0.1, 0.55, 0.02),
+            obj_high=(0., 0.65, 0.02),
             random_init=False,
             tasks = [{'stick_init_pos':np.array([0., 0.6, 0.02])}], 
             goal_low=None,
@@ -404,7 +404,9 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             if cond:
                 pushRew = 1000*(self.maxPlaceDist - placeDist) + c1*(np.exp(-(placeDist**2)/c2) + np.exp(-(placeDist**2)/c3))
                 if placeDist < 0.05:
-                    pushRew += 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
+                    # pushRew += 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
+                    c4 = 2000 ; c5 = 0.001 ; c6 = 0.0001
+                    pushRew += 1000*(self.maxpushDist - pushDist) + c4*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
                 pushRew = max(pushRew,0)
                 return [pushRew , pushDist]
             else:

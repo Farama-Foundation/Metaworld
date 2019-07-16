@@ -309,6 +309,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
+        self.reachZCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -336,6 +337,11 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         placingGoal = self._state_goal
 
         reachDist = np.linalg.norm(graspPos - fingerCOM)
+        reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
+        reachDistz = np.abs(graspPos[-1] - fingerCOM[-1])
+        zDist = np.abs(fingerCOM[-1] - self.init_fingerCOM[-1])
+        if zDist < 0.02 and reachDistxy < 0.04:
+            self.reachZCompleted = True
 
         # placingDist = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.heightTarget])))
         # placingDistFinal = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.objHeight])))
@@ -345,15 +351,15 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-            if reachDistxy < 0.04: #0.02
-                reachRew = -reachDist
+            if self.reachZCompleted: #0.02
+                # reachRew = -reachDist
+                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25
             else:
-                reachRew =  -reachDistxy - 2*zRew
+                reachRew =  -reachDistxy - 5*zDist
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.04:
-                reachRew = -reachDist + max(actions[-1],0)/50
+            if reachDistxy < 0.04 and self.reachZCompleted and reachDistz < 0.03:
+                # reachRew = -reachDist + max(actions[-1],0)/50
+                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25 + max(actions[-1],0)/20
             return reachRew , reachDist
             # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
             # if reachDistxy < 0.05: #0.02
@@ -411,7 +417,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
             placeRew = max(placeRew,0)
-            if mode == 'genetal':
+            if mode == 'general':
                 cond = self.pickCompleted and objGrasped()
             else:
                 cond = self.pickCompleted and (reachDist < 0.04) and not(objDropped())

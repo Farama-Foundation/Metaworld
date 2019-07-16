@@ -124,14 +124,15 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerPlateSlide6DOFEnv, SawyerPlateSlideBack6DOFEnv]
 # ENV_LIST = [SawyerPlateSlideSide6DOFEnv, SawyerPlateSlideBackSide6DOFEnv]
 # ENV_LIST = EASY_MODE_LIST
-# ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerNutDisassemble6DOFEnv]
+# ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerUnStack6DOFEnv]
 # ENV_LIST = [SawyerHammer6DOFEnv, SawyerDoorClose6DOFEnv]
 # ENV_LIST = [SawyerSweepIntoGoal6DOFEnv, SawyerBinPicking6DOFEnv]
 # ENV_LIST = [SawyerShelfPlace6DOFEnv, SawyerWindowClose6DOFEnv]
-ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxClose6DOFEnv]
-# ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxOpen6DOFEnv]
-# ENV_LIST = [SawyerStickPull6DOFEnv, SawyerStickPull6DOFEnv]
-# ENV_LIST = [SawyerReachPushPickPlaceWall6DOFEnv, SawyerDialTurn6DOFEnv]
+# ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxClose6DOFEnv]
+ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerDialTurn6DOFEnv]
+# ENV_LIST = [SawyerStickPull6DOFEnv, SawyerStickPush6DOFEnv]
+# ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerNutDisassemble6DOFEnv]
+# ENV_LIST = [SawyerUnStack6DOFEnv, SawyerNutDisassemble6DOFEnv]
 # ENV_LIST = [SawyerCoffeePush6DOFEnv, SawyerCoffeePull6DOFEnv]
 
 
@@ -143,7 +144,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	"""
 	def __init__(self,
 				if_render=True,
-				random_init=False,
+				random_init=True,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
 		self.adaptive_sampling = adaptive_sampling

@@ -364,8 +364,8 @@ class SawyerDialTurn6DOFEnv(SawyerXYZEnv):
             self.reachCompleted = False
 
         def pullReward():
-            # c1 = 10000 ; c2 = 0.001 ; c3 = 0.0001
-            c1 = 2500 ; c2 = 0.001 ; c3 = 0.0001
+            # c1 = 5000 ; c2 = 0.001 ; c3 = 0.0001
+            c1 = 1000 ; c2 = 0.001 ; c3 = 0.0001
             # c1 = 10 ; c2 = 0.01 ; c3 = 0.001
             if self.reachCompleted:
                 pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))

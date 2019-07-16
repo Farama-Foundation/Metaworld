@@ -17,8 +17,8 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.35, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.5, 0.02),
-            obj_high=(0.1, 0.6, 0.02),
+            obj_low=(-0.1, 0.55, 0.02),
+            obj_high=(0., 0.65, 0.02),
             random_init=False,
             tasks = [{'stick_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=None,
@@ -402,9 +402,9 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             if cond:
                 pullRew = 1000*(self.maxPlaceDist - placeDist) + c1*(np.exp(-(placeDist**2)/c2) + np.exp(-(placeDist**2)/c3))
                 if placeDist < 0.05:
-                    # c4 = 2000 ; c5 = 0.001 ; c6 = 0.0001
-                    pullRew += 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                    # pullRew += 1000*(self.maxPullDist - pullDist) + c4*(np.exp(-(pullDist**2)/c5) + np.exp(-(pullDist**2)/c6))
+                    c4 = 2000 ; c5 = 0.001 ; c6 = 0.0001
+                    # pullRew += 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+                    pullRew += 1000*(self.maxPullDist - pullDist) + c4*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
                 pullRew = max(pullRew,0)
                 return [pullRew , pullDist, placeDist]
             else:

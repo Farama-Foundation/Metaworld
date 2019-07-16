@@ -26,7 +26,7 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
             goal_low=(-0.05, 0.6, 0.3),
             goal_high=(0.05, 0.6, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.06,
+            liftThresh = 0.05,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             multitask=False,
@@ -312,6 +312,7 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
+        self.reachZCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -338,21 +339,27 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
 
         placingDist = np.linalg.norm(objPos - placeGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
+        reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        reachDistz = np.abs(objPos[-1] - fingerCOM[-1])
+        zDist = np.abs(fingerCOM[-1] - heightTarget)
+        reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [heightTarget])) - fingerCOM)
+        if zDist < 0.02 and reachDistxy < 0.04:
+            self.reachZCompleted = True
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zDist = np.linalg.norm(fingerCOM[-1] - heightTarget)
-            reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [heightTarget])) - fingerCOM)
             # reachDistxyz = np.linalg.norm(np.concatenate((objPos[:-1], [heightTarget])) - fingerCOM)
-            if reachDistxy < 0.05 and zDist < 0.02: #0.02
-                reachRew = -reachDist
+            if self.reachZCompleted: #0.02
+                # reachRew = -reachDist
+                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25
             else:
-                reachRew =  -reachDistxy - 2*zDist
+                reachRew =  -reachDistxy - 5*zDist
                 # reachRew =  -reachDistxyz
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
-                reachRew = -reachDist + max(actions[-1],0)/50
+            # if self.reachZCompleted and reachDist < 0.04:
+            if self.reachZCompleted and reachDistxy < 0.04 and reachDistz < 0.03:
+                # reachRew = -reachDist + max(actions[-1],0)/50
+                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25 + max(actions[-1],0)/20
             return reachRew , reachDist
 
         def pickCompletionCriteria():
