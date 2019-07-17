@@ -152,13 +152,3 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             name = str(self.active_env.__class__.__name__)
         info['task_name'] = name
         return obs, reward, done, info
-env_args_kwargs = {
-    'basketball': {
-        'args': [],
-        'kwargs': {},
-    },
-    'stick-push': {
-        'args': [],
-        'kwargs': {},
-    },
-}
