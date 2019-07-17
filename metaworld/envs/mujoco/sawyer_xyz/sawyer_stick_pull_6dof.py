@@ -111,13 +111,13 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             )
         if not multitask and self.obs_type == 'with_goal':
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low)),
-                    np.hstack((self.hand_high, obj_high,  obj_high)),
+                    np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+                    np.hstack((self.hand_high, obj_high,  obj_high, goal_high)),
             )
         else:
             self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, obj_high, np.ones(multitask_num))),
+                    np.hstack((self.hand_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
+                    np.hstack((self.hand_high, obj_high, obj_high, goal_high, np.ones(multitask_num))),
             )
         self.reset()
 
@@ -184,25 +184,24 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]
-        flat_obs = np.concatenate((hand, stickPos))
-        
-        # WARNING: goal is still not provided as an observation, instead we are providing object position.
+        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]        
+        flat_obs = np.concatenate((hand, stickPos, objPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
-                    objPos,
+                    self._state_goal,
                     self._state_goal_idx
                 ])
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
-                    objPos
+                    self._state_goal,
                 ])
         elif self.obs_type == 'plain':
-            return np.concatenate([flat_obs, objPos])  # TODO ZP do we need the concat?
+            return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
         else:
-            return np.concatenate([flat_obs, objPos, self._state_goal_idx])
+            return np.concatenate([flat_obs, self._state_goal_idx])
+
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
