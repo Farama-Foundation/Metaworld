@@ -354,8 +354,6 @@ def register_custom_envs():
             'author': 'brandon'
         },
         kwargs={
-            'hide_goal_markers': True,
-            'norm_order': 2,
         },
     )
 
