@@ -44,7 +44,7 @@ import gym
 import metaworld
 
 space_mouse = SpaceMouse()
-env = SawyerReachPushPickPlace6DOFEnv(random_init=True, obs_type='with_goal')
+env = SawyerStack6DOFEnv(random_init=True, obs_type='with_goal')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()

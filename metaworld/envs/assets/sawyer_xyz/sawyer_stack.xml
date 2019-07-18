@@ -7,7 +7,7 @@
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0"/>
             <!-- <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" /> -->
             <!-- <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04" /> -->
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
             <geom name="objGeom" type="box" pos="0 0 0" margin="0.001"
                   size="0.02 0.02 0.02" rgba="0 0 1 1"
                   contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
