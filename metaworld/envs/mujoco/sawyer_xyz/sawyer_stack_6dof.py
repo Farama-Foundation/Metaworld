@@ -199,13 +199,15 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
-                    self._state_goal,
+                    # self._state_goal,
+                    self.data.get_geom_xpos('goalGeom'),
                     self._state_goal_idx
                 ])
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
-                    self._state_goal
+                    # self._state_goal,
+                    self.data.get_geom_xpos('goalGeom'),
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
@@ -401,7 +403,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_lifted = obj_height > table_height + 0.04# and (touch_right_finger or touch_left_finger)
+        obj_lifted = obj_height > table_height + 0.04# and (touch_right_finger or touch_left_finger)
         # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
         r_lift = 100.0 if obj_lifted else 0.0
 

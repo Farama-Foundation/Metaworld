@@ -25,7 +25,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             # goal_low=(-0.1, 0.6, 0.015),
             # goal_high=(0.1, 0.6, 0.015),
             tasks = [{'goal': np.array([0, 0.6, 0.08]),  'obj_init_pos':np.array([0, 0.8, 0.06]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.12),
+            goal_low=(-0.1, 0.6, 0.15),
             goal_high=(0.1, 0.6, 0.18),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
@@ -426,20 +426,21 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.1# + 0.08# and (touch_right_finger and touch_left_finger)
+        # obj_lifted = obj_height > table_height + 0.08# + 0.08# and (touch_right_finger and touch_left_finger)
+        obj_lifted = (obj_height > table_height + 0.08) and (touch_right_finger and touch_left_finger)
         # if obj_lifted:
         #     import pdb; pdb.set_trace()
         # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
         r_lift = 100.0 if obj_lifted and not touch_obj_goal else 0.0
 
         # Aligning is successful when obj is right above cubeB
-        r_place = 0.
+        # r_place = 0.
         if obj_lifted and not touch_obj_goal:
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
             # r_place += 3.0 * (1 - np.tanh(place_dist * 10.0))
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            r_place += 1000*(self.maxPlacingDist - place_dist) + c1*(np.exp(-(place_dist**2)/c2) + np.exp(-(place_dist**2)/c3))
+            r_lift += 1000*(self.maxPlacingDist - place_dist) + c1*(np.exp(-(place_dist**2)/c2) + np.exp(-(place_dist**2)/c3))
 
         # stacking is successful when the block is lifted and
         # the gripper is not holding the object
@@ -450,7 +451,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         #     # r_stack = 4.0
 
         if mode == 'dense':
-            reward = max(r_reach, r_lift, r_place)
+            reward = max(r_reach, r_lift)
             # reward = max(r_reach, r_lift)
         else:
             reward = 1.0 if place_dist < 0.03 else 0.0
