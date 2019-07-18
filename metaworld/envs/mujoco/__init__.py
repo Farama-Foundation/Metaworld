@@ -344,6 +344,42 @@ def register_custom_envs():
 
     )
 
+    # Sawyer Shelf Reach Env
+
+    register(
+        id='SawyerShelfXYZEnv-v1',
+        entry_point='metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof:SawyerShelfRemove6DOFEnv',
+        tags={
+            'git-commit-hash': 'beafc10b3b18b6553bfd3722f76c2095100528ac',
+            'author': 'brandon'
+        },
+        kwargs={
+        },
+    )
+
+    register(
+        id='Image48SawyerShelfXYZEnv-v1',
+        entry_point=create_image_48_sawyer_shelf_xy_env_v1,
+        tags={
+            'git-commit-hash': 'beafc10b3b18b6553bfd3722f76c2095100528ac',
+            'author': 'brandon'
+        },
+    )
+
+
+def create_image_48_sawyer_shelf_xy_env_v1(**kwargs):
+    from metaworld.core.image_env import ImageEnv
+    from metaworld.envs.mujoco.cameras import sawyer_door_env_camera_v0
+
+    wrapped_env = gym.make('SawyerShelfXYZEnv-v1', **kwargs)
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_door_env_camera_v0,
+        transpose=False,
+        normalize=True,
+    )
+
 
 def create_image_48_sawyer_reach_xy_env_v1():
     from metaworld.core.image_env import ImageEnv

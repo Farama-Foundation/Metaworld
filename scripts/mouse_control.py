@@ -44,7 +44,7 @@ import gym
 import metaworld
 
 space_mouse = SpaceMouse()
-env = SawyerPegUnplugSide6DOFEnv(random_init=True, obs_type='with_goal')
+env = SawyerStack6DOFEnv(random_init=True, obs_type='with_goal')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -88,5 +88,5 @@ while True:
     obs, reward, done, _ = env.step(np.hstack([dpos/.005, 0, closed]))
     # print(obs)
 
-    if done:
-        obs = env.reset()
+    # if done:
+    #     obs = env.reset()
