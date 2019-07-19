@@ -141,11 +141,25 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         # I know using np.prod is overkilling but maybe we
         # want to expand this to higher dimension..?
         if np.prod(obs.shape) < np.prod(self.observation_space.shape):
+            obs_type = self.active_env.obs_type
             zeros = np.zeros(
                 shape=(np.prod(self.observation_space.shape) - np.prod(obs.shape),)
             )
-            obs = np.concatenate([obs, zeros])
-
+            if obs_type == 'plain':
+                obs = np.concatenate([obs, zeros])
+            elif obs_type == 'with_goal_idx':
+                id_len = self.active_env._state_goal_idx.shape[0]
+                obs = np.concatenate([obs[:-id_len], zeros, obs[-id_len:]])
+            elif obs_type == 'with_goal_and_idx':
+                # this assumes that the environment has a goal space
+                id_len = self.active_env._state_goal_idx.shape[0]
+                goal_len = np.prod(self.active_env.goal_space.low.shape)
+                obs = np.concatenate([obs[:-id_len - goal_len], zeros, obs[-id_len - goal_len:]])
+            else:
+                # with goal
+                # this assumes that the environment has a goal space
+                goal_len = np.prod(self.active_env.goal_space.low.shape)
+                obs = np.concatenate([obs[:-goal_len], zeros, obs[-goal_len:]])
         if 'task_type' in dir(self.active_env):
             name = '{}-{}'.format(str(self.active_env.__class__.__name__), self.active_env.task_type)
         else:
