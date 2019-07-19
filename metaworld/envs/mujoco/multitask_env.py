@@ -83,7 +83,8 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
     def __init__(self,
                  task_env_cls_dict=None,
                  task_args_kwargs=None,
-                 sample_all=True,):
+                 sample_all=True,
+                 sample_goals=False,):
         Serializable.quick_init(self, locals())
 
         assert len(task_env_cls_dict.keys()) == len(task_args_kwargs.keys())
@@ -93,6 +94,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         self._task_envs = []
         self._task_names = []
         self._sampled_all = sample_all
+        self._sample_goals = sample_goals
 
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
@@ -126,14 +128,36 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         return self._task_envs[self.observation_space_index].observation_space
 
     def set_task(self, task):
-        self._active_task = task % len(self._task_envs)
+        if self._sample_goals:
+            assert isinstance(task, dict)
+            t = task['task']
+            g = task['goal']
+            self._active_task = t % len(self._task_envs)
+            # TODO: verify every environment has a goal-setting
+            # functionality
+            self._active_task.set_goal(g)
+        else:
+            self._active_task = task % len(self._task_envs)
 
     def sample_tasks(self, meta_batch_size):
         if self._sampled_all:
             assert meta_batch_size >= len(self._task_envs)
-            return [i for i in range(meta_batch_size)]
+            tasks = [i for i in range(meta_batch_size)]
         else:
-            return np.random.randint(0, self.num_tasks, size=meta_batch_size)
+            tasks = np.random.randint(
+                0, self.num_tasks, size=meta_batch_size).aslist()
+        if self._sample_goals:
+            goals = [
+                self._task_envs[i % len(self._task_envs)].sample_goals()
+                for i in range(meta_batch_size)
+            ]
+            tasks_with_goal = [
+                dict(task=t, goal=g)
+                for t, g in zip(tasks, goals)
+            ]
+            return tasks_with_goal
+        else:
+            return tasks
 
     def step(self, action):
         obs, reward, done, info = self.active_env.step(action)
@@ -141,11 +165,25 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         # I know using np.prod is overkilling but maybe we
         # want to expand this to higher dimension..?
         if np.prod(obs.shape) < np.prod(self.observation_space.shape):
+            obs_type = self.active_env.obs_type
             zeros = np.zeros(
                 shape=(np.prod(self.observation_space.shape) - np.prod(obs.shape),)
             )
-            obs = np.concatenate([obs, zeros])
-
+            if obs_type == 'plain':
+                obs = np.concatenate([obs, zeros])
+            elif obs_type == 'with_goal_idx':
+                id_len = self.active_env._state_goal_idx.shape[0]
+                obs = np.concatenate([obs[:-id_len], zeros, obs[-id_len:]])
+            elif obs_type == 'with_goal_and_idx':
+                # this assumes that the environment has a goal space
+                id_len = self.active_env._state_goal_idx.shape[0]
+                goal_len = np.prod(self.active_env.goal_space.low.shape)
+                obs = np.concatenate([obs[:-id_len - goal_len], zeros, obs[-id_len - goal_len:]])
+            else:
+                # with goal
+                # this assumes that the environment has a goal space
+                goal_len = np.prod(self.active_env.goal_space.low.shape)
+                obs = np.concatenate([obs[:-goal_len], zeros, obs[-goal_len:]])
         if 'task_type' in dir(self.active_env):
             name = '{}-{}'.format(str(self.active_env.__class__.__name__), self.active_env.task_type)
         else:
