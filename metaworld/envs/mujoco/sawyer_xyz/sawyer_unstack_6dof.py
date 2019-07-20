@@ -17,10 +17,10 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             # obj_low=(0, 0.85, 0.045),
             # obj_high=(0, 0.85, 0.045),
-            obj_low=(0, 0.8, 0.06),
-            obj_high=(0, 0.75, 0.06),
-            random_init=False,
-            obs_type='plain',
+            obj_low=(-0.1, 0.75, 0.06),
+            obj_high=(0.1, 0.8, 0.06),
+            random_init=True,
+            obs_type='with_goal',
             # tasks = [{'goal': np.array([0, 0.6, 0.015]),  'obj_init_pos':np.array([0, 0.85, 0.045]), 'obj_init_angle': 0.3}], 
             # goal_low=(-0.1, 0.6, 0.015),
             # goal_high=(0.1, 0.6, 0.015),
@@ -33,7 +33,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
+            if_render=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -426,8 +426,8 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        # obj_lifted = obj_height > table_height + 0.08# + 0.08# and (touch_right_finger and touch_left_finger)
-        obj_lifted = (obj_height > table_height + 0.08) and (touch_right_finger and touch_left_finger)
+        obj_lifted = obj_height > table_height + 0.08# + 0.08# and (touch_right_finger and touch_left_finger)
+        # obj_lifted = (obj_height > table_height + 0.08) and (touch_right_finger and touch_left_finger)
         # if obj_lifted:
         #     import pdb; pdb.set_trace()
         # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0

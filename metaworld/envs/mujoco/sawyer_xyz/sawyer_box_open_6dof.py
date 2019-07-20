@@ -20,21 +20,23 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             # obj_low=(-0.05, 0.8, 0.083),
             # obj_high=(0.05, 0.8, 0.083),
-            obj_low=(-0.05, 0.6, 0.043),
-            obj_high=(0.05, 0.6, 0.043),
-            random_init=False,
-            obs_type='plain',
+            # obj_low=(-0.05, 0.6, 0.043),
+            # obj_high=(0.05, 0.6, 0.043),
+            obj_low=(0, 0.6, 0.043),
+            obj_high=(0, 0.6, 0.043),
+            random_init=True,
+            obs_type='with_goal',
             # tasks = [{'goal': np.array([0.0, 0.5, 0.01]),  'obj_init_pos':np.array([0., 0.8, 0.083]), 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([0.0, 0.5, 0.01]),  'obj_init_pos':np.array([0., 0.6, 0.043]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.05, 0.7, 0.2),
-            goal_high=(0.05, 0.8, 0.2),
+            goal_high=(0.05, 0.9, 0.2),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.06,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             multitask=False,
             multitask_num=1,
-            if_render=False,
+            if_render=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -67,7 +69,7 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#150
+        self.max_path_length = 200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -280,9 +282,6 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
         self._state_goal = np.array(task['goal'])
         self.obj_init_pos = task['obj_init_pos']
         self.obj_init_angle = task['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('handle')[2]
-        self.boxheight = self.get_body_com('box')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -300,6 +299,9 @@ class SawyerBoxOpen6DOFEnv(SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         self.sim.model.body_pos[self.model.body_name2id('box')] = np.concatenate((self.obj_init_pos[:2], [self.boxheight]))
         self._set_obj_xyz(self.obj_init_pos)
+        self.objHeight = self.data.get_geom_xpos('handle')[2]
+        self.boxheight = self.get_body_com('box')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget

@@ -184,6 +184,8 @@ class MultiTaskMujocoEnv(gym.Env):
 		self.action_space = self.mujoco_envs[self.task_idx].action_space
 		self.observation_space = self.mujoco_envs[self.task_idx].observation_space
 		self.goal_space = Box(np.zeros(len(ENV_LIST)), np.ones(len(ENV_LIST)))
+		# used for alpha
+		self.goal_len = self.mujoco_envs[self.task_idx].goal_space.low.shape[0]
 		# self.reset()
 		self.num_resets -= 1
 
