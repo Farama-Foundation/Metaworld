@@ -28,7 +28,7 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             obs_type='plain',
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())

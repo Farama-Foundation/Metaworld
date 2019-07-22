@@ -28,7 +28,7 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
