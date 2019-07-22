@@ -102,6 +102,6 @@ def test_sawyer_multiple_objects():
         o, r, _, _ = env.step(a)
         if i % 100 == 0:
             o = env.reset()
-        env.render()
+        # env.render()
     close_env(env)
 

@@ -7,7 +7,7 @@ def step_env(env, max_path_length=100, iterations=1):
         env.reset()
         for _ in range(max_path_length):
             _, _, done, _ = env.step(env.action_space.sample())
-            env.render()
+            # env.render()
             if done:
                 break
 
