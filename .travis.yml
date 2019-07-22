@@ -1,0 +1,25 @@
+language: python
+
+git:
+  depth: false
+
+python:
+  - "3.5"
+
+before_install:
+  - pip install --upgrade pip
+  - mkdir -p $HOME/.mujoco
+  - touch $HOME/.mujoco/mjkey.txt
+  - echo "hello" > mjkey.txt
+  - sudo apt install wget
+  - wget https://www.roboti.us/download/mjpro150_linux.zip -O mujoco.zip
+  - unzip mujoco.zip -d $HOME/.mujoco
+  - rm mujoco.zip
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/travis/.mujoco/mjpro150/bin
+
+install:
+  - pip install pipenv
+  - pipenv install .[dev]
+
+script:
+  - pipenv run pytest
