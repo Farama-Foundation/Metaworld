@@ -206,7 +206,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
         graspPos =  self.data.get_geom_xpos('RoundNut-8')
-        # objPos = self.get_body_com('RoundNut')
+        objPos = self.get_body_com('RoundNut')
         # flat_obs = np.concatenate((hand, graspPos, objPos))
         flat_obs = np.concatenate((hand, graspPos))
         return dict(

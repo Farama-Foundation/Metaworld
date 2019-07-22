@@ -80,6 +80,10 @@ class MultiTaskEnv(gym.Env, Serializable):
 
 class MultiClassMultiTaskEnv(MultiTaskEnv):
 
+    # TODO maybe we should add a task_space to this
+    # environment. In that case we can just do a `task_space.sample()`
+    # and have a single task sampling API accros this repository. 
+
     def __init__(self,
                  task_env_cls_dict=None,
                  task_args_kwargs=None,
