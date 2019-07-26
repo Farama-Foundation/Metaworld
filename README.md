@@ -1,5 +1,6 @@
 # Meta-World
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/tianheyu927/metaworld/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/ryanjulian/metaworld.svg?token=5Ha2ycwuRnc34dpruRpP&branch=master)](https://travis-ci.com/ryanjulian/metaworld)
 
 __Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently board to evaluate meta-RL algorithms' generalization ability to new behaviors.
 
