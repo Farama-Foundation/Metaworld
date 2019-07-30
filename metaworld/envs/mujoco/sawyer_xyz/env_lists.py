@@ -156,15 +156,15 @@ HARD_MODE_LIST = [
     SawyerCoffeeButton6DOFEnv,
     SawyerSweep6DOFEnv,
     SawyerSweepIntoGoal6DOFEnv,
-    SawyerStack6DOFEnv,
-    SawyerUnStack6DOFEnv,
+    SawyerPickOutOfHole6DOFEnv,
+    SawyerNutAssembly6DOFEnv,
     SawyerShelfPlace6DOFEnv,
     SawyerPushBack6DOFEnv,
     SawyerLeverPull6DOFEnv,
     SawyerDialTurn6DOFEnv,
     SawyerBinPicking6DOFEnv,
-    SawyerBoxOpen6DOFEnv,
     SawyerBoxClose6DOFEnv,
+    SawyerHandInsert6DOFEnv,
     SawyerDoorLock6DOFEnv,
     SawyerDoorUnlock6DOFEnv
 ]
