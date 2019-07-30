@@ -17,15 +17,19 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.02),
-            obj_high=(-0.1, 0.8, 0.02),
-            random_init=False,
-            obs_type='plain',
+            # obj_low=(-0.1, 0.8, 0.02),
+            # obj_high=(-0.1, 0.8, 0.02),
+            obj_low=(0.1, 0.75, 0.02),
+            obj_high=(0., 0.85, 0.02),
+            random_init=True,
+            obs_type='with_goal',
             tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([-0.1, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.2),
-            goal_high=(0.1, 0.7, 0.2),
+            # goal_low=(-0.1, 0.6, 0.2),
+            # goal_high=(0.1, 0.7, 0.2),
+            goal_low=(-0.1, 0.75, 0.17),
+            goal_high=(0.1, 0.85, 0.17),
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.15,
+            liftThresh = 0.05,
             rewMode = 'orig',
             rotMode='fixed',
             multitask=False,
@@ -168,14 +172,14 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
+        reward , reachRew, reachDist, pickRew, placeRew , placingDist, success = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
+        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': success}
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -285,7 +289,8 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.obj_init_pos = goal_pos[:3]
-            self._state_goal = goal_pos[-3:]
+            # self._state_goal = goal_pos[-3:]
+            self._state_goal = goal_pos[:3] + np.array([0, 0, 0.15])
         peg_pos = self.obj_init_pos + np.array([0., 0., 0.03])
         peg_top_pos = self.obj_init_pos + np.array([0., 0., 0.08])
         self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
@@ -309,7 +314,6 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
-        self.reachZCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -327,7 +331,6 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             obs = obs['state_observation']
 
         graspPos = obs[3:6]
-        # objPos = self.get_body_com('RoundNut')
         objPos = graspPos
         
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
@@ -340,40 +343,24 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
         reachDistz = np.abs(graspPos[-1] - fingerCOM[-1])
         zDist = np.abs(fingerCOM[-1] - self.init_fingerCOM[-1])
-        if zDist < 0.02 and reachDistxy < 0.04:
-            self.reachZCompleted = True
 
-        # placingDist = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.heightTarget])))
-        # placingDistFinal = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.objHeight])))
         placingDist = np.linalg.norm(objPos - placingGoal)
-        # placingDist = np.linalg.norm(graspPos - placingGoal)
-      
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            if self.reachZCompleted: #0.02
-                # reachRew = -reachDist
-                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25
+            if reachDistxy < 0.04: #0.02
+                reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - 5*zDist
+                reachRew =  -reachDistxy - 2*zDist
             #incentive to close fingers when reachDist is small
-            if reachDistxy < 0.04 and self.reachZCompleted and reachDistz < 0.03:
-                # reachRew = -reachDist + max(actions[-1],0)/50
-                reachRew = -reachDistxy + (1 - np.tanh(10.0 * reachDistz)) * 0.25 + max(actions[-1],0)/20
-            return reachRew , reachDist
-            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-            # if reachDistxy < 0.05: #0.02
-            #     reachRew = -reachDist + 0.1
-            #     if reachDist < 0.05:
-            #         reachRew += max(actions[-1],0)/50
-            # else:
-            #     reachRew =  -reachDistxy
-            # return reachRew , reachDist
+            if reachDist < 0.04:
+                reachRew = -reachDist + max(actions[-1],0)/50#max(actions[-1],0)/50
+            return reachRew, reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
             # if objPos[2] >= (heightTarget- tolerance):
-            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.05:
+            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.04:
                 return True
             else:
                 return False
@@ -393,11 +380,11 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
 
         def orig_pickReward():       
             # hScale = 50
-            hScale = 100
+            hScale = 100#100
             if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
             # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-            elif (reachDist < 0.05) and (objPos[2]> (self.objHeight + 0.005)) :
+            elif (reachDist < 0.04) and (objPos[2]> (self.objHeight + 0.005)) :
                 return hScale* min(heightTarget, objPos[2])
             else:
                 return 0
@@ -420,7 +407,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             if mode == 'general':
                 cond = self.pickCompleted and objGrasped()
             else:
-                cond = self.pickCompleted and (reachDist < 0.04) and not(objDropped())
+                cond = self.pickCompleted and (reachDist < 0.03) and not(objDropped())
             if cond:
                 return [placeRew, placingDist]
             else:
@@ -432,11 +419,22 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             pickRew = general_pickReward()
         else:
             pickRew = orig_pickReward()
+
+        peg_pos = self.sim.model.body_pos[self.model.body_name2id('peg')]
+        nut_pos = self.get_body_com('RoundNut')
+        if abs(nut_pos[0] - peg_pos[0]) > 0.05 or \
+                abs(nut_pos[1] - peg_pos[1]) > 0.05:
+            placingDist = 0
+            reachRew = 0
+            reachDist = 0
+            pickRew = heightTarget*100
+
         # placeRew , placingDist, placingDistFinal = placeRewardDrop()
         placeRew , placingDist = placeRewardMove()
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
+        success = (abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05) or placingDist < 0.02
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, float(success)] 
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

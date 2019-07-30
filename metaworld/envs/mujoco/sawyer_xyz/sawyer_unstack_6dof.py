@@ -320,6 +320,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_xyz(bottom_obj_pos)
         self._set_obj_xyz(self.obj_init_pos)
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objLen = self.data.get_geom_xpos('goalGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
@@ -351,6 +352,8 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.goal_body_id = self.sim.model.body_name2id("goal")
         self.l_finger_geom_ids = self.sim.model.geom_name2id("leftclaw_it")
         self.r_finger_geom_ids = self.sim.model.geom_name2id("rightclaw_it")
+        self.l_finger_pad_geom_ids = self.sim.model.geom_name2id("leftpad_geom")
+        self.r_finger_pad_geom_ids = self.sim.model.geom_name2id("rightpad_geom")
         self.obj_geom_id = self.sim.model.geom_name2id("objGeom")
         self.goal_geom_id = self.sim.model.geom_name2id("goalGeom")
 
@@ -371,7 +374,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # reaching is successful when the gripper site is close to
         # the center of the cube
         table_height = 0.
-        obj_pos = self.sim.data.body_xpos[self.obj_body_id]
+        obj_pos = self.sim.data.body_xpos[self.obj_body_id] + np.array([0, 0, self.objLen])
         goal_pos = self._state_goal
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
@@ -402,6 +405,8 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # collision checking
         touch_left_finger = False
         touch_right_finger = False
+        touch_left_finger_goal = False
+        touch_right_finger_goal = False
         touch_obj_goal = False
 
         for i in range(self.sim.data.ncon):
@@ -410,32 +415,56 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 touch_left_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.l_finger_geom_ids:
                 touch_left_finger = True
+            if c.geom1 == self.l_finger_pad_geom_ids and c.geom2 == self.obj_geom_id:
+                touch_left_finger = True
+            if c.geom1 == self.obj_geom_id and c.geom2 == self.l_finger_pad_geom_ids:
+                touch_left_finger = True
             if c.geom1 == self.r_finger_geom_ids and c.geom2 == self.obj_geom_id:
                 touch_right_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.r_finger_geom_ids:
                 touch_right_finger = True
+            if c.geom1 == self.r_finger_pad_geom_ids and c.geom2 == self.obj_geom_id:
+                touch_right_finger = True
+            if c.geom1 == self.obj_geom_id and c.geom2 == self.r_finger_pad_geom_ids:
+                touch_right_finger = True
+            if c.geom1 == self.l_finger_geom_ids and c.geom2 == self.goal_geom_id:
+                touch_left_finger_goal = True
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.l_finger_geom_ids:
+                touch_left_finger_goal = True
+            if c.geom1 == self.l_finger_pad_geom_ids and c.geom2 == self.goal_geom_id:
+                touch_left_finger_goal = True
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.l_finger_pad_geom_ids:
+                touch_left_finger_goal = True
+            if c.geom1 == self.r_finger_geom_ids and c.geom2 == self.goal_geom_id:
+                touch_right_finger_goal = True
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.r_finger_geom_ids:
+                touch_right_finger_goal = True
+            if c.geom1 == self.r_finger_pad_geom_ids and c.geom2 == self.goal_geom_id:
+                touch_right_finger_goal = True
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.r_finger_pad_geom_ids:
+                touch_right_finger_goal = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.goal_geom_id:
                 touch_obj_goal = True
-            if c.geom1 == self.goal_geom_id or c.geom2 == self.obj_geom_id:
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.obj_geom_id:
                 touch_obj_goal = True
 
         # additional grasping reward
-        if touch_left_finger and touch_right_finger:
+        if touch_left_finger and touch_right_finger:# and not touch_left_finger_goal and not touch_right_finger_goal:
             r_reach += 10#0.25
 
         # lifting is successful when the cube is above the table top
         # by a margin
         obj_height = obj_pos[2]
-        obj_lifted = obj_height > table_height + 0.08# + 0.08# and (touch_right_finger and touch_left_finger)
-        # obj_lifted = (obj_height > table_height + 0.08) and (touch_right_finger and touch_left_finger)
+        obj_lifted = obj_height > table_height + 0.08 and (touch_right_finger and touch_left_finger)
+        # obj_lifted = (obj_height > table_height + 0.08) and (touch_right_finger and touch_left_finger and not touch_left_finger_goal and not touch_right_finger_goal)
         # if obj_lifted:
         #     import pdb; pdb.set_trace()
         # r_lift = 1.0 if obj_lifted and not touch_obj_goal else 0.0
-        r_lift = 100.0 if obj_lifted and not touch_obj_goal else 0.0
+        r_lift = 100.0 if obj_lifted and not touch_obj_goal and goal_pos[2] < table_height + 0.04 else 0.0
 
         # Aligning is successful when obj is right above cubeB
         # r_place = 0.
-        if obj_lifted and not touch_obj_goal:
+        if obj_lifted and not touch_obj_goal and goal_pos[-1] < table_height + 0.04:
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist))
             # r_lift += 0.5 * (1 - np.tanh(horiz_dist*5))
             # r_place += 3.0 * (1 - np.tanh(place_dist * 10.0))
@@ -455,7 +484,7 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             # reward = max(r_reach, r_lift)
         else:
             reward = 1.0 if place_dist < 0.03 else 0.0
-        success = float(place_dist <= 0.07 and not touch_obj_goal)
+        success = float(place_dist <= 0.07 and not touch_obj_goal and goal_pos[-1] < table_height + 0.04)
 
         return (reward, r_reach, r_lift, dist, place_dist, success)
 

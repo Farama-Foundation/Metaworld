@@ -20,11 +20,11 @@ class SawyerHandInsert6DOFEnv(SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             obj_low=(-0.1, 0.6, 0.02),
             obj_high=(0.1, 0.7, 0.02),
-            random_init=False,
-            obs_type='plain',
+            random_init=True,
+            obs_type='with_goal',
             tasks = [{'goal': np.array([0., 0.84, -0.08]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.8, 0.05),
-            goal_high=(0.1, 0.9, 0.3),
+            goal_low=(-0.04, 0.8, -0.08),
+            goal_high=(0.04, 0.88, -0.08),
             hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
@@ -61,7 +61,7 @@ class SawyerHandInsert6DOFEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150#150
+        self.max_path_length = 200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
@@ -299,13 +299,14 @@ class SawyerHandInsert6DOFEnv(SawyerXYZEnv):
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.15:
                 goal_pos = np.random.uniform(
                     self.obj_and_goal_space.low,
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            self._state_goal = goal_pos[-3:]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)

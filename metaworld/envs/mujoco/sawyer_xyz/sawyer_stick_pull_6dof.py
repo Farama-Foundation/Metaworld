@@ -17,10 +17,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.35, 0.05),
             hand_high=(0.5, 1, 0.5),
-            # obj_low=(-0.1, 0.55, 0.02),
-            # obj_high=(0., 0.65, 0.02),
-            obj_low=(0., 0.6, 0.02),
-            obj_high=(0., 0.6, 0.02),
+            obj_low=(-0.1, 0.55, 0.02),
+            obj_high=(0., 0.65, 0.02),
+            # obj_low=(0., 0.6, 0.02),
+            # obj_high=(0., 0.6, 0.02),
             random_init=True,
             tasks = [{'stick_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=(0.3, 0.4, 0.02),
@@ -29,7 +29,7 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
             rewMode='orig',
-            obs_type='with_goal',
+            obs_type='with_goal_init_obs',#'with_goal',
             multitask=False,
             multitask_num=1,
             if_render=True,
@@ -101,6 +101,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self.obj_init_qpos = np.array([0., 0.09])
         self.obj_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.obj_and_goal_space = Box(
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_high, goal_high)),
+        )
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, np.zeros(len(tasks)))),
@@ -116,6 +120,12 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
                     np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, goal_high)),
             )
+        if not multitask and self.obs_type == 'with_goal_init_obs':
+            self.observation_space = Box(
+                    np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
+                    np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),
+            )
+            self.goal_len = self.obj_and_goal_space.low.shape[0]
         else:
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
@@ -197,6 +207,12 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
+                    self._state_goal,
+                ])
+        elif self.obs_type == 'with_goal_init_obs':
+            return np.concatenate([
+                    flat_obs,
+                    self.stick_init_pos,
                     self._state_goal,
                 ])
         elif self.obs_type == 'plain':
@@ -291,20 +307,32 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             #         self.obj_space.high,
             #         size=(self.obj_space.low.size),
             #     )
-            goal_pos = np.random.uniform(
-                self.goal_space.low,
-                self.goal_space.high,
-                size=(self.goal_space.low.size),
-            )
-            while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
-                goal_pos = np.random.uniform(
-                    self.goal_space.low,
-                    self.goal_space.high,
-                    size=(self.goal_space.low.size),
-                )
+            # goal_pos = np.random.uniform(
+            #     self.goal_space.low,
+            #     self.goal_space.high,
+            #     size=(self.goal_space.low.size),
+            # )
+            # while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
+            #     goal_pos = np.random.uniform(
+            #         self.goal_space.low,
+            #         self.goal_space.high,
+            #         size=(self.goal_space.low.size),
+            #     )
             # self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            self._state_goal = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            # self.obj_init_qpos = goal_pos[-2:]
+            # self._state_goal = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
+            goal_pos = np.random.uniform(
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=(self.obj_and_goal_space.low.size),
+            )
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
+                goal_pos = np.random.uniform(
+                    self.obj_and_goal_space.low,
+                    self.obj_and_goal_space.high,
+                    size=(self.obj_and_goal_space.low.size),
+                )
+            self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
+            self._state_goal = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
         self._set_goal_marker(self._state_goal)
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)

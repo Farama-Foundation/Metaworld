@@ -17,14 +17,14 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             self,
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.75, 0.121),
-            obj_high=(0.1, 0.8, 0.121),
-            random_init=False,
-            obs_type='plain',
+            obj_low=(-0.1, 0.75, 0.081),
+            obj_high=(0.1, 0.8, 0.081),
+            random_init=True,
+            obs_type='with_goal',
             # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
             # goal_low=(-0.1, 0.6, 0.02),
             # goal_high=(0.1, 0.6, 0.02),
-            tasks = [{'goal': np.array([0., 0.9, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.121]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0., 0.92, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.081]), 'obj_init_angle': 0.3}], 
             goal_low=(0, 0.92, 0.02),
             goal_high=(0, 0.92, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
@@ -33,7 +33,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
+            if_render=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -389,7 +389,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
         if reachCompleted():
             self.reachCompleted = True
 
-        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.1:
+        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.2:
             reachRew = 0
             pushDistxy = 0
             reachDist = 0
@@ -405,7 +405,7 @@ class SawyerShelfRemove6DOFEnv(SawyerXYZEnv):
         pushRew = pushReward()
         reward = reachRew + pushRew
       
-        return [reward, reachDist, pushDistxy, objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.1]
+        return [reward, reachDist, pushDistxy, objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.2]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

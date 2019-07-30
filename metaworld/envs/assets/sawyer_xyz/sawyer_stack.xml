@@ -6,10 +6,10 @@
         <body name="obj" pos="0 0.6 0.015">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0"/>
             <!-- <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" /> -->
-            <!-- <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04" /> -->
+            <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e02 8.80012e02 8.80012e02" />
             <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
-            <geom name="objGeom" type="box" pos="0 0 0" margin="0.001"
-                  size="0.02 0.02 0.02" rgba="0 0 1 1"
+            <geom name="objGeom" type="box" pos="0 0 0" margin="0.001" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
                   contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
             />
             <!-- <geom name="objGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01"
@@ -22,10 +22,10 @@
         <body name="goal" pos="0 0 0.1">
             <joint name="goaljoint" type="free" limited='false' damping="0" armature="0"/>
             <!-- <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" /> -->
-            <!-- <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04" /> -->
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
-            <geom name="goalGeom" type="box" pos="0 0 0" margin="0.001"
-                  size="0.02 0.02 0.02" rgba="1 0 0 1"
+            <inertial pos="0 0 0" mass="0.05" diaginertia="8.80012e02 8.80012e02 8.80012e02" />
+            <!-- <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/> -->
+            <geom name="goalGeom" type="box" pos="0 0 0" margin="0.001" solimp="0.99 0.99 0.01"
+                  size="0.02 0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
                   contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
             />
             <!-- <geom name="goalGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01"

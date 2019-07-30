@@ -21,14 +21,14 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             # obj_high=(0, 0.84, -0.03),
             obj_low=(0, 0.84, -0.03),
             obj_high=(0, 0.84, -0.03),
-            random_init=False,
+            random_init=True,
             # tasks = [{'goal': np.array([0., 0.6, 0.2]),  'obj_init_pos':np.array([0, 0.84, -0.03]), 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([0., 0.6, 0.2]),  'obj_init_pos':np.array([0, 0.84, -0.03]), 'obj_init_angle': 0.3}], 
-            goal_low=(-0.1, 0.6, 0.05),
+            goal_low=(-0.1, 0.6, 0.15),
             goal_high=(0.1, 0.7, 0.3),
             hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.11,
-            obs_type='plain',
+            obs_type='with_goal',
             rotMode='fixed',#'fixed',
             rewMode = 'orig',
             multitask=False,
@@ -63,7 +63,7 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150#150
+        self.max_path_length = 200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode

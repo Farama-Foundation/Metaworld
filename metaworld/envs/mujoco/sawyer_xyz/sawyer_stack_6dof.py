@@ -18,23 +18,25 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             hand_high=(0.5, 1, 0.5),
             # obj_low=(-0.1, 0.6, 0.015),
             # obj_high=(-0.1, 0.7, 0.015),
-            obj_low=(-0.1, 0.6, 0.02),
-            obj_high=(0.1, 0.65, 0.02),
-            random_init=False,
+            # obj_low=(-0.1, 0.6, 0.02),
+            # obj_high=(0.1, 0.65, 0.02),
+            obj_low=(0, 0.6, 0.02),
+            obj_high=(0, 0.6, 0.02),
+            random_init=True,
             # tasks = [{'goal': np.array([0.1, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3}], 
             # goal_low=(-0.1, 0.8, 0.015),
             # goal_high=(-0.1, 0.85, 0.015),
             tasks = [{'goal': np.array([0.1, 0.8, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.75, 0.02),
             goal_high=(0.1, 0.8, 0.02),
-            obs_type='plain',
+            obs_type='with_goal',
             hand_init_pos = (0, 0.6, 0.2),
-            liftThresh = 0.04,
+            liftThresh = 0.08,
             rewMode = 'dense',
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
+            if_render=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -100,7 +102,7 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             )
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
-            np.hstack((obj_low, goal_high)),
+            np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
@@ -194,20 +196,20 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
+        objPos =  self.sim.data.body_xpos[self.obj_body_id]
         flat_obs = np.concatenate((hand, objPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
                     # self._state_goal,
-                    self.data.get_geom_xpos('goalGeom'),
+                    self.sim.data.body_xpos[self.goal_body_id],
                     self._state_goal_idx
                 ])
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
                     # self._state_goal,
-                    self.data.get_geom_xpos('goalGeom'),
+                    self.sim.data.body_xpos[self.goal_body_id],
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
@@ -216,10 +218,11 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
+        objPos =  self.sim.data.body_xpos[self.obj_body_id]
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
+            # state_desired_goal=self.sim.data.body_xpos[self.goal_body_id],
             state_desired_goal=self._state_goal,
             state_achieved_goal=objPos,
         )
@@ -343,6 +346,8 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.goal_body_id = self.sim.model.body_name2id("goal")
         self.l_finger_geom_ids = self.sim.model.geom_name2id("leftclaw_it")
         self.r_finger_geom_ids = self.sim.model.geom_name2id("rightclaw_it")
+        self.l_finger_pad_geom_ids = self.sim.model.geom_name2id("leftpad_geom")
+        self.r_finger_pad_geom_ids = self.sim.model.geom_name2id("rightpad_geom")
         self.obj_geom_id = self.sim.model.geom_name2id("objGeom")
         self.goal_geom_id = self.sim.model.geom_name2id("goalGeom")
 
@@ -374,6 +379,9 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         stack_dist = np.linalg.norm(
                 np.array(obj_pos) - np.array(goal_pos)
             )
+        z_dist = np.linalg.norm(
+                np.array(obj_pos)[-1] - np.array(goal_pos)[-1]
+            )
         r_reach = (1 - np.tanh(10.0 * dist)) * 0.25#-dist
 
         # collision checking
@@ -387,13 +395,21 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
                 touch_left_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.l_finger_geom_ids:
                 touch_left_finger = True
+            if c.geom1 == self.l_finger_pad_geom_ids and c.geom2 == self.obj_geom_id:
+                touch_left_finger = True
+            if c.geom1 == self.obj_geom_id and c.geom2 == self.l_finger_pad_geom_ids:
+                touch_left_finger = True
             if c.geom1 == self.r_finger_geom_ids and c.geom2 == self.obj_geom_id:
                 touch_right_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.r_finger_geom_ids:
                 touch_right_finger = True
+            if c.geom1 == self.r_finger_pad_geom_ids and c.geom2 == self.obj_geom_id:
+                touch_right_finger = True
+            if c.geom1 == self.obj_geom_id and c.geom2 == self.r_finger_pad_geom_ids:
+                touch_right_finger = True
             if c.geom1 == self.obj_geom_id and c.geom2 == self.goal_geom_id:
                 touch_obj_goal = True
-            if c.geom1 == self.goal_geom_id or c.geom2 == self.obj_geom_id:
+            if c.geom1 == self.goal_geom_id and c.geom2 == self.obj_geom_id:
                 touch_obj_goal = True
 
         # additional grasping reward
@@ -419,8 +435,12 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         # the gripper is not holding the object
         r_stack = 0
         not_touching = not touch_left_finger and not touch_right_finger
+        if horiz_dist < 0.03 and obj_lifted and obj_pos[2] > goal_pos[2] + 0.01:
+            c4 = 2000 ; c5 = 0.01 ; c6 = 0.001
+            r_stack = 2000*(self.heightTarget - z_dist) + c4*(np.exp(-(z_dist**2)/c5) + np.exp(-(z_dist**2)/c6))
+
         if not_touching and r_lift > 0 and touch_obj_goal:
-            r_stack = 2000.0
+            r_stack += 2000.0
             # r_stack = 4.0
 
         if mode == 'dense':
