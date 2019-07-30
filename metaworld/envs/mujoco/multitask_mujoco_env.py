@@ -73,7 +73,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import S
 CoRL environment lists
 Please edit metaworld.envs.mujoco.sawyer_xyz.env_lists to add new lists
 '''
-from metaworld.envs.mujoco.sawyer_xyz.env_lists import EASY_MODE_LIST
+from metaworld.envs.mujoco.sawyer_xyz.env_lists import EASY_MODE_LIST, MEDIUM_TRAIN_LIST, MEDIUM_TRAIN_AND_TEST_LIST
 
 try:
 	import mujoco_py
@@ -124,6 +124,7 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerPlateSlide6DOFEnv, SawyerPlateSlideBack6DOFEnv]
 # ENV_LIST = [SawyerPlateSlideSide6DOFEnv, SawyerPlateSlideBackSide6DOFEnv]
 # ENV_LIST = EASY_MODE_LIST
+# ENV_LIST = MEDIUM_TRAIN_LIST
 # ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerUnStack6DOFEnv]
 # ENV_LIST = [SawyerHammer6DOFEnv, SawyerDoorClose6DOFEnv]
 # ENV_LIST = [SawyerSweepIntoGoal6DOFEnv, SawyerBinPicking6DOFEnv]

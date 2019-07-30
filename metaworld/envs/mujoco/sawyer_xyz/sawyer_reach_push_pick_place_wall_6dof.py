@@ -43,7 +43,7 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             task_idx=0,
             fix_task=False,
             **kwargs

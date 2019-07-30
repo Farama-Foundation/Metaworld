@@ -76,6 +76,39 @@ EASY_MODE_LIST = [
     SawyerWindowClose6DOFEnv,
 ]
 
+MEDIUM_TRAIN_LIST = [
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerDoor6DOFEnv,
+    SawyerDrawerClose6DOFEnv,
+    SawyerButtonPressTopdown6DOFEnv,
+    SawyerPegInsertionSide6DOFEnv,
+    SawyerWindowOpen6DOFEnv,
+    SawyerSweep6DOFEnv,
+    SawyerBasketball6DOFEnv,
+]
+
+
+MEDIUM_TRAIN_AND_TEST_LIST = [
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlace6DOFEnv,
+    SawyerDoor6DOFEnv,
+    SawyerDrawerClose6DOFEnv,
+    SawyerButtonPressTopdown6DOFEnv,
+    SawyerPegInsertionSide6DOFEnv,
+    SawyerWindowOpen6DOFEnv,
+    SawyerSweep6DOFEnv,
+    SawyerBasketball6DOFEnv,
+    #Test
+    SawyerDrawerClose6DOFEnv,
+    SawyerDoorClose6DOFEnv,
+    SawyerShelfPlace6DOFEnv,
+    SawyerSweep6DOFEnv,
+    SawyerLeverPull6DOFEnv
+]
+
 GRAD_MODE_LIST = [
     SawyerReachPushPickPlace6DOFEnv,
     SawyerReachPushPickPlace6DOFEnv,

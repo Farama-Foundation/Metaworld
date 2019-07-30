@@ -32,7 +32,7 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             obs_type='with_goal_init_obs',#'with_goal',
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())

@@ -1,0 +1,31 @@
+language: python
+
+git:
+  depth: false
+
+python:
+  - "3.5"
+
+before_install:
+  # A mujoco key has to be added on travis CI as
+  # an environment variable.
+  - mkdir -p $HOME/.mujoco
+  - touch $HOME/.mujoco/mjkey.txt
+  - echo -e $MJKEY > $HOME/.mujoco/mjkey.txt
+  - echo | sudo add-apt-repository ppa:xorg-edgers/ppa
+  - sudo apt update
+  - sudo apt install wget libosmesa6-dev libglew-dev patchelf
+  - pip install --upgrade pip
+  - wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip
+  - unzip mujoco.zip -d $HOME/.mujoco
+  - mv $HOME/.mujoco/mujoco200_linux $HOME/.mujoco/mujoco200
+  - rm mujoco.zip
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/travis/.mujoco/mujoco200/bin
+
+install:
+  - pip install pipenv
+  - pipenv install .[dev] -v
+
+script:
+  - pipenv run python -c "import mujoco_py"
+  - pipenv run pytest -v
