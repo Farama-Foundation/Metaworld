@@ -115,12 +115,12 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
                 np.hstack((self.hand_low, obj_low, obj_low)),
                 np.hstack((self.hand_high, obj_high, obj_high)),
             )
-        if not multitask and self.obs_type == 'with_goal':
+        elif not multitask and self.obs_type == 'with_goal':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, goal_high)),
             )
-        if not multitask and self.obs_type == 'with_goal_init_obs':
+        elif not multitask and self.obs_type == 'with_goal_init_obs':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),

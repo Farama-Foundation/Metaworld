@@ -28,7 +28,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             hand_init_pos = (0, 0.6, 0.2),
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             liftThresh = 0.1,#0.1,
             rewMode = 'orig',
             rotMode='fixed',

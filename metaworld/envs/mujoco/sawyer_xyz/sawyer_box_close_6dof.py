@@ -35,7 +35,7 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             rewMode='orig',
             multitask=False,
             multitask_num=1,
-            if_render=True,
+            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
