@@ -19,7 +19,6 @@ def test_sawyer(env_cls):
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
 def test_obs_type(env_cls):
     for t in OBS_TYPE:
-
         if t == 'with_goal_init_obs':
             continue
         if t == 'with_goal_and_id':

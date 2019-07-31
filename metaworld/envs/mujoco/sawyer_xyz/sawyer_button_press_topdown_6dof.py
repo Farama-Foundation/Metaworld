@@ -13,6 +13,7 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
+
 class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
@@ -26,11 +27,9 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -43,6 +42,15 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_pos': np.array([0, 0.8, 0.05], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0, 0.88, 0.1])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -64,11 +72,9 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -117,7 +123,6 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
             )
         self.reset()
 
-
     def get_goal(self):
         return {
             'state_desired_goal': self._state_goal,
@@ -130,37 +135,9 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.4
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 0.4
-        # self.viewer.cam.lookat[2] = 0.4
-        # self.viewer.cam.distance = 0.4
-        # self.viewer.cam.elevation = -55
-        # self.viewer.cam.azimuth = 90
-        # self.viewer.cam.trackbodyid = -1
+        pass
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -260,13 +237,9 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_qpos = task['obj_init_qpos']
+        self._state_goal = self.goal.copy()
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,

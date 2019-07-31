@@ -150,8 +150,6 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             t = task['task']
             g = task['goal']
             self._active_task = t % len(self._task_envs)
-            # TODO: verify every environment has a goal-setting
-            # functionality
             # TODO: remove underscore
             self._active_task.set_goal_(g)
         else:
