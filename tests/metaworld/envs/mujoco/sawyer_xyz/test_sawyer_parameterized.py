@@ -36,43 +36,49 @@ from metaworld.envs.mujoco.sawyer_xyz import SawyerSweepIntoGoal6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerWindowClose6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerWindowOpen6DOFEnv
 
-@pytest.mark.parametrize("env_class", [
-                                SawyerNutAssembly6DOFEnv,
-                                SawyerBinPicking6DOFEnv,
-                                SawyerBoxClose6DOFEnv,
-                                # This is failing due to some recent changes
-                                # TODO: consult kevin for box height
-                                # SawyerBoxOpen6DOFEnv,
-                                SawyerButtonPress6DOFEnv,
-                                SawyerButtonPressTopdown6DOFEnv,
-                                SawyerDialTurn6DOFEnv,
-                                SawyerDoor6DOFEnv,
-                                SawyerDoorClose6DOFEnv,
-                                SawyerDoorHookEnv,
-                                SawyerDrawerClose6DOFEnv,
-                                SawyerDrawerOpen6DOFEnv,
-                                SawyerHammer6DOFEnv,
-                                SawyerHandInsert6DOFEnv,
-                                SawyerLaptopClose6DOFEnv,
-                                SawyerLeverPull6DOFEnv,
-                                SawyerPegInsertionSide6DOFEnv,
-                                SawyerTwoObjectEnv,
-                                SawyerTwoObject6DOFEnv,
-                                SawyerReachPushPickPlace6DOFEnv,
-                                # This is failing due to mjcf file error
-                                # TODO: fix this and add it back to the test
-                                # SawyerRope6DOFEnv,
-                                SawyerShelfPlace6DOFEnv,
-                                SawyerStack6DOFEnv,
-                                SawyerStickPull6DOFEnv,
-                                SawyerStickPush6DOFEnv,
-                                SawyerSweep6DOFEnv,
-                                SawyerSweepIntoGoal6DOFEnv,
-                                SawyerWindowClose6DOFEnv,
-                                SawyerWindowOpen6DOFEnv,
-                                ])
-def test_sawyer(env_class):
-    env = env_class()
+
+from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
+
+
+# @pytest.mark.parametrize("env_class", [
+#                                 SawyerNutAssembly6DOFEnv,
+#                                 SawyerBinPicking6DOFEnv,
+#                                 SawyerBoxClose6DOFEnv,
+#                                 # This is failing due to some recent changes
+#                                 # TODO: consult kevin for box height
+#                                 # SawyerBoxOpen6DOFEnv,
+#                                 SawyerButtonPress6DOFEnv,
+#                                 SawyerButtonPressTopdown6DOFEnv,
+#                                 SawyerDialTurn6DOFEnv,
+#                                 SawyerDoor6DOFEnv,
+#                                 SawyerDoorClose6DOFEnv,
+#                                 SawyerDoorHookEnv,
+#                                 SawyerDrawerClose6DOFEnv,
+#                                 SawyerDrawerOpen6DOFEnv,
+#                                 SawyerHammer6DOFEnv,
+#                                 SawyerHandInsert6DOFEnv,
+#                                 SawyerLaptopClose6DOFEnv,
+#                                 SawyerLeverPull6DOFEnv,
+#                                 SawyerPegInsertionSide6DOFEnv,
+#                                 SawyerTwoObjectEnv,
+#                                 SawyerTwoObject6DOFEnv,
+#                                 SawyerReachPushPickPlace6DOFEnv,
+#                                 # This is failing due to mjcf file error
+#                                 # TODO: fix this and add it back to the test
+#                                 # SawyerRope6DOFEnv,
+#                                 SawyerShelfPlace6DOFEnv,
+#                                 SawyerStack6DOFEnv,
+#                                 SawyerStickPull6DOFEnv,
+#                                 SawyerStickPush6DOFEnv,
+#                                 SawyerSweep6DOFEnv,
+#                                 SawyerSweepIntoGoal6DOFEnv,
+#                                 SawyerWindowClose6DOFEnv,
+#                                 SawyerWindowOpen6DOFEnv,
+#                                 ])
+
+@pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
+def test_sawyer(env_cls):
+    env = env_cls()
     step_env(env)
     close_env(env)
 

@@ -88,7 +88,8 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
                  task_env_cls_dict=None,
                  task_args_kwargs=None,
                  sample_all=True,
-                 sample_goals=False,):
+                 sample_goals=False,
+                 discrete_goals=None,):
         Serializable.quick_init(self, locals())
 
         assert len(task_env_cls_dict.keys()) == len(task_args_kwargs.keys())
@@ -100,12 +101,24 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         self._sampled_all = sample_all
         self._sample_goals = sample_goals
 
+        # If key is in this dictionary, then this task are seen
+        # to be using a discrete goal space. This wrapper will
+        # set the property discrete_goal_space as True, update the goal_space
+        # and the sample_goals method will sample from a discrete space.
+        self._discrete_goals = discrete_goals or dict()
+
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
             task_kwargs = task_args_kwargs[task]['kwargs']
             task_env = env_cls(*task_args, **task_kwargs)
+
+            if task in self._discrete_goals:
+                task_env.discretize_goal_space(
+                    self._discrete_goals[task]
+                )
             self._task_envs.append(task_env)
             self._task_names.append(task)
+    
         self._active_task = 0
         self._check_env_list()
 
@@ -139,7 +152,8 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             self._active_task = t % len(self._task_envs)
             # TODO: verify every environment has a goal-setting
             # functionality
-            self._active_task.set_goal(g)
+            # TODO: remove underscore
+            self._active_task.set_goal_(g)
         else:
             self._active_task = task % len(self._task_envs)
 
@@ -150,10 +164,11 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         else:
             tasks = np.random.randint(
                 0, self.num_tasks, size=meta_batch_size).aslist()
+
         if self._sample_goals:
             goals = [
-                self._task_envs[i % len(self._task_envs)].sample_goals()
-                for i in range(meta_batch_size)
+                self._task_envs[t % len(self._task_envs)].sample_goals_(1)
+                for t in tasks
             ]
             tasks_with_goal = [
                 dict(task=t, goal=g)
