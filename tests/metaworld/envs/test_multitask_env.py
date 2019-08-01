@@ -112,3 +112,28 @@ def test_multienv_single_goal(env_list):
         multi_task_env.set_task(t)
         assert isinstance(multi_task_env.active_env,\
             env_cls_dict[multi_task_env._task_names[t % len(env_list)]])
+
+@pytest.mark.parametrize('env_list', [HARD_MODE_LIST[12:15]])
+def test_multitask_env_images(env_list):
+    env_cls_dict = {
+        'env-{}'.format(i): env_cls
+        for i, env_cls in enumerate(env_list)
+    }
+    env_args_kwargs = {
+        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain'})
+        for i, _ in enumerate(env_list)
+    }
+    multi_task_env = MultiClassMultiTaskEnv(
+        task_env_cls_dict=env_cls_dict,
+        task_args_kwargs=env_args_kwargs,
+        sample_goals=False,
+        obs_type='with_goal_and_idx',
+        sample_all=True,
+    )
+    assert multi_task_env._fully_discretized
+    n_tasks = len(env_list)
+    tasks = multi_task_env.sample_tasks(n_tasks)
+    multi_task_env.set_task(tasks[0])
+    multi_task_env.reset()
+    img = multi_task_env.get_image(width=84, height=84)
+    assert img.shape[0] == 84 and img.shape[1] == 84 and img.shape[2] == 3

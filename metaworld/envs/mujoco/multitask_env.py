@@ -104,15 +104,6 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         self._sample_goals = sample_goals
         self._obs_type = obs_type
 
-        # If key is in this dictionary, then this task are seen
-        # to be using a discrete goal space. This wrapper will
-        # set the property discrete_goal_space as True, update the goal_space
-        # and the sample_goals method will sample from a discrete space.
-        self._discrete_goals = dict()
-        self._env_discrete_index = dict()
-        self._fully_discretized = True if not sample_goals else False
-        self._n_discrete_goals = len(task_env_cls_dict.keys())
-
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
             task_kwargs = task_args_kwargs[task]['kwargs']
@@ -121,9 +112,20 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             # this multitask env only accept plain observations
             # since it handles all the observation augmentations
             assert task_env.obs_type == 'plain'
-
             self._task_envs.append(task_env)
             self._task_names.append(task)
+
+        # If key (taskname) is in this `self._discrete_goals`, then this task are seen
+        # to be using a discrete goal space. This wrapper will
+        # set the property discrete_goal_space as True, update the goal_space
+        # and the sample_goals method will sample from a discrete space.
+        self._discrete_goals = dict()
+        self._env_discrete_index = {
+            task: i
+            for i, task in enumerate(self._task_names)
+        }
+        self._fully_discretized = True if not sample_goals else False
+        self._n_discrete_goals = len(task_env_cls_dict.keys())
         self._active_task = 0
         self._check_env_list()
 
@@ -144,6 +146,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
 
         start = 0
         if self._fully_discretized:
+            self._env_discrete_index = dict()
             for task, env in zip(self._task_names, self._task_envs):
                 self._env_discrete_index[task] = start
                 start += env.discrete_goal_space.n
@@ -247,7 +250,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
 
         # augment the observation based on obs_type:
         if self._obs_type == 'with_goal_idx' or self._obs_type == 'with_goal_and_idx':
-            task_id = self._env_discrete_index[self._task_names[self.active_task]] + self.active_env.active_discrete_goal
+            task_id = self._env_discrete_index[self._task_names[self.active_task]] + (self.active_env.active_discrete_goal or 0)
             task_onehot = np.zeros(shape=(self._n_discrete_goals,), dtype=np.float32)
             task_onehot[task_id] = 1.
             obs = np.concatenate([obs, task_onehot])
@@ -265,7 +268,25 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
     # `sim.render()` is extremely slow with mujoco_py.
     # Ref: https://github.com/openai/mujoco-py/issues/58 
     def get_image(self, width=84, height=84, camera_name=None):
-        self.active_env._get_viewer().render()
-        data = self.active_env._get_viewer().read_pixels(width, height, depth=False)
+        self.active_env._get_viewer(mode='rgb_array').render(width, height)
+        data = self.active_env._get_viewer(mode='rgb_array').read_pixels(width, height, depth=False)
         # original image is upside-down, so flip it
         return data[::-1, :, :]
+
+    # This method is kinda dirty but this offer setting camera
+    # angle programatically. You can easily select a good camera angle
+    # by firing up a python interactive session then render an
+    # environment and use the mouse to select a view. To retrive camera
+    # information, just run `print(env.viewer.cam.lookat, env.viewer.cam.distance,
+    # env.viewer.cam.elevation, env.viewer.cam.azimuth)`
+    def _configure_viewer(self, setting):
+        def _viewer_setup(env):
+            env.viewer.cam.trackbodyid = 0
+            env.viewer.cam.lookat[0] = setting['lookat'][0]
+            env.viewer.cam.lookat[1] = setting['lookat'][1]
+            env.viewer.cam.lookat[2] = setting['lookat'][2]
+            env.viewer.cam.distance = setting['distance']
+            env.viewer.cam.elevation = setting['elevation']
+            env.viewer.cam.azimuth = setting['azimuth']
+            env.viewer.cam.trackbodyid = -1
+        self.active_env.viewer_setup = MethodType(_viewer_setup, self.active_env)
