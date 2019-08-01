@@ -17,7 +17,9 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             self,
             random_init=True,
             obs_type='with_goal',
-            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([-0.1, 0.8, 0.02]), 'obj_init_angle': 0.3}],
+            tasks = [{'goal': np.array([0, 0.8, 0.17]),  'obj_init_pos':np.array([0, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
+            # goal_low=(-0.1, 0.6, 0.2),
+            # goal_high=(0.1, 0.7, 0.2),
             goal_low=(-0.1, 0.75, 0.17),
             goal_high=(0.1, 0.85, 0.17),
             liftThresh = 0.05,
@@ -43,10 +45,10 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
         )
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([-.1, 0.8, 0.02], dtype=np.float32),
+            'obj_init_pos': np.array([0, 0.8, 0.02]),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
-        self.goal = np.array([0., 0.6, 0.02], dtype=np.float32)
+        self.goal = np.array([0, 0.8, 0.17])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']

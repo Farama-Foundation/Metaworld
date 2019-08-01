@@ -16,7 +16,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=True,
-            tasks = [{'stick_init_pos':np.array([-0.1, 0.6, 0.02])}], 
+            tasks = [{'stick_init_pos':np.array([-0.05, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
             goal_high=(0.4, 0.6, 0.02),
             liftThresh = 0.04,
@@ -266,35 +266,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self.stick_init_pos = self.init_config['stick_init_pos']
-        self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
+        self._state_goal = np.array([0.4, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
         if self.random_init:
-            # goal_pos = np.random.uniform(
-            #     self.obj_space.low,
-            #     self.obj_space.high,
-            #     size=(self.obj_space.low.size),
-            # )
-            # while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
-            #     goal_pos = np.random.uniform(
-            #         self.obj_space.low,
-            #         self.obj_space.high,
-            #         size=(self.obj_space.low.size),
-            #     )
-            # self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            # goal_pos = np.random.uniform(
-            #     self.goal_space.low,
-            #     self.goal_space.high,
-            #     size=(self.goal_space.low.size),
-            # )
-            # while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
-            #     goal_pos = np.random.uniform(
-            #         self.goal_space.low,
-            #         self.goal_space.high,
-            #         size=(self.goal_space.low.size),
-            #     )
-            # self._state_goal = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            # self.obj_init_qpos = goal_pos[-2:]
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
                 self.obj_and_goal_space.high,

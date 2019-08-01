@@ -4,7 +4,6 @@ This file provide lists of environment for multitask learning.
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack_6dof import SawyerStack6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_6dof import SawyerNutAssembly6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweep6DOFEnv
@@ -16,12 +15,10 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6D
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_6dof import SawyerDrawerOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_6dof import SawyerButtonPressTopdown6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open_6dof import SawyerBoxOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_6dof import SawyerBinPicking6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close_6dof import SawyerLaptopClose6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
@@ -34,22 +31,17 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_6dof import SawyerCoffe
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull_6dof import SawyerCoffeePull6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown_6dof import SawyerPegInsertionTopdown6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_topdown_6dof import SawyerPegUnplugTopdown6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_6dof import SawyerPegUnplugSide6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccer6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketball6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall_6dof import SawyerReachPushPickPlaceWall6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_unstack_6dof import SawyerUnStack6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back_6dof import SawyerPushBack6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHole6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof import SawyerShelfRemove6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_front_6dof import SawyerShelfRemoveFront6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_6dof import SawyerNutDisassemble6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLock6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_6dof import SawyerHandlePress6DOFEnv

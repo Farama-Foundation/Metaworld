@@ -7,19 +7,10 @@ from os import path
 from collections import deque
 import gym
 from gym.spaces import Box
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_6dof import SawyerTwoObject6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_6dof import SawyerPickAndPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_6dof import SawyerReach6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack_6dof import SawyerStack6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_wsg_6dof import SawyerPickAndPlaceWsg6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_rope_6dof import SawyerRope6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_6dof import SawyerNutAssembly6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_6dof import SawyerBinPicking6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_6dof import SawyerDrawerOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close_6dof import SawyerLaptopClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open_6dof import SawyerBoxOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
@@ -43,22 +34,17 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_6dof import SawyerCoffe
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull_6dof import SawyerCoffeePull6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown_6dof import SawyerPegInsertionTopdown6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_topdown_6dof import SawyerPegUnplugTopdown6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_6dof import SawyerPegUnplugSide6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccer6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketball6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall_6dof import SawyerReachPushPickPlaceWall6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_unstack_6dof import SawyerUnStack6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back_6dof import SawyerPushBack6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHole6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof import SawyerShelfRemove6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_front_6dof import SawyerShelfRemoveFront6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_6dof import SawyerNutDisassemble6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLock6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_golf_putting import SawyerGolfPutting6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_6dof import SawyerHandlePress6DOFEnv
@@ -123,7 +109,7 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerHandlePress6DOFEnv, SawyerHandlePull6DOFEnv]
 # ENV_LIST = [SawyerPlateSlide6DOFEnv, SawyerPlateSlideBack6DOFEnv]
 # ENV_LIST = [SawyerPlateSlideSide6DOFEnv, SawyerPlateSlideBackSide6DOFEnv]
-# ENV_LIST = EASY_MODE_LIST
+ENV_LIST = EASY_MODE_LIST
 # ENV_LIST = MEDIUM_TRAIN_LIST
 # ENV_LIST = [SawyerNutDisassemble6DOFEnv, SawyerUnStack6DOFEnv]
 # ENV_LIST = [SawyerHammer6DOFEnv, SawyerDoorClose6DOFEnv]
@@ -131,7 +117,7 @@ DEFAULT_SIZE = 500
 # ENV_LIST = [SawyerShelfPlace6DOFEnv, SawyerWindowClose6DOFEnv]
 # ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerBoxClose6DOFEnv]
 # ENV_LIST = [SawyerUnStack6DOFEnv, SawyerUnStack6DOFEnv]
-ENV_LIST = [SawyerStickPull6DOFEnv, SawyerStickPush6DOFEnv]
+# ENV_LIST = [SawyerStickPull6DOFEnv, SawyerStickPush6DOFEnv]
 # ENV_LIST = [SawyerBoxOpen6DOFEnv, SawyerNutDisassemble6DOFEnv]
 # ENV_LIST = [SawyerUnStack6DOFEnv, SawyerNutDisassemble6DOFEnv]
 # ENV_LIST = [SawyerCoffeePush6DOFEnv, SawyerCoffeePull6DOFEnv]
@@ -144,7 +130,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
 	def __init__(self,
-				random_init=True,
+				random_init=False,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
 		self.adaptive_sampling = adaptive_sampling
@@ -166,8 +152,8 @@ class MultiTaskMujocoEnv(gym.Env):
 			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
 			if env is SawyerReachPushPickPlace6DOFEnv or env is SawyerReachPushPickPlaceWall6DOFEnv:
 				# TODO: this could cause flaws in task_idx if SawyerReachPushPickPlace6DOFEnv/SawyerReachPushPickPlaceWall6DOFEnv is not the first environment
-				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, fix_task=True, task_idx=2))
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, fix_task=True, task_idx=i%3))
+				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=2))
 			else:
 				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init,))
 			# set the one-hot task representation
