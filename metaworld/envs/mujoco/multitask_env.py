@@ -1,4 +1,5 @@
 import gym
+from gym.spaces import Box
 import numpy as np
 
 from metaworld.core.serializable import Serializable
@@ -89,10 +90,11 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
                  task_args_kwargs=None,
                  sample_all=True,
                  sample_goals=False,
-                 discrete_goals=None,):
+                 obs_type='plain',):
         Serializable.quick_init(self, locals())
 
         assert len(task_env_cls_dict.keys()) == len(task_args_kwargs.keys())
+        assert len(task_env_cls_dict.keys()) >= 1
         for k in task_env_cls_dict.keys():
             assert k in task_args_kwargs
 
@@ -100,27 +102,52 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         self._task_names = []
         self._sampled_all = sample_all
         self._sample_goals = sample_goals
+        self._obs_type = obs_type
 
         # If key is in this dictionary, then this task are seen
         # to be using a discrete goal space. This wrapper will
         # set the property discrete_goal_space as True, update the goal_space
         # and the sample_goals method will sample from a discrete space.
-        self._discrete_goals = discrete_goals or dict()
+        self._discrete_goals = dict()
+        self._env_discrete_index = dict()
+        self._fully_discretized = True if not sample_goals else False
+        self._n_discrete_goals = len(task_env_cls_dict.keys())
 
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
             task_kwargs = task_args_kwargs[task]['kwargs']
             task_env = env_cls(*task_args, **task_kwargs)
 
-            if task in self._discrete_goals:
-                task_env.discretize_goal_space(
-                    self._discrete_goals[task]
-                )
+            # this multitask env only accept plain observations
+            # since it handles all the observation augmentations
+            assert task_env.obs_type == 'plain'
+
             self._task_envs.append(task_env)
             self._task_names.append(task)
-    
         self._active_task = 0
         self._check_env_list()
+
+    def discretize_goal_space(self, discrete_goals):
+        for task, goals in discrete_goals.items():
+            if task in self._task_names:
+                idx = self._task_names.index(task)
+                self._discrete_goals[task] = discrete_goals[task]
+                self._task_envs[idx].discretize_goal_space(
+                    self._discrete_goals[task]
+                )
+        # if obs_type include task id, then all the tasks have
+        # to use a discrete goal space and we hash indexes for tasks.
+        self._fully_discretized = True
+        for env in self._task_envs:
+            if not env.discrete_goal_space:
+                self._fully_discretized = False
+
+        start = 0
+        if self._fully_discretized:
+            for task, env in zip(self._task_names, self._task_envs):
+                self._env_discrete_index[task] = start
+                start += env.discrete_goal_space.n
+            self._n_discrete_goals = start
 
     def _check_env_list(self):
         assert len(self._task_envs) >= 1
@@ -139,10 +166,35 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             if np.prod(env.observation_space.shape) >= max_flat_dim:
                 self.observation_space_index = i
                 max_flat_dim = np.prod(env.observation_space.shape)
-            
+        self._max_plain_dim = max_flat_dim
+
     @property
     def observation_space(self):
-        return self._task_envs[self.observation_space_index].observation_space
+        if self._obs_type == 'plain':
+            return self._task_envs[self.observation_space_index].observation_space
+        else:
+            plain_high = self._task_envs[self.observation_space_index].observation_space.high
+            plain_low = self._task_envs[self.observation_space_index].observation_space.low
+            goal_high = self.active_env.goal_space.high
+            goal_low = self.active_env.goal_space.low
+            if self._obs_type == 'with_goal':
+                return Box(
+                    high=np.concatenate([plain_high, goal_high]),
+                    low=np.concatenate([plain_low, goal_low]))
+            elif self._obs_type == 'with_goal_idx' and self._fully_discretized:
+                goal_id_low = np.zeros(shape=(self._n_discrete_goals,))
+                goal_id_high = np.ones(shape=(self._n_discrete_goals,))
+                return Box(
+                    high=np.concatenate([plain_high, goal_id_low,]),
+                    low=np.concatenate([plain_low, goal_id_high,]))
+            elif self._obs_type == 'with_goal_and_idx' and self._fully_discretized:
+                goal_id_low = np.zeros(shape=(self._n_discrete_goals,))
+                goal_id_high = np.ones(shape=(self._n_discrete_goals,))
+                return Box(
+                    high=np.concatenate([plain_high, goal_id_low, goal_high]),
+                    low=np.concatenate([plain_low, goal_id_high, goal_low]))
+            else:
+                raise NotImplementedError
 
     def set_task(self, task):
         if self._sample_goals:
@@ -151,7 +203,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             g = task['goal']
             self._active_task = t % len(self._task_envs)
             # TODO: remove underscore
-            self._active_task.set_goal_(g)
+            self.active_env.set_goal_(g)
         else:
             self._active_task = task % len(self._task_envs)
 
@@ -161,11 +213,10 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             tasks = [i for i in range(meta_batch_size)]
         else:
             tasks = np.random.randint(
-                0, self.num_tasks, size=meta_batch_size).aslist()
-
+                0, self.num_tasks, size=meta_batch_size).tolist()
         if self._sample_goals:
             goals = [
-                self._task_envs[t % len(self._task_envs)].sample_goals_(1)
+                self._task_envs[t % len(self._task_envs)].sample_goals_(1)[0]
                 for t in tasks
             ]
             tasks_with_goal = [
@@ -178,35 +229,36 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
 
     def step(self, action):
         obs, reward, done, info = self.active_env.step(action)
-        # optionally zero-pad observation
-        # I know using np.prod is overkilling but maybe we
-        # want to expand this to higher dimension..?
-        if np.prod(obs.shape) < np.prod(self.observation_space.shape):
-            obs_type = self.active_env.obs_type
-            zeros = np.zeros(
-                shape=(np.prod(self.observation_space.shape) - np.prod(obs.shape),)
-            )
-            if obs_type == 'plain':
-                obs = np.concatenate([obs, zeros])
-            elif obs_type == 'with_goal_idx':
-                id_len = self.active_env._state_goal_idx.shape[0]
-                obs = np.concatenate([obs[:-id_len], zeros, obs[-id_len:]])
-            elif obs_type == 'with_goal_and_idx':
-                # this assumes that the environment has a goal space
-                id_len = self.active_env._state_goal_idx.shape[0]
-                goal_len = np.prod(self.active_env.goal_space.low.shape)
-                obs = np.concatenate([obs[:-id_len - goal_len], zeros, obs[-id_len - goal_len:]])
-            else:
-                # with goal
-                # this assumes that the environment has a goal space
-                goal_len = np.prod(self.active_env.goal_space.low.shape)
-                obs = np.concatenate([obs[:-goal_len], zeros, obs[-goal_len:]])
+        obs = self._augment_observation(obs)
         if 'task_type' in dir(self.active_env):
             name = '{}-{}'.format(str(self.active_env.__class__.__name__), self.active_env.task_type)
         else:
             name = str(self.active_env.__class__.__name__)
         info['task_name'] = name
         return obs, reward, done, info
+
+    def _augment_observation(self, obs):
+        # optionally zero-pad observation
+        if np.prod(obs.shape) < self._max_plain_dim:
+            zeros = np.zeros(
+                shape=(self._max_plain_dim - np.prod(obs.shape),)
+            )
+            obs = np.concatenate([obs, zeros])
+
+        # augment the observation based on obs_type:
+        if self._obs_type == 'with_goal_idx' or self._obs_type == 'with_goal_and_idx':
+            task_id = self._env_discrete_index[self._task_names[self.active_task]] + self.active_env.active_discrete_goal
+            task_onehot = np.zeros(shape=(self._n_discrete_goals,), dtype=np.float32)
+            task_onehot[task_id] = 1.
+            obs = np.concatenate([obs, task_onehot])
+            if self._obs_type == 'with_goal_and_idx':
+                obs = np.concatenate([obs, self.active_env._state_goal])
+        elif self._obs_type == 'with_goal':
+            obs = np.concatenate([obs, self.active_env._state_goal])
+        return obs
+
+    def reset(self, **kwargs):
+        return self._augment_observation(self.active_env.reset(**kwargs))
 
     # Utils for ImageEnv
     # Not using the `get_image` from the base class since

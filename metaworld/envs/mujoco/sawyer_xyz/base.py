@@ -92,8 +92,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # We use continuous goal space by default and
         # can discretize the goal space by calling
         # the `discretize_goal_space` method.
-        self.discrete_goal_space = False
+        self.discrete_goal_space = None
         self.discrete_goals = []
+        self.active_discrete_goal = None
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -155,14 +156,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_xyz_action(xyz_action)
 
     def discretize_goal_space(self, goals=None):
-        self.discrete_goal_space = True
         if goals is None:
             self.discrete_goals = [self.default_goal]
         else:
             assert len(goals) >= 1
             self.discrete_goals = goals
         # update the goal_space to a Discrete space
-        self.goal_space = Discrete(len(self.discrete_goals))
+        self.discrete_goal_space = Discrete(len(self.discrete_goals))
 
     # Belows are methods for using the new wrappers.
     # `sample_goals` is implmented across the sawyer_xyz
@@ -171,10 +171,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     # conform to this API (i.e. using the new wrapper), we can
     # just remove the underscore in all method signature.
     def sample_goals_(self, batch_size):
-        return [self.goal_space.sample() for _ in range(batch_size)]
+        if self.discrete_goal_space is not None:
+            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
+        else:
+            return [self.goal_space.sample() for _ in range(batch_size)]
 
     def set_goal_(self, goal):
-        if self.discrete_goal_space:
+        if self.discrete_goal_space is not None:
+            self.active_discrete_goal = goal
             self.goal = self.discrete_goals[goal]
         else:
             self.goal = goal

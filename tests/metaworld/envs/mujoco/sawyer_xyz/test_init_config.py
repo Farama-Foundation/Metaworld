@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 # Note:
 # I leave two environment's refactoring at the end since they
 # contain more than one task.
-@pytest.mark.parametrize('env_cls', HARD_MODE_LIST[7:50])
+@pytest.mark.parametrize('env_cls', HARD_MODE_LIST[7:])
 def test_init_config(env_cls):
     env = env_cls()
     env.reset()
