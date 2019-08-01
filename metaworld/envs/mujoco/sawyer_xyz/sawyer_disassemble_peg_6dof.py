@@ -23,7 +23,7 @@ class SawyerNutDisassemble6DOFEnv(SawyerXYZEnv):
             obj_high=(0., 0.85, 0.02),
             random_init=True,
             obs_type='with_goal',
-            tasks = [{'goal': np.array([0, 0.6, 0.02]),  'obj_init_pos':np.array([-0.1, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0, 0.8, 0.17]),  'obj_init_pos':np.array([0, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
             # goal_low=(-0.1, 0.6, 0.2),
             # goal_high=(0.1, 0.7, 0.2),
             goal_low=(-0.1, 0.75, 0.17),

@@ -326,7 +326,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs, mode = 'general'):
+    def compute_reward(self, actions, obs, mode='general'):
         if isinstance(obs, dict):
             obs = obs['state_observation']
 
@@ -341,29 +341,25 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
 
         reachDist = np.linalg.norm(graspPos - fingerCOM)
 
-        # placingDist = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.heightTarget])))
-        # placingDistFinal = np.linalg.norm(objPos - np.concatenate((placingGoal[:2], [self.objHeight])))
         placingDist = np.linalg.norm(objPos[:2] - placingGoal[:2])
         placingDistFinal = np.abs(objPos[-1] - self.objHeight)
-      
 
         def reachReward():
-            reachRew = -reachDist# + min(actions[-1], -1)/50
+            reachRew = -reachDist
             reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
             zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-            if reachDistxy < 0.04:#0.05: #0.02
+            if reachDistxy < 0.04:
                 reachRew = -reachDist
             else:
                 reachRew =  -reachDistxy - zRew
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.04:#0.05:
+            if reachDist < 0.04:
                 reachRew = -reachDist + max(actions[-1],0)/50
-            return reachRew , reachDist
+            return reachRew, reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
-            # if objPos[2] >= (heightTarget- tolerance):
-            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.03: #0.04
+            if objPos[2] >= (heightTarget - tolerance) and reachDist < 0.03:
                 return True
             else:
                 return False
@@ -374,17 +370,12 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
 
         def objDropped():
             return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
-            # Object on the ground, far away from the goal, and from the gripper
-            #Can tweak the margin limits
        
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
         def placeCompletionCriteria():
-            # if abs(objPos[0] - placingGoal[0]) < 0.03 and \
-            #     abs(objPos[1] - placingGoal[1]) < 0.03 and \
-            #     objPos[2] < self.objHeight + 0.05:
             if abs(objPos[0] - placingGoal[0]) < 0.03 and \
                 abs(objPos[1] - placingGoal[1]) < 0.03:
                return True
@@ -397,19 +388,16 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             self.placeCompleted = False
 
         def orig_pickReward():       
-            # hScale = 50
             hScale = 100
             if self.placeCompleted or (self.pickCompleted and not(objDropped())):
                 return hScale*heightTarget
-            # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
             elif (reachDist < 0.04) and (objPos[2]> (self.objHeight + 0.005)) :
                 return hScale* min(heightTarget, objPos[2])
             else:
                 return 0
 
         def general_pickReward():
-            hScale = 50
-            # if self.placeCompleted or (self.pickCompleted and objGrasped()):
+            hScale = 100
             if self.placeCompleted:
                 return hScale*heightTarget
             elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
@@ -417,40 +405,12 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             else:
                 return 0
 
-        def placeRewardDrop():
-            # c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-            placeRew = max(placeRew,0)
-            if mode == 'general':
-                cond = self.pickCompleted and objGrasped()
-            else:
-                cond = self.pickCompleted and (reachDist < 0.04) and not(objDropped())
-            if self.placeCompleted:
-                return [-200*actions[-1] + placeRew, placingDist]
-            elif cond:
-                if abs(objPos[0] - placingGoal[0]) < 0.03 and \
-                    abs(objPos[1] - placingGoal[1]) < 0.03:
-                    return [-200*actions[-1] + placeRew, placingDist, placingDistFinal]
-                else:
-                    return [placeRew, placingDist, placingDistFinal]
-            else:
-                return [0 , placingDist, placingDistFinal]
-
         def placeRewardMove():
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            # c1 = 200 ; c2 = 0.01 ; c3 = 0.001
             placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-            # placeRew = 200*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
             if self.placeCompleted:
-                # placeRew += 1000*(heightTarget - placingDistFinal) + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
                 c4 = 2000; c5 = 0.003; c6 = 0.0003
-                # placeRew += 2000*(heightTarget - placingDistFinal) + c4*(np.exp(-(placingDistFinal**2)/c5) + np.exp(-(placingDistFinal**2)/c6))
                 placeRew += 2000*(heightTarget - placingDistFinal) + c4*(np.exp(-(placingDistFinal**2)/c5) + np.exp(-(placingDistFinal**2)/c6))
-                # c4 = 1000; c5 = 0.003; c6 = 0.0003
-                # placeRew += 1000*(heightTarget - placingDistFinal) + c4*(np.exp(-(placingDistFinal**2)/c5) + np.exp(-(placingDistFinal**2)/c6))
-                # placeRew += 1000*(heightTarget - placingDistFinal) + c4*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
-                # placeRew += 2000*(self.heightTarget - placingDistFinal)# + c1*(np.exp(-(placingDistFinal**2)/c2) + np.exp(-(placingDistFinal**2)/c3))
             placeRew = max(placeRew,0)
             if mode == 'general':
                 cond = self.placeCompleted or (self.pickCompleted and objGrasped())
@@ -461,17 +421,14 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             else:
                 return [0, placingDist, placingDistFinal]
 
-
         reachRew, reachDist = reachReward()
         if mode == 'general':
             pickRew = general_pickReward()
         else:
             pickRew = orig_pickReward()
-        # placeRew , placingDist, placingDistFinal = placeRewardDrop()
         placeRew , placingDist, placingDistFinal = placeRewardMove()
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
-        # success = (self.placeCompleted and placingDistFinal <= 0.04)
         success = (abs(objPos[0] - placingGoal[0]) < 0.03 and abs(objPos[1] - placingGoal[1]) < 0.03 and placingDistFinal <= 0.04)
         return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, placingDistFinal, success] 
 

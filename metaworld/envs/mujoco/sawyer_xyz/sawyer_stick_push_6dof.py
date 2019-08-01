@@ -22,7 +22,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             obj_low=(-0.08, 0.58, 0.02),
             obj_high=(-0.03, 0.62, 0.02),
             random_init=True,
-            tasks = [{'stick_init_pos':np.array([-0.1, 0.6, 0.02])}], 
+            tasks = [{'stick_init_pos':np.array([-0.05, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
             goal_high=(0.4, 0.6, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
@@ -289,35 +289,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self._reset_hand()
         task = self.sample_task()
         self.stick_init_pos = task['stick_init_pos']
-        self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
+        self._state_goal = np.array([0.4, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
         if self.random_init:
-            # goal_pos = np.random.uniform(
-            #     self.obj_space.low,
-            #     self.obj_space.high,
-            #     size=(self.obj_space.low.size),
-            # )
-            # while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
-            #     goal_pos = np.random.uniform(
-            #         self.obj_space.low,
-            #         self.obj_space.high,
-            #         size=(self.obj_space.low.size),
-            #     )
-            # self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            # goal_pos = np.random.uniform(
-            #     self.goal_space.low,
-            #     self.goal_space.high,
-            #     size=(self.goal_space.low.size),
-            # )
-            # while np.linalg.norm(goal_pos[:2] - np.array(self.obj_init_pos)[:2]) < 0.1:
-            #     goal_pos = np.random.uniform(
-            #         self.goal_space.low,
-            #         self.goal_space.high,
-            #         size=(self.goal_space.low.size),
-            #     )
-            # self._state_goal = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            # self.obj_init_qpos = goal_pos[-2:]
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
                 self.obj_and_goal_space.high,
