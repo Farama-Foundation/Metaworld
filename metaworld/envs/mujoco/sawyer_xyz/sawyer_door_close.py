@@ -4,10 +4,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
 class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(0., 0.85, 0.1),
-            obj_high=(0.1, 0.95, 0.1),
             random_init=False,
             obs_type='plain',
             tasks = [{'goal': np.array([0.2, 0.8, 0.15]),  'obj_init_pos':np.array([0.1, 0.95, 0.1]), 'obj_init_angle': 0.3}],
@@ -20,10 +16,6 @@ class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
     ):
         SawyerDoor6DOFEnv.__init__(
             self,
-            hand_low=hand_low,
-            hand_high=hand_high,
-            obj_low=obj_low,
-            obj_high=obj_high,
             random_init=random_init,
             obs_type=obs_type,
             tasks=tasks,

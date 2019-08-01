@@ -14,8 +14,6 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
             obj_low=None,
             obj_high=None,
             random_init=False,
@@ -29,6 +27,10 @@ class SawyerPickAndPlace6DOFEnv(SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.5, 0.40, 0.05)
+        obj_high=(0.5, 1, 0.5)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,

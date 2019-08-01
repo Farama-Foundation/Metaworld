@@ -16,10 +16,6 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerPlateSlideSide6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(0., 0.6, 0.015),
-            obj_high=(0., 0.6, 0.015),
             random_init=False,
             obs_type='plain',
             # tasks = [{'goal': 0.75,  'obj_init_pos':-0.2, 'obj_init_angle': 0.3}], 
@@ -33,6 +29,10 @@ class SawyerPlateSlideSide6DOFEnv(SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(0., 0.6, 0.015)
+        obj_high=(0., 0.6, 0.015)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -53,14 +53,8 @@ class SawyerPlateSlideSide6DOFEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        if obj_low is None:
-            obj_low = self.hand_low
-
         if goal_low is None:
             goal_low = self.hand_low
-
-        if obj_high is None:
-            obj_high = self.hand_high
         
         if goal_high is None:
             goal_high = self.hand_high

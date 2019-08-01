@@ -15,10 +15,6 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, -0.15),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.8, 0.1),
-            obj_high=(0.1, 0.85, 0.1),
             random_init=False,
             obs_type='plain',
             # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
@@ -31,6 +27,10 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, -0.15)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.1, 0.8, 0.1)
+        obj_high=(0.1, 0.85, 0.1)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -53,20 +53,15 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         if multitask:
             obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
-        if obj_low is None:
-            obj_low = self.hand_low
 
         if goal_low is None:
             goal_low = self.hand_low
-
-        if obj_high is None:
-            obj_high = self.hand_high
         
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150#150
+        self.max_path_length = 150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode

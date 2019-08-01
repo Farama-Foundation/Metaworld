@@ -15,12 +15,6 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            # obj_low=(-0.15, 0.6, 0.02),
-            # obj_high=(0.05, 0.6, 0.02),
-            obj_low=(-0.08, 0.58, 0.02),
-            obj_high=(-0.03, 0.62, 0.02),
             random_init=True,
             tasks = [{'stick_init_pos':np.array([-0.1, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
@@ -34,6 +28,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.08, 0.58, 0.02)
+        obj_high=(-0.03, 0.62, 0.02)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -70,7 +68,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
+        self.max_path_length = 200
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode

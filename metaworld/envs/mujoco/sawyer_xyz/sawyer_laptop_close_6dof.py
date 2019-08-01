@@ -14,10 +14,6 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=None,
-            obj_high=None,
             random_init=False,
             tasks = [{'goal': 1.57,  'obj_init_pos':0.4, 'obj_init_angle': 0.3}], 
             goal_low=None,
@@ -29,6 +25,10 @@ class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.5, 0.40, 0.05)
+        obj_high=(0.5, 1, 0.5)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -38,14 +38,9 @@ class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
-        if obj_low is None:
-            obj_low = self.hand_low
 
         if goal_low is None:
             goal_low = min_angle
-
-        if obj_high is None:
-            obj_high = self.hand_high
         
         if goal_high is None:
             goal_high = max_angle
