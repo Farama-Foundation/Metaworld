@@ -119,8 +119,10 @@ class SawyerLaptopClose6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'angleDiff': angle_diff, 'epRew' : reward, 'success': float(angle_diff <= 0.2)}
-   
+        info = {'reachDist': reachDist, 'angleDiff': angle_diff, 'epRew' : reward, 'success': float(angle_diff <= 0.2)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.site_xpos[self.model.site_name2id('laptopCoverTop')]

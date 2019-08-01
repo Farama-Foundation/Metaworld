@@ -207,3 +207,13 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             name = str(self.active_env.__class__.__name__)
         info['task_name'] = name
         return obs, reward, done, info
+
+    # Utils for ImageEnv
+    # Not using the `get_image` from the base class since
+    # `sim.render()` is extremely slow with mujoco_py.
+    # Ref: https://github.com/openai/mujoco-py/issues/58 
+    def get_image(self, width=84, height=84, camera_name=None):
+        self.active_env._get_viewer().render()
+        data = self.active_env._get_viewer().read_pixels(width, height, depth=False)
+        # original image is upside-down, so flip it
+        return data[::-1, :, :]

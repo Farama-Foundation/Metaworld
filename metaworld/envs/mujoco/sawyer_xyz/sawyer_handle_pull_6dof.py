@@ -149,8 +149,10 @@ class SawyerHandlePull6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.04)}
-   
+        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.04)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.site_xpos[self.model.site_name2id('handleStart')]

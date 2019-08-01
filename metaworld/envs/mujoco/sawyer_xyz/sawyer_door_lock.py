@@ -148,7 +148,9 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
+        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
 
     def get_angle(self):
         return np.array([self.data.get_joint_qpos('joint')])

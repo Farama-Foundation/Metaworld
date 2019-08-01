@@ -153,8 +153,10 @@ class SawyerSweepTool6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':pickRew}
-   
+        info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':pickRew}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.site_xpos[self.model.site_name2id('handleStart')]

@@ -11,5 +11,4 @@ def test_init_config(env_cls):
     env = env_cls()
     env.reset()
     assert 'init_config' in dir(env)
-    # assert env.goal_space.contains(env.goal), 'goal: {}, goal_high: {}, goal_low: {}'.format(env.goal, env.goal_space.high, env.goal_space.low)
-    assert np.prod(env.goal_space.shape) == np.prod(env.goal.shape), 'goal: {}, goal_high: {}, goal_low: {}'.format(env.goal, env.goal_space.high, env.goal_space.low)
+    assert np.all(env.goal_space.shape == env.goal.shape), 'goal: {}, goal_high: {}, goal_low: {}'.format(env.goal, env.goal_space.high, env.goal_space.low)

@@ -12,7 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
 def test_sawyer(env_cls):
     env = env_cls()
-    step_env(env)
+    step_env(env, max_path_length=10)
     close_env(env)
 
 

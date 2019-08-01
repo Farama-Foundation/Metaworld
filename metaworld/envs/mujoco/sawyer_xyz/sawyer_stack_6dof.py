@@ -155,8 +155,10 @@ class SawyerStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': stackHorizonDist, 'success': success}
-   
+        info = {'reachDist': reachDist, 'pickRew':liftRew, 'epRew' : reward, 'goalDist': stackHorizonDist, 'success': success}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.sim.data.body_xpos[self.obj_body_id]

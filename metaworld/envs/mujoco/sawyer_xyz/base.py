@@ -178,3 +178,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.goal = self.discrete_goals[goal]
         else:
             self.goal = goal
+    
+    def set_init_config(self, config):
+        assert isinstance(config, dict)
+        for key, val in config.items():
+            self.init_config[key] = val

@@ -176,7 +176,9 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             success = float(reachDist <= 0.05)
         else:
             success = float(goal_dist <= 0.07)
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

@@ -133,7 +133,6 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
 
     def step(self, action):
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -158,8 +157,10 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
-   
+        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         # objPos =  self.data.get_geom_xpos('handle').copy()

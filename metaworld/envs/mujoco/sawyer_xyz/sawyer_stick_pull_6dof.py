@@ -141,7 +141,6 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml')
 
-
     def step(self, action):
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -165,8 +164,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pullDist, 'success': float(pullDist <= 0.08 and reachDist <= 0.05)}
-   
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pullDist, 'success': float(pullDist <= 0.08 and reachDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()

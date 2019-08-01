@@ -155,8 +155,10 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew,
         #                             'hammerRew': hammerRew, 'epRew' : reward, 'hammerDist': hammerDist, 'screwDist': screwDist}
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': screwDist, 'success': float(screwDist <= 0.05)}
-   
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': screwDist, 'success': float(screwDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         hammerPos = self.get_body_com('hammer').copy()
