@@ -224,7 +224,6 @@ class SawyerWindowClose6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -235,14 +234,12 @@ class SawyerWindowClose6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9] = pos
         # qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
 
     def sample_goals(self, batch_size):
         #Required by HER-TD3
@@ -253,7 +250,6 @@ class SawyerWindowClose6DOFEnv(SawyerXYZEnv):
         return {
             'state_desired_goal': goals,
         }
-
 
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)

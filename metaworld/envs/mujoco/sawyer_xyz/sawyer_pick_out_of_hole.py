@@ -141,30 +141,8 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.2
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
         if self.rotMode == 'euler':

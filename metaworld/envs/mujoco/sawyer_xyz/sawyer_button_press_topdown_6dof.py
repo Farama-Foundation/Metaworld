@@ -129,13 +129,8 @@ class SawyerButtonPressTopdown6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_button_press_topdown.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        pass
 
     def step(self, action):
         if self.rotMode == 'euler':

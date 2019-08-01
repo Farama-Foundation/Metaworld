@@ -136,9 +136,6 @@ class SawyerDrawerOpen6DOFEnv(SawyerXYZEnv):
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_drawer.xml')
 
-    def viewer_setup(self):
-        pass
-
     def step(self, action):
         if self.rotMode == 'euler':
             action_ = np.zeros(7)

@@ -138,9 +138,6 @@ class SawyerWindowOpen6DOFEnv(SawyerXYZEnv):
     def model_name(self):     
         return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
 
-    def viewer_setup(self):
-        pass
-
     def step(self, action):
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
