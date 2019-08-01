@@ -26,11 +26,9 @@ class SawyerSweepIntoGoal6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0., 0.84, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.85, 0.05),
             goal_high=(0.1, 0.9, 0.3),
-            hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -43,6 +41,16 @@ class SawyerSweepIntoGoal6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        self.init_config = {
+            'obj_init_pos':np.array([0., 0.6, 0.02]),
+            'obj_init_angle': 0.3,
+            'hand_init_pos': np.array([0., .6, .2]),
+        }
+        self.goal = np.array([0., 0.84, 0.02])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -64,11 +72,9 @@ class SawyerSweepIntoGoal6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -155,9 +161,6 @@ class SawyerSweepIntoGoal6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -287,10 +290,9 @@ class SawyerSweepIntoGoal6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         if self.random_init:
             goal_pos = np.random.uniform(

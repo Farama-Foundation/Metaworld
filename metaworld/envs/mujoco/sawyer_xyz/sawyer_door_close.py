@@ -34,16 +34,15 @@ class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
             multitask_num=multitask_num,
             **kwargs)
 
-        self.init_parameter = {
-            'obj_init_angle': np.array([0.3, ], dtype=np.float32),
+        self.init_config = {
+            'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0.1, 0.95, 0.1], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0.2, 0.8, 0.15])
-
-        self.obj_init_pos = self.init_parameter['obj_init_pos']
-        self.obj_init_angle = self.init_parameter['obj_init_angle']
-        self.hand_init_pos = self.init_parameter['hand_init_pos']
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
 
     def reset_model(self):
         self._reset_hand()

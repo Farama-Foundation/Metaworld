@@ -23,14 +23,12 @@ class SawyerBasketball6DOFEnv(SawyerXYZEnv):
             obs_type='plain',
             tasks = [{'goal': np.array([0, 0.9, 0.15]),  'obj_init_pos':np.array([0, 0.6, 0.03]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.85, 0.15),
-            goal_high=(0.1, 0.9, 0.15),
-            hand_init_pos = (0, 0.6, 0.2),
+            goal_high=(0.1, 0.9+1e-7, 0.15),
             liftThresh = 0.3,
             rotMode='fixed',#'fixed',
             rewMode = 'orig',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -43,6 +41,17 @@ class SawyerBasketball6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_angle': .3,
+            'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+        }
+        self.goal = np.array([0, 0.9, 0.15])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -65,12 +74,11 @@ class SawyerBasketball6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
         self.rewMode = rewMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.liftThresh = liftThresh
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
+
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -157,9 +165,7 @@ class SawyerBasketball6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
+
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -289,12 +295,11 @@ class SawyerBasketball6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        basket_pos = np.array(task['goal'])
+        
+        basket_pos = self.goal.copy()
         self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
         self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_angle = task['obj_init_angle']
+
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:

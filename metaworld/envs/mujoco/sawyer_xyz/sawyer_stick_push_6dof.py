@@ -25,14 +25,12 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             tasks = [{'stick_init_pos':np.array([-0.1, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
             goal_high=(0.4, 0.6, 0.02),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             obs_type='with_goal_init_obs',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -45,6 +43,15 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'stick_init_pos': np.array([-0.1, 0.6, 0.02]),
+            'hand_init_pos': np.array([0, 0.6, 0.2]),
+        }
+        self.goal = self.init_config['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -68,10 +75,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
-        self.if_render = if_render
         self._state_goal_idx = np.zeros(self.multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -166,9 +171,6 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        # self.set_xyz_action_rot(action[:7])
-        if self.if_render:
-            self.render()
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -279,16 +281,13 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         qvel[16:18] = 0
         self.set_state(qpos, qvel)
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self.stick_init_pos = task['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
         self._state_goal = np.array([0.35, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh

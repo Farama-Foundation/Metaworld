@@ -29,7 +29,6 @@ class SawyerButtonPressTopdownWall6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -47,7 +46,7 @@ class SawyerButtonPressTopdownWall6DOFEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.8, 0.05], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0, 0.88, 0.1]),
+        self.goal = np.array([0, 0.88, 0.1])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
@@ -236,7 +235,7 @@ class SawyerButtonPressTopdownWall6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = np.array(self.goal)
+        self._state_goal = self.goal.copy()
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,

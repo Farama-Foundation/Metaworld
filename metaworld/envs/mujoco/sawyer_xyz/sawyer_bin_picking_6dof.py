@@ -14,6 +14,8 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 
+# TODO: this environment need a goal_high and goal_low
+
 class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
@@ -26,13 +28,11 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0.12, 0.7, 0.02]),  'obj_init_pos':np.array([-0.12, 0.7, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.1,
             rewMode = 'orig',
             rotMode='fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -45,6 +45,17 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([-0.12, 0.7, 0.02]),
+            'hand_init_pos': np.array((0, 0.6, 0.2)),
+        }
+        self.goal = np.array([0.12, 0.7, 0.02])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -68,11 +79,10 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
+
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -96,7 +106,7 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             np.hstack((goal_low[:2], obj_low[:2])),
             np.hstack((goal_high[:2], obj_high[:2])),
         )
-        self.goal_space = Box(goal_low[:2], goal_high[:2])
+        self.goal_space = Box(goal_low, goal_high)
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
@@ -165,9 +175,7 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
+
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -286,10 +294,9 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:

@@ -25,11 +25,9 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0, 0.85, 0.1]), 'obj_init_pos':np.array([0, 0.85, 0.1])}], 
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
-            rotMode='fixed',#'fixed',
+            rotMode='fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -42,6 +40,15 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_pos': np.array([0, 0.85, 0.1]),
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0, 0.85, 0.1])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -63,11 +70,9 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -116,15 +121,13 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             )
         self.reset()
 
-
     def get_goal(self):
         return {
             'state_desired_goal': self._state_goal,
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_door_lock.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
@@ -157,9 +160,6 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -183,7 +183,6 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         else:
             done = False
         return ob, reward, done, {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
-   
 
     def get_angle(self):
         return np.array([self.data.get_joint_qpos('joint')])
@@ -234,7 +233,7 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -246,7 +245,6 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('goal_unlock')] = (
             np.array([10., 10., 10.])
         )
-
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -264,7 +262,6 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
         qvel[9] = 0
         self.set_state(qpos, qvel)
 
-
     def sample_goals(self, batch_size):
         #Required by HER-TD3
         goals = []
@@ -275,16 +272,13 @@ class SawyerDoorLock6DOFEnv(SawyerXYZEnv):
             'state_desired_goal': goals,
         }
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        door_pos = task['obj_init_pos']
+        door_pos = self.init_config['obj_init_pos']
         self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
         self._state_goal = door_pos + np.array([0, -0.04, -0.03])
         # self.obj_init_qpos = task['obj_init_qpos']

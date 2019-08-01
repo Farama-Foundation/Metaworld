@@ -30,7 +30,6 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
             obs_type='plain',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -70,7 +69,6 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         self.obs_type = obs_type
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -153,9 +151,6 @@ class SawyerPegInsertionTopdown6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]

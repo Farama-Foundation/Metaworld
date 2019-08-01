@@ -20,17 +20,15 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             obj_low=(-0.1, 0.5, 0.02),
             obj_high=(0.1, 0.6, 0.02),
             random_init=False,
-            tasks = [{'goal': np.array([0., 0.85, 0.001]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0., 0.85, 0.001]), 'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.8, 0.001),
             goal_high=(0.1, 0.9, 0.001),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             obs_type='plain',
             rewMode = 'orig',
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -43,6 +41,17 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_pos':np.array([0, 0.6, 0.02]),
+            'obj_init_angle': 0.3,
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0., 0.85, 0.001], dtype=np.float32)
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -61,16 +70,14 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#200#150
+        self.max_path_length = 150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -118,7 +125,6 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
                 np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
-
 
     def get_goal(self):
         return {
@@ -169,9 +175,6 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -249,7 +252,6 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -260,14 +262,12 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
 
     def sample_goals(self, batch_size):
         #Required by HER-TD3
@@ -278,7 +278,6 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         return {
             'state_desired_goal': goals,
         }
-
 
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
@@ -293,14 +292,12 @@ class SawyerShelfPlace6DOFEnv(SawyerXYZEnv):
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self.sim.model.body_pos[self.model.body_name2id('shelf')] = np.array(task['goal'])
+        self.sim.model.body_pos[self.model.body_name2id('shelf')] = self.goal.copy()
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-        self.obj_init_angle = task['obj_init_angle']
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:

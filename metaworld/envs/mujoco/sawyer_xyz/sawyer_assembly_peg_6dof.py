@@ -25,10 +25,8 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0.1, 0.8, 0.1]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.75, 0.1),
             goal_high=(0.1, 0.85, 0.1),
-            hand_init_pos = (0, 0.6, 0.2),
             multitask=False,
             multitask_num=1,
-            if_render=False,
             liftThresh = 0.1,#0.1,
             rewMode = 'orig',
             rotMode='fixed',
@@ -44,6 +42,17 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+        }
+        self.goal = np.array([0.1, 0.8, 0.1], dtype=np.float32)
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -69,10 +78,9 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
+
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -154,9 +162,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
+
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -246,14 +252,12 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
 
     def sample_goals(self, batch_size):
         #Required by HER-TD3
@@ -265,7 +269,6 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
             'state_desired_goal': goals,
         }
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
@@ -273,10 +276,7 @@ class SawyerNutAssembly6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = np.array(task['obj_init_pos'])
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:

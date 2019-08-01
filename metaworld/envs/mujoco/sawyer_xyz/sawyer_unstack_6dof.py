@@ -33,7 +33,6 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -73,7 +72,6 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -161,9 +159,6 @@ class SawyerUnStack6DOFEnv(MultitaskEnv, SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]

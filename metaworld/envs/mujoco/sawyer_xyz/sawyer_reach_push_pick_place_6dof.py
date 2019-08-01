@@ -39,7 +39,6 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             task_idx=0,
             fix_task=False,
             **kwargs
@@ -84,7 +83,6 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         self.fix_task = fix_task
         self.task_idx = task_idx
         if rotMode == 'fixed':
@@ -174,9 +172,6 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]

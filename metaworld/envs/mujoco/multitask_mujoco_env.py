@@ -144,7 +144,6 @@ class MultiTaskMujocoEnv(gym.Env):
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
 	def __init__(self,
-				if_render=True,
 				random_init=True,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
@@ -168,9 +167,9 @@ class MultiTaskMujocoEnv(gym.Env):
 			if env is SawyerReachPushPickPlace6DOFEnv or env is SawyerReachPushPickPlaceWall6DOFEnv:
 				# TODO: this could cause flaws in task_idx if SawyerReachPushPickPlace6DOFEnv/SawyerReachPushPickPlaceWall6DOFEnv is not the first environment
 				# self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i%3))
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=2))
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, fix_task=True, task_idx=2))
 			else:
-				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render))
+				self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init,))
 			# set the one-hot task representation
 			self.mujoco_envs[i]._state_goal_idx = np.zeros((len(ENV_LIST)))
 			self.mujoco_envs[i]._state_goal_idx[i] = 1.

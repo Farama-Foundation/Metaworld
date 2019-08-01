@@ -26,11 +26,9 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             tasks = [{'hammer_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=(0., 0.85, 0.05),
             goal_high=(0.3, 0.9, 0.05),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.09,
             multitask=False,
             multitask_num=1,
-            if_render=False,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             **kwargs
@@ -45,6 +43,15 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        # TODO should we put this to goal instead of initial config?
+        self.init_config = {
+            'hammer_init_pos': np.array([0, 0.6, 0.02]),
+            'hand_init_pos': np.array([0, 0.6, 0.2]),
+        }
+        self.goal = self.init_config['hammer_init_pos']  # TODO: check this
+        self.hammer_init_pos = self.init_config['hammer_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -71,9 +78,7 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.rotMode = rotMode
         self.multitask = multitask
         self.multitask_num = multitask_num
-        self.if_render = if_render
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.hand_init_pos = np.array(hand_init_pos)
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -122,7 +127,6 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
             )
         self.reset()
 
-
     def get_goal(self):
         return {
             'state_desired_goal': self._state_goal,
@@ -155,8 +159,6 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -254,20 +256,17 @@ class SawyerHammer6DOFEnv(SawyerXYZEnv):
         qvel[15] = 0
         self.set_state(qpos, qvel)
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
         self.sim.model.body_pos[self.model.body_name2id('box')] = np.array([0.24, 0.85, 0.05])
         self.sim.model.body_pos[self.model.body_name2id('screw')] = np.array([0.24, 0.71, 0.11])
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = np.array([0.24, 0.71, 0.11])
-        self.hammer_init_pos = task['hammer_init_pos']
+        self.hammer_init_pos = self.init_config['hammer_init_pos']
         self.hammerHeight = self.get_body_com('hammer').copy()[2]
         self.heightTarget = self.hammerHeight + self.liftThresh
         if self.random_init:

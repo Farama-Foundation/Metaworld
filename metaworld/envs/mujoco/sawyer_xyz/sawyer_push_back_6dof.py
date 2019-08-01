@@ -23,12 +23,10 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0, 0.8, 0.02]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.02),
             goal_high=(0.1, 0.7, 0.02),
-            hand_init_pos = (0, 0.6, 0.2),
-            rotMode='fixed',#'fixed',
+            rotMode='fixed',
             obs_type='plain',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -41,6 +39,16 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        self.init_config = {
+            'obj_init_pos':np.array([0, 0.8, 0.02]),
+            'obj_init_angle': 0.3,
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0., 0.6, 0.02])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -62,11 +70,9 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -114,12 +120,6 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
                 np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
             )
         self.reset()
-        # self.observation_space = Dict([
-        #     ('state_observation', self.hand_and_obj_space),
-        #     ('state_desired_goal', self.goal_space),
-        #     ('state_achieved_goal', self.goal_space),
-        # ])
-
 
     def get_goal(self):
         return {
@@ -127,10 +127,8 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_push_back.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
         # top view
@@ -153,9 +151,6 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -282,13 +277,11 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         if self.random_init:
             goal_pos = np.random.uniform(
@@ -376,7 +369,6 @@ class SawyerPushBack6DOFEnv(SawyerXYZEnv):
             pushRew = 0
         reward = reachRew + pushRew
         return [reward, reachDist, pushDist]
-
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

@@ -26,12 +26,10 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([0., 0.85, 0.02]),  'obj_init_pos':np.array([0., 0.6, 0.015]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.85, 0.02),
             goal_high=(0.1, 0.9, 0.02),
-            hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             obs_type='plain',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -44,6 +42,16 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0., 0.6, 0.015], dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+        }
+        self.goal = np.array([0., 0.85, 0.02])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         if obj_low is None:
             obj_low = self.hand_low
 
@@ -66,11 +74,9 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -153,9 +159,6 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -270,10 +273,8 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         if self.random_init:
             # self.obj_init_pos = np.random.uniform(-0.2, 0)

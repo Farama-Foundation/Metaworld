@@ -25,11 +25,9 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             tasks = [{'goal': np.array([-0.1, 0.785, 0.115]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -42,6 +40,15 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_pos': np.array([0, 0.8, 0.05]),
+            'hand_init_pos': np.array([0., .6, .2])
+        }
+        self.goal = np.array([-0.1, 0.785, 0.115])
+        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_pos = self.init_config['obj_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -63,11 +70,10 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
+
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -157,9 +163,6 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -263,7 +266,6 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         qvel[9] = 0
         self.set_state(qpos, qvel)
 
-
     def sample_goals(self, batch_size):
         #Required by HER-TD3
         goals = []
@@ -274,18 +276,14 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             'state_desired_goal': goals,
         }
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_qpos = task['obj_init_qpos']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,

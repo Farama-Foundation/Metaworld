@@ -43,15 +43,15 @@ class SawyerWindowClose6DOFEnv(SawyerXYZEnv):
             **kwargs
         )
 
-        self.init_parameter = {
-            'obj_init_angle': np.array([0.3, ], dtype=np.float32),
-            'obj_init_pos': np.array([-0.1, 0.785, 0.15], dtype=np.float32),
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0.1, 0.785, 0.15], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0.08, 0.785, 0.15])
-        self.obj_init_pos = self.init_parameter['obj_init_pos']
-        self.obj_init_angle = self.init_parameter['obj_init_angle']
-        self.hand_init_pos = self.init_parameter['hand_init_pos']
+        self.goal = np.array([-0.08, 0.785, 0.15])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
         if multitask:
@@ -258,10 +258,6 @@ class SawyerWindowClose6DOFEnv(SawyerXYZEnv):
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
-
-    def set_goal(self, goal):
-        self.task['goal'] = goal
-        pass
 
     def reset_model(self):
         self._reset_hand()
