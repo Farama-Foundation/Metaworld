@@ -2,6 +2,8 @@ import pytest
 import numpy as np
 
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
+from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlace6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWall6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 
 
@@ -78,8 +80,7 @@ def test_multienv_multigoals_fully_discretized(env_list):
     goal = tasks_with_goals[0]['goal']
     plain_dim = multi_task_env._max_plain_dim
     task_start_index = multi_task_env._env_discrete_index[task_name]
-    print('goal: {}, plain_dim: {}, task_start_index: {}'.format(goal, plain_dim, task_start_index))
-    print(multi_task_env._env_discrete_index)
+
     assert reset_obs[plain_dim:][task_start_index + goal] == 1, reset_obs
     assert step_obs[plain_dim:][task_start_index + goal] == 1, step_obs
     assert np.sum(reset_obs[plain_dim: plain_dim + multi_task_env._n_discrete_goals]) == 1
@@ -113,6 +114,7 @@ def test_multienv_single_goal(env_list):
         assert isinstance(multi_task_env.active_env,\
             env_cls_dict[multi_task_env._task_names[t % len(env_list)]])
 
+
 @pytest.mark.parametrize('env_list', [HARD_MODE_LIST[12:15]])
 def test_multitask_env_images(env_list):
     env_cls_dict = {
@@ -137,3 +139,47 @@ def test_multitask_env_images(env_list):
     multi_task_env.reset()
     img = multi_task_env.get_image(width=84, height=84)
     assert img.shape[0] == 84 and img.shape[1] == 84 and img.shape[2] == 3
+
+
+@pytest.mark.parametrize('env_cls',
+    [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv])
+def test_reach_push_pick_place(env_cls):
+
+    task_types = ['pick_place', 'reach', 'push']
+    env_dict = {t: env_cls for t in task_types}
+    env_args_kwargs = {
+        t: dict(args=[], kwargs={'task_type': t, 'obs_type': 'plain'})
+        for t in task_types
+    }
+
+    multi_task_env = MultiClassMultiTaskEnv(
+        task_env_cls_dict=env_dict,
+        task_args_kwargs=env_args_kwargs,
+        obs_type='with_goal_idx',
+        sample_goals=True,  # Each environment should still sample only
+                            # one goal since each of them is discrete goal
+                            # space and contains only one goal.
+        sample_all=True,
+    )
+    goals_dict = {
+        'pick_place': [np.array([0.1, 0.8, 0.2])],
+        'reach': [np.array([-0.1, 0.8, 0.2])],
+        'push': [np.array([0.1, 0.8, 0.02])],
+    }
+    multi_task_env.discretize_goal_space(goals_dict)
+    assert multi_task_env._fully_discretized
+
+    n_tasks = len(env_dict.keys())
+    # do this test twice to make sure multiple sampling is working
+    for _ in range(2):
+        tasks = multi_task_env.sample_tasks(n_tasks)
+        assert len(tasks) == n_tasks
+        for t in tasks:
+            assert 'task' in t.keys()
+            assert 'goal' in t.keys()
+            multi_task_env.set_task(t)
+            _ = multi_task_env.reset()
+            task_name = multi_task_env._task_names[t['task']]
+            goal = multi_task_env.active_env.goal
+            assert np.array_equal(goal, goals_dict[task_name][0])
+            assert multi_task_env.active_env.task_type == task_name
