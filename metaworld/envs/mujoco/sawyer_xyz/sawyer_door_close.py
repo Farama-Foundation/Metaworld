@@ -4,46 +4,41 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
 class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(0., 0.85, 0.1),
-            obj_high=(0.1, 0.95, 0.1),
             random_init=False,
             obs_type='plain',
             tasks = [{'goal': np.array([0.2, 0.8, 0.15]),  'obj_init_pos':np.array([0.1, 0.95, 0.1]), 'obj_init_angle': 0.3}],
             goal_low=None,
             goal_high=None,
-            hand_init_pos = (0, 0.6, 0.2),
             rotMode='fixed',#'fixed',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         SawyerDoor6DOFEnv.__init__(
-        self,
-        hand_low=hand_low,
-        hand_high=hand_high,
-        obj_low=obj_low,
-        obj_high=obj_high,
-        random_init=random_init,
-        obs_type=obs_type,
-        tasks=tasks, 
-        goal_low=goal_low,
-        goal_high=goal_high,
-        hand_init_pos=hand_init_pos,
-        rotMode=rotMode,#'fixed',
-        multitask=multitask,
-        multitask_num=multitask_num,
-        if_render=if_render,
-        **kwargs)
+            self,
+            random_init=random_init,
+            obs_type=obs_type,
+            tasks=tasks,
+            goal_low=goal_low,
+            goal_high=goal_high,
+            rotMode=rotMode,#'fixed',
+            multitask=multitask,
+            multitask_num=multitask_num,
+            **kwargs)
+
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0.1, 0.95, 0.1], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0.2, 0.8, 0.15])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        # self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
         if self.random_init:
             obj_pos = np.random.uniform(

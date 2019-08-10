@@ -15,27 +15,23 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.35, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.1, 0.55, 0.02),
-            obj_high=(0., 0.65, 0.02),
-            # obj_low=(0., 0.6, 0.02),
-            # obj_high=(0., 0.6, 0.02),
             random_init=True,
             tasks = [{'stick_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=(0.3, 0.4, 0.02),
             goal_high=(0.4, 0.5, 0.02),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             obs_type='with_goal_init_obs',#'with_goal',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.35, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.1, 0.55, 0.02)
+        obj_high=(0., 0.65, 0.02)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -45,18 +41,22 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'stick_init_pos': np.array([0, 0.6, 0.02]),
+            'hand_init_pos': np.array([0, 0.6, 0.2]),
+        }
+        self.goal = self.init_config['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
-        if obj_low is None:
-            obj_low = self.hand_low
 
         if goal_low is None:
             goal_low = self.hand_low
-
-        if obj_high is None:
-            obj_high = self.hand_high
         
         if goal_high is None:
             goal_high = self.hand_high
@@ -68,10 +68,8 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
-        self.if_render = if_render
         self._state_goal_idx = np.zeros(self.multitask_num)
         self.obs_type = obs_type
         if rotMode == 'fixed':
@@ -115,12 +113,12 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
                 np.hstack((self.hand_low, obj_low, obj_low)),
                 np.hstack((self.hand_high, obj_high, obj_high)),
             )
-        if not multitask and self.obs_type == 'with_goal':
+        elif not multitask and self.obs_type == 'with_goal':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, goal_high)),
             )
-        if not multitask and self.obs_type == 'with_goal_init_obs':
+        elif not multitask and self.obs_type == 'with_goal_init_obs':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),
@@ -140,35 +138,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.4
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        # self.set_xyz_action_rot(action[:7])
-        if self.if_render:
-            self.render()
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -191,8 +164,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pullDist, 'success': float(pullDist <= 0.08 and reachDist <= 0.05)}
-   
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pullDist, 'success': float(pullDist <= 0.08 and reachDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
@@ -287,10 +262,9 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
         self.obj_init_pos = np.array([0.2, 0.69, 0.04])
         self.obj_init_qpos = np.array([0., 0.09])
-        self.stick_init_pos = task['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
         # self._state_goal = np.array([0.2, 0.4, self.stick_init_pos[-1]])

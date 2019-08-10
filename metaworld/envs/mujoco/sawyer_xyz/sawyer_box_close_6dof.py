@@ -16,10 +16,6 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            obj_low=(-0.05, 0.55, 0.02),
-            obj_high=(0.05, 0.6, 0.02),
             random_init=True,
             obs_type='with_goal',
             # tasks = [{'goal': np.array([0.0, 0.8, 0.105]),  'obj_init_pos':np.array([0., 0.5, 0.02]), 'obj_init_angle': 0.3}], 
@@ -29,16 +25,18 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             # goal_high=(0.05, 0.9, 0.193),
             goal_low=(-0.1, 0.85, 0.133),
             goal_high=(0.1, 0.95, 0.133),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.12,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             multitask=False,
             multitask_num=1,
-            if_render=True,
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.05, 0.55, 0.02)
+        obj_high=(0.05, 0.6, 0.02)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -48,21 +46,21 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_angle': .3,
+            'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+        }
+        self.goal = np.array([0.0, 0.9, 0.133])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
-        if obj_low is None:
-            obj_low = self.hand_low
-
-        if goal_low is None:
-            goal_low = self.hand_low
-
-        if obj_high is None:
-            obj_high = self.hand_high
-        
-        if goal_high is None:
-            goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
@@ -71,12 +69,9 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
-
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
 
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -133,34 +128,10 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_box.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.2
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
         # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
@@ -184,8 +155,10 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
-   
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('handle').copy()
@@ -237,7 +210,6 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -247,7 +219,6 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
         qpos[12:16] = quat.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -267,18 +238,16 @@ class SawyerBoxClose6DOFEnv(SawyerXYZEnv):
             'state_desired_goal': goals,
         }
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
 
-
     def reset_model(self):
         self._reset_hand()
         task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('handle')[2]
         self.boxheight = self.get_body_com('box')[2]
         self.heightTarget = self.objHeight + self.liftThresh
