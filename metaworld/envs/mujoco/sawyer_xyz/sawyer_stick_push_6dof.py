@@ -265,7 +265,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.stick_init_pos = self.init_config['stick_init_pos']
+        task = self.sample_task()
+        self.stick_init_pos = task['stick_init_pos']
         self._state_goal = np.array([0.4, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
