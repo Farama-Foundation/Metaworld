@@ -17,15 +17,10 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
-            # tasks = [{'goal': 0.75,  'obj_init_pos':-0.2, 'obj_init_angle': 0.3}], 
-            # tasks = [{'goal': np.array([0., 0.75, 0.04]),  'obj_init_pos':np.array([0., 0.9, 0.04]), 'obj_init_angle': 0.3}], 
-            tasks = [{'goal': np.array([0., 0.85, 0.02]),  'obj_init_pos':np.array([0., 0.6, 0.015]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.85, 0.02),
             goal_high=(0.1, 0.9, 0.02),
-            rotMode='fixed',#'fixed',
+            rotMode='fixed',
             obs_type='plain',
-            multitask=False,
-            multitask_num=1,
             **kwargs
     ):
         self.quick_init(locals())
@@ -59,18 +54,11 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
 
         self.random_init = random_init
-        self.max_path_length = 150#150
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
+        self.max_path_length = 150
         self.rotMode = rotMode
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -97,29 +85,19 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low)),
                 np.hstack((self.hand_high, obj_high)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
-            )
-
+            raise NotImplementedError
         self.reset()
-
 
     def get_goal(self):
         return {
@@ -149,7 +127,7 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        #info = self._get_info()
+
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
@@ -227,23 +205,6 @@ class SawyerPlateSlide6DOFEnv(SawyerXYZEnv):
         qpos[9:11] = pos
         # qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
-
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-
-    def sample_task(self):
-        task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[task_idx]
-
 
     def reset_model(self):
         self._reset_hand()

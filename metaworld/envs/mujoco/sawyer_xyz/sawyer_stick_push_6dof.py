@@ -2,7 +2,6 @@ from collections import OrderedDict
 import numpy as np
 from gym.spaces import  Dict , Box
 
-
 from metaworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 from metaworld.core.multitask_env import MultitaskEnv
@@ -16,15 +15,12 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=True,
-            tasks = [{'stick_init_pos':np.array([-0.05, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
             goal_high=(0.4, 0.6, 0.02),
             liftThresh = 0.04,
-            rotMode='fixed',#'fixed',
+            rotMode='fixed',
             rewMode='orig',
             obs_type='with_goal_init_obs',
-            multitask=False,
-            multitask_num=1,
             **kwargs
     ):
         self.quick_init(locals())
@@ -51,8 +47,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
+
         self.obs_type = obs_type
         if obj_low is None:
             obj_low = self.hand_low
@@ -69,13 +64,8 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 200
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -108,34 +98,25 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.obs_type = obs_type
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, obj_low)),
                 np.hstack((self.hand_high, obj_high, obj_high)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
             )
-        elif not multitask and self.obs_type == 'with_goal_init_obs':
+        elif self.obs_type == 'with_goal_init_obs':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),
             )
             self.goal_len = self.obj_and_goal_space.low.shape[0]
         else:
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, obj_high, goal_high, np.zeros(multitask_num))),
-            )
+            raise NotImplementedError
         self.reset()
-
 
     def get_goal(self):
         return {
@@ -233,7 +214,6 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -259,14 +239,9 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         qvel[16:18] = 0
         self.set_state(qpos, qvel)
 
-    def sample_task(self):
-        task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[task_idx]
-
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self.stick_init_pos = task['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
         self._state_goal = np.array([0.4, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh

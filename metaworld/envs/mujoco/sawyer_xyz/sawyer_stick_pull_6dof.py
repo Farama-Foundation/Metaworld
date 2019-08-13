@@ -16,15 +16,12 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=True,
-            tasks = [{'stick_init_pos':np.array([0, 0.6, 0.02])}], 
             goal_low=(0.3, 0.4, 0.02),
             goal_high=(0.4, 0.5, 0.02),
             liftThresh = 0.04,
-            rotMode='fixed',#'fixed',
+            rotMode='fixed',
             rewMode='orig',
-            obs_type='with_goal_init_obs',#'with_goal',
-            multitask=False,
-            multitask_num=1,
+            obs_type='with_goal_init_obs',
             **kwargs
     ):
         self.quick_init(locals())
@@ -51,8 +48,6 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
 
         if goal_low is None:
@@ -63,14 +58,10 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
+        self.max_path_length = 200
+
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
         self.obs_type = obs_type
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -103,34 +94,25 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low, np.zeros(len(tasks)))),
-                    np.hstack((self.hand_high, obj_high,  obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, obj_low)),
                 np.hstack((self.hand_high, obj_high, obj_high)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, goal_high)),
             )
-        elif not multitask and self.obs_type == 'with_goal_init_obs':
+        elif self.obs_type == 'with_goal_init_obs':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),
             )
             self.goal_len = self.obj_and_goal_space.low.shape[0]
         else:
-            self.observation_space = Box(
-                    np.hstack((self.hand_low, obj_low, obj_low, goal_low, np.zeros(multitask_num))),
-                    np.hstack((self.hand_high, obj_high, obj_high, goal_high, np.ones(multitask_num))),
-            )
+            raise NotImplementedError
         self.reset()
-
 
     def get_goal(self):
         return {
@@ -253,12 +235,6 @@ class SawyerStickPull6DOFEnv(SawyerXYZEnv):
         qpos[16:18] = pos.copy()
         qvel[16:18] = 0
         self.set_state(qpos, qvel)
-
-
-    def sample_task(self):
-        task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[task_idx]
-
 
     def reset_model(self):
         self._reset_hand()

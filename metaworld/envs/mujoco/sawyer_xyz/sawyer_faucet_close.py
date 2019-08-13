@@ -2,7 +2,6 @@ from collections import OrderedDict
 import numpy as np
 from gym.spaces import  Dict , Box
 
-
 from metaworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 from metaworld.core.multitask_env import MultitaskEnv
@@ -12,18 +11,15 @@ from pyquaternion import Quaternion
 from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
+
 class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
             obs_type='plain',
-            # tasks = [{'goal': np.array([0, 0.88, 0.1]), 'obj_init_pos':np.array([0., 0.88, 0.15]), 'obj_init_qpos':0.}], 
-            tasks = [{'goal': np.array([-0.1, 0.785, 0.115]), 'obj_init_pos':np.array([0, 0.8, 0.05])}], 
             goal_low=None,
             goal_high=None,
-            rotMode='fixed',#'fixed',
-            multitask=False,
-            multitask_num=1,
+            rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
@@ -50,8 +46,6 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
 
         if goal_low is None:
@@ -61,13 +55,8 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150#150
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
+        self.max_path_length = 150
         self.rotMode = rotMode
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
 
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -95,28 +84,19 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
                 np.hstack((self.hand_high, obj_high,)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
-            )
+            raise NotImplementedError
         self.reset()
-
 
     def get_goal(self):
         return {
@@ -231,20 +211,6 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
         qpos[9] = pos
         qvel[9] = 0
         self.set_state(qpos, qvel)
-
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-    def sample_task(self):
-        task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[task_idx]
 
     def reset_model(self):
         self._reset_hand()

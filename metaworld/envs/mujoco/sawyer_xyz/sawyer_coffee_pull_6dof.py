@@ -17,12 +17,9 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             self,
             random_init=False,
             obs_type='plain',
-            tasks = [{'goal': np.array([0., 0.6, 0]),  'obj_init_pos':np.array([0, 0.75, 0.]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.05),
             goal_high=(0.1, 0.7, 0.3),
-            rotMode='fixed',#'fixed',
-            multitask=False,
-            multitask_num=1,
+            rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
@@ -50,8 +47,6 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
 
         if goal_low is None:
@@ -61,13 +56,8 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150#150
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
+        self.max_path_length = 150
         self.rotMode = rotMode
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -94,33 +84,19 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
                 np.hstack((self.hand_high, obj_high,)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
-            )
+            raise NotImplementedError
         self.reset()
-        # self.observation_space = Dict([
-        #     ('state_observation', self.hand_and_obj_space),
-        #     ('state_desired_goal', self.goal_space),
-        #     ('state_achieved_goal', self.goal_space),
-        # ])
-
 
     def get_goal(self):
         return {
@@ -226,21 +202,6 @@ class SawyerCoffeePull6DOFEnv(SawyerXYZEnv):
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-
-    def sample_task(self):
-        self.task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[self.task_idx]
 
     def adjust_initObjPos(self, orig_init_pos):
         #This is to account for meshes for the geom and object are not aligned

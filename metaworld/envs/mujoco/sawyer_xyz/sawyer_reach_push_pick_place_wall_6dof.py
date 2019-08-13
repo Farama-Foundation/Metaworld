@@ -18,22 +18,13 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
             random_init=False,
             obs_type='plain',
             task_types=['pick_place', 'reach', 'push'],
-            # task list in this environment will not work anymore
-            # please use the goal and task_type to set tasks
-            tasks = [{'goal': np.array([0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'pick_place'},
-                    {'goal': np.array([-0.05, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'reach'},
-                    {'goal': np.array([0.05, 0.8, 0.015]),  'obj_init_pos':np.array([0, 0.6, 0.015]), 'obj_init_angle': 0.3, 'type':'push'}], 
             task_type='pick_place',
             goal_low=(-0.05, 0.85, 0.05),
             goal_high=(0.05, 0.9, 0.3),
             liftThresh = 0.04,
             sampleMode='equal',
             rewMode = 'orig',
-            rotMode='fixed',#'fixed',
-            multitask=False,
-            multitask_num=1,
-            task_idx=0,
-            fix_task=False,
+            rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
@@ -66,8 +57,6 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
-        if multitask:
-            obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
 
         if goal_low is None:
@@ -78,18 +67,11 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150#150
-        self.tasks = tasks
-        self.num_tasks = len(tasks)
+        self.max_path_length = 150
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.sampleMode = sampleMode
         self.task_types = task_types
-        self.multitask = multitask
-        self.multitask_num = multitask_num
-        self._state_goal_idx = np.zeros(self.multitask_num)
-        self.fix_task = fix_task
-        self.task_idx = task_idx
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -116,26 +98,18 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        if not multitask and self.obs_type == 'with_goal_id':
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
-            )
-        elif not multitask and self.obs_type == 'plain':
+        if self.obs_type == 'plain':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low,)),
                 np.hstack((self.hand_high, obj_high,)),
             )
-        elif not multitask and self.obs_type == 'with_goal':
+        elif self.obs_type == 'with_goal':
             self.observation_space = Box(
                 np.hstack((self.hand_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, goal_high)),
             )
         else:
-            self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(multitask_num))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.zeros(multitask_num))),
-            )
+            raise NotImplementedError
         self.num_resets = 0
         self.reset()
 
@@ -204,12 +178,6 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
         flat_obs = np.concatenate((hand, objPos))
-        if self.multitask:
-            assert hasattr(self, '_state_goal_idx')
-            return np.concatenate([
-                    flat_obs,
-                    self._state_goal_idx
-                ])
         return dict(
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
@@ -261,20 +229,6 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def sample_goals(self, batch_size):
-        #Required by HER-TD3
-        goals = []
-        for i in range(batch_size):
-            task = self.tasks[np.random.randint(0, self.num_tasks)]
-            goals.append(task['goal'])
-        return {
-            'state_desired_goal': goals,
-        }
-
-    def sample_task(self):
-        self.task_idx = np.random.randint(0, self.num_tasks)
-        return self.tasks[self.task_idx]
-
     def adjust_initObjPos(self, orig_init_pos):
         #This is to account for meshes for the geom and object are not aligned
         #If this is not done, the object could be initialized in an extreme position
@@ -287,12 +241,6 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
-        if not self.fix_task:
-            if not self.multitask:
-                self._state_goal_idx = np.zeros((len(self.tasks)))
-            else:
-                self._state_goal_idx = np.zeros((self.multitask_num))
-            self._state_goal_idx[self.task_idx] = 1.
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -319,15 +267,20 @@ class SawyerReachPushPickPlaceWall6DOFEnv(SawyerXYZEnv):
                 self.obj_init_pos = goal_pos[:3]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
-        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
-        self.target_reward = self.target_rewards[self.task_idx]
+        if self.task_type == 'pick_place':
+            idx = 0
+        elif self.task_type == 'reach':
+            idx = 1
+        else:
+            idx = 2
+        
+        self.target_reward = self.target_rewards[idx]
         self.num_resets += 1
-        # import pdb; pdb.set_trace()
         return self._get_obs()
 
     def _reset_hand(self):

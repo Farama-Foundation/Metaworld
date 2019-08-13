@@ -6,24 +6,18 @@ class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
             self,
             random_init=False,
             obs_type='plain',
-            tasks = [{'goal': np.array([0.2, 0.8, 0.15]),  'obj_init_pos':np.array([0.1, 0.95, 0.1]), 'obj_init_angle': 0.3}],
             goal_low=None,
             goal_high=None,
-            rotMode='fixed',#'fixed',
-            multitask=False,
-            multitask_num=1,
+            rotMode='fixed',
             **kwargs
     ):
         SawyerDoor6DOFEnv.__init__(
             self,
             random_init=random_init,
             obs_type=obs_type,
-            tasks=tasks,
             goal_low=goal_low,
             goal_high=goal_high,
-            rotMode=rotMode,#'fixed',
-            multitask=multitask,
-            multitask_num=multitask_num,
+            rotMode=rotMode,
             **kwargs)
 
         self.init_config = {

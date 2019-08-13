@@ -88,7 +88,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_high = hand_high
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
-        
+
         # We use continuous goal space by default and
         # can discretize the goal space by calling
         # the `discretize_goal_space` method.
@@ -180,6 +180,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if self.discrete_goal_space is not None:
             self.active_discrete_goal = goal
             self.goal = self.discrete_goals[goal]
+            self._state_goal_idx = np.zeros(len(self.discrete_goals))
+            self._state_goal_idx[goal] = 1.
         else:
             self.goal = goal
     
@@ -187,3 +189,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert isinstance(config, dict)
         for key, val in config.items():
             self.init_config[key] = val
+
+    '''
+    Functions that are copied and pasted everywhere and seems
+    to be not used.
+    '''
+    def sample_goals(self, batch_size):
+        '''Note: should be replaced by sample_goals_ if not used'''
+        # Required by HER-TD3
+        goals = self.sample_goals_(batch_size)
+        if self.discrete_goal_space is not None:
+            goals = [self.discrete_goal_space[g].copy() for g in goals]
+        return {
+            'state_desired_goal': goals,
+        }
+
+    def sample_task(self):
+        '''Note: this can be replaced by sample_goal_(batch_size=1)'''
+        goal = self.sample_goals_(1)
+        if self.discrete_goal_space is not None:
+            return self.discrete_goals[goal]
+        else:
+            return goal
