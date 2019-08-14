@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 
+from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlace6DOFEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWall6DOFEnv
@@ -183,3 +184,31 @@ def test_reach_push_pick_place(env_cls):
             goal = multi_task_env.active_env.goal
             assert np.array_equal(goal, goals_dict[task_name][0])
             assert multi_task_env.active_env.task_type == task_name
+
+
+# Full ml10 is too large for testing
+ml3_env_cls_dict = dict(
+    pick_place=MEDIUM_MODE_CLS_DICT['train']['pick_place'],
+    reach=MEDIUM_MODE_CLS_DICT['train']['reach'],
+    sweep=MEDIUM_MODE_CLS_DICT['train']['sweep'],)
+ml3_env_args_kwargs = {
+    key: MEDIUM_MODE_ARGS_KWARGS['train'][key]
+    for key in ml3_env_cls_dict.keys()
+}
+def test_ml3():
+    multi_task_env = MultiClassMultiTaskEnv(
+        task_env_cls_dict=ml3_env_cls_dict,
+        task_args_kwargs=ml3_env_args_kwargs,
+        sample_goals=True,
+        obs_type='plain',
+    )
+    for _ in range(2):
+        tasks = multi_task_env.sample_tasks(3)
+        assert len(tasks) == 3
+        for t in tasks:
+            assert 'task' in t.keys()
+            assert 'goal' in t.keys()
+            multi_task_env.set_task(t)
+            _ = multi_task_env.reset()
+            goal = multi_task_env.active_env.goal
+            assert multi_task_env.active_env.goal_space.contains(goal)
