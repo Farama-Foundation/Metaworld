@@ -130,7 +130,7 @@ class MultiTaskMujocoEnv(gym.Env):
 	An multitask mujoco environment that contains a list of mujoco environments.
 	"""
 	def __init__(self,
-				if_render=True,
+				if_render=False,
 				random_init=False,
 				adaptive_sampling=False):
 		self.mujoco_envs = []
@@ -141,6 +141,7 @@ class MultiTaskMujocoEnv(gym.Env):
 			self.sample_probs = np.array([1./(len(ENV_LIST)) for _ in range(len(ENV_LIST))])
 			self.target_scores = []
 			self.sample_tau = 0.05
+		self.observation_space = None
 		for i, env in enumerate(ENV_LIST):
 			# if i < 3:
 			# 	self.mujoco_envs.append(env(multitask=True, multitask_num=len(ENV_LIST), random_init=random_init, if_render=if_render, fix_task=True, task_idx=i))
@@ -163,13 +164,16 @@ class MultiTaskMujocoEnv(gym.Env):
 			self.mujoco_envs[i].max_path_length = 200#150
 			if adaptive_sampling:
 				self.target_scores.append(self.mujoco_envs[i].target_reward)
+			if env is SawyerStickPull6DOFEnv and self.observation_space is None:
+				self.observation_space = self.mujoco_envs[i].observation_space
 		# TODO: make sure all observation spaces across tasks are the same / use self-attention
 		self.num_resets = 0
 		self.task_idx = self.num_resets % len(ENV_LIST)
 		# only sample from pushing task
 		# self.task_idx = 2
 		self.action_space = self.mujoco_envs[self.task_idx].action_space
-		self.observation_space = self.mujoco_envs[self.task_idx].observation_space
+		if self.observation_space is None:
+			self.observation_space = self.mujoco_envs[self.task_idx].observation_space
 		self.goal_space = Box(np.zeros(len(ENV_LIST)), np.ones(len(ENV_LIST)))
 		# used for alpha
 		self.goal_len = self.mujoco_envs[self.task_idx].goal_space.low.shape[0]
@@ -181,15 +185,35 @@ class MultiTaskMujocoEnv(gym.Env):
 		return [seed]
 
 	def step(self, action):
-		ob, reward, done, info = self.mujoco_envs[self.task_idx].step(action)
+		obs, reward, done, info = self.mujoco_envs[self.task_idx].step(action)
 		# TODO: need to figure out how to calculate target scores in this case!
 		if self.adaptive_sampling:
 			self.current_score += reward
 			if done:
 				self.scores[self.task_idx].append(reward)
 				# self.scores[self.task_idx].append(self.current_score)
-		assert ob[-len(ENV_LIST):].argmax() == self.task_idx
-		return ob, reward, done, info
+		assert obs[-len(ENV_LIST):].argmax() == self.task_idx
+		if np.prod(obs.shape) < np.prod(self.observation_space.shape):
+			obs_type = self.mujoco_envs[self.task_idx].obs_type
+			zeros = np.zeros(
+				shape=(np.prod(self.observation_space.shape) - np.prod(obs.shape),)
+			)
+			if obs_type == 'plain':
+				obs = np.concatenate([obs, zeros])
+			elif obs_type == 'with_goal_idx':
+				id_len = self.mujoco_envs[self.task_idx]._state_goal_idx.shape[0]
+				obs = np.concatenate([obs[:-id_len], zeros, obs[-id_len:]])
+			elif obs_type == 'with_goal_and_idx':
+				# this assumes that the environment has a goal space
+				id_len = self.mujoco_envs[self.task_idx]._state_goal_idx.shape[0]
+				goal_len = np.prod(self.mujoco_envs[self.task_idx].goal_space.low.shape)
+				obs = np.concatenate([obs[:-id_len - goal_len], zeros, obs[-id_len:]])
+			else:
+				# with goal
+				# this assumes that the environment has a goal space
+				goal_len = np.prod(self.mujoco_envs[self.task_idx].goal_space.low.shape)
+				obs = np.concatenate([obs[:-goal_len], zeros, obs[-goal_len:]])
+		return obs, reward, done, info
 
 	def reset(self):
 		# self.task_idx = max((self.num_resets % (len(ENV_LIST)+2)) - 2, 0)
@@ -206,7 +230,28 @@ class MultiTaskMujocoEnv(gym.Env):
 		# self.task_idx = 2
 		self.num_resets += 1
 		self.current_score = 0.
-		return self.mujoco_envs[self.task_idx].reset()
+		obs = self.mujoco_envs[self.task_idx].reset()
+		if np.prod(obs.shape) < np.prod(self.observation_space.shape):
+			obs_type = self.mujoco_envs[self.task_idx].obs_type
+			zeros = np.zeros(
+				shape=(np.prod(self.observation_space.shape) - np.prod(obs.shape),)
+			)
+			if obs_type == 'plain':
+				obs = np.concatenate([obs, zeros])
+			elif obs_type == 'with_goal_idx':
+				id_len = self.mujoco_envs[self.task_idx]._state_goal_idx.shape[0]
+				obs = np.concatenate([obs[:-id_len], zeros, obs[-id_len:]])
+			elif obs_type == 'with_goal_and_idx':
+				# this assumes that the environment has a goal space
+				id_len = self.mujoco_envs[self.task_idx]._state_goal_idx.shape[0]
+				goal_len = np.prod(self.mujoco_envs[self.task_idx].goal_space.low.shape)
+				obs = np.concatenate([obs[:-id_len - goal_len], zeros, obs[-id_len:]])
+			else:
+				# with goal
+				# this assumes that the environment has a goal space
+				goal_len = np.prod(self.mujoco_envs[self.task_idx].goal_space.low.shape)
+				obs = np.concatenate([obs[:-goal_len], zeros, obs[-goal_len:]]) 
+		return obs
 
 	@property
 	def dt(self):

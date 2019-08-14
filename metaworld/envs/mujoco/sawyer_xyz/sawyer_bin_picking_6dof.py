@@ -96,7 +96,7 @@ class SawyerBinPicking6DOFEnv(SawyerXYZEnv):
             np.hstack((goal_low[:2], obj_low[:2])),
             np.hstack((goal_high[:2], obj_high[:2])),
         )
-        self.goal_space = Box(goal_low[:2], goal_high[:2])
+        self.goal_space = Box(goal_low, goal_high)
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
