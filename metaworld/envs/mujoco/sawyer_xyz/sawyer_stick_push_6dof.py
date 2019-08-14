@@ -15,27 +15,23 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, 0.05),
-            hand_high=(0.5, 1, 0.5),
-            # obj_low=(-0.15, 0.6, 0.02),
-            # obj_high=(0.05, 0.6, 0.02),
-            obj_low=(-0.08, 0.58, 0.02),
-            obj_high=(-0.03, 0.62, 0.02),
             random_init=True,
             tasks = [{'stick_init_pos':np.array([-0.05, 0.6, 0.02])}], 
             goal_low=(0.4, 0.55, 0.02),
             goal_high=(0.4, 0.6, 0.02),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.04,
             rotMode='fixed',#'fixed',
             rewMode='orig',
             obs_type='with_goal_init_obs',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, 0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(-0.08, 0.58, 0.02)
+        obj_high=(-0.03, 0.62, 0.02)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -45,6 +41,15 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'stick_init_pos': np.array([-0.1, 0.6, 0.02]),
+            'hand_init_pos': np.array([0, 0.6, 0.2]),
+        }
+        self.goal = self.init_config['stick_init_pos']
+        self.stick_init_pos = self.init_config['stick_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
@@ -63,15 +68,13 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#150
+        self.max_path_length = 200
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
         self.rotMode = rotMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.multitask = multitask
         self.multitask_num = multitask_num
-        self.if_render = if_render
         self._state_goal_idx = np.zeros(self.multitask_num)
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -120,7 +123,7 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
                 np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
                 np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
             )
-        if not multitask and self.obs_type == 'with_goal_init_obs':
+        elif not multitask and self.obs_type == 'with_goal_init_obs':
             self.observation_space = Box(
                     np.hstack((self.hand_low, obj_low, obj_low, obj_low, goal_low)),
                     np.hstack((self.hand_high, obj_high,  obj_high, obj_high, goal_high)),
@@ -140,35 +143,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.4
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        # self.set_xyz_action_rot(action[:7])
-        if self.if_render:
-            self.render()
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -191,8 +169,10 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pushDist, 'success': float(pushDist <= 0.1 and reachDist <= 0.05)}
-   
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pushDist, 'success': float(pushDist <= 0.1 and reachDist <= 0.05)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
@@ -279,11 +259,9 @@ class SawyerStickPush6DOFEnv(SawyerXYZEnv):
         qvel[16:18] = 0
         self.set_state(qpos, qvel)
 
-
     def sample_task(self):
         task_idx = np.random.randint(0, self.num_tasks)
         return self.tasks[task_idx]
-
 
     def reset_model(self):
         self._reset_hand()

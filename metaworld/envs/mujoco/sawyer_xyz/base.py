@@ -1,13 +1,14 @@
 import abc
-import numpy as np
+import copy
+
+from gym.spaces import Discrete
 import mujoco_py
+import numpy as np
+from pyquaternion import Quaternion
 
 from metaworld.core.serializable import Serializable
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv
-from pyquaternion import Quaternion
 from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat
-
-import copy
 
 
 OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal', 'with_goal_init_obs']
@@ -87,6 +88,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_high = hand_high
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
+        
+        # We use continuous goal space by default and
+        # can discretize the goal space by calling
+        # the `discretize_goal_space` method.
+        self.discrete_goal_space = None
+        self.discrete_goals = []
+        self.active_discrete_goal = None
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -146,3 +154,36 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         delta_z = fixed_z - self.data.mocap_pos[0, 2]
         xyz_action = np.hstack((xy_action, delta_z))
         self.set_xyz_action(xyz_action)
+
+    def discretize_goal_space(self, goals=None):
+        if goals is None:
+            self.discrete_goals = [self.default_goal]
+        else:
+            assert len(goals) >= 1
+            self.discrete_goals = goals
+        # update the goal_space to a Discrete space
+        self.discrete_goal_space = Discrete(len(self.discrete_goals))
+
+    # Belows are methods for using the new wrappers.
+    # `sample_goals` is implmented across the sawyer_xyz
+    # as sampling from the task lists. This will be done
+    # with the new `discrete_goals`. After all the algorithms
+    # conform to this API (i.e. using the new wrapper), we can
+    # just remove the underscore in all method signature.
+    def sample_goals_(self, batch_size):
+        if self.discrete_goal_space is not None:
+            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
+        else:
+            return [self.goal_space.sample() for _ in range(batch_size)]
+
+    def set_goal_(self, goal):
+        if self.discrete_goal_space is not None:
+            self.active_discrete_goal = goal
+            self.goal = self.discrete_goals[goal]
+        else:
+            self.goal = goal
+    
+    def set_init_config(self, config):
+        assert isinstance(config, dict)
+        for key, val in config.items():
+            self.init_config[key] = val

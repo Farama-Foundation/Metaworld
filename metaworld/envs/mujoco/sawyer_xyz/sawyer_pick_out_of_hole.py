@@ -15,28 +15,24 @@ from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
     def __init__(
             self,
-            hand_low=(-0.5, 0.40, -0.05),
-            hand_high=(0.5, 1, 0.5),
-            # obj_low=(0, 0.84, -0.03),
-            # obj_high=(0, 0.84, -0.03),
-            obj_low=(0, 0.84, -0.03),
-            obj_high=(0, 0.84, -0.03),
             random_init=True,
             # tasks = [{'goal': np.array([0., 0.6, 0.2]),  'obj_init_pos':np.array([0, 0.84, -0.03]), 'obj_init_angle': 0.3}], 
             tasks = [{'goal': np.array([0., 0.6, 0.2]),  'obj_init_pos':np.array([0, 0.84, -0.03]), 'obj_init_angle': 0.3}], 
             goal_low=(-0.1, 0.6, 0.15),
             goal_high=(0.1, 0.7, 0.3),
-            hand_init_pos = (0, 0.6, 0.2),
             liftThresh = 0.11,
             obs_type='with_goal',
             rotMode='fixed',#'fixed',
             rewMode = 'orig',
             multitask=False,
             multitask_num=1,
-            if_render=False,
             **kwargs
     ):
         self.quick_init(locals())
+        hand_low=(-0.5, 0.40, -0.05)
+        hand_high=(0.5, 1, 0.5)
+        obj_low=(0, 0.84, -0.03)
+        obj_high=(0, 0.84, -0.03)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -46,18 +42,24 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+
+        self.init_config = {
+            'obj_init_pos': np.array([0, 0.84, -0.03]),
+            'obj_init_angle': 0.3,
+            'hand_init_pos': np.array([0., .6, .2]),
+        }
+        self.goal = np.array([0., 0.6, 0.2])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
         assert obs_type in OBS_TYPE
         if multitask:
             obs_type = 'with_goal_and_id'
         self.obs_type = obs_type
-        if obj_low is None:
-            obj_low = self.hand_low
 
         if goal_low is None:
             goal_low = self.hand_low
-
-        if obj_high is None:
-            obj_high = self.hand_high
         
         if goal_high is None:
             goal_high = self.hand_high
@@ -68,12 +70,10 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
         self.num_tasks = len(tasks)
         self.rotMode = rotMode
         self.rewMode = rewMode
-        self.hand_init_pos = np.array(hand_init_pos)
         self.liftThresh = liftThresh
         self.multitask = multitask
         self.multitask_num = multitask_num
         self._state_goal_idx = np.zeros(self.multitask_num)
-        self.if_render = if_render
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -102,8 +102,8 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if not multitask and self.obs_type == 'with_goal_id':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low, goal_low, np.zeros(len(tasks)))),
-                np.hstack((self.hand_high, obj_high, goal_high, np.ones(len(tasks)))),
+                np.hstack((self.hand_low, obj_low, np.zeros(len(tasks)))),
+                np.hstack((self.hand_high, obj_high, np.ones(len(tasks)))),
             )
         elif not multitask and self.obs_type == 'plain':
             self.observation_space = Box(
@@ -134,35 +134,10 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
-
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml')
-        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
-
-    def viewer_setup(self):
-        # top view
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
-        # side view
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.2
-        self.viewer.cam.lookat[1] = 0.75
-        self.viewer.cam.lookat[2] = 0.4
-        self.viewer.cam.distance = 0.4
-        self.viewer.cam.elevation = -55
-        self.viewer.cam.azimuth = 180
-        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        if self.if_render:
-            self.render()
-        # self.set_xyz_action_rot(action[:7])
         if self.rotMode == 'euler':
             action_ = np.zeros(7)
             action_[:3] = action[:3]
@@ -186,8 +161,10 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
-   
+        info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
+        info['goal'] = self._state_goal
+        return ob, reward, done, info
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
@@ -245,7 +222,6 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -256,14 +232,12 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
-
 
     def sample_goals(self, batch_size):
         #Required by HER-TD3
@@ -292,10 +266,9 @@ class SawyerPickOutOfHole6DOFEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        task = self.sample_task()
-        self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = task['obj_init_pos']
-        self.obj_init_angle = task['obj_init_angle']
+        self._state_goal = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
