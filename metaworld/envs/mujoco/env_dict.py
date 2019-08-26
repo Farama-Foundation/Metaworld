@@ -158,3 +158,43 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
     train=medium_mode_train_args_kwargs,
     test=medium_mode_test_args_kwargs,
 )
+
+
+'''
+    ML45 environments and arguments
+'''
+from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
+
+HARD_MODE_CLS_DICT = dict(train={}, test={})
+HARD_MODE_ARGS_KWARGS = dict(train={}, test={})
+_reach_push_pick_place = 0
+_reach_push_pick_place_wall = 0
+def hard_mode_args_kwargs(env_cls):
+    global _reach_push_pick_place, _reach_push_pick_place_wall
+    kwargs = dict(random_init=True, obs_type='plain')
+    if env_cls == SawyerReachPushPickPlace6DOFEnv:
+        assert _reach_push_pick_place <= 2
+        if _reach_push_pick_place == 0:
+            kwargs['task_type'] = 'reach'
+        elif _reach_push_pick_place == 1:
+            kwargs['task_type'] = 'push'
+        else:
+            kwargs['task_type'] = 'pick_place'
+        _reach_push_pick_place += 1
+    elif env_cls == SawyerReachPushPickPlaceWall6DOFEnv:
+        assert _reach_push_pick_place_wall <= 2
+        if _reach_push_pick_place_wall == 0:
+            kwargs['task_type'] = 'pick_place'
+        elif _reach_push_pick_place_wall == 1:
+            kwargs['task_type'] = 'reach'
+        else:
+            kwargs['task_type'] = 'push'
+        _reach_push_pick_place_wall += 1
+    return dict(args=[], kwargs=kwargs)
+for i, env_cls in enumerate(HARD_MODE_LIST):
+    if i <= 45:
+        HARD_MODE_CLS_DICT['train'][i] = env_cls
+        HARD_MODE_ARGS_KWARGS['train'][i] = hard_mode_args_kwargs(env_cls)
+    else:
+        HARD_MODE_CLS_DICT['test'][i] = env_cls
+        HARD_MODE_ARGS_KWARGS['test'][i] = hard_mode_args_kwargs(env_cls)
