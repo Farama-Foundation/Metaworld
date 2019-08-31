@@ -54,11 +54,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import S
 
 
 SHARE_CLS_TASKS = ['reach', 'pick_place', 'push']
-SHARE_CLS_DEFAULT_GOALS = {
-    'pick_place': np.array([0.1, 0.8, 0.2]),
-    'reach': np.array([-0.1, 0.8, 0.2]),
-    'push': np.array([0.1, 0.8, 0.02]),
-}
+
 
 EASY_MODE_CLS_DICT= {
     'reach': SawyerReachPushPickPlace6DOFEnv,
@@ -91,8 +87,6 @@ EASY_MODE_CLS_DICT= {
             t: [e.goal.copy()]
             for t, e in zip(env._task_names, env._task_envs)
         }
-        for t, g in SHARE_CLS_DEFAULT_GOALS:
-            goals_dict[t] = [g.copy()]
         env.discretize_goal_space(goals_dict)
 '''
 EASY_MODE_ARGS_KWARGS = {

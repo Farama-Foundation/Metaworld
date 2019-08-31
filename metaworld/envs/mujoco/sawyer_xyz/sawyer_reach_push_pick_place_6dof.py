@@ -50,11 +50,17 @@ class SawyerReachPushPickPlace6DOFEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
-        # By default this is pick and place goal
         # we only do one task from [pick_place, reach, push]
         # per instance of SawyerReachPushPickPlace6DOFEnv.
         # Please only set task_type from constructor.
-        self.goal = np.array([0.1, 0.8, 0.2])
+        if self.task_type == 'pick_place':
+            self.goal = np.array([0.1, 0.8, 0.2])
+        elif self.task_type == 'reach':
+            self.goal = np.array([-0.1, 0.8, 0.2])
+        elif self.task_type == 'push':
+            self.goal = np.array([0.1, 0.8, 0.02])
+        else:
+            raise NotImplementedError
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
