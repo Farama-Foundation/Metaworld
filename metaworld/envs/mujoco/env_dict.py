@@ -185,6 +185,7 @@ def hard_mode_args_kwargs(env_cls):
             kwargs['task_type'] = 'push'
         _reach_push_pick_place_wall += 1
     return dict(args=[], kwargs=kwargs)
+
 for i, env_cls in enumerate(HARD_MODE_LIST):
     if i < 45:
         HARD_MODE_CLS_DICT['train'][i] = env_cls

@@ -86,8 +86,8 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
     # and have a single task sampling API accros this repository. 
 
     def __init__(self,
-                 task_env_cls_dict=None,
-                 task_args_kwargs=None,
+                 task_env_cls_dict,
+                 task_args_kwargs,
                  sample_all=True,
                  sample_goals=False,
                  obs_type='plain',):
