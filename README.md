@@ -5,7 +5,7 @@
 Metaworld is a multitask manipulation environment that is currently under development. If you’d like to contribute to creating new environments or running algorithms on these environments, please let us know so we can coordinate efforts.
 
 # Installation
-Metaworld is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the instructions in the mujoco-py package for help. Once you're ready to install everything, clone this repository and install:
+Metaworld is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, clone this repository and install:
 
 ```
 git clone https://github.com/tianheyu927/metaworld.git
