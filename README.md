@@ -1,4 +1,5 @@
 # Metaworld
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/tianheyu927/metaworld/blob/master/LICENSE)
 
 
 Metaworld is a multitask manipulation environment that is currently under development. If you’d like to contribute to creating new environments or running algorithms on these environments, please let us know so we can coordinate efforts.
