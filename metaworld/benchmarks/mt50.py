@@ -14,10 +14,9 @@ class MT50(MultiClassMultiTaskEnv, Benchmark):
         cls_dict = {}
         args_kwargs = {}
         for k in HARD_MODE_CLS_DICT.keys():
-            for i in HARD_MODE_CLS_DICT[k].keys():
-                key = '{}-{}'.format(k, i)
-                cls_dict[key] = HARD_MODE_CLS_DICT[k][i]
-                args_kwargs[key] = HARD_MODE_ARGS_KWARGS[k][i]
+            for task in HARD_MODE_CLS_DICT[k].keys():
+                cls_dict[task] = HARD_MODE_CLS_DICT[k][task]
+                args_kwargs[task] = HARD_MODE_ARGS_KWARGS[k][task]
         assert len(cls_dict.keys()) == 50
 
         super().__init__(
