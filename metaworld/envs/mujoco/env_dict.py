@@ -128,7 +128,7 @@ MEDIUM_MODE_CLS_DICT = dict(
         'basketball': SawyerBasketball6DOFEnv,
     },
     test={
-        'drawer_close': SawyerDrawerClose6DOFEnv,
+        'drawer_open': SawyerDrawerOpen6DOFEnv,
         'door_close': SawyerDoorClose6DOFEnv,
         'shelf_place': SawyerShelfPlace6DOFEnv,
         'sweep': SawyerSweep6DOFEnv,
@@ -157,39 +157,75 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
 '''
     ML45 environments and arguments
 '''
-from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
+HARD_MODE_CLS_DICT = dict(
+    train=dict(
+        reach=SawyerReachPushPickPlace6DOFEnv,
+        push=SawyerReachPushPickPlace6DOFEnv,
+        pick_place=SawyerReachPushPickPlace6DOFEnv,
+        reach_wall=SawyerReachPushPickPlaceWall6DOFEnv,
+        pick_place_wall=SawyerReachPushPickPlaceWall6DOFEnv,
+        push_wall=SawyerReachPushPickPlaceWall6DOFEnv,
+        door_open=SawyerDoor6DOFEnv,
+        door_close=SawyerDoorClose6DOFEnv,
+        drawer_open=SawyerDrawerOpen6DOFEnv,
+        drawer_close=SawyerDrawerClose6DOFEnv,
+        button_press_topdown=SawyerButtonPressTopdown6DOFEnv,
+        button_press=SawyerButtonPress6DOFEnv,
+        button_press_topdown_wall=SawyerButtonPressTopdownWall6DOFEnv,
+        button_press_wall=SawyerButtonPressWall6DOFEnv,
+        peg_insert_side=SawyerPegInsertionSide6DOFEnv,
+        peg_unplug_side=SawyerPegUnplugSide6DOFEnv,
+        window_open=SawyerWindowOpen6DOFEnv,
+        window_close=SawyerWindowClose6DOFEnv,
+        dissassemble=SawyerNutDisassemble6DOFEnv,
+        hammer=SawyerHammer6DOFEnv,
+        plate_slide=SawyerPlateSlide6DOFEnv,
+        plate_slide_side=SawyerPlateSlideSide6DOFEnv,
+        plate_slide_back=SawyerPlateSlideBack6DOFEnv, 
+        plate_slide_back_side=SawyerPlateSlideBackSide6DOFEnv,
+        handle_press=SawyerHandlePress6DOFEnv,
+        handle_pull=SawyerHandlePull6DOFEnv,
+        handle_press_side=SawyerHandlePressSide6DOFEnv,
+        handle_pull_side=SawyerHandlePullSide6DOFEnv,
+        stick_push=SawyerStickPush6DOFEnv,
+        stick_pull=SawyerStickPull6DOFEnv,
+        basket_ball=SawyerBasketball6DOFEnv,
+        soccer=SawyerSoccer6DOFEnv,
+        faucet_open=SawyerFaucetOpen6DOFEnv,
+        faucet_close=SawyerFaucetClose6DOFEnv,
+        coffee_push=SawyerCoffeePush6DOFEnv,
+        coffee_pull=SawyerCoffeePull6DOFEnv,
+        coffee_button=SawyerCoffeeButton6DOFEnv,
+        sweep=SawyerSweep6DOFEnv,
+        sweep_into=SawyerSweepIntoGoal6DOFEnv,
+        pick_out_of_hole=SawyerPickOutOfHole6DOFEnv,
+        assembly=SawyerNutAssembly6DOFEnv,
+        shelf_place=SawyerShelfPlace6DOFEnv,
+        push_back=SawyerPushBack6DOFEnv,
+        lever_pull=SawyerLeverPull6DOFEnv,
+        dial_turn=SawyerDialTurn6DOFEnv,),
+    test=dict(
+        bin_picking=SawyerBinPicking6DOFEnv,
+        box_close=SawyerBoxClose6DOFEnv,
+        hand_insert=SawyerHandInsert6DOFEnv,
+        door_lock=SawyerDoorLock6DOFEnv,
+        door_unlock=SawyerDoorUnlock6DOFEnv,),
+)
 
-HARD_MODE_CLS_DICT = dict(train={}, test={})
-HARD_MODE_ARGS_KWARGS = dict(train={}, test={})
-_reach_push_pick_place = 0
-_reach_push_pick_place_wall = 0
-def hard_mode_args_kwargs(env_cls):
-    global _reach_push_pick_place, _reach_push_pick_place_wall
+
+def _hard_mode_args_kwargs(env_cls, key):
     kwargs = dict(random_init=True, obs_type='plain')
-    if env_cls == SawyerReachPushPickPlace6DOFEnv:
-        assert _reach_push_pick_place <= 2
-        if _reach_push_pick_place == 0:
-            kwargs['task_type'] = 'reach'
-        elif _reach_push_pick_place == 1:
-            kwargs['task_type'] = 'push'
-        else:
-            kwargs['task_type'] = 'pick_place'
-        _reach_push_pick_place += 1
-    elif env_cls == SawyerReachPushPickPlaceWall6DOFEnv:
-        assert _reach_push_pick_place_wall <= 2
-        if _reach_push_pick_place_wall == 0:
-            kwargs['task_type'] = 'pick_place'
-        elif _reach_push_pick_place_wall == 1:
-            kwargs['task_type'] = 'reach'
-        else:
-            kwargs['task_type'] = 'push'
-        _reach_push_pick_place_wall += 1
+    if key == 'reach' or key == 'reach_wall':
+        kwargs['task_type'] = 'reach'
+    elif key == 'push' or key == 'push_wall':
+        kwargs['task_type'] = 'push'
+    elif key == 'pick_place' or key == 'pick_place_wall':
+        kwargs['task_type'] = 'pick_place'
     return dict(args=[], kwargs=kwargs)
 
-for i, env_cls in enumerate(HARD_MODE_LIST):
-    if i < 45:
-        HARD_MODE_CLS_DICT['train'][i] = env_cls
-        HARD_MODE_ARGS_KWARGS['train'][i] = hard_mode_args_kwargs(env_cls)
-    else:
-        HARD_MODE_CLS_DICT['test'][i] = env_cls
-        HARD_MODE_ARGS_KWARGS['test'][i] = hard_mode_args_kwargs(env_cls)
+
+HARD_MODE_ARGS_KWARGS = dict(train={}, test={})
+for key, env_cls in HARD_MODE_CLS_DICT['train'].items():
+    HARD_MODE_ARGS_KWARGS['train'][key] = _hard_mode_args_kwargs(env_cls, key)
+for key, env_cls in HARD_MODE_CLS_DICT['test'].items():
+    HARD_MODE_ARGS_KWARGS['test'][key] = _hard_mode_args_kwargs(env_cls, key)
