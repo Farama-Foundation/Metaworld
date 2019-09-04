@@ -112,12 +112,12 @@ If you use Meta-World for your academic research, please kindly cite Meta-World 
 ```
 @misc{yu2018,
   Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Sergey Levine and Chelsea Finn},
-  Title = {Meta-World: A Benchmark and Evaluation for Multi-Task and Meta- Reinforcement Learning},
+  Title = {Meta-World: A Benchmark and Evaluation for Multi-Task and Meta-Reinforcement Learning},
   Year = {2019},
   url = "https://corl2019metaworld.github.io/"
 }
 ```
-Meta-World is originally based on [multiworld](https://github.com/vitchyr/multiworld), which is developed by [Vitchyr H. Pong](https://people.eecs.berkeley.edu/~vitchyr/), Russell Mendonca and [Ashvin Nair](http://ashvin.me/). The Meta-World authors are grateful for their effort on providing such a great framework as a foundation of our work.
+Meta-World is originally based on [multiworld](https://github.com/vitchyr/multiworld), which is developed by [Vitchyr H. Pong](https://people.eecs.berkeley.edu/~vitchyr/), Russell Mendonca and [Ashvin Nair](http://ashvin.me/). The Meta-World authors are grateful for their efforts on providing such a great framework as a foundation of our work.
 
 ## Contributing to Meta-World
-Please refer to our [contribution document]() as a guideline for contributing to Meta-World.
+We welcome all contributions to Meta-World. Please refer to our [contribution document]() as a guideline for contributing.
