@@ -2,9 +2,9 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/tianheyu927/metaworld/blob/master/LICENSE)
 [![Build Status](https://travis-ci.com/ryanjulian/metaworld.svg?token=5Ha2ycwuRnc34dpruRpP&branch=master)](https://travis-ci.com/ryanjulian/metaworld)
 
-__Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently board to evaluate meta-RL algorithms' generalization ability to new behaviors.
+__Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently broad to evaluate meta-RL algorithms' generalization ability to new behaviors.
 
-For more information, please refer to our [website](corl2019metaworld.github.io).
+For more information, please refer to our [website](https://corl2019metaworld.github.io).
 
 __Table of Contents of This Document__
 * [Installation](#installation)
@@ -13,7 +13,7 @@ __Table of Contents of This Document__
   * [Running ML1](#running-ml1)
   * [Running ML10, ML45](#running-ml10-and-ml45)
   * [Running MT10, MT50](#running-mt10-and-mt50)
-  * [Running Single Task Environments](#running-single-task-environments)
+  * [Running Single-Task Environments](#running-single-task-environments)
 * [Contributors and Acknowledgement](#contributors-and-acknowledgement)
 * [Contributing to Meta-World](#contributing-to-meta-world)
 
@@ -27,17 +27,17 @@ pip install -e .
 ```
 
 ## Using the benchmark
-Here is a list of benchmark environments for meta-RL (ML*) and multitask-RL (MT*):
-* __ML1__ is a meta-RL benchmark environment to test few-shot adaptation to goal variation within one task. You can choose the task from [50 available tasks](#).
-* __ML10__ is a meta-RL benchmark environment to test few-shot adaptation to [new tasks](#) with [10 meta-train tasks](#).
-* __ML45__ is a meta-RL benchmark environment to test few-shot adaptation to [new tasks](#) with [45 meta-train tasks](#).
-* __MT10__, __MT50__ are a multitask-RL benchmark environments for learning a multi-task policy that generalize to [10]() and [50 training tasks](#). The observation of MT10 and MT50 is augmented with an one-hot vector to provide information of task identities.
+Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):
+* __ML1__ is a meta-RL benchmark environment to test few-shot adaptation to goal variation within one task. You can choose a task from [50 available tasks](#).
+* __ML10__ is a meta-RL benchmark environment to test few-shot adaptation to new tasks with [10 meta-train tasks](#) and [3 test tasks]().
+* __ML45__ is a meta-RL benchmark environment to test few-shot adaptation to new tasks with [45 meta-train tasks](#) and [5 test tasks]().
+* __MT10__, __MT50__ are a multi-task-RL benchmark environments for learning a multi-task policy that perform [10]() and [50 training tasks](#). The observation of MT10 and MT50 is augmented with an one-hot vector to provide information of task identities.
 
 
 ### Basics
-We provide two extra API's to extend a [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface for meta-RL and multitask-RL:
+We provide two extra API's to extend a [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface for meta-RL and multi-task-RL:
 * sample_tasks(self, meta_batch_size): Return a list of tasks with a length of `meta_batch_size`.
-* set_task(self, task): Set the task of a multitask environment.
+* set_task(self, task): Set the task of a multi-task environment.
 
 
 ### Running ML1
@@ -52,32 +52,20 @@ tasks = env.sample_tasks(1)  # Sample a task (in this case, a goal variation)
 env.set_task(tasks[0])  # Set task
 
 obs = env.reset()  # Reset environment
-a = env.action_space.sample()  # Sample an acion
+a = env.action_space.sample()  # Sample an action
 obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
-or, alternatively you can also create an environment like this:
-```
-env = ML1(task_name='pick_place', env_type='train')
-```
-
 ### Running ML10 and ML45
 Create an environment with train tasks:
 ```
 from metaworld.benchmarks import ML10
 ml10_train_env = ML10.get_train_tasks()
 ```
-or
-```
-ml10_train_env = ML10(env_type='train')
-```
 Create an environment with test tasks:
 ```
 ml10_test_env = ML10.get_test_tasks()
 ```
-or
-```
-ml10_test_env = ML10(env_type='test')
-```
+
 
 ### Running MT10 and MT50
 Create an environment with train tasks:
@@ -85,20 +73,14 @@ Create an environment with train tasks:
 from metaworld.benchmarks import MT10
 mt10_train_env = MT10.get_train_tasks()
 ```
-or
-```
-mt10_train_env = MT10(env_type='train')
-```
-Create an environment with test tasks (noted that the train tasks and tests task for multitask (MT) environments are the same):
+
+Create an environment with test tasks (noted that the train tasks and tests task for multi-task (MT) environments are the same):
 ```
 mt10_test_env = MT10.get_test_tasks()
 ```
-or
-```
-mt10_test_env = MT10(env_type='test')
-```
 
-### Running Single Task Environments
+
+### Running Single-Task Environments
 Meta-World can also be used as a normal `gym.Env` for single task benchmarking. Here is an example of creating a `pick_place` environoment:
 ```
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlace6DOFEnv
@@ -111,14 +93,14 @@ Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.ed
 If you use Meta-World for your academic research, please kindly cite Meta-World with the following BibTeX:
 
 ```
-@misc{yu2018,
+@misc{yu2019,
   Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Sergey Levine and Chelsea Finn},
   Title = {Meta-World: A Benchmark and Evaluation for Multi-Task and Meta-Reinforcement Learning},
   Year = {2019},
   url = "https://corl2019metaworld.github.io/"
 }
 ```
-Meta-World is originally based on [multiworld](https://github.com/vitchyr/multiworld), which is developed by [Vitchyr H. Pong](https://people.eecs.berkeley.edu/~vitchyr/), Russell Mendonca and [Ashvin Nair](http://ashvin.me/). The Meta-World authors are grateful for their efforts on providing such a great framework as a foundation of our work.
+Meta-World is originally based on [multiworld](https://github.com/vitchyr/multiworld), which is developed by [Vitchyr H. Pong](https://people.eecs.berkeley.edu/~vitchyr/), [Murtaza Dalal](https://github.com/mdalal2020), [Ashvin Nair](http://ashvin.me/), [Shikhar Bahl](https://shikharbahl.github.io), [Steven Lin](https://github.com/stevenlin1111), [Soroush Nasiriany](http://snasiriany.me/), [Kristian Hartikainen](https://hartikainen.github.io/) and [Coline Devin](https://github.com/cdevin). The Meta-World authors are grateful for their efforts on providing such a great framework as a foundation of our work. We also would like to thank Russell Mendonca for his work on reward functions for some of the environments.
 
 ## Contributing to Meta-World
 We welcome all contributions to Meta-World. Please refer to our [contribution document]() as a guideline for contributing.
