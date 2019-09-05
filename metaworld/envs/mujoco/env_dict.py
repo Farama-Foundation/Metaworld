@@ -81,7 +81,7 @@ EASY_MODE_CLS_DICT= {
             task_env_cls_dict=EASY_MODE_CLS_DICT,
             task_args_kwargs=EASY_MODE_ARGS_KWARGS,
             sample_goals=False,
-            obs_type='with_goal_idx',
+            obs_type='with_goal_id',
         )
         goals_dict = {
             t: [e.goal.copy()]

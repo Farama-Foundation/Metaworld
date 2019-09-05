@@ -183,13 +183,13 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
                 return Box(
                     high=np.concatenate([plain_high, goal_high]),
                     low=np.concatenate([plain_low, goal_low]))
-            elif self._obs_type == 'with_goal_idx' and self._fully_discretized:
+            elif self._obs_type == 'with_goal_id' and self._fully_discretized:
                 goal_id_low = np.zeros(shape=(self._n_discrete_goals,))
                 goal_id_high = np.ones(shape=(self._n_discrete_goals,))
                 return Box(
                     high=np.concatenate([plain_high, goal_id_low,]),
                     low=np.concatenate([plain_low, goal_id_high,]))
-            elif self._obs_type == 'with_goal_and_idx' and self._fully_discretized:
+            elif self._obs_type == 'with_goal_and_id' and self._fully_discretized:
                 goal_id_low = np.zeros(shape=(self._n_discrete_goals,))
                 goal_id_high = np.ones(shape=(self._n_discrete_goals,))
                 return Box(
@@ -248,13 +248,13 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             obs = np.concatenate([obs, zeros])
 
         # augment the observation based on obs_type:
-        if self._obs_type == 'with_goal_idx' or self._obs_type == 'with_goal_and_idx':
+        if self._obs_type == 'with_goal_id' or self._obs_type == 'with_goal_and_id':
+            if self._obs_type == 'with_goal_and_id':
+                obs = np.concatenate([obs, self.active_env._state_goal])
             task_id = self._env_discrete_index[self._task_names[self.active_task]] + (self.active_env.active_discrete_goal or 0)
             task_onehot = np.zeros(shape=(self._n_discrete_goals,), dtype=np.float32)
             task_onehot[task_id] = 1.
             obs = np.concatenate([obs, task_onehot])
-            if self._obs_type == 'with_goal_and_idx':
-                obs = np.concatenate([obs, self.active_env._state_goal])
         elif self._obs_type == 'with_goal':
             obs = np.concatenate([obs, self.active_env._state_goal])
         return obs

@@ -16,7 +16,7 @@ def test_single_env_multi_goals_discrete(env_cls):
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=True,
-        obs_type='with_goal_idx'
+        obs_type='with_goal_id'
     )
     goals = multi_task_env.active_env.sample_goals_(2)
     assert len(goals) == 2
@@ -54,7 +54,7 @@ def test_multienv_multigoals_fully_discretized(env_list):
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=True,
-        obs_type='with_goal_and_idx',
+        obs_type='with_goal_and_id',
         sample_all=False,
     )
     goals_dict = dict()
@@ -80,7 +80,7 @@ def test_multienv_multigoals_fully_discretized(env_list):
     task_name = multi_task_env._task_names[tasks_with_goals[0]['task']]
     goal = tasks_with_goals[0]['goal']
     plain_dim = multi_task_env._max_plain_dim
-    task_start_index = multi_task_env._env_discrete_index[task_name]
+    task_start_index = multi_task_env._env_discrete_index[task_name] + multi_task_env.active_env._state_goal.shape[0]
 
     assert reset_obs[plain_dim:][task_start_index + goal] == 1, reset_obs
     assert step_obs[plain_dim:][task_start_index + goal] == 1, step_obs
@@ -102,7 +102,7 @@ def test_multienv_single_goal(env_list):
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=False,
-        obs_type='with_goal_and_idx',
+        obs_type='with_goal_and_id',
         sample_all=True,
     )
     assert multi_task_env._fully_discretized
@@ -130,7 +130,7 @@ def test_multitask_env_images(env_list):
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=False,
-        obs_type='with_goal_and_idx',
+        obs_type='with_goal_and_id',
         sample_all=True,
     )
     assert multi_task_env._fully_discretized
@@ -156,7 +156,7 @@ def test_reach_push_pick_place(env_cls):
     multi_task_env = MultiClassMultiTaskEnv(
         task_env_cls_dict=env_dict,
         task_args_kwargs=env_args_kwargs,
-        obs_type='with_goal_idx',
+        obs_type='with_goal_id',
         sample_goals=True,  # Each environment should still sample only
                             # one goal since each of them is discrete goal
                             # space and contains only one goal.
