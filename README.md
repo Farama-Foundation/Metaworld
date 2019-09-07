@@ -4,7 +4,7 @@
 
 __Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently broad to evaluate meta-RL algorithms' generalization ability to new behaviors.
 
-For more information, please refer to our [website](https://corl2019metaworld.github.io).
+For more information, please refer to our [website](https://meta-world.github.io).
 
 __Table of Contents of This Document__
 * [Installation](#installation)
@@ -28,16 +28,16 @@ pip install -e .
 
 ## Using the benchmark
 Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):
-* __ML1__ is a meta-RL benchmark environment to test few-shot adaptation to goal variation within one task. You can choose a task from [50 available tasks](#).
-* __ML10__ is a meta-RL benchmark environment to test few-shot adaptation to new tasks with [10 meta-train tasks](#) and [3 test tasks]().
-* __ML45__ is a meta-RL benchmark environment to test few-shot adaptation to new tasks with [45 meta-train tasks](#) and [5 test tasks]().
-* __MT10__, __MT50__ are a multi-task-RL benchmark environments for learning a multi-task policy that perform [10]() and [50 training tasks](#). The observation of MT10 and MT50 is augmented with an one-hot vector to provide information of task identities.
+* [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment to test few-shot adaptation to goal variation within one task. You can choose a task from [50 available tasks](https://meta-world.github.io/figures/ml45-1080p.gif).
+* [__ML10__](https://meta-world.github.io/figures/ml10.gif) is a meta-RL benchmark environment to test few-shot adaptation to new tasks with 10 meta-train tasks and 3 test tasks.
+* [__ML45__](https://meta-world.github.io/figures/ml45-1080p.gif) is a meta-RL benchmark environment to test few-shot adaptation to new tasks with 45 meta-train tasks and 5 test tasks.
+* [__MT10__](https://meta-world.github.io/figures/mt10.gif), __MT50__ are a multi-task-RL benchmark environments for learning a multi-task policy that perform 10 and 50 training tasks. The observation of MT10 and MT50 is augmented with an one-hot vector to provide information of task identities.
 
 
 ### Basics
 We provide two extra API's to extend a [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface for meta-RL and multi-task-RL:
-* sample_tasks(self, meta_batch_size): Return a list of tasks with a length of `meta_batch_size`.
-* set_task(self, task): Set the task of a multi-task environment.
+* `sample_tasks(self, meta_batch_size)`: Return a list of tasks with a length of `meta_batch_size`.
+* `set_task(self, task)`: Set the task of a multi-task environment.
 
 
 ### Running ML1
@@ -74,7 +74,7 @@ from metaworld.benchmarks import MT10
 mt10_train_env = MT10.get_train_tasks()
 ```
 
-Create an environment with test tasks (noted that the train tasks and tests task for multi-task (MT) environments are the same):
+Create an environment with test tasks (noted that the train tasks and test tasks for multi-task (MT) environments are the same):
 ```
 mt10_test_env = MT10.get_test_tasks()
 ```
