@@ -12,21 +12,26 @@ from pyquaternion import Quaternion
 from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
-class SawyerSoccerEnv(SawyerXYZEnv):
+class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
             obs_type='plain',
-            goal_low=(-0.1, 0.8, 0.03),
-            goal_high=(0.1, 0.9, 0.03),
+            task_types=['pick_place', 'reach', 'push'],
+            task_type='pick_place',
+            goal_low=(-0.05, 0.85, 0.05),
+            goal_high=(0.05, 0.9, 0.3),
+            liftThresh = 0.04,
+            sampleMode='equal',
+            rewMode = 'orig',
             rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
         hand_low=(-0.5, 0.40, 0.05)
         hand_high=(0.5, 1, 0.5)
-        obj_low=(-0.1, 0.6, 0.03)
-        obj_high=(0.1, 0.7, 0.03)
+        obj_low=(-0.05, 0.6, 0.015)
+        obj_high=(0.05, 0.65, 0.015)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -36,14 +41,25 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
+        self.task_type = task_type
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.6, 0.03]),
-            'obj_init_angle': 0.3,
-            'hand_init_pos': np.array([0., .6, .2]),
+            'obj_init_angle': .3,
+            'obj_init_pos': np.array([0, 0.6, 0.02]),
+            'hand_init_pos': np.array([0, .6, .2]),
         }
-        self.goal = np.array([0., 0.9, 0.03])
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        # we only do one task from [pick_place, reach, push]
+        # per instance of SawyerReachPushPickPlaceEnv.
+        # Please only set task_type from constructor.
+        if self.task_type == 'pick_place':
+            self.goal = np.array([0.05, 0.8, 0.2])
+        elif self.task_type == 'reach':
+            self.goal = np.array([-0.05, 0.8, 0.2])
+        elif self.task_type == 'push':
+            self.goal = np.array([0.05, 0.8, 0.015])
+        else:
+            raise NotImplementedError
         self.obj_init_angle = self.init_config['obj_init_angle']
+        self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
@@ -56,8 +72,12 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.random_init = random_init
+        self.liftThresh = liftThresh
         self.max_path_length = 150
+        self.rewMode = rewMode
         self.rotMode = rotMode
+        self.sampleMode = sampleMode
+        self.task_types = task_types
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -96,6 +116,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             )
         else:
             raise NotImplementedError
+        self.num_resets = 0
         self.reset()
 
     def get_goal(self):
@@ -105,7 +126,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_soccer.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_reach_push_pick_and_place_wall.xml')
 
     def step(self, action):
         if self.rotMode == 'euler':
@@ -124,17 +145,21 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachDist, pushDist = self.compute_reward(action, obs_dict)
+        reward , reachRew, reachDist, pushRew, pushDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode=self.rewMode, task_type=self.task_type)
         self.curr_path_length +=1
-        #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.07)}
+        goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
+        if self.task_type == 'reach':
+            success = float(reachDist <= 0.05)
+        else:
+            success = float(goal_dist <= 0.07)
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
         info['goal'] = self._state_goal
         return ob, reward, done, info
-
+   
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
@@ -173,9 +198,14 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
+        self.data.site_xpos[self.model.site_name2id('goal_{}'.format(self.task_type))] = (
             goal[:3]
         )
+        for task_type in self.task_types:
+            if task_type != self.task_type:
+                self.data.site_xpos[self.model.site_name2id('goal_{}'.format(task_type))] = (
+                    np.array([10.0, 10.0, 10.0])
+                )
 
     def _set_objCOM_marker(self):
         """
@@ -186,6 +216,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
+    
 
     def _set_obj_xyz_quat(self, pos, angle):
         quat = Quaternion(axis = [0,0,1], angle = angle).elements
@@ -195,6 +226,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         qpos[12:16] = quat.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
+
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -218,6 +250,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
             goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
@@ -232,13 +265,28 @@ class SawyerSoccerEnv(SawyerXYZEnv):
                     size=(self.obj_and_goal_space.low.size),
                 )
                 self._state_goal = goal_pos[3:]
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('goal_whole')] = self._state_goal
+            if self.task_type == 'push':
+                self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            else:
+                self._state_goal = goal_pos[-3:]
+                self.obj_init_pos = goal_pos[:3]
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
-        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
+        self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
+        if self.task_type == 'pick_place':
+            idx = 0
+        elif self.task_type == 'reach':
+            idx = 1
+        else:
+            idx = 2
+        
+        self.target_reward = self.target_rewards[idx]
+        self.num_resets += 1
         return self._get_obs()
 
     def _reset_hand(self):
@@ -249,7 +297,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             #self.do_simulation(None, self.frame_skip)
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
+        self.pickCompleted = False
 
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -259,10 +307,10 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         #Required by HER-TD3
         assert isinstance(obsBatch, dict) == True
         obsList = obsBatch['state_observation']
-        rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
+        rewards = [self.compute_reward(action, obs, task_type=self.task_type)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(self, actions, obs, mode = 'general', task_type='reach'):
         if isinstance(obs, dict):
             obs = obs['state_observation']
 
@@ -271,32 +319,127 @@ class SawyerSoccerEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
+        heightTarget = self.heightTarget
         goal = self._state_goal
 
-        c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-        assert np.all(goal == self.get_site_pos('goal'))
-        reachDist = np.linalg.norm(fingerCOM - objPos)
-        pushDist = np.linalg.norm(objPos[:2] - goal[:2])
-        reachRew = -reachDist
+        def compute_reward_reach(actions, obs, mode):
+            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+            reachDist = np.linalg.norm(fingerCOM - goal)
+            # reachRew = -reachDist
+            # if reachDist < 0.1:
+            #     reachNearRew = 1000*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
+            # else:
+            #     reachNearRew = 0.
+            reachRew = c1*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
+            reachRew = max(reachRew, 0)
+            # reachNearRew = max(reachNearRew,0)
+            # reachRew = -reachDist
+            reward = reachRew# + reachNearRew
+            return [reward, reachRew, reachDist, None, None, None, None, None]
 
-        def reachCompleted():
+        def compute_reward_push(actions, obs, mode):
+            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+            assert np.all(goal == self.get_site_pos('goal_push'))
+            reachDist = np.linalg.norm(fingerCOM - objPos)
+            pushDist = np.linalg.norm(objPos[:2] - goal[:2])
+            reachRew = -reachDist
             if reachDist < 0.05:
-                return True
+                # pushRew = -pushDist
+                pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
+                pushRew = max(pushRew, 0)
             else:
-                return False
+                pushRew = 0
+            reward = reachRew + pushRew
+            return [reward, reachRew, reachDist, pushRew, pushDist, None, None, None]
 
-        if reachCompleted():
-            self.reachCompleted = True
+        def compute_reward_pick_place(actions, obs, mode):
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+            placingDist = np.linalg.norm(objPos - goal)
+            assert np.all(goal == self.get_site_pos('goal_pick_place'))
 
-        if self.reachCompleted:
-            # pushRew = -pushDist
-            pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
-            pushRew = max(pushRew, 0)
+            def reachReward():
+                reachRew = -reachDist# + min(actions[-1], -1)/50
+                reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+                zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+                if reachDistxy < 0.05: #0.02
+                    reachRew = -reachDist
+                else:
+                    reachRew =  -reachDistxy - 2*zRew
+                #incentive to close fingers when reachDist is small
+                if reachDist < 0.05:
+                    reachRew = -reachDist + max(actions[-1],0)/50
+                return reachRew , reachDist
+
+            def pickCompletionCriteria():
+                tolerance = 0.01
+                if objPos[2] >= (heightTarget- tolerance):
+                    return True
+                else:
+                    return False
+
+            if pickCompletionCriteria():
+                self.pickCompleted = True
+
+
+            def objDropped():
+                return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+                # Object on the ground, far away from the goal, and from the gripper
+                #Can tweak the margin limits
+           
+            def objGrasped(thresh = 0):
+                sensorData = self.data.sensordata
+                return (sensorData[0]>thresh) and (sensorData[1]> thresh)
+
+            def orig_pickReward():       
+                # hScale = 50
+                hScale = 100
+                # hScale = 1000
+                if self.pickCompleted and not(objDropped()):
+                    return hScale*heightTarget
+                # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
+                elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
+                    return hScale* min(heightTarget, objPos[2])
+                else:
+                    return 0
+
+            def general_pickReward():
+                hScale = 50
+                if self.pickCompleted and objGrasped():
+                    return hScale*heightTarget
+                elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
+                    return hScale* min(heightTarget, objPos[2])
+                else:
+                    return 0
+
+            def placeReward():
+                # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
+                c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+                if mode == 'general':
+                    cond = self.pickCompleted and objGrasped()
+                else:
+                    cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
+                if cond:
+                    placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+                    placeRew = max(placeRew,0)
+                    return [placeRew , placingDist]
+                else:
+                    return [0 , placingDist]
+
+            reachRew, reachDist = reachReward()
+            if mode == 'general':
+                pickRew = general_pickReward()
+            else:
+                pickRew = orig_pickReward()
+            placeRew , placingDist = placeReward()
+            assert ((placeRew >=0) and (pickRew>=0))
+            reward = reachRew + pickRew + placeRew
+            return [reward, reachRew, reachDist, None, None, pickRew, placeRew, placingDist]
+        if task_type == 'reach':
+            return compute_reward_reach(actions, obs, mode)
+        elif task_type == 'push':
+            return compute_reward_push(actions, obs, mode)
         else:
-            pushRew = 0
-        reward = reachRew + pushRew
-        return [reward, reachDist, pushDist]
-
+            return compute_reward_pick_place(actions, obs, mode)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

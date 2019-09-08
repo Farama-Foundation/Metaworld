@@ -2,163 +2,163 @@
 This file provide lists of environment for multitask learning.
 '''
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_6dof import SawyerNutAssembly6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweep6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_6dof import SawyerWindowOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer_6dof import SawyerHammer6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_6dof import SawyerWindowClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTurn6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_6dof import SawyerDrawerOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_6dof import SawyerButtonPressTopdown6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_6dof import SawyerBinPicking6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_6dof import SawyerButtonPress6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_6dof import SawyerShelfPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoal6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button_6dof import SawyerCoffeeButton6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_6dof import SawyerCoffeePush6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull_6dof import SawyerCoffeePull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_6dof import SawyerPegUnplugSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccer6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketball6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall_6dof import SawyerReachPushPickPlaceWall6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back_6dof import SawyerPushBack6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHole6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof import SawyerShelfRemove6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_6dof import SawyerNutDisassemble6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLock6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepTool6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_6dof import SawyerButtonPressWall6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_6dof import SawyerButtonPressTopdownWall6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_6dof import SawyerHandlePress6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_6dof import SawyerHandlePull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_6dof import SawyerHandlePressSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side_6dof import SawyerHandlePullSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_6dof import SawyerPlateSlide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_6dof import SawyerPlateSlideBack6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side_6dof import SawyerPlateSlideSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import SawyerPlateSlideBackSide6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeButtonEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push import SawyerCoffeePushEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull import SawyerCoffeePullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove import SawyerShelfRemoveEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLockEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlockEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepToolEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall import SawyerButtonPressWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall import SawyerButtonPressTopdownWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull import SawyerHandlePullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
 
 
 # easy mode for CoRL
 EASY_MODE_LIST = [
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerDoor6DOFEnv,
-    SawyerDrawerOpen6DOFEnv,
-    SawyerDrawerClose6DOFEnv,
-    SawyerButtonPressTopdown6DOFEnv,
-    SawyerPegInsertionSide6DOFEnv,
-    SawyerWindowOpen6DOFEnv,
-    SawyerWindowClose6DOFEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerDoorEnv,
+    SawyerDrawerOpenEnv,
+    SawyerDrawerCloseEnv,
+    SawyerButtonPressTopdownEnv,
+    SawyerPegInsertionSideEnv,
+    SawyerWindowOpenEnv,
+    SawyerWindowCloseEnv,
 ]
 
 MEDIUM_TRAIN_LIST = [
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerDoor6DOFEnv,
-    SawyerDrawerClose6DOFEnv,
-    SawyerButtonPressTopdown6DOFEnv,
-    SawyerPegInsertionSide6DOFEnv,
-    SawyerWindowOpen6DOFEnv,
-    SawyerSweep6DOFEnv,
-    SawyerBasketball6DOFEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerDoorEnv,
+    SawyerDrawerCloseEnv,
+    SawyerButtonPressTopdownEnv,
+    SawyerPegInsertionSideEnv,
+    SawyerWindowOpenEnv,
+    SawyerSweepEnv,
+    SawyerBasketballEnv,
 ]
 
 
 MEDIUM_TRAIN_AND_TEST_LIST = [
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerDoor6DOFEnv,
-    SawyerDrawerClose6DOFEnv,
-    SawyerButtonPressTopdown6DOFEnv,
-    SawyerPegInsertionSide6DOFEnv,
-    SawyerWindowOpen6DOFEnv,
-    SawyerSweep6DOFEnv,
-    SawyerBasketball6DOFEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerDoorEnv,
+    SawyerDrawerCloseEnv,
+    SawyerButtonPressTopdownEnv,
+    SawyerPegInsertionSideEnv,
+    SawyerWindowOpenEnv,
+    SawyerSweepEnv,
+    SawyerBasketballEnv,
     #Test
-    SawyerDrawerClose6DOFEnv,
-    SawyerDoorClose6DOFEnv,
-    SawyerShelfPlace6DOFEnv,
-    SawyerSweep6DOFEnv,
-    SawyerLeverPull6DOFEnv
+    SawyerDrawerCloseEnv,
+    SawyerDoorCloseEnv,
+    SawyerShelfPlaceEnv,
+    SawyerSweepEnv,
+    SawyerLeverPullEnv
 ]
 
 GRAD_MODE_LIST = [
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
 ]
 
 # hard mode for CoRL
 HARD_MODE_LIST = [
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlace6DOFEnv,
-    SawyerReachPushPickPlaceWall6DOFEnv,
-    SawyerReachPushPickPlaceWall6DOFEnv,
-    SawyerReachPushPickPlaceWall6DOFEnv,
-    SawyerDoor6DOFEnv,
-    SawyerDoorClose6DOFEnv,
-    SawyerDrawerOpen6DOFEnv,
-    SawyerDrawerClose6DOFEnv,
-    SawyerButtonPressTopdown6DOFEnv,
-    SawyerButtonPress6DOFEnv,
-    SawyerButtonPressTopdownWall6DOFEnv,
-    SawyerButtonPressWall6DOFEnv,
-    SawyerPegInsertionSide6DOFEnv,
-    SawyerPegUnplugSide6DOFEnv,
-    SawyerWindowOpen6DOFEnv,
-    SawyerWindowClose6DOFEnv,
-    SawyerNutDisassemble6DOFEnv,
-    SawyerHammer6DOFEnv,
-    SawyerPlateSlide6DOFEnv,
-    SawyerPlateSlideSide6DOFEnv,
-    SawyerPlateSlideBack6DOFEnv, 
-    SawyerPlateSlideBackSide6DOFEnv,
-    SawyerHandlePress6DOFEnv,
-    SawyerHandlePull6DOFEnv,
-    SawyerHandlePressSide6DOFEnv,
-    SawyerHandlePullSide6DOFEnv,
-    SawyerStickPush6DOFEnv,
-    SawyerStickPull6DOFEnv,
-    SawyerBasketball6DOFEnv,
-    SawyerSoccer6DOFEnv,
-    SawyerFaucetOpen6DOFEnv,
-    SawyerFaucetClose6DOFEnv,
-    SawyerCoffeePush6DOFEnv,
-    SawyerCoffeePull6DOFEnv,
-    SawyerCoffeeButton6DOFEnv,
-    SawyerSweep6DOFEnv,
-    SawyerSweepIntoGoal6DOFEnv,
-    SawyerPickOutOfHole6DOFEnv,
-    SawyerNutAssembly6DOFEnv,
-    SawyerShelfPlace6DOFEnv,
-    SawyerPushBack6DOFEnv,
-    SawyerLeverPull6DOFEnv,
-    SawyerDialTurn6DOFEnv,
-    SawyerBinPicking6DOFEnv,
-    SawyerBoxClose6DOFEnv,
-    SawyerHandInsert6DOFEnv,
-    SawyerDoorLock6DOFEnv,
-    SawyerDoorUnlock6DOFEnv
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceEnv,
+    SawyerReachPushPickPlaceWallEnv,
+    SawyerReachPushPickPlaceWallEnv,
+    SawyerReachPushPickPlaceWallEnv,
+    SawyerDoorEnv,
+    SawyerDoorCloseEnv,
+    SawyerDrawerOpenEnv,
+    SawyerDrawerCloseEnv,
+    SawyerButtonPressTopdownEnv,
+    SawyerButtonPressEnv,
+    SawyerButtonPressTopdownWallEnv,
+    SawyerButtonPressWallEnv,
+    SawyerPegInsertionSideEnv,
+    SawyerPegUnplugSideEnv,
+    SawyerWindowOpenEnv,
+    SawyerWindowCloseEnv,
+    SawyerNutDisassembleEnv,
+    SawyerHammerEnv,
+    SawyerPlateSlideEnv,
+    SawyerPlateSlideSideEnv,
+    SawyerPlateSlideBackEnv, 
+    SawyerPlateSlideBackSideEnv,
+    SawyerHandlePressEnv,
+    SawyerHandlePullEnv,
+    SawyerHandlePressSideEnv,
+    SawyerHandlePullSideEnv,
+    SawyerStickPushEnv,
+    SawyerStickPullEnv,
+    SawyerBasketballEnv,
+    SawyerSoccerEnv,
+    SawyerFaucetOpenEnv,
+    SawyerFaucetCloseEnv,
+    SawyerCoffeePushEnv,
+    SawyerCoffeePullEnv,
+    SawyerCoffeeButtonEnv,
+    SawyerSweepEnv,
+    SawyerSweepIntoGoalEnv,
+    SawyerPickOutOfHoleEnv,
+    SawyerNutAssemblyEnv,
+    SawyerShelfPlaceEnv,
+    SawyerPushBackEnv,
+    SawyerLeverPullEnv,
+    SawyerDialTurnEnv,
+    SawyerBinPickingEnv,
+    SawyerBoxCloseEnv,
+    SawyerHandInsertEnv,
+    SawyerDoorLockEnv,
+    SawyerDoorUnlockEnv
 ]
 
 

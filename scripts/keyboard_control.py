@@ -76,7 +76,7 @@ import pygame
 # )
 # env = SawyerSweepEnv()
 # env = SawyerSweepIntoGoalEnv()
-env = SawyerBoxClose6DOFEnv(random_init=True)
+env = SawyerBoxCloseEnv(random_init=True)
 NDIM = env.action_space.low.size
 lock_action = False
 random_action = False

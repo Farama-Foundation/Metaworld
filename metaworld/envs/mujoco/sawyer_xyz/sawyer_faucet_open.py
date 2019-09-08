@@ -13,7 +13,7 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 
-class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
+class SawyerFaucetOpenEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
@@ -314,21 +314,3 @@ class SawyerFaucetOpen6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':  
-    import time 
-    env = SawyerFaucetOpen6DOFEnv()    
-    for _ in range(1000):   
-        env.reset()
-        # env._set_obj_xyz(1.5708*2)
-        for _ in range(10):
-            env.data.set_mocap_pos('mocap', np.array([-0.15, 0.7, 0.115]))
-            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            env.do_simulation([-1,1], env.frame_skip)
-        for _ in range(100): 
-            env.render()
-            # env.step(env.action_space.sample()) 
-            env.step(np.array([1., 0., 0., 1.])) 
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))    
-            time.sleep(0.05)
-        print(np.linalg.norm(env.get_site_pos('handleStartOpen') - env._state_goal))

@@ -83,8 +83,8 @@ mt10_test_env = MT10.get_test_tasks()
 ### Running Single-Task Environments
 Meta-World can also be used as a normal `gym.Env` for single task benchmarking. Here is an example of creating a `pick_place` environoment:
 ```
-from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlace6DOFEnv
-env = SawyerReachPushPickPlace6DOFEnv()
+from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
+env = SawyerReachPushPickPlaceEnv()
 ```
 
 ## Contributors and Acknowledgement

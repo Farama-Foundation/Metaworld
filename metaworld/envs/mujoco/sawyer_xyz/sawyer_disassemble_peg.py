@@ -12,24 +12,23 @@ from pyquaternion import Quaternion
 from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
-
-class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
+class SawyerNutDisassembleEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=True,
-            goal_low=(-0.1, 0.6, 0.15),
-            goal_high=(0.1, 0.7, 0.3),
-            liftThresh = 0.11,
             obs_type='with_goal',
-            rotMode='fixed',
+            goal_low=(-0.1, 0.75, 0.17),
+            goal_high=(0.1, 0.85, 0.17),
+            liftThresh = 0.05,
             rewMode = 'orig',
+            rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
-        hand_low=(-0.5, 0.40, -0.05)
+        hand_low=(-0.5, 0.40, 0.05)
         hand_high=(0.5, 1, 0.5)
-        obj_low=(0, 0.84, -0.03)
-        obj_high=(0, 0.84, -0.03)
+        obj_low=(0.1, 0.75, 0.02)
+        obj_high=(0., 0.85, 0.02)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -39,13 +38,12 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
             model_name=self.model_name,
             **kwargs
         )
-
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.84, -0.03]),
             'obj_init_angle': 0.3,
-            'hand_init_pos': np.array([0., .6, .2]),
+            'obj_init_pos': np.array([0, 0.8, 0.02]),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
-        self.goal = np.array([0., 0.6, 0.2])
+        self.goal = np.array([0, 0.8, 0.17])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -55,25 +53,19 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 200
-        self.rotMode = rotMode
-        self.rewMode = rewMode
         self.liftThresh = liftThresh
+        self.max_path_length = 200
+        self.rewMode = rewMode
+        self.rotMode = rotMode
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
                 np.array([1, 1, 1, 1]),
-            )
-        elif rotMode == 'rotz':
-            self.action_rot_scale = 1./50
-            self.action_space = Box(
-                np.array([-1, -1, -1, -np.pi, -1]),
-                np.array([1, 1, 1, np.pi, 1]),
             )
         elif rotMode == 'quat':
             self.action_space = Box(
@@ -92,8 +84,8 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         if self.obs_type == 'plain':
             self.observation_space = Box(
-                np.hstack((self.hand_low, obj_low)),
-                np.hstack((self.hand_high, obj_high)),
+                np.hstack((self.hand_low, obj_low,)),
+                np.hstack((self.hand_high, obj_high,)),
             )
         elif self.obs_type == 'with_goal':
             self.observation_space = Box(
@@ -111,7 +103,7 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_assembly_peg.xml')
 
     def step(self, action):
         if self.rotMode == 'euler':
@@ -121,8 +113,6 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
             self.set_xyz_action_rot(action_)
         elif self.rotMode == 'fixed':
             self.set_xyz_action(action[:3])
-        elif self.rotMode == 'rotz':
-            self.set_xyz_action_rotz(action[:4])
         else:
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
@@ -130,21 +120,22 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs_dict, mode=self.rewMode)
+        reward , reachRew, reachDist, pickRew, placeRew , placingDist, success = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
+        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': success}
         info['goal'] = self._state_goal
         return ob, reward, done, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
+        # graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        graspPos =  self.get_site_pos('RoundNut-8')
+        flat_obs = np.concatenate((hand, graspPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
                     flat_obs,
@@ -154,7 +145,7 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         elif self.obs_type == 'with_goal':
             return np.concatenate([
                     flat_obs,
-                    self._state_goal,
+                    self._state_goal
                 ])
         elif self.obs_type == 'plain':
             return np.concatenate([flat_obs,])  # TODO ZP do we need the concat?
@@ -163,8 +154,10 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
+        # graspPos =  self.data.get_geom_xpos('RoundNut-8')
+        graspPos =  self.get_site_pos('RoundNut-8')
+        objPos = self.get_body_com('RoundNut')
+        flat_obs = np.concatenate((hand, graspPos))
         return dict(
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
@@ -173,24 +166,24 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
-    def _set_goal_marker(self, goal):
-        """
-        This should be use ONLY for visualization. Use self._state_goal for
-        logging, learning, etc.
-        """
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            goal[:3]
-        )
 
     def _set_objCOM_marker(self):
         """
         This should be use ONLY for visualization. Use self._state_goal for
         logging, learning, etc.
         """
-        objPos =  self.data.get_geom_xpos('objGeom')
-        self.data.site_xpos[self.model.site_name2id('objSite')] = (
+        objPos =  self.data.get_geom_xpos('RoundNut-8')
+        self.data.site_xpos[self.model.site_name2id('RoundNut')] = (
             objPos
+        )
+    
+    def _set_goal_marker(self, goal):
+        """
+        This should be use ONLY for visualization. Use self._state_goal for
+        logging, learning, etc.
+        """
+        self.data.site_xpos[self.model.site_name2id('pegTop')] = (
+            goal[:3]
         )
 
     def _set_obj_xyz_quat(self, pos, angle):
@@ -209,19 +202,10 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def adjust_initObjPos(self, orig_init_pos):
-        #This is to account for meshes for the geom and object are not aligned
-        #If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
-        adjustedPos = orig_init_pos[:2] + diff
-
-        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
-
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_pos = np.array(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         if self.random_init:
             goal_pos = np.random.uniform(
@@ -229,22 +213,27 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
-            self._state_goal = goal_pos[-3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = np.random.uniform(
                     self.obj_and_goal_space.low,
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
-                self._state_goal = goal_pos[-3:]
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self._set_goal_marker(self._state_goal)
+            self.obj_init_pos = goal_pos[:3]
+            # self._state_goal = goal_pos[-3:]
+            self._state_goal = goal_pos[:3] + np.array([0, 0, 0.15])
+        peg_pos = self.obj_init_pos + np.array([0., 0., 0.03])
+        peg_top_pos = self.obj_init_pos + np.array([0., 0., 0.08])
+        self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
+        self.sim.model.site_pos[self.model.site_name2id('pegTop')] = peg_top_pos
         self._set_obj_xyz(self.obj_init_pos)
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self._set_goal_marker(self._state_goal)
+        self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
         self.curr_path_length = 0
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        #Can try changing this
         return self._get_obs()
 
     def _reset_hand(self):
@@ -268,53 +257,47 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs, mode = 'orig'):
+    def compute_reward(self, actions, obs, mode = 'general'):
         if isinstance(obs, dict):
             obs = obs['state_observation']
 
-        objPos = obs[3:6]
-
+        graspPos = obs[3:6]
+        objPos = graspPos
+        
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        goal = self._state_goal
+        placingGoal = self._state_goal
 
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        placingDist = np.linalg.norm(objPos - goal)
-        assert np.all(goal == self.get_site_pos('goal'))
+        reachDist = np.linalg.norm(graspPos - fingerCOM)
+        reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])
+        reachDistz = np.abs(graspPos[-1] - fingerCOM[-1])
+        zDist = np.abs(fingerCOM[-1] - self.init_fingerCOM[-1])
+
+        placingDist = np.linalg.norm(objPos - placingGoal)
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-            if reachDistxy < 0.05: #0.02
+            if reachDistxy < 0.04: #0.02
                 reachRew = -reachDist
             else:
-                reachRew =  -reachDistxy - 2*zRew
+                reachRew =  -reachDistxy - 2*zDist
             #incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
-                reachRew = -reachDist + max(actions[-1],0)/50
-            return reachRew , reachDist
-            # reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], [self.init_fingerCOM[-1]])) - fingerCOM)
-            # if reachDistxy < 0.05: #0.02
-            #     reachRew = -reachDist + 0.1
-            #     if reachDist < 0.05:
-            #         reachRew += max(actions[-1],0)/50
-            # else:
-            #     reachRew =  -reachDistxy
-            # return reachRew , reachDist
+            if reachDist < 0.04:
+                reachRew = -reachDist + max(actions[-1],0)/50#max(actions[-1],0)/50
+            return reachRew, reachDist
 
         def pickCompletionCriteria():
             tolerance = 0.01
-            if objPos[2] >= (heightTarget- tolerance):
+            # if objPos[2] >= (heightTarget- tolerance):
+            if objPos[2] >= (heightTarget- tolerance) and reachDist < 0.04:
                 return True
             else:
                 return False
 
         if pickCompletionCriteria():
             self.pickCompleted = True
-
 
         def objDropped():
             return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
@@ -327,49 +310,61 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
         def orig_pickReward():       
             # hScale = 50
-            hScale = 100
-            # hScale = 1000
+            hScale = 100#100
             if self.pickCompleted and not(objDropped()):
-                return hScale*(heightTarget - self.objHeight + 0.02)
+                return hScale*heightTarget
             # elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-            elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
-                return hScale* (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
+            elif (reachDist < 0.04) and (objPos[2]> (self.objHeight + 0.005)) :
+                return hScale* min(heightTarget, objPos[2])
             else:
                 return 0
 
         def general_pickReward():
             hScale = 50
-            if self.pickCompleted and objGrasped():
-                return hScale*(heightTarget - self.objHeight + 0.02)
+            # if self.placeCompleted or (self.pickCompleted and objGrasped()):
+            if self.placeCompleted:
+                return hScale*heightTarget
             elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
-                return hScale* (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
+                return hScale* min(heightTarget, objPos[2])
             else:
                 return 0
 
-        def placeReward():
-            # c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
+        def placeRewardMove():
+            # c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+            placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+            placeRew = max(placeRew,0)
             if mode == 'general':
                 cond = self.pickCompleted and objGrasped()
             else:
-                cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
+                cond = self.pickCompleted and (reachDist < 0.03) and not(objDropped())
             if cond:
-                placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-                placeRew = max(placeRew,0)
-                return [placeRew , placingDist]
+                return [placeRew, placingDist]
             else:
                 return [0 , placingDist]
+
 
         reachRew, reachDist = reachReward()
         if mode == 'general':
             pickRew = general_pickReward()
         else:
             pickRew = orig_pickReward()
-        placeRew , placingDist = placeReward()
+
+        peg_pos = self.sim.model.body_pos[self.model.body_name2id('peg')]
+        nut_pos = self.get_body_com('RoundNut')
+        if abs(nut_pos[0] - peg_pos[0]) > 0.05 or \
+                abs(nut_pos[1] - peg_pos[1]) > 0.05:
+            placingDist = 0
+            reachRew = 0
+            reachDist = 0
+            pickRew = heightTarget*100
+
+        # placeRew , placingDist, placingDistFinal = placeRewardDrop()
+        placeRew , placingDist = placeRewardMove()
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
-        return [reward, reachDist, pickRew, placingDist]
-
+        success = (abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05) or placingDist < 0.02
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, float(success)] 
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

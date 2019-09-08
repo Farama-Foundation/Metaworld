@@ -10,24 +10,26 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 from pyquaternion import Quaternion
 from metaworld.envs.mujoco.utils.rotation import euler2quat
+
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
-
-class SawyerDoorLockEnv(SawyerXYZEnv):
+class SawyerWindowCloseEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
             obs_type='plain',
             goal_low=None,
             goal_high=None,
+            liftThresh = 0.02,
+            rewMode = 'orig',
             rotMode='fixed',
             **kwargs
     ):
         self.quick_init(locals())
-        hand_low=(-0.5, 0.40, -0.15)
+        hand_low=(-0.5, 0.40, 0.05)
         hand_high=(0.5, 1, 0.5)
-        obj_low=(-0.1, 0.8, 0.1)
-        obj_high=(0.1, 0.85, 0.1)
+        obj_low=(0., 0.75, 0.15)
+        obj_high=(0., 0.9, 0.15)
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,
@@ -39,11 +41,13 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.85, 0.1]),
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0.1, 0.785, 0.15], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0, 0.85, 0.1])
+        self.goal = np.array([-0.08, 0.785, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         assert obs_type in OBS_TYPE
@@ -57,7 +61,9 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.max_path_length = 150
+        self.rewMode = rewMode
         self.rotMode = rotMode
+        self.liftThresh = liftThresh
         if rotMode == 'fixed':
             self.action_space = Box(
                 np.array([-1, -1, -1, -1]),
@@ -105,7 +111,7 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_door_lock.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
 
     def step(self, action):
         if self.rotMode == 'euler':
@@ -121,29 +127,26 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
             self.set_xyz_action_rot(action[:7])
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
+        # self._set_goal_marker(np.array([0., self._state_goal, 0.05]))
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
+        obs_dict = self._get_obs_dict()
+        reward, reachDist, pickrew, pullDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
+        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
         info['goal'] = self._state_goal
         return ob, reward, done, info
 
-    def get_angle(self):
-        return np.array([self.data.get_joint_qpos('joint')])
-
-    def get_mocap_quat(self):
-        return self.data.get_mocap_quat('mocap')
-
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('lockStartLock')
-        # angle = self.get_angle()
+        # objPos =  self.data.get_geom_xpos('handle').copy()
+        # objPos[0] += 0.01
+        objPos =  self.get_site_pos('handleCloseStart')
         flat_obs = np.concatenate((hand, objPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
@@ -163,7 +166,9 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('lockStartLock')
+        # objPos =  self.data.get_geom_xpos('handle').copy()
+        # objPos[0] += 0.01
+        objPos =  self.get_site_pos('handleCloseStart')
         flat_obs = np.concatenate((hand, objPos))
         return dict(
             state_observation=flat_obs,
@@ -173,6 +178,15 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
+    
+    def _set_goal_marker(self, goal):
+        """
+        This should be use ONLY for visualization. Use self._state_goal for
+        logging, learning, etc.
+        """
+        self.data.site_xpos[self.model.site_name2id('goal')] = (
+            goal[:3]
+        )
 
     def _set_objCOM_marker(self):
         """
@@ -182,18 +196,6 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         objPos =  self.data.get_geom_xpos('handle')
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
-        )
-
-    def _set_goal_marker(self, goal):
-        """
-        This should be use ONLY for visualization. Use self._state_goal for
-        logging, learning, etc.
-        """
-        self.data.site_xpos[self.model.site_name2id('goal_lock')] = (
-            goal[:3]
-        )
-        self.data.site_xpos[self.model.site_name2id('goal_unlock')] = (
-            np.array([10., 10., 10.])
         )
 
     def _set_obj_xyz_quat(self, pos, angle):
@@ -209,35 +211,43 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9] = pos
-        qvel[9] = 0
+        # qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
         self._reset_hand()
-        door_pos = self.init_config['obj_init_pos']
-        self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
-        self._state_goal = door_pos + np.array([0, -0.04, -0.03])
+        self._state_goal = self.goal.copy()
+        self.objHeight = self.data.get_geom_xpos('handle')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
         if self.random_init:
-            goal_pos = np.random.uniform(
+            # self.obj_init_pos = np.random.uniform(-0.2, 0)
+            # self._state_goal = np.squeeze(np.random.uniform(
+            #     self.goal_space.low,
+            #     np.array(self.data.get_geom_xpos('handle').copy()[1] + 0.05),
+            # ))
+            obj_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
             # self.obj_init_qpos = goal_pos[-1]
-            door_pos = goal_pos
-            self._state_goal = goal_pos + np.array([0, -0.04, -0.03])
-
-        # self._set_obj_xyz(self.obj_init_qpos)
-        # self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        # print(button_pos)
-        self.sim.model.body_pos[self.model.body_name2id('door')] = door_pos
-        self.sim.model.body_pos[self.model.body_name2id('lock')] = door_pos
-        for _ in range(self.frame_skip):
-            self.sim.step()
-        self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
+            self.obj_init_pos = obj_pos
+            goal_pos = obj_pos.copy()
+            # goal_pos[0] -= 0.2
+            goal_pos[0] -= 0.18
+            self._state_goal = goal_pos
         self._set_goal_marker(self._state_goal)
-        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        # self._set_obj_xyz(self.obj_init_pos)
+        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
+        wall_pos = self.obj_init_pos.copy() - np.array([0.1, 0, 0.12])
+        window_another_pos = self.obj_init_pos.copy() + np.array([0, 0.03, 0])
+        self.sim.model.body_pos[self.model.body_name2id('window')] = self.obj_init_pos
+        self.sim.model.body_pos[self.model.body_name2id('window_another')] = window_another_pos
+        self.sim.model.body_pos[self.model.body_name2id('wall')] = wall_pos
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
         self.curr_path_length = 0
+        self.maxPullDist = 0.2
+        self.target_reward = 1000*self.maxPullDist + 1000*2
         #Can try changing this
         return self._get_obs()
 
@@ -262,7 +272,7 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
         return np.array(rewards)
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(self, actions, obs, mode = 'general'):
         if isinstance(obs, dict): 
             obs = obs['state_observation']
 
@@ -273,15 +283,9 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
         pullGoal = self._state_goal
 
-        pullDist = np.linalg.norm(objPos - pullGoal)
+        pullDist = np.abs(objPos[0] - pullGoal[0])
         reachDist = np.linalg.norm(objPos - fingerCOM)
-        # reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-        # zDist = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-        # if reachDistxy < 0.05: #0.02
-        #     reachRew = -reachDist
-        # else:
-        #     reachRew =  -reachDistxy - zDist
-        reachRew = -reachDist
+        heightTarget = self.heightTarget
 
         def reachCompleted():
             if reachDist < 0.05:
@@ -294,24 +298,95 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         else:
             self.reachCompleted = False
 
-        def pullReward():
-            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            # c1 = 10 ; c2 = 0.01 ; c3 = 0.001
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-            # pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-            # pullRew = max(pullRew,0)
-            # return pullRew
-        # pullRew = -pullDist
-        pullRew = pullReward()
-        reward = reachRew + pullRew# - actions[-1]/50
-        # reward = pullRew# - actions[-1]/50
+        # c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+        c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+        reachRew = -reachDist
+        # if reachDist < 0.05:
+        if self.reachCompleted:
+            # pushRew = -pushDist
+            pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+        else:
+            pullRew = 0
+        reward = reachRew + pullRew
+        return [reward, reachDist, None, pullDist]
+
+        # def reachReward():
+        # 	reachRew = -reachDist# + min(actions[-1], -1)/50
+        # 	reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+        # 	zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
+        # 	if reachDistxy < 0.05: #0.02
+        # 		reachRew = -reachDist
+        # 	else:
+        # 		reachRew =  -reachDistxy - 2*zRew
+        # 	#incentive to close fingers when reachDist is small
+        # 	if reachDist < 0.05:
+        # 		reachRew = -reachDist + max(actions[-1],0)/50
+        # 	return reachRew , reachDist
+
+        # def pickCompletionCriteria():
+        # 	tolerance = 0.01
+        # 	if objPos[2] >= (heightTarget- tolerance):
+        # 		return True
+        # 	else:
+        # 		return False
+
+        # if pickCompletionCriteria():
+        # 	self.pickCompleted = True
+
+
+        # def objDropped():
+        # 	return (objPos[2] < (self.objHeight + 0.005)) and (pullDist >0.02) and (reachDist > 0.02) 
+        # 	# Object on the ground, far away from the goal, and from the gripper
+        # 	#Can tweak the margin limits
+       
+        # def objGrasped(thresh = 0):
+        # 	sensorData = self.data.sensordata
+        # 	return (sensorData[0]>thresh) and (sensorData[1]> thresh)
+
+        # def orig_pickReward():       
+        # 	# hScale = 50
+        # 	hScale = 100
+        # 	if self.pickCompleted and not(objDropped()):
+        # 		return hScale*heightTarget
+        # 	# elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
+        # 	elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
+        # 		return hScale* min(heightTarget, objPos[2])
+        # 	else:
+        # 		return 0
+
+        # def general_pickReward():
+        # 	hScale = 50
+        # 	if self.pickCompleted and objGrasped():
+        # 		return hScale*heightTarget
+        # 	elif objGrasped() and (objPos[2]> (self.objHeight + 0.005)):
+        # 		return hScale* min(heightTarget, objPos[2])
+        # 	else:
+        # 		return 0
+
+        # def pullReward():
+        # 	# c1 = 1000 ; c2 = 0.03 ; c3 = 0.003
+        # 	c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+        # 	if mode == 'general':
+        # 		cond = self.pickCompleted and objGrasped()
+        # 	else:
+        # 		cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
+        # 	if cond:
+        # 		pullReward = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+        # 		pullReward = max(pullReward,0)
+        # 		return [pullReward , pullDist]
+        # 	else:
+        # 		return [0 , pullDist]
+
+        # reachRew, reachDist = reachReward()
+        # if mode == 'general':
+        # 	pickRew = general_pickReward()
+        # else:
+        # 	pickRew = orig_pickReward()
+        # pullRew , pullDist = pullReward()
+        # assert ((pullRew >=0) and (pickRew>=0))
+        # reward = reachRew + pickRew + pullRew
       
-        return [reward, reachDist, pullDist] 
+        # return [reward, reachDist, pickRew, pullDist] 
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

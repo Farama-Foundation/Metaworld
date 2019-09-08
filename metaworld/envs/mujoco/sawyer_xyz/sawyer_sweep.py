@@ -13,7 +13,7 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 
-class SawyerSweep6DOFEnv(SawyerXYZEnv):
+class SawyerSweepEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,

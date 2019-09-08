@@ -14,7 +14,7 @@ import pdb
 
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
-class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
+class SawyerLeverPullEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
@@ -315,18 +315,3 @@ class SawyerLeverPull6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':  
-    import time 
-    env = SawyerLeverPull6DOFEnv()    
-    for _ in range(1000):   
-        env.reset()
-        print(env.get_body_com('lever'))
-        print(env.get_site_pos('leverStart'))
-        env._set_obj_xyz(1.5708)
-        for _ in range(50): 
-            env.render()
-            env.step(env.action_space.sample()) 
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))    
-            time.sleep(0.05)
-        print(env.get_site_pos('leverStart'))

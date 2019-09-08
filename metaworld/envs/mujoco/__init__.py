@@ -348,7 +348,7 @@ def register_custom_envs():
 
     register(
         id='SawyerShelfXYZEnv-v1',
-        entry_point='metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove_6dof:SawyerShelfRemove6DOFEnv',
+        entry_point='metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove:SawyerShelfRemoveEnv',
         tags={
             'git-commit-hash': 'beafc10b3b18b6553bfd3722f76c2095100528ac',
             'author': 'brandon'

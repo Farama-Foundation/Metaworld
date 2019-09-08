@@ -18,19 +18,19 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import
     SawyerPushAndReachXYZDoublePuckEnv,
 )
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack_6dof import SawyerStack6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTurn6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close_6dof import SawyerLaptopClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer_6dof import SawyerHammer6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open_6dof import SawyerBoxOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_6dof import SawyerBinPicking6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown_6dof import SawyerPegInsertionTopdown6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_6dof import SawyerPegUnplugSide6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import SawyerPegInsertionTopdownEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 
 
 
@@ -44,7 +44,7 @@ import gym
 import metaworld
 
 space_mouse = SpaceMouse()
-env = SawyerPegInsertionTopdown6DOFEnv(random_init=True, obs_type='with_goal')
+env = SawyerPegInsertionTopdownEnv(random_init=True, obs_type='with_goal')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()

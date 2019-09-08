@@ -3,8 +3,8 @@ import numpy as np
 
 from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
-from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWall6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 
 
@@ -144,7 +144,7 @@ def test_multitask_env_images(env_list):
 
 
 @pytest.mark.parametrize('env_cls',
-    [SawyerReachPushPickPlace6DOFEnv, SawyerReachPushPickPlaceWall6DOFEnv])
+    [SawyerReachPushPickPlaceEnv, SawyerReachPushPickPlaceWallEnv])
 def test_reach_push_pick_place(env_cls):
 
     task_types = ['pick_place', 'reach', 'push']

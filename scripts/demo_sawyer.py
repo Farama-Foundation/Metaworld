@@ -5,46 +5,46 @@ import glfw
 import numpy as np
 import argparse
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_6dof import SawyerNutAssembly6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_6dof import SawyerBinPicking6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_6dof import SawyerBoxClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open_6dof import SawyerBoxOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_6dof import SawyerButtonPress6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_6dof import SawyerButtonPressTopdown6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_6dof import SawyerDialTurn6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_6dof import SawyerDrawerClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_6dof import SawyerDrawerOpen6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer_6dof import SawyerHammer6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close_6dof import SawyerLaptopClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPull6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_multiple_objects import MultiSawyerEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_6dof import SawyerPegInsertionSide6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_6dof import SawyerPickAndPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_wsg_6dof import SawyerPickAndPlaceWsg6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_wsg import SawyerPickAndPlaceWsgEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import SawyerPushAndReachXYEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import SawyerPushAndReachXYZDoublePuckEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj import SawyerTwoObjectEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_6dof import SawyerTwoObject6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj import SawyerTwoObjectEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEasyEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYZEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_6dof import SawyerReach6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_6dof import SawyerReachPushPickPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_rope_6dof import SawyerRope6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_6dof import SawyerShelfPlace6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack_6dof import SawyerStack6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_6dof import SawyerStickPull6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_6dof import SawyerStickPush6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_rope import SawyerRopeEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_6dof import SawyerWindowClose6DOFEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_6dof import SawyerWindowOpen6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
 
 
 # function that closes the render window
@@ -55,8 +55,8 @@ def close(env):
     env.viewer = None
 
 
-def sample_sawyer_assembly_peg_6dof():
-    env = SawyerNutAssembly6DOFEnv()
+def sample_sawyer_assembly_peg():
+    env = SawyerNutAssemblyEnv()
     for _ in range(1):
         env.reset()
         for _ in range(50):
@@ -67,8 +67,8 @@ def sample_sawyer_assembly_peg_6dof():
     close(env)
 
 
-def sample_sawyer_bin_picking_6dof():
-    env = SawyerBinPicking6DOFEnv()
+def sample_sawyer_bin_picking():
+    env = SawyerBinPickingEnv()
     for _ in range(1):
         env.reset()
         for _ in range(50):
@@ -79,8 +79,8 @@ def sample_sawyer_bin_picking_6dof():
     close(env)
 
 
-def sample_sawyer_box_close_6dof():
-    env = SawyerBoxClose6DOFEnv()
+def sample_sawyer_box_close():
+    env = SawyerBoxCloseEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -108,8 +108,8 @@ def sample_sawyer_box_close_6dof():
     close(env)
 
 
-def sample_sawyer_box_open_6dof():
-    env = SawyerBoxOpen6DOFEnv()
+def sample_sawyer_box_open():
+    env = SawyerBoxOpenEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -138,7 +138,7 @@ def sample_sawyer_box_open_6dof():
 
 
 def sample_sawyer_button_press_6d0f():
-    env = SawyerButtonPress6DOFEnv()
+    env = SawyerButtonPressEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -169,7 +169,7 @@ def sample_sawyer_button_press_6d0f():
 
 
 def sample_sawyer_button_press_topdown_6d0f():
-    env = SawyerButtonPressTopdown6DOFEnv()
+    env = SawyerButtonPressTopdownEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -199,8 +199,8 @@ def sample_sawyer_button_press_topdown_6d0f():
     close(env)
 
 
-def sample_sawyer_dial_turn_6dof():
-    env = SawyerDialTurn6DOFEnv()
+def sample_sawyer_dial_turn():
+    env = SawyerDialTurnEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -230,8 +230,8 @@ def sample_sawyer_dial_turn_6dof():
     close(env)
 
 
-def sample_sawyer_door_6dof():
-    env = SawyerDoor6DOFEnv()
+def sample_sawyer_door():
+    env = SawyerDoorEnv()
     for _ in range(100):
         env.render()
         action = env.action_space.sample()
@@ -270,8 +270,8 @@ def sample_sawyer_door():
     close(env)
 
 
-def sample_sawyer_drawer_close_6dof():
-    env = SawyerDrawerClose6DOFEnv()
+def sample_sawyer_drawer_close():
+    env = SawyerDrawerCloseEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -295,8 +295,8 @@ def sample_sawyer_drawer_close_6dof():
     close(env)
 
 
-def sample_sawyer_drawer_open_6dof():
-    env = SawyerDrawerOpen6DOFEnv()
+def sample_sawyer_drawer_open():
+    env = SawyerDrawerOpenEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -320,8 +320,8 @@ def sample_sawyer_drawer_open_6dof():
     close(env)
 
 
-def sample_sawyer_hammer_6dof():
-    env = SawyerHammer6DOFEnv()
+def sample_sawyer_hammer():
+    env = SawyerHammerEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -362,8 +362,8 @@ def sample_sawyer_hand_insert():
     close(env)
 
 
-def sample_sawyer_laptop_close_6dof():
-    env = SawyerLaptopClose6DOFEnv()
+def sample_sawyer_laptop_close():
+    env = SawyerLaptopCloseEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -390,7 +390,7 @@ def sample_sawyer_laptop_close_6dof():
 
 
 def sample_sawyer_lever_pull():
-    env = SawyerLeverPull6DOFEnv()
+    env = SawyerLeverPullEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -527,8 +527,8 @@ def sample_sawyer_multiple_objects():
     #     env.render()
 
 
-def sample_sawyer_peg_insertion_side_6dof():
-    env = SawyerPegInsertionSide6DOFEnv()
+def sample_sawyer_peg_insertion_side():
+    env = SawyerPegInsertionSideEnv()
     for _ in range(1):
         env.reset()
         # for _ in range(10):
@@ -574,8 +574,8 @@ def sample_sawyer_pick_and_place():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_pick_and_place_6dof():
-    env = SawyerPickAndPlace6DOFEnv()
+def sample_sawyer_pick_and_place():
+    env = SawyerPickAndPlaceEnv()
     env.reset()
     for _ in range(50):
         env.render()
@@ -584,8 +584,8 @@ def sample_sawyer_pick_and_place_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_pick_and_place_wsg_6dof():
-    env = SawyerPickAndPlaceWsg6DOFEnv()
+def sample_sawyer_pick_and_place_wsg():
+    env = SawyerPickAndPlaceWsgEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -623,8 +623,8 @@ def sample_sawyer_push_multiobj():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_push_multiobj_6dof():
-    env = SawyerTwoObject6DOFEnv()
+def sample_sawyer_push_multiobj():
+    env = SawyerTwoObjectEnv()
     env.reset()
     for _ in range(50):
         env.render()
@@ -652,8 +652,8 @@ def sample_sawyer_reach():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_reach_6dof():
-    env = SawyerReach6DOFEnv()
+def sample_sawyer_reach():
+    env = SawyerReachEnv()
     for i in range(100):
         if i % 100 == 0:
             env.reset()
@@ -662,8 +662,8 @@ def sample_sawyer_reach_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_reach_push_pick_place_6dof():
-    env = SawyerReachPushPickPlace6DOFEnv()
+def sample_sawyer_reach_push_pick_place():
+    env = SawyerReachPushPickPlaceEnv()
     for i in range(100):
         if i % 100 == 0:
             env.reset()
@@ -672,8 +672,8 @@ def sample_sawyer_reach_push_pick_place_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_rope_6dof():
-    env = SawyerRope6DOFEnv()
+def sample_sawyer_rope():
+    env = SawyerRopeEnv()
     env.reset()
     for _ in range(50):
         env.render()
@@ -682,8 +682,8 @@ def sample_sawyer_rope_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_shelf_place_6dof():
-    env = SawyerShelfPlace6DOFEnv()
+def sample_sawyer_shelf_place():
+    env = SawyerShelfPlaceEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -692,8 +692,8 @@ def sample_sawyer_shelf_place_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_stack_6dof():
-    env = SawyerStack6DOFEnv()
+def sample_sawyer_stack():
+    env = SawyerStackEnv()
     env.reset()
     for _ in range(50):
         env.render()
@@ -702,8 +702,8 @@ def sample_sawyer_stack_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_stick_pull_6dof():
-    env = SawyerStickPull6DOFEnv()
+def sample_sawyer_stick_pull():
+    env = SawyerStickPullEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -712,8 +712,8 @@ def sample_sawyer_stick_pull_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_stick_push_6dof():
-    env = SawyerStickPush6DOFEnv()
+def sample_sawyer_stick_push():
+    env = SawyerStickPushEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -758,8 +758,8 @@ def sample_sawyer_throw():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_window_close_6dof():
-    env = SawyerWindowClose6DOFEnv()
+def sample_sawyer_window_close():
+    env = SawyerWindowCloseEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -768,8 +768,8 @@ def sample_sawyer_window_close_6dof():
     glfw.destroy_window(env.viewer.window)
 
 
-def sample_sawyer_window_open_6dof():
-    env = SawyerWindowOpen6DOFEnv()
+def sample_sawyer_window_open():
+    env = SawyerWindowOpenEnv()
     env.reset()
     for _ in range(100):
         env.render()
@@ -779,46 +779,46 @@ def sample_sawyer_window_open_6dof():
 
 
 demos = {
-    SawyerNutAssembly6DOFEnv: sample_sawyer_assembly_peg_6dof,
-    SawyerBinPicking6DOFEnv: sample_sawyer_bin_picking_6dof,
-    SawyerBoxClose6DOFEnv: sample_sawyer_box_close_6dof,
-    SawyerBoxOpen6DOFEnv: sample_sawyer_box_open_6dof,
-    SawyerButtonPress6DOFEnv: sample_sawyer_button_press_6d0f,
-    SawyerButtonPressTopdown6DOFEnv: sample_sawyer_button_press_topdown_6d0f,
-    SawyerDialTurn6DOFEnv: sample_sawyer_dial_turn_6dof,
-    SawyerDoor6DOFEnv: sample_sawyer_door_6dof,
+    SawyerNutAssemblyEnv: sample_sawyer_assembly_peg,
+    SawyerBinPickingEnv: sample_sawyer_bin_picking,
+    SawyerBoxCloseEnv: sample_sawyer_box_close,
+    SawyerBoxOpenEnv: sample_sawyer_box_open,
+    SawyerButtonPressEnv: sample_sawyer_button_press_6d0f,
+    SawyerButtonPressTopdownEnv: sample_sawyer_button_press_topdown_6d0f,
+    SawyerDialTurnEnv: sample_sawyer_dial_turn,
+    SawyerDoorEnv: sample_sawyer_door,
     SawyerDoorCloseEnv: sample_sawyer_door_close,
     SawyerDoorHookEnv: sample_sawyer_door_hook,
     SawyerDoorEnv: sample_sawyer_door,
-    SawyerDrawerClose6DOFEnv: sample_sawyer_drawer_close_6dof,
-    SawyerDrawerOpen6DOFEnv: sample_sawyer_drawer_open_6dof,
-    SawyerHammer6DOFEnv: sample_sawyer_hammer_6dof,
+    SawyerDrawerCloseEnv: sample_sawyer_drawer_close,
+    SawyerDrawerOpenEnv: sample_sawyer_drawer_open,
+    SawyerHammerEnv: sample_sawyer_hammer,
     SawyerHandInsertEnv: sample_sawyer_hand_insert,
-    SawyerLaptopClose6DOFEnv: sample_sawyer_laptop_close_6dof,
-    SawyerLeverPull6DOFEnv: sample_sawyer_lever_pull,
+    SawyerLaptopCloseEnv: sample_sawyer_laptop_close,
+    SawyerLeverPullEnv: sample_sawyer_lever_pull,
     MultiSawyerEnv: sample_sawyer_multiple_objects,
-    SawyerPegInsertionSide6DOFEnv: sample_sawyer_peg_insertion_side_6dof,
+    SawyerPegInsertionSideEnv: sample_sawyer_peg_insertion_side,
     SawyerPickAndPlaceEnv: sample_sawyer_pick_and_place,
-    SawyerPickAndPlace6DOFEnv: sample_sawyer_pick_and_place_6dof,
-    SawyerPickAndPlaceWsg6DOFEnv: sample_sawyer_pick_and_place_wsg_6dof,
+    SawyerPickAndPlaceEnv: sample_sawyer_pick_and_place,
+    SawyerPickAndPlaceWsgEnv: sample_sawyer_pick_and_place_wsg,
     SawyerPushAndReachXYEnv: sample_sawyer_push_and_reach_env,
     SawyerPushAndReachXYZDoublePuckEnv: sample_sawyer_push_and_reach_two_pucks,
     SawyerTwoObjectEnv: sample_sawyer_push_multiobj,
-    SawyerTwoObject6DOFEnv: sample_sawyer_push_multiobj_6dof,
+    SawyerTwoObjectEnv: sample_sawyer_push_multiobj,
     SawyerPushAndReachXYEasyEnv: sample_sawyer_push_nips,
     SawyerReachXYZEnv: sample_sawyer_reach,
-    SawyerReach6DOFEnv: sample_sawyer_reach_6dof,
-    SawyerReachPushPickPlace6DOFEnv: sample_sawyer_reach_push_pick_place_6dof,
-    SawyerRope6DOFEnv: sample_sawyer_rope_6dof,
-    SawyerShelfPlace6DOFEnv: sample_sawyer_shelf_place_6dof,
-    SawyerStack6DOFEnv: sample_sawyer_stack_6dof,
-    SawyerStickPull6DOFEnv: sample_sawyer_stick_pull_6dof,
-    SawyerStickPush6DOFEnv: sample_sawyer_stick_push_6dof,
+    SawyerReachEnv: sample_sawyer_reach,
+    SawyerReachPushPickPlaceEnv: sample_sawyer_reach_push_pick_place,
+    SawyerRopeEnv: sample_sawyer_rope,
+    SawyerShelfPlaceEnv: sample_sawyer_shelf_place,
+    SawyerStackEnv: sample_sawyer_stack,
+    SawyerStickPullEnv: sample_sawyer_stick_pull,
+    SawyerStickPushEnv: sample_sawyer_stick_push,
     SawyerSweepEnv: sample_sawyer_sweep,
     SawyerSweepIntoGoalEnv: sample_sawyer_sweep_into_goal,
     SawyerThrowEnv: sample_sawyer_throw,
-    SawyerWindowClose6DOFEnv: sample_sawyer_window_close_6dof,
-    SawyerWindowOpen6DOFEnv: sample_sawyer_window_open_6dof,
+    SawyerWindowCloseEnv: sample_sawyer_window_close,
+    SawyerWindowOpenEnv: sample_sawyer_window_open,
 }
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
 
-class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
+class SawyerFaucetCloseEnv(SawyerXYZEnv):
     def __init__(
             self,
             random_init=False,
@@ -316,21 +316,3 @@ class SawyerFaucetClose6DOFEnv(SawyerXYZEnv):
 
     def log_diagnostics(self, paths = None, logger = None):
         pass
-
-if __name__ == '__main__':  
-    import time 
-    env = SawyerFaucetClose6DOFEnv()    
-    for _ in range(1000):   
-        env.reset()
-        print(env.get_body_com('faucet'))
-        print(env.get_site_pos('handleStartClose'))
-        for _ in range(50): 
-            env.render()
-            env.step(env.action_space.sample()) 
-            # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))   
-            if _ % 2 == 0: 
-                env._set_obj_xyz(0)
-            else:
-                env._set_obj_xyz(1.5708)
-            time.sleep(0.05)
-        print(env.get_site_pos('handleStartClose'))

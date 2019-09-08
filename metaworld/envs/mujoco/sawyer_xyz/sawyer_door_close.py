@@ -1,7 +1,7 @@
 import numpy as np
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_6dof import SawyerDoor6DOFEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
-class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
+class SawyerDoorCloseEnv(SawyerDoorEnv):
     def __init__(
             self,
             random_init=False,
@@ -11,7 +11,7 @@ class SawyerDoorClose6DOFEnv(SawyerDoor6DOFEnv):
             rotMode='fixed',
             **kwargs
     ):
-        SawyerDoor6DOFEnv.__init__(
+        SawyerDoorEnv.__init__(
             self,
             random_init=random_init,
             obs_type=obs_type,
