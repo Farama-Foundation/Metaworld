@@ -47,7 +47,7 @@ from metaworld.benchmarks import ML1
 
 print(ML1.available_tasks())  # Check out the available tasks
 
-env = ML1.get_train_tasks('pick_place')  # Create an environment with task `pick_place`
+env = ML1.get_train_tasks('pick-place-v1')  # Create an environment with task `pick_place`
 tasks = env.sample_tasks(1)  # Sample a task (in this case, a goal variation)
 env.set_task(tasks[0])  # Set task
 

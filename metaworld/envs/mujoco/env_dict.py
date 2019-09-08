@@ -53,20 +53,17 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side_6dof import Sawyer
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_6dof import SawyerPlateSlideBackSide6DOFEnv
 
 
-SHARE_CLS_TASKS = ['reach', 'pick_place', 'push']
-
-
 EASY_MODE_CLS_DICT= {
-    'reach': SawyerReachPushPickPlace6DOFEnv,
-    'push': SawyerReachPushPickPlace6DOFEnv,
-    'pick_place': SawyerReachPushPickPlace6DOFEnv,
-    'door': SawyerDoor6DOFEnv,
-    'drawer_open': SawyerDrawerOpen6DOFEnv,
-    'drawer_close': SawyerDrawerClose6DOFEnv,
-    'button_press_topdown': SawyerButtonPressTopdown6DOFEnv,
-    'ped_insert_side': SawyerPegInsertionSide6DOFEnv,
-    'window_open': SawyerWindowOpen6DOFEnv,
-    'window_close': SawyerWindowClose6DOFEnv,
+    'reach-v1': SawyerReachPushPickPlace6DOFEnv,
+    'push-v1': SawyerReachPushPickPlace6DOFEnv,
+    'pick-place-v1': SawyerReachPushPickPlace6DOFEnv,
+    'door-v1': SawyerDoor6DOFEnv,
+    'drawer-open-v1': SawyerDrawerOpen6DOFEnv,
+    'drawer-close-v1': SawyerDrawerClose6DOFEnv,
+    'button-press-topdown-v1': SawyerButtonPressTopdown6DOFEnv,
+    'ped-insert-side-v1': SawyerPegInsertionSide6DOFEnv,
+    'window-open-v1': SawyerWindowOpen6DOFEnv,
+    'window-close-v1': SawyerWindowClose6DOFEnv,
 }
 
 
@@ -93,9 +90,9 @@ EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[], kwargs={'obs_type': 'plain'})
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
-for t in SHARE_CLS_TASKS:
-    EASY_MODE_ARGS_KWARGS[t]['kwargs']['task_type'] = t
-
+EASY_MODE_ARGS_KWARGS['reach-v1']['kwargs']['task_type'] = 'reach'
+EASY_MODE_ARGS_KWARGS['push-v1']['kwargs']['task_type'] = 'push'
+EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
 
 '''
     ML10 environments and arguments
@@ -116,23 +113,23 @@ for t in SHARE_CLS_TASKS:
 
 MEDIUM_MODE_CLS_DICT = dict(
     train={
-        'reach': SawyerReachPushPickPlace6DOFEnv,
-        'push': SawyerReachPushPickPlace6DOFEnv,
-        'pick_place': SawyerReachPushPickPlace6DOFEnv,
-        'door': SawyerDoor6DOFEnv,
-        'drawer_close': SawyerDrawerClose6DOFEnv,
-        'button_press_topdown': SawyerButtonPressTopdown6DOFEnv,
-        'ped_insert_side': SawyerPegInsertionSide6DOFEnv,
-        'window_open': SawyerWindowOpen6DOFEnv,
-        'sweep': SawyerSweep6DOFEnv,
-        'basketball': SawyerBasketball6DOFEnv,
+        'reach-v1': SawyerReachPushPickPlace6DOFEnv,
+        'push-v1': SawyerReachPushPickPlace6DOFEnv,
+        'pick-place-v1': SawyerReachPushPickPlace6DOFEnv,
+        'door-v1': SawyerDoor6DOFEnv,
+        'drawer-close-v1': SawyerDrawerClose6DOFEnv,
+        'button-press-topdown-v1': SawyerButtonPressTopdown6DOFEnv,
+        'ped-insert-side-v1': SawyerPegInsertionSide6DOFEnv,
+        'window-open-v1': SawyerWindowOpen6DOFEnv,
+        'sweep-v1': SawyerSweep6DOFEnv,
+        'basketball-v1': SawyerBasketball6DOFEnv,
     },
     test={
-        'drawer_open': SawyerDrawerOpen6DOFEnv,
-        'door_close': SawyerDoorClose6DOFEnv,
-        'shelf_place': SawyerShelfPlace6DOFEnv,
-        'sweep': SawyerSweep6DOFEnv,
-        'lever_pull': SawyerLeverPull6DOFEnv,
+        'drawer-open-v1': SawyerDrawerOpen6DOFEnv,
+        'door-close-v1': SawyerDoorClose6DOFEnv,
+        'shelf-place-v1': SawyerShelfPlace6DOFEnv,
+        'sweep-into-v1': SawyerSweepIntoGoal6DOFEnv,
+        'lever-pull-v1': SawyerLeverPull6DOFEnv,
     }
 )
 medium_mode_train_args_kwargs = {
@@ -145,8 +142,9 @@ medium_mode_test_args_kwargs = {
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
-for t in SHARE_CLS_TASKS:
-    medium_mode_train_args_kwargs[t]['kwargs']['task_type'] = t
+medium_mode_train_args_kwargs['reach-v1']['kwargs']['task_type'] = 'reach'
+medium_mode_train_args_kwargs['push-v1']['kwargs']['task_type'] = 'push'
+medium_mode_train_args_kwargs['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
 
 MEDIUM_MODE_ARGS_KWARGS = dict(
     train=medium_mode_train_args_kwargs,
@@ -158,68 +156,68 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
     ML45 environments and arguments
 '''
 HARD_MODE_CLS_DICT = dict(
-    train=dict(
-        reach=SawyerReachPushPickPlace6DOFEnv,
-        push=SawyerReachPushPickPlace6DOFEnv,
-        pick_place=SawyerReachPushPickPlace6DOFEnv,
-        reach_wall=SawyerReachPushPickPlaceWall6DOFEnv,
-        pick_place_wall=SawyerReachPushPickPlaceWall6DOFEnv,
-        push_wall=SawyerReachPushPickPlaceWall6DOFEnv,
-        door_open=SawyerDoor6DOFEnv,
-        door_close=SawyerDoorClose6DOFEnv,
-        drawer_open=SawyerDrawerOpen6DOFEnv,
-        drawer_close=SawyerDrawerClose6DOFEnv,
-        button_press_topdown=SawyerButtonPressTopdown6DOFEnv,
-        button_press=SawyerButtonPress6DOFEnv,
-        button_press_topdown_wall=SawyerButtonPressTopdownWall6DOFEnv,
-        button_press_wall=SawyerButtonPressWall6DOFEnv,
-        peg_insert_side=SawyerPegInsertionSide6DOFEnv,
-        peg_unplug_side=SawyerPegUnplugSide6DOFEnv,
-        window_open=SawyerWindowOpen6DOFEnv,
-        window_close=SawyerWindowClose6DOFEnv,
-        dissassemble=SawyerNutDisassemble6DOFEnv,
-        hammer=SawyerHammer6DOFEnv,
-        plate_slide=SawyerPlateSlide6DOFEnv,
-        plate_slide_side=SawyerPlateSlideSide6DOFEnv,
-        plate_slide_back=SawyerPlateSlideBack6DOFEnv, 
-        plate_slide_back_side=SawyerPlateSlideBackSide6DOFEnv,
-        handle_press=SawyerHandlePress6DOFEnv,
-        handle_pull=SawyerHandlePull6DOFEnv,
-        handle_press_side=SawyerHandlePressSide6DOFEnv,
-        handle_pull_side=SawyerHandlePullSide6DOFEnv,
-        stick_push=SawyerStickPush6DOFEnv,
-        stick_pull=SawyerStickPull6DOFEnv,
-        basket_ball=SawyerBasketball6DOFEnv,
-        soccer=SawyerSoccer6DOFEnv,
-        faucet_open=SawyerFaucetOpen6DOFEnv,
-        faucet_close=SawyerFaucetClose6DOFEnv,
-        coffee_push=SawyerCoffeePush6DOFEnv,
-        coffee_pull=SawyerCoffeePull6DOFEnv,
-        coffee_button=SawyerCoffeeButton6DOFEnv,
-        sweep=SawyerSweep6DOFEnv,
-        sweep_into=SawyerSweepIntoGoal6DOFEnv,
-        pick_out_of_hole=SawyerPickOutOfHole6DOFEnv,
-        assembly=SawyerNutAssembly6DOFEnv,
-        shelf_place=SawyerShelfPlace6DOFEnv,
-        push_back=SawyerPushBack6DOFEnv,
-        lever_pull=SawyerLeverPull6DOFEnv,
-        dial_turn=SawyerDialTurn6DOFEnv,),
-    test=dict(
-        bin_picking=SawyerBinPicking6DOFEnv,
-        box_close=SawyerBoxClose6DOFEnv,
-        hand_insert=SawyerHandInsert6DOFEnv,
-        door_lock=SawyerDoorLock6DOFEnv,
-        door_unlock=SawyerDoorUnlock6DOFEnv,),
+    train={
+        'reach-v1': SawyerReachPushPickPlace6DOFEnv,
+        'push-v1': SawyerReachPushPickPlace6DOFEnv,
+        'pick-place-v1': SawyerReachPushPickPlace6DOFEnv,
+        'reach-wall-v1': SawyerReachPushPickPlaceWall6DOFEnv,
+        'pick-place-wall-v1': SawyerReachPushPickPlaceWall6DOFEnv,
+        'push-wall-v1': SawyerReachPushPickPlaceWall6DOFEnv,
+        'door-open-v1': SawyerDoor6DOFEnv,
+        'door-close-v1': SawyerDoorClose6DOFEnv,
+        'drawer-open-v1': SawyerDrawerOpen6DOFEnv,
+        'drawer-close-v1': SawyerDrawerClose6DOFEnv,
+        'button-press_topdown-v1': SawyerButtonPressTopdown6DOFEnv,
+        'button-press-v1': SawyerButtonPress6DOFEnv,
+        'button-press-topdown-wall-v1': SawyerButtonPressTopdownWall6DOFEnv,
+        'button-press-wall-v1': SawyerButtonPressWall6DOFEnv,
+        'peg-insert-side-v1': SawyerPegInsertionSide6DOFEnv,
+        'peg-unplug-side-v1': SawyerPegUnplugSide6DOFEnv,
+        'window-open-v1': SawyerWindowOpen6DOFEnv,
+        'window-close-v1': SawyerWindowClose6DOFEnv,
+        'dissassemble-v1': SawyerNutDisassemble6DOFEnv,
+        'hammer-v1': SawyerHammer6DOFEnv,
+        'plate-slide-v1': SawyerPlateSlide6DOFEnv,
+        'plate-slide-side-v1': SawyerPlateSlideSide6DOFEnv,
+        'plate-slide-back-v1': SawyerPlateSlideBack6DOFEnv, 
+        'plate-slide-back-side-v1': SawyerPlateSlideBackSide6DOFEnv,
+        'handle-press-v1': SawyerHandlePress6DOFEnv,
+        'handle-pull-v1': SawyerHandlePull6DOFEnv,
+        'handle-press-side-v1': SawyerHandlePressSide6DOFEnv,
+        'handle-pull-side-v1': SawyerHandlePullSide6DOFEnv,
+        'stick-push-v1': SawyerStickPush6DOFEnv,
+        'stick-pull-v1': SawyerStickPull6DOFEnv,
+        'basket-ball-v1': SawyerBasketball6DOFEnv,
+        'soccer-v1': SawyerSoccer6DOFEnv,
+        'faucet-open-v1': SawyerFaucetOpen6DOFEnv,
+        'faucet-close-v1': SawyerFaucetClose6DOFEnv,
+        'coffee-push-v1': SawyerCoffeePush6DOFEnv,
+        'coffee-pull-v1': SawyerCoffeePull6DOFEnv,
+        'coffee-button-v1': SawyerCoffeeButton6DOFEnv,
+        'sweep-v1': SawyerSweep6DOFEnv,
+        'sweep-into-v1': SawyerSweepIntoGoal6DOFEnv,
+        'pick-out-of-hole-v1': SawyerPickOutOfHole6DOFEnv,
+        'assembly-v1': SawyerNutAssembly6DOFEnv,
+        'shelf-place-v1': SawyerShelfPlace6DOFEnv,
+        'push-back-v1': SawyerPushBack6DOFEnv,
+        'lever-pull-v1': SawyerLeverPull6DOFEnv,
+        'dial-turn-v1': SawyerDialTurn6DOFEnv,},
+    test={
+        'bin-picking-v1': SawyerBinPicking6DOFEnv,
+        'box-close-v1': SawyerBoxClose6DOFEnv,
+        'hand-insert-v1': SawyerHandInsert6DOFEnv,
+        'door-lock-v1': SawyerDoorLock6DOFEnv,
+        'door-unlock-v1': SawyerDoorUnlock6DOFEnv,},
 )
 
 
 def _hard_mode_args_kwargs(env_cls, key):
     kwargs = dict(random_init=True, obs_type='plain')
-    if key == 'reach' or key == 'reach_wall':
+    if key == 'reach-v1' or key == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
-    elif key == 'push' or key == 'push_wall':
+    elif key == 'push-v1' or key == 'push-wall-v1':
         kwargs['task_type'] = 'push'
-    elif key == 'pick_place' or key == 'pick_place_wall':
+    elif key == 'pick-place-v1' or key == 'pick-place-wall-v1':
         kwargs['task_type'] = 'pick_place'
     return dict(args=[], kwargs=kwargs)
 

@@ -19,17 +19,13 @@ def test_sawyer(env_cls):
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
 def test_obs_type(env_cls):
     for t in OBS_TYPE:
-        if t == 'with_goal_init_obs':
-            continue
-        if t == 'with_goal_and_id':
-            env = env_cls(obs_type=t, multitask_num=2, multitask=True)
-        else:
-            env = env_cls(obs_type=t, multitask=False)
-        o = env.reset()
-        o_g = env._get_obs()
-        space = env.observation_space
-        assert space.shape == o.shape, 'type: {}, env: {}'.format(t, env)
-        assert space.shape == o_g.shape, 'type: {}, env: {}'.format(t, env)
+        if t == 'with_goal' or t == 'plain':
+            env = env_cls(obs_type=t)
+            o = env.reset()
+            o_g = env._get_obs()
+            space = env.observation_space
+            assert space.shape == o.shape, 'type: {}, env: {}'.format(t, env)
+            assert space.shape == o_g.shape, 'type: {}, env: {}'.format(t, env)
 
 
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)

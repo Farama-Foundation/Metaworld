@@ -82,10 +82,11 @@ def test_multienv_multigoals_fully_discretized(env_list):
     plain_dim = multi_task_env._max_plain_dim
     task_start_index = multi_task_env._env_discrete_index[task_name] + multi_task_env.active_env._state_goal.shape[0]
 
+    # TODO these dims are ugly... rewrite assertion later
     assert reset_obs[plain_dim:][task_start_index + goal] == 1, reset_obs
     assert step_obs[plain_dim:][task_start_index + goal] == 1, step_obs
-    assert np.sum(reset_obs[plain_dim: plain_dim + multi_task_env._n_discrete_goals]) == 1
-    assert np.sum(reset_obs[plain_dim: plain_dim + multi_task_env._n_discrete_goals]) == 1
+    assert np.sum(reset_obs[plain_dim + task_start_index: plain_dim + task_start_index + multi_task_env._n_discrete_goals]) == 1
+    assert np.sum(reset_obs[plain_dim + task_start_index: plain_dim + task_start_index + multi_task_env._n_discrete_goals]) == 1
 
 
 @pytest.mark.parametrize('env_list', [HARD_MODE_LIST[10:12], HARD_MODE_LIST[30:33]])
@@ -187,10 +188,10 @@ def test_reach_push_pick_place(env_cls):
 
 
 # Full ml10 is too large for testing
-ml3_env_cls_dict = dict(
-    pick_place=MEDIUM_MODE_CLS_DICT['train']['pick_place'],
-    reach=MEDIUM_MODE_CLS_DICT['train']['reach'],
-    sweep=MEDIUM_MODE_CLS_DICT['train']['sweep'],)
+ml3_env_cls_dict = {
+    'pick-place-v1': MEDIUM_MODE_CLS_DICT['train']['pick-place-v1'],
+    'reach-v1': MEDIUM_MODE_CLS_DICT['train']['reach-v1'],
+    'sweep-v1': MEDIUM_MODE_CLS_DICT['train']['sweep-v1'],}
 ml3_env_args_kwargs = {
     key: MEDIUM_MODE_ARGS_KWARGS['train'][key]
     for key in ml3_env_cls_dict.keys()
