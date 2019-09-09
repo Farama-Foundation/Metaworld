@@ -1,7 +1,23 @@
 # Contributing to Meta-World
-We welcome all contributions to Meta-World.
-
 Use this guide to prepare your contribution.
+
+## What we are looking for in new tasks
+We particularly welcome contributions of additional tasks that thematically fit within the MT50 and ML45 benchmarks. Such tasks should conform to the action space, observation space, assets, and reward function form as the other tasks. Further, you must run SAC and PPO on the task and include a learning curve.
+
+### Checklist for adding new tasks
+
+Ensure that your task and pull request:
+* [ ] Can be performed by a real robot arm 
+* [ ] Is dissimilar from current tasks
+* [ ] Contains meaningful internal variation (e.g. different object positions, etc.)
+* [ ] Conforms to the action space, observation space, and reward functions conventions used by metaworld environments
+* [ ] Uses existing assets if they exist, and that any new assets added are high-quality
+* [ ] Follows the code qualtiy, style, testing, and documentation guidelines outlined below
+* [ ] Provides learning curves which show the task can by solved by PPO and SAC, using the implementations linked below
+
+PPO: https://github.com/rlworkgroup/garage/blob/master/src/garage/tf/algos/ppo.py
+
+SAC: https://github.com/rail-berkeley/softlearning
 
 ## Pull requests
 All contributions to the Meta-World codebase are submitted via a GitHub pull request.
