@@ -38,10 +38,10 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   # Pull cached docker image
-  - docker pull ryanjulian/metaworld-ci:latest
+  - docker pull rlworkgroup/metaworld-ci:latest
 
 install:
-  - tag="ryanjulian/metaworld-ci:${TRAVIS_BUILD_NUMBER}"
+  - tag="rlworkgroup/metaworld-ci:${TRAVIS_BUILD_NUMBER}"
   - TAG="${tag}" make build-ci
 
 before_script:
