@@ -8,7 +8,7 @@ import numpy as np
 
 from metaworld.core.serializable import Serializable
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv
-from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat, quat_create
+from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat, quat_create, quat_mul
 
 
 OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal', 'with_goal_init_obs']
@@ -122,8 +122,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         action[3] = action[3] * self.action_rot_scale
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         # replace this with learned rotation
-        quat = env_util.quat_mul(env_util.quat_create(np.array([0, 1., 0]), np.pi),
-                                 env_util.quat_create(np.array(rot_axis), action[3]))
+        quat = quat_mul(quat_create(np.array([0, 1., 0]), np.pi),
+                        quat_create(np.array(rot_axis), action[3]))
         self.data.set_mocap_quat('mocap', quat)
         # self.data.set_mocap_quat('mocap', np.array([np.cos(action[3]/2), np.sin(action[3]/2)*rot_axis[0], np.sin(action[3]/2)*rot_axis[1], np.sin(action[3]/2)*rot_axis[2]]))
         # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
