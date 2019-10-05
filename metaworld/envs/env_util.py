@@ -5,7 +5,9 @@ from numbers import Number
 
 import numpy as np
 from gym.spaces import Box
-from pyquaternion import Quaternion
+import mujoco_py
+
+import metaworld.envs.mujoco.utils.rotation as mjrot
 
 ENV_ASSET_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
@@ -117,7 +119,8 @@ def concatenate_box_spaces(*spaces):
     return Box(low=low, high=high, dtype=np.float32)
 
 def quat_to_zangle(quat):
-    angle = (Quaternion(axis = [0,1,0], angle = (np.pi/2)).inverse * Quaternion(quat)).angle
+    q = quat_mul(quat_inv(quat_create(np.array([0,1.,0]), np.pi/2)), quat)
+    ax,angle = mjrot.quat2axisangle(q)    
     return angle
     
 def zangle_to_quat(zangle):
@@ -125,4 +128,33 @@ def zangle_to_quat(zangle):
     :param zangle in rad
     :return: quaternion
     """
-    return (Quaternion(axis = [0,1,0], angle = (np.pi/2)) * Quaternion(axis=[-1, 0, 0], angle= zangle)).elements
+    return quat_mul(quat_create(np.array([0, 1., 0]), np.pi/2),
+                    quat_create(np.array([-1., 0, 0]), zangle))
+
+def quat_create(axis, angle):
+    """
+        Create a quaternion from an axis and angle.
+        :param axis The three dimensional axis
+        :param angle The angle in radians
+        :return: A 4-d array containing the components of a quaternion.
+    """
+    quat = np.zeros([4], dtype='float') 
+    mujoco_py.functions.mju_axisAngle2Quat(quat, axis, angle)
+    return quat
+
+def quat_inv(quat):
+    """
+        Invert a quaternion, represented by a 4d array.
+        :param A quaternion (4-d array). Must not be the zero quaternion (all elements equal to zero)
+        :return: A 4-d array containing the components of a quaternion.
+    """
+    d = 1. / np.sum(quat**2)
+    return d * np.array([1., -1., -1., -1.]) * quat
+
+def quat_mul(quat1, quat2):
+    """
+        Multiply two quaternions, both represented as 4-d arrays.
+    """
+    prod_quat = np.zeros([4], dtype='float')
+    mujoco_py.functions.mju_mulQuat(prod_quat, quat1, quat2)
+    return prod_quat

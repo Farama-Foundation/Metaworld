@@ -8,7 +8,7 @@ from metaworld.envs.env_util import get_stat_in_paths, \
 from metaworld.core.multitask_env import MultitaskEnv
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
-from pyquaternion import Quaternion
+
 from metaworld.envs.mujoco.utils.rotation import euler2quat
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 
@@ -190,14 +190,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         )
     
 
-    def _set_obj_xyz_quat(self, pos, angle):
-        quat = Quaternion(axis = [0,0,1], angle = angle).elements
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qpos[12:16] = quat.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
+
 
 
     def _set_obj_xyz(self, pos):

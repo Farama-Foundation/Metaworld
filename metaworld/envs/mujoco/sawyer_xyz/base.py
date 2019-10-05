@@ -4,11 +4,11 @@ import copy
 from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
-from pyquaternion import Quaternion
+
 
 from metaworld.core.serializable import Serializable
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv
-from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat
+from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat, quat_create
 
 
 OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal', 'with_goal_init_obs']
@@ -122,7 +122,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         action[3] = action[3] * self.action_rot_scale
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         # replace this with learned rotation
-        quat = (Quaternion(axis=[0,1,0], angle=(np.pi)) * Quaternion(axis=list(rot_axis), angle=action[3])).elements
+        quat = env_util.quat_mul(env_util.quat_create(np.array([0, 1., 0]), np.pi),
+                                 env_util.quat_create(np.array(rot_axis), action[3]))
         self.data.set_mocap_quat('mocap', quat)
         # self.data.set_mocap_quat('mocap', np.array([np.cos(action[3]/2), np.sin(action[3]/2)*rot_axis[0], np.sin(action[3]/2)*rot_axis[1], np.sin(action[3]/2)*rot_axis[2]]))
         # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
@@ -195,7 +196,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     to be not used.
     '''
     def sample_goals(self, batch_size):
-        '''Note: should be replaced by sample_goals_ if not used'''
+        '''Note: should be replaced by sample_goals_ if not used''' 
         # Required by HER-TD3
         goals = self.sample_goals_(batch_size)
         if self.discrete_goal_space is not None:
@@ -211,3 +212,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return self.discrete_goals[goal]
         else:
             return goal
+
+    def _set_obj_xyz_quat(self, pos, angle):
+        quat = quat_create(np.array([0, 0, .1]), angle)
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[9:12] = pos.copy()
+        qpos[12:16] = quat.copy()
+        qvel[9:15] = 0
+        self.set_state(qpos, qvel)
+
+    def _set_obj_xyz(self, pos):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[9:12] = pos.copy()
+        qvel[9:15] = 0
+        self.set_state(qpos, qvel)
