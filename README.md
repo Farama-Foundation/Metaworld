@@ -88,7 +88,7 @@ env = SawyerReachPushPickPlaceEnv()
 ```
 
 ## Contributors and Acknowledgement
-Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.edu/~tianheyu/), [Deirdre Quillen (UC Berkeley)](https://scholar.google.com/citations?user=eDQsOFMAAAAJ&hl=en), [Zhanpeng He (Columbia University)](https://zhanpenghe.github.io), [Ryan Julian (University of Southern California)](https://robotics.usc.edu/resl/people/89/), [Karol Hausman (Google AI)](https://karolhausman.github.io), [Sergey Levine (UC Berkeley)](https://people.eecs.berkeley.edu/~svlevine/) and [Chelsea Finn (Stanford University)](https://ai.stanford.edu/~cbfinn/).
+Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.edu/~tianheyu/), [Deirdre Quillen (UC Berkeley)](https://scholar.google.com/citations?user=eDQsOFMAAAAJ&hl=en), [Zhanpeng He (Columbia University)](https://zhanpenghe.github.io), [Ryan Julian (University of Southern California)](https://robotics.usc.edu/resl/people/89/), [Karol Hausman (Google AI)](https://karolhausman.github.io),  [Chelsea Finn (Stanford University)](https://ai.stanford.edu/~cbfinn/) and [Sergey Levine (UC Berkeley)](https://people.eecs.berkeley.edu/~svlevine/).
 
 If you use Meta-World for your academic research, please kindly cite Meta-World with the following BibTeX:
 
