@@ -88,13 +88,13 @@ env = SawyerReachPushPickPlaceEnv()
 ```
 
 ## Contributors and Acknowledgement
-Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.edu/~tianheyu/), [Deirdre Quillen (UC Berkeley)](https://scholar.google.com/citations?user=eDQsOFMAAAAJ&hl=en), [Zhanpeng He (Columbia University)](https://zhanpenghe.github.io), [Ryan Julian (University of Southern California)](https://robotics.usc.edu/resl/people/89/), [Karol Hausman (Google AI)](https://karolhausman.github.io), [Sergey Levine (UC Berkeley)](https://people.eecs.berkeley.edu/~svlevine/) and [Chelsea Finn (Stanford University)](https://ai.stanford.edu/~cbfinn/).
+Meta-World is a work by [Tianhe Yu (Stanford University)](https://cs.stanford.edu/~tianheyu/), [Deirdre Quillen (UC Berkeley)](https://scholar.google.com/citations?user=eDQsOFMAAAAJ&hl=en), [Zhanpeng He (Columbia University)](https://zhanpenghe.github.io), [Ryan Julian (University of Southern California)](https://robotics.usc.edu/resl/people/89/), [Karol Hausman (Google AI)](https://karolhausman.github.io),  [Chelsea Finn (Stanford University)](https://ai.stanford.edu/~cbfinn/) and [Sergey Levine (UC Berkeley)](https://people.eecs.berkeley.edu/~svlevine/).
 
 If you use Meta-World for your academic research, please kindly cite Meta-World with the following BibTeX:
 
 ```
 @misc{yu2019,
-  Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Sergey Levine and Chelsea Finn},
+  Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Chelsea Finn and Sergey Levine},
   Title = {Meta-World: A Benchmark and Evaluation for Multi-Task and Meta-Reinforcement Learning},
   Year = {2019},
   url = "https://github.com/rlworkgroup/metaworld"
