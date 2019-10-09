@@ -94,7 +94,7 @@ If you use Meta-World for your academic research, please kindly cite Meta-World 
 
 ```
 @misc{yu2019,
-  Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Sergey Levine and Chelsea Finn},
+  Author = {Tianhe Yu and Deirdre Quillen and Zhanpeng He and Ryan Julian and Karol Hausman and Chelsea Finn and Sergey Levine},
   Title = {Meta-World: A Benchmark and Evaluation for Multi-Task and Meta-Reinforcement Learning},
   Year = {2019},
   url = "https://github.com/rlworkgroup/metaworld"
