@@ -69,5 +69,3 @@ def test_quaternions():
         exp_q = zangle_to_quat_old(ang1)
         q = env_util.zangle_to_quat(ang1)
         assert_close(exp_q, q)
-
-test_quaternions()
