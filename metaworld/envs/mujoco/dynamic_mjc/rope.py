@@ -24,7 +24,7 @@ def rope(num_beads = 5,
                              eulerseq="XYZ",
                              meshdir=os.path.dirname(os.path.realpath(__file__)) + "/../../assets/meshes",
                              texturedir=os.path.dirname(os.path.realpath(__file__)) + "/../../assets/textures")
-    mjcmodel.root.size(njmax="6000", nconmax="6000")
+    # mjcmodel.root.size(njmax="6000", nconmax="6000")
     mjcmodel.root.option(timestep='0.0025', iterations="50", tolerance="1e-10", solver="Newton", jacobian="dense", cone="elliptic")
     default = mjcmodel.root.default()
     default.joint(limited="true",

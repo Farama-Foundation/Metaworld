@@ -15,6 +15,7 @@ extras = dict()
 extras['dev'] = [
     # Please keep alphabetized
     'ipdb',
+    'memory_profiler',
     'pylint',
     'pyquaternion==0.9.5',
     'pytest>=3.6',

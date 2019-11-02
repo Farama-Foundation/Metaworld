@@ -1,7 +1,6 @@
 <mujoco model="pushing2d">
 
     <compiler inertiafromgeom="auto" angle="radian" coordinate="local" />
-    <size njmax="2000" nconmax="2000"/>
     <option timestep="0.005" gravity="0 0 -9.81" iterations="50" integrator="Euler" />
     <default>
         <joint limited="false" damping="1" />
