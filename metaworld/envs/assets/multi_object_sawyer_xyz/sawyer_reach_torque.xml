@@ -4,7 +4,6 @@
     <!-- <option impratio="0.01" /> -->
     <!-- <option collision="predefined" /> -->
     <option integrator="Euler" timestep="0.002" iterations="50"/>
-    <size njmax="500" nconmax="100" />
     <asset>
         <mesh name="pedestal" file="pedestal.stl" />
         <mesh name="base" file="base.stl" />

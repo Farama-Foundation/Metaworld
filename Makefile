@@ -13,6 +13,11 @@ test: RUN_CMD = pytest -v
 test: run
 	@echo "Running test suite..."
 
+check-memory:  ## Profile memory usage
+check-memory: RUN_CMD = scripts/profile_memory_usage.py
+check-memory: run
+	@echo "Profiling memory usage..."
+
 ci-job:
 	pytest -n $$(nproc) --cov=metaworld -v
 	coverage xml

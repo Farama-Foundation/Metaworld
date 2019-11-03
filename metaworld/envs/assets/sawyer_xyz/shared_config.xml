@@ -77,10 +77,8 @@ Usage:
         <headlight ambient="0.5 0.5 0.5"  />
     </visual>
 
-    <!-- <compiler angle="radian" meshdir="../meshes/sawyer"/>
-    <size njmax="500" nconmax="100"/> -->
+    <!-- <compiler angle="radian" meshdir="../meshes/sawyer"/> -->
     <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes" texturedir="../textures"/>
-    <size njmax="6000" nconmax="6000"/>
     <!-- <option
             iterations="50"
             integrator="Euler"
