@@ -18,10 +18,24 @@ check-memory: RUN_CMD = scripts/profile_memory_usage.py
 check-memory: run
 	@echo "Profiling memory usage..."
 
-ci-job:
+ci-job: ci-verify-pipenv check-memory
 	pytest -n $$(nproc) --cov=metaworld -v
 	coverage xml
 	bash <(curl -s https://codecov.io/bash)
+
+# The following two lines remove the Dockerfile's built-in virtualenv from the
+# path, so we can test with pipenv directly
+ci-verify-pipenv: export PATH=$(shell echo $$PATH | awk -v RS=: -v ORS=: '/venv/ {next} {print}')
+ci-verify-pipenv: export VIRTUAL_ENV=
+ci-verify-pipenv:
+	pip3 install --upgrade pipenv setuptools
+	pipenv --three
+	pipenv install "git+https://github.com/rlworkgroup/metaworld.git@${TRAVIS_BRANCH}#egg=metaworld[dev]"
+	pipenv graph
+	# pylint will verify all imports work
+	pipenv run pylint --disable=all --enable=import-error metaworld
+	# construct one benchmark to make sure the assets are correctly installed
+	pipenv run python -c "from metaworld.benchmarks import ML1; ML1.get_train_tasks('pick-place-v1')"
 
 ci-deploy-docker:
 	echo "${DOCKER_API_KEY}" | docker login -u "${DOCKER_USERNAME}" \
