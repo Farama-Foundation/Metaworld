@@ -1,1 +1,1 @@
-recursive-include metaworld/envs/assets 
+recursive-include metaworld/envs/assets * 
