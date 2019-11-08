@@ -22,7 +22,7 @@ __Table of Contents__
 Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:
 
 ```
-pip install git+https://github.com/rlworkgroup/metaworld.git@master
+pip install git+https://github.com/rlworkgroup/metaworld.git@master#egg=metaworld
 ```
 
 Alternatively, you can clone the repository and install an editable version locally:
