@@ -150,7 +150,7 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'pickRew':None, 'epRew' : reward, 'goalDist': pushDistxy, 'success': float(success)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):

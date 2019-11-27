@@ -134,7 +134,7 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'goalDist': None, 'epRew' : reward, 'pickRew':None, 'success': float(reachDist <= 0.05)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):

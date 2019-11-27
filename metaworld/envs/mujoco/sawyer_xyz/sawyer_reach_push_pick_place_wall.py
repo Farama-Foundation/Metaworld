@@ -157,7 +157,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
         else:
             success = float(goal_dist <= 0.07)
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
    
     def _get_obs(self):

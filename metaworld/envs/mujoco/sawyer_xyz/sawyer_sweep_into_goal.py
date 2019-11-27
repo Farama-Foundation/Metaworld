@@ -134,7 +134,7 @@ class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.08)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):

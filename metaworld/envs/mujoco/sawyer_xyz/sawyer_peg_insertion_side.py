@@ -139,7 +139,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             done = False
         # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):
