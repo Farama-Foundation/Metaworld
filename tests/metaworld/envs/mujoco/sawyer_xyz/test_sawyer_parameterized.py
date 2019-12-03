@@ -3,7 +3,6 @@ import pytest
 import numpy as np
 
 from tests.helpers import step_env
-from tests.helpers import close_env
 
 from metaworld.envs.mujoco.sawyer_xyz.base import OBS_TYPE
 from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
@@ -13,7 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 def test_sawyer(env_cls):
     env = env_cls()
     step_env(env, max_path_length=10)
-    close_env(env)
+    env.close()
 
 
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
@@ -26,6 +25,7 @@ def test_obs_type(env_cls):
             space = env.observation_space
             assert space.shape == o.shape, 'type: {}, env: {}'.format(t, env)
             assert space.shape == o_g.shape, 'type: {}, env: {}'.format(t, env)
+            env.close()
 
 
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
@@ -42,3 +42,5 @@ def test_discretize_goal_space(env_cls):
         env.set_goal_(g)
         assert g in env.discrete_goal_space
         assert np.all(env.goal == discrete_goals[g])
+
+    env.close()

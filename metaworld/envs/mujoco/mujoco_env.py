@@ -1,5 +1,6 @@
 import os
 
+import glfw
 from gym import error, spaces
 from gym.utils import seeding
 import numpy as np
@@ -132,7 +133,7 @@ class MujocoEnv(gym.Env):
 
 	def close(self):
 		if self.viewer is not None:
-			self.viewer.finish()
+			glfw.destroy_window(self.viewer.window)
 			self.viewer = None
 
 	def _get_viewer(self, mode):
