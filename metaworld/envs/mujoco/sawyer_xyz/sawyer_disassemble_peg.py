@@ -128,7 +128,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': success}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):

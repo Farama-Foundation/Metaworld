@@ -130,7 +130,7 @@ class SawyerHandlePullEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.04)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def _get_obs(self):

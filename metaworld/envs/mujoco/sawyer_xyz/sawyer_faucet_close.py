@@ -131,7 +131,7 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         else:
             done = False
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, done, info
 
     def get_angle(self):
