@@ -61,7 +61,7 @@ EASY_MODE_CLS_DICT= {
     'drawer-open-v1': SawyerDrawerOpenEnv,
     'drawer-close-v1': SawyerDrawerCloseEnv,
     'button-press-topdown-v1': SawyerButtonPressTopdownEnv,
-    'ped-insert-side-v1': SawyerPegInsertionSideEnv,
+    'peg-insert-side-v1': SawyerPegInsertionSideEnv,
     'window-open-v1': SawyerWindowOpenEnv,
     'window-close-v1': SawyerWindowCloseEnv,
 }
@@ -119,7 +119,7 @@ MEDIUM_MODE_CLS_DICT = dict(
         'door-v1': SawyerDoorEnv,
         'drawer-close-v1': SawyerDrawerCloseEnv,
         'button-press-topdown-v1': SawyerButtonPressTopdownEnv,
-        'ped-insert-side-v1': SawyerPegInsertionSideEnv,
+        'peg-insert-side-v1': SawyerPegInsertionSideEnv,
         'window-open-v1': SawyerWindowOpenEnv,
         'sweep-v1': SawyerSweepEnv,
         'basketball-v1': SawyerBasketballEnv,
