@@ -21,7 +21,7 @@ check-memory: run
 ci-job:
 	pytest -n $$(nproc) --cov=metaworld -v
 	coverage xml
-	bash <(curl -s https://codecov.io/bash)
+	# bash <(curl -s https://codecov.io/bash)
 
 ci-deploy-docker:
 	echo "${DOCKER_API_KEY}" | docker login -u "${DOCKER_USERNAME}" \
