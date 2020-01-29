@@ -230,7 +230,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             return tasks
 
     def step(self, action):
-        obs, reward, done, info = self.active_env.step(action)
+        obs, reward, done, info = super().step(action)
         obs = self._augment_observation(obs)
         if 'task_type' in dir(self.active_env):
             name = '{}-{}'.format(str(self.active_env.__class__.__name__), self.active_env.task_type)
