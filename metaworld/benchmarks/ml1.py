@@ -19,7 +19,7 @@ class ML1(MultiClassMultiTaskEnv, Benchmark, Serializable):
         else:
             raise NotImplementedError
 
-        args_kwargs[task_name]['random_init'] = False
+        args_kwargs[task_name]['kwargs']['random_init'] = False
         super().__init__(
             task_env_cls_dict=cls_dict,
             task_args_kwargs=args_kwargs,
