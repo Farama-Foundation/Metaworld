@@ -21,6 +21,9 @@ class MujocoEnv(gym.Env):
 	Some differences are:
 	 - Do not automatically set the observation/action space.
 	"""
+
+	max_path_length = 150
+
 	def __init__(self, model_path, frame_skip, device_id=-1, automatically_set_spaces=False):
 		if model_path.startswith("/"):
 			fullpath = model_path
@@ -111,6 +114,8 @@ class MujocoEnv(gym.Env):
 		return self.model.opt.timestep * self.frame_skip
 
 	def do_simulation(self, ctrl, n_frames=None):
+		if getattr(self, 'curr_path_length', 0) > self.max_path_length:
+			raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
 		if n_frames is None:
 			n_frames = self.frame_skip
 		if self.sim.data.ctrl is not None and ctrl is not None:

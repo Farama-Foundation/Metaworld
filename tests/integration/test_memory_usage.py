@@ -9,7 +9,7 @@ from tests.helpers import step_env
 
 def build_and_step(env_cls):
     env = env_cls()
-    step_env(env, max_path_length=1000, iterations=10, render=False)
+    step_env(env, max_path_length=150, iterations=10, render=False)
     return env
 
 def build_and_step_all(classes):
