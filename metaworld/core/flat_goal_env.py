@@ -12,7 +12,6 @@ class FlatGoalEnv(ProxyEnv):
             goal_keys=None,
             append_goal_to_obs=False,
     ):
-        self.quick_init(locals())
         super(FlatGoalEnv, self).__init__(wrapped_env)
 
         if obs_keys is None:

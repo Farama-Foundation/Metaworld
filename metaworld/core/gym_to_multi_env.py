@@ -20,7 +20,6 @@ class GymToMultiEnv(ProxyEnv): # MultitaskEnv):
             wrapped_env,
     ):
         """Minimal env to convert a gym env to one with dict observations"""
-        self.quick_init(locals())
         super().__init__(wrapped_env)
 
         obs_box = wrapped_env.observation_space

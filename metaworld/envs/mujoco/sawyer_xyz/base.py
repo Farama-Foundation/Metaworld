@@ -6,7 +6,6 @@ import mujoco_py
 import numpy as np
 
 
-from metaworld.core.serializable import Serializable
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv
 from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat, quat_create, quat_mul
 
@@ -14,7 +13,7 @@ from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat, quat_create,
 OBS_TYPE = ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal', 'with_goal_init_obs']
 
 
-class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
+class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
     mocap for XYZ control.
@@ -47,11 +46,18 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
         self.sim.forward()
 
     def __getstate__(self):
-        state = super().__getstate__()
-        return {**state, 'env_state': self.get_env_state()}
+        state = self.__dict__.copy()
+        del state['model']
+        del state['sim']
+        del state['data']
+        mjb = self.model.get_mjb()
+        return {'state': state, 'mjb': mjb, 'env_state': self.get_env_state()}
 
     def __setstate__(self, state):
-        super().__setstate__(state)
+        self.__dict__ = state['state']
+        self.model = mujoco_py.load_model_from_mjb(state['mjb'])
+        self.sim = mujoco_py.MjSim(self.model)
+        self.data = self.sim.data
         self.set_env_state(state['env_state'])
 
     def reset_mocap_welds(self):

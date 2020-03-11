@@ -1,15 +1,13 @@
 
 from metaworld.benchmarks.base import Benchmark
-from metaworld.core.serializable import Serializable
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_ARGS_KWARGS, MEDIUM_MODE_CLS_DICT
 
 
-class ML10(MultiClassMultiTaskEnv, Benchmark, Serializable):
+class ML10(MultiClassMultiTaskEnv, Benchmark):
 
     def __init__(self, env_type='train', sample_all=False):
         assert env_type == 'train' or env_type == 'test'
-        Serializable.quick_init(self, locals())
 
         cls_dict = MEDIUM_MODE_CLS_DICT[env_type]
         args_kwargs = MEDIUM_MODE_ARGS_KWARGS[env_type]
