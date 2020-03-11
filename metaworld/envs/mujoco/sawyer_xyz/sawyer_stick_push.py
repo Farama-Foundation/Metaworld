@@ -23,7 +23,7 @@ class SawyerStickPushEnv(SawyerXYZEnv):
             obs_type='with_goal_init_obs',
             **kwargs
     ):
-        self.quick_init(locals())
+
         hand_low=(-0.5, 0.40, 0.05)
         hand_high=(0.5, 1, 0.5)
         obj_low=(-0.08, 0.58, 0.02)

@@ -2,15 +2,13 @@ import gym
 from gym.spaces import Box
 import numpy as np
 
-from metaworld.core.serializable import Serializable
 
-
-class MultiTaskEnv(gym.Env, Serializable):
+class MultiTaskEnv(gym.Env):
     def __init__(self,
                  task_env_cls=None,
                  task_args=None,
                  task_kwargs=None,):
-        Serializable.quick_init(self, locals())
+
         self._task_envs = [
             task_env_cls(*t_args, **t_kwargs)
             for t_args, t_kwargs in zip(task_args, task_kwargs)
@@ -91,7 +89,6 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
                  sample_all=True,
                  sample_goals=False,
                  obs_type='plain',):
-        Serializable.quick_init(self, locals())
         assert len(task_env_cls_dict.keys()) == len(task_args_kwargs.keys())
         assert len(task_env_cls_dict.keys()) >= 1
         for k in task_env_cls_dict.keys():

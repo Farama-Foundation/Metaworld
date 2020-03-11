@@ -28,7 +28,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
             rotMode='quat',
             **kwargs
     ):
-        self.quick_init(locals())
+
         SawyerXYZEnv.__init__(
             self,
             frame_skip=5,

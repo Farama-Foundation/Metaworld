@@ -46,7 +46,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         don't provide pre-sampled goals. The main use case is if you want to
         use an ImageEnv to pre-sample a bunch of goals.
         """
-        self.quick_init(locals())
         super().__init__(wrapped_env)
         self.wrapped_env.hide_goal_markers = True
         self.imsize = imsize
