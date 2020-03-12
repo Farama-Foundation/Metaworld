@@ -125,6 +125,11 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         self._active_task = 0
         self._check_env_list()
 
+    @property
+    def all_task_names(self):
+        """list[str]: Name of all available tasks. Note that two envs of a task can have different goals."""
+        return self._task_names
+
     def discretize_goal_space(self, discrete_goals):
         for task, goals in discrete_goals.items():
             if task in self._task_names:
@@ -229,11 +234,7 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
     def step(self, action):
         obs, reward, done, info = super().step(action)
         obs = self._augment_observation(obs)
-        if 'task_type' in dir(self.active_env):
-            name = '{}-{}'.format(str(self.active_env.__class__.__name__), self.active_env.task_type)
-        else:
-            name = str(self.active_env.__class__.__name__)
-        info['task_name'] = name
+        info['task_name'] = self._task_names[self._active_task]
         return obs, reward, done, info
 
     def _augment_observation(self, obs):

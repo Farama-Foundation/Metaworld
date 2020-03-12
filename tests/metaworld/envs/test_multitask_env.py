@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 
+from metaworld.benchmarks import ML10
 from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
@@ -213,3 +214,12 @@ def test_ml3():
             _ = multi_task_env.reset()
             goal = multi_task_env.active_env.goal
             assert multi_task_env.active_env.goal_space.contains(goal)
+
+
+def test_task_name():
+    task_names = MEDIUM_MODE_CLS_DICT['test'].keys()
+    env = ML10.get_test_tasks()
+    assert sorted(env.all_task_names) == sorted(task_names)
+
+    _, _, _, info = env.step(env.action_space.sample())
+    assert info['task_name'] in task_names
