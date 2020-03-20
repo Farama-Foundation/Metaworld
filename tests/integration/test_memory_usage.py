@@ -2,6 +2,7 @@ import gym
 import memory_profiler
 import pytest
 
+from metaworld.benchmarks import ML45
 from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 from tests.helpers import step_env
 
@@ -42,3 +43,8 @@ def test_avg_memory_usage():
     usage = memory_profiler.memory_usage(target)
     average = max(usage) / len(HARD_MODE_LIST)
     assert average < 60
+
+def test_from_task_memory_usage():
+    target = (ML45.from_task, ['reach-v1'], {})
+    usage = memory_profiler.memory_usage(target)
+    assert max(usage) < 250
