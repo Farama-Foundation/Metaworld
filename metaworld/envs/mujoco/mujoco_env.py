@@ -22,7 +22,7 @@ class MujocoEnv(gym.Env):
 	 - Do not automatically set the observation/action space.
 	"""
 
-	max_path_length = 150
+	max_path_length = 200
 
 	def __init__(self, model_path, frame_skip, device_id=-1, automatically_set_spaces=False):
 		if model_path.startswith("/"):

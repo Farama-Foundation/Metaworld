@@ -58,7 +58,6 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200
         self.rewMode = rewMode
         self.rotMode = rotMode
         if rotMode == 'fixed':
@@ -171,7 +170,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('RoundNut')] = (
             objPos
         )
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -244,7 +243,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
 
         graspPos = obs[3:6]
         objPos = graspPos
-        
+
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
@@ -281,15 +280,15 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
             self.pickCompleted = True
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100#100
             if self.pickCompleted and not(objDropped()):
@@ -345,7 +344,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
         success = (abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05) or placingDist < 0.02
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, float(success)] 
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, float(success)]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

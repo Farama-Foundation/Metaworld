@@ -56,7 +56,6 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200
         self.rewMode = rewMode
         self.rotMode = rotMode
 
@@ -173,7 +172,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('RoundNut')] = (
             objPos
         )
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -280,8 +279,8 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
-       
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
@@ -292,13 +291,13 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
                return True
             else:
                return False
-        
+
         if placeCompletionCriteria():
             self.placeCompleted = True
         else:
             self.placeCompleted = False
 
-        def orig_pickReward():       
+        def orig_pickReward():
             hScale = 100
             if self.placeCompleted or (self.pickCompleted and not(objDropped())):
                 return hScale*heightTarget
@@ -341,7 +340,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
         success = (abs(objPos[0] - placingGoal[0]) < 0.03 and abs(objPos[1] - placingGoal[1]) < 0.03 and placingDistFinal <= 0.04)
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, placingDistFinal, success] 
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, placingDistFinal, success]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

@@ -50,7 +50,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
@@ -58,7 +58,6 @@ class SawyerSweepEnv(SawyerXYZEnv):
         self.obs_type = obs_type
 
         self.random_init = random_init
-        self.max_path_length = 150#
         self.rotMode = rotMode
         self.init_puck_z = init_puck_z
         if rotMode == 'fixed':
@@ -168,7 +167,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -187,7 +186,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('obj')] = (
             objPos
         )
-    
+
 
 
 
@@ -256,7 +255,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -319,7 +318,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
         # reward = reachRew + pushRew + pushRewxy# - actions[-1]/50
         reward = reachRew + pushRew# - actions[-1]/50
         # reward = pushRew# - actions[-1]/50
-      
+
         return [reward, reachDist, pushDistxy]
 
     def get_diagnostics(self, paths, prefix=''):

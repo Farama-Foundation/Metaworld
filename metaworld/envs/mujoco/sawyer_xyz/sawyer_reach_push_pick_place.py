@@ -70,13 +70,12 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.sampleMode = sampleMode
@@ -161,7 +160,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
         info['goal'] = self.goal
         return ob, reward, False, info
-   
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
@@ -194,7 +193,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -393,15 +392,15 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
 
             def objDropped():
-                return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+                return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
                 # Object on the ground, far away from the goal, and from the gripper
                 #Can tweak the margin limits
-           
+
             def objGrasped(thresh = 0):
                 sensorData = self.data.sensordata
                 return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-            def orig_pickReward():       
+            def orig_pickReward():
                 # hScale = 50
                 hScale = 100
                 # hScale = 1000

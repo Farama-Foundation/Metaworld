@@ -50,12 +50,11 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
 
         if rotMode == 'fixed':
@@ -179,7 +178,7 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -249,7 +248,7 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -296,8 +295,8 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         pullRew = pullReward()
         reward = reachRew + pullRew# - actions[-1]/50
         # reward = pullRew# - actions[-1]/50
-      
-        return [reward, reachDist, pullDist] 
+
+        return [reward, reachDist, pullDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

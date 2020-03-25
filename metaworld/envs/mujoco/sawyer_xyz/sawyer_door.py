@@ -54,12 +54,11 @@ class SawyerDoorEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
 
         self.rotMode = rotMode
         if rotMode == 'fixed':
@@ -136,7 +135,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
         info =  {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
         info['goal'] = self.goal
         return ob, reward, False, info
-   
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('handle').copy()
@@ -170,7 +169,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -251,7 +250,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -298,8 +297,8 @@ class SawyerDoorEnv(SawyerXYZEnv):
         pullRew = pullReward()
         reward = reachRew + pullRew# - actions[-1]/50
         # reward = pullRew# - actions[-1]/50
-      
-        return [reward, reachDist, pullDist] 
+
+        return [reward, reachDist, pullDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

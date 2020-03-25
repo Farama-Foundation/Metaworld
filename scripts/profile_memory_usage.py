@@ -11,7 +11,7 @@ from tests.helpers import step_env
 def build_and_step(env_cls):
     env = env_cls()
     env.reset()
-    step_env(env, max_path_length=1000, iterations=10)
+    step_env(env, max_path_length=200, iterations=10)
     return env
 
 def build_and_step_all(classes):

@@ -1,7 +1,7 @@
 import numpy as np
 import glfw
 
-def step_env(env, max_path_length=100, iterations=1, render=True):
+def step_env(env, max_path_length=200, iterations=1, render=True):
     """Step env helper."""
     for _ in range(iterations):
         env.reset()

@@ -44,18 +44,17 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
         self.goal = np.array([-0.2, 0.7, 0.14])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-    
+
         assert obs_type in OBS_TYPE
         self.obs_type = obs_type
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -227,7 +226,7 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -249,7 +248,7 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
         pressRew = max(pressRew, 0)
         reward = -reachDist + pressRew
 
-        return [reward, reachDist, pressDist] 
+        return [reward, reachDist, pressDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

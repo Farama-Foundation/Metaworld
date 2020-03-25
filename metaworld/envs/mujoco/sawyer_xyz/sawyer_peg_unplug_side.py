@@ -59,7 +59,6 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.obs_type = obs_type
@@ -180,7 +179,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -266,7 +265,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         reachDist = np.linalg.norm(objPos - fingerCOM)
 
         placingDist = np.linalg.norm(objPos[:-1] - placingGoal[:-1])
-      
+
 
         def reachReward():
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
@@ -303,7 +302,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         placeRew , placingDist = placeReward()
         assert placeRew >=0
         reward = reachRew + placeRew
-        return [reward, reachRew, reachDist, None, placeRew, placingDist]  
+        return [reward, reachRew, reachDist, None, placeRew, placingDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

@@ -52,13 +52,12 @@ class SawyerStickPullEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200
 
         self.rewMode = rewMode
         self.rotMode = rotMode
@@ -149,7 +148,7 @@ class SawyerStickPullEnv(SawyerXYZEnv):
     def _get_obs(self):
         hand = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]        
+        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]
         flat_obs = np.concatenate((hand, stickPos, objPos))
         if self.obs_type == 'with_goal_and_id':
             return np.concatenate([
@@ -187,7 +186,7 @@ class SawyerStickPullEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -206,7 +205,7 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -281,7 +280,7 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs, mode='orig'):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         stickPos = obs[3:6]
@@ -319,15 +318,15 @@ class SawyerStickPullEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (stickPos[2] < (self.stickHeight + 0.005)) and (pullDist >0.02) and (reachDist > 0.02) 
+            return (stickPos[2] < (self.stickHeight + 0.005)) and (pullDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100
             if self.pickCompleted and not(objDropped()):
@@ -374,7 +373,7 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         pullRew , pullDist, placeDist = pullReward()
         assert ((pullRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + pullRew
-        return [reward, reachRew, reachDist, pickRew, pullRew, pullDist, placeDist] 
+        return [reward, reachRew, reachDist, pickRew, pullRew, pullDist, placeDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
