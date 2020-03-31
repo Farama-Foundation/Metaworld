@@ -152,10 +152,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         reward , reachRew, reachDist, pushRew, pushDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode=self.rewMode, task_type=self.task_type)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
 
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
         if self.task_type == 'reach':
@@ -164,7 +160,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             success = float(goal_dist <= 0.07)
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
    
     def _get_obs(self):
         hand = self.get_endeff_pos()

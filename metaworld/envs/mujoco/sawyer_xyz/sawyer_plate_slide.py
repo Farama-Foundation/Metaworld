@@ -127,13 +127,9 @@ class SawyerPlateSlideEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
 
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
