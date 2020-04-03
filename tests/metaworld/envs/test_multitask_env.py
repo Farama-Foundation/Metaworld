@@ -223,3 +223,16 @@ def test_task_name():
 
     _, _, _, info = env.step(env.action_space.sample())
     assert info['task_name'] in task_names
+
+def test_observation_space():
+    pass
+
+def test_action_space():
+    pass
+
+def test_augment_observation():
+    pass
+
+def test_static_task_ids():
+    pass
+
