@@ -6,8 +6,7 @@ from metaworld.envs.mujoco.env_dict import HARD_MODE_ARGS_KWARGS, HARD_MODE_CLS_
 
 class MT50(MultiClassMultiTaskEnv, Benchmark):
 
-    def __init__(self, env_type='train', sample_all=False):
-        assert env_type == 'train' or env_type == 'test'
+    def __init__(self, env_type="train", sample_all=False, task_name=None):
 
         cls_dict = {}
         args_kwargs = {}
@@ -16,6 +15,12 @@ class MT50(MultiClassMultiTaskEnv, Benchmark):
                 cls_dict[task] = HARD_MODE_CLS_DICT[k][task]
                 args_kwargs[task] = HARD_MODE_ARGS_KWARGS[k][task]
         assert len(cls_dict.keys()) == 50
+        if task_name is not None:
+            if task_name not in cls_dict:
+                raise ValueError("{} does not exist in MT50 tasks".format(
+                    task_name))
+            cls_dict = {task_name: cls_dict[task_name]}
+            args_kwargs = {task_name: args_kwargs[task_name]}
 
         super().__init__(
             task_env_cls_dict=cls_dict,
@@ -31,3 +36,10 @@ class MT50(MultiClassMultiTaskEnv, Benchmark):
 
         self.discretize_goal_space(goals_dict)
         assert self._fully_discretized
+
+    @classmethod
+    def from_task(cls, task_name):
+        if task_name in HARD_MODE_CLS_DICT['train'] or HARD_MODE_CLS_DICT['test']:
+            return cls(sample_all=True, task_name=task_name)
+        else:
+            raise ValueError('{} does not exist in MT50'.format(task_name))
