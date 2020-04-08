@@ -173,7 +173,7 @@ MEDIUM_MODE_CLS_DICT = dict(train={
     'peg-insert-side-v1': SawyerPegInsertionSideEnv,
     'window-open-v1': SawyerWindowOpenEnv,
     'sweep-v1': SawyerSweepEnv,
-    'basketball-v1': SawyerBasketballEnv,
+    'basket-ball-v1': SawyerBasketballEnv,
 },
                             test={
                                 'drawer-open-v1': SawyerDrawerOpenEnv,
@@ -185,13 +185,14 @@ MEDIUM_MODE_CLS_DICT = dict(train={
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
         'obs_type': 'plain',
-        'random_init': True
+        'random_init': True,
+        'task_id' : _static_task_ids[key],
     })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
 }
 
 medium_mode_test_args_kwargs = {
-    key: dict(args=[], kwargs={'obs_type': 'plain'})
+    key: dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : _static_task_ids[key]})
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
@@ -266,7 +267,7 @@ HARD_MODE_CLS_DICT = dict(
 
 
 def _hard_mode_args_kwargs(env_cls, key):
-    kwargs = dict(random_init=True, obs_type='plain')
+    kwargs = dict(random_init=True, obs_type='plain', task_id=_static_task_ids[key])
     if key == 'reach-v1' or key == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
     elif key == 'push-v1' or key == 'push-wall-v1':
