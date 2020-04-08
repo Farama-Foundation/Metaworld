@@ -7,6 +7,7 @@ import numpy as np
 
 from metaworld.envs.mujoco.env_dict import _NUM_METAWORLD_ENVS
 
+_GOAL_DIM = 3
 
 class MultiClassMultiTaskEnv(gym.Env):
 
@@ -34,7 +35,7 @@ class MultiClassMultiTaskEnv(gym.Env):
         # hardcoded so we don't have to iterate over all envs and check the maximum
         # this is the maximum observation dimension after augmenting observation
         # e.g. adding goal
-        self._max_obs_dim = 15
+        self._max_obs_dim = 9
         self._env_discrete_index = {}
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
@@ -78,13 +79,17 @@ class MultiClassMultiTaskEnv(gym.Env):
             if not env.discrete_goal_space:
                 self._fully_discretized = False
 
-        start = 0
+
+        n_discrete_goals = 0
+        # this won't work for situations where there are multiple tasks that have multiple
+        # discrete goals # TODO Avnish --- Is this a usage case that we could encounter?
         if self._fully_discretized:
-            self._env_discrete_index = dict()
+            temp_env_discrete_index = dict()
             for task, env in zip(self._task_names, self._task_envs):
-                self._env_discrete_index[task] = start
-                start += env.discrete_goal_space.n
-            self._n_discrete_goals = start
+                temp_env_discrete_index[task] = self._env_discrete_index[task]
+                n_discrete_goals += env.discrete_goal_space.n
+            self._env_discrete_index = temp_env_discrete_index
+            self._n_discrete_goals = n_discrete_goals
 
     def _check_env_list(self):
         assert len(self._task_envs) >= 1
@@ -113,9 +118,9 @@ class MultiClassMultiTaskEnv(gym.Env):
         elif self._obs_type == "with_goal_id":
             obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
         elif self._obs_type == "with_goal_and_id":
-            obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
+            obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS + _GOAL_DIM
         elif self._obs_type == "with_goal":
-            obs_dim = self._max_obs_dim
+            obs_dim = self._max_obs_dim + _GOAL_DIM
         else:
             raise Exception("invalid obs_type, obs_type was {}".format(self._obs_type))
         return Box(low=-np.inf, high=np.inf, shape=(obs_dim,))
@@ -152,20 +157,17 @@ class MultiClassMultiTaskEnv(gym.Env):
             return tasks
 
     def step(self, action):
-        import ipdb; ipdb.set_trace()
         obs, reward, done, info = self.active_env.step(action)
         obs = self._augment_observation(obs)
         info['task_name'] = self._task_names[self._active_task]
         return obs, reward, done, info
 
     def _augment_observation(self, obs):
-        # optionally zero-pad observation, before augmenting observation
         if np.prod(obs.shape) < self._max_obs_dim:
             zeros = np.zeros(
                 shape=(self._max_obs_dim - np.prod(obs.shape),)
             )
             obs = np.concatenate([obs, zeros])
-
         # augment the observation based on obs_type:
         if self._obs_type == 'with_goal_id' or self._obs_type == 'with_goal_and_id':
             if self._obs_type == 'with_goal_and_id':

@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
@@ -50,72 +52,74 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlate
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
 
-_NUM_METAWORLD_ENVS = 50
-_static_task_ids = {
-    'reach-v1': 0,
-    'push-v1': 1,
-    'pick-place-v1': 2,
-    'reach-wall-v1': 3,
-    'pick-place-wall-v1': 4,
-    'push-wall-v1': 5,
-    'door-open-v1': 6,
-    'door-close-v1': 7,
-    'drawer-open-v1': 8,
-    'drawer-close-v1': 9,
-    'button-press-topdown-v1': 10,
-    'button-press-v1': 11,
-    'button-press-topdown-wall-v1': 12,
-    'button-press-wall-v1': 13,
-    'peg-insert-side-v1': 14,
-    'peg-unplug-side-v1': 15,
-    'window-open-v1': 16,
-    'window-close-v1': 17,
-    'dissassemble-v1': 18,
-    'hammer-v1': 19,
-    'plate-slide-v1': 20,
-    'plate-slide-side-v1': 21,
-    'plate-slide-back-v1': 22,
-    'plate-slide-back-side-v1': 23,
-    'handle-press-v1': 24,
-    'handle-pull-v1': 25,
-    'handle-press-side-v1': 26,
-    'handle-pull-side-v1': 27,
-    'stick-push-v1': 28,
-    'stick-pull-v1': 29,
-    'basket-ball-v1': 30,
-    'soccer-v1': 31,
-    'faucet-open-v1': 32,
-    'faucet-close-v1': 33,
-    'coffee-push-v1': 34,
-    'coffee-pull-v1': 35,
-    'coffee-button-v1': 36,
-    'sweep-v1': 37,
-    'sweep-into-v1': 38,
-    'pick-out-of-hole-v1': 39,
-    'assembly-v1': 40,
-    'shelf-place-v1': 41,
-    'push-back-v1': 42,
-    'lever-pull-v1': 43,
-    'dial-turn-v1': 44,
-    'bin-picking-v1': 45,
-    'box-close-v1': 46,
-    'hand-insert-v1': 47,
-    'door-lock-v1': 48,
-    'door-unlock-v1': 49,
-}
+ALL_ENVIRONMENTS = OrderedDict((
+    ('reach-v1', SawyerReachPushPickPlaceEnv),
+    ('push-v1', SawyerReachPushPickPlaceEnv),
+    ('pick-place-v1', SawyerReachPushPickPlaceEnv),
+    ('reach-wall-v1', SawyerReachPushPickPlaceWallEnv),
+    ('pick-place-wall-v1', SawyerReachPushPickPlaceWallEnv),
+    ('push-wall-v1', SawyerReachPushPickPlaceWallEnv),
+    ('door-open-v1', SawyerDoorEnv),
+    ('door-close-v1', SawyerDoorCloseEnv),
+    ('drawer-open-v1', SawyerDrawerOpenEnv),
+    ('drawer-close-v1', SawyerDrawerCloseEnv),
+    ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
+    ('button-press-v1', SawyerButtonPressEnv),
+    ('button-press-topdown-wall-v1', SawyerButtonPressTopdownWallEnv),
+    ('button-press-wall-v1', SawyerButtonPressWallEnv),
+    ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
+    ('peg-unplug-side-v1', SawyerPegUnplugSideEnv),
+    ('window-open-v1', SawyerWindowOpenEnv),
+    ('window-close-v1', SawyerWindowCloseEnv),
+    ('dissassemble-v1', SawyerNutDisassembleEnv),
+    ('hammer-v1', SawyerHammerEnv),
+    ('plate-slide-v1', SawyerPlateSlideEnv),
+    ('plate-slide-side-v1', SawyerPlateSlideSideEnv),
+    ('plate-slide-back-v1', SawyerPlateSlideBackEnv),
+    ('plate-slide-back-side-v1', SawyerPlateSlideBackSideEnv),
+    ('handle-press-v1', SawyerHandlePressEnv),
+    ('handle-pull-v1', SawyerHandlePullEnv),
+    ('handle-press-side-v1', SawyerHandlePressSideEnv),
+    ('handle-pull-side-v1', SawyerHandlePullSideEnv),
+    ('stick-push-v1', SawyerStickPushEnv),
+    ('stick-pull-v1', SawyerStickPullEnv),
+    ('basketball-v1', SawyerBasketballEnv),
+    ('soccer-v1', SawyerSoccerEnv),
+    ('faucet-open-v1', SawyerFaucetOpenEnv),
+    ('faucet-close-v1', SawyerFaucetCloseEnv),
+    ('coffee-push-v1', SawyerCoffeePushEnv),
+    ('coffee-pull-v1', SawyerCoffeePullEnv),
+    ('coffee-button-v1', SawyerCoffeeButtonEnv),
+    ('sweep-v1', SawyerSweepEnv),
+    ('sweep-into-v1', SawyerSweepIntoGoalEnv),
+    ('pick-out-of-hole-v1', SawyerPickOutOfHoleEnv),
+    ('assembly-v1', SawyerNutAssemblyEnv),
+    ('shelf-place-v1', SawyerShelfPlaceEnv),
+    ('push-back-v1', SawyerPushBackEnv),
+    ('lever-pull-v1', SawyerLeverPullEnv),
+    ('dial-turn-v1', SawyerDialTurnEnv),
+    ('bin-picking-v1', SawyerBinPickingEnv),
+    ('box-close-v1', SawyerBoxCloseEnv),
+    ('hand-insert-v1', SawyerHandInsertEnv),
+    ('door-lock-v1', SawyerDoorLockEnv),
+    ('door-unlock-v1', SawyerDoorUnlockEnv)))
 
-EASY_MODE_CLS_DICT = {
-    'reach-v1': SawyerReachPushPickPlaceEnv,
-    'push-v1': SawyerReachPushPickPlaceEnv,
-    'pick-place-v1': SawyerReachPushPickPlaceEnv,
-    'door-open-v1': SawyerDoorEnv,
-    'drawer-open-v1': SawyerDrawerOpenEnv,
-    'drawer-close-v1': SawyerDrawerCloseEnv,
-    'button-press-topdown-v1': SawyerButtonPressTopdownEnv,
-    'peg-insert-side-v1': SawyerPegInsertionSideEnv,
-    'window-open-v1': SawyerWindowOpenEnv,
-    'window-close-v1': SawyerWindowCloseEnv,
-}
+_NUM_METAWORLD_ENVS = len(ALL_ENVIRONMENTS)
+
+EASY_MODE_CLS_DICT = OrderedDict((
+    ('reach-v1', SawyerReachPushPickPlaceEnv),
+    ('push-v1', SawyerReachPushPickPlaceEnv),
+    ('pick-place-v1', SawyerReachPushPickPlaceEnv),
+    ('door-open-v1', SawyerDoorEnv),
+    ('drawer-open-v1', SawyerDrawerOpenEnv),
+    ('drawer-close-v1', SawyerDrawerCloseEnv),
+    ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
+    ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
+    ('window-open-v1', SawyerWindowOpenEnv),
+    ('window-close-v1', SawyerWindowCloseEnv))
+)
+    
+
 '''
     MT10 environments and arguments.
     Example usage:
@@ -139,7 +143,7 @@ EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[],
               kwargs={
                   'obs_type': 'plain',
-                  'task_id': _static_task_ids[key]
+                  'task_id': list(ALL_ENVIRONMENTS.keys()).index(key)
               })
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
@@ -163,36 +167,40 @@ EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
         )
 '''
 
-MEDIUM_MODE_CLS_DICT = dict(train={
-    'reach-v1': SawyerReachPushPickPlaceEnv,
-    'push-v1': SawyerReachPushPickPlaceEnv,
-    'pick-place-v1': SawyerReachPushPickPlaceEnv,
-    'door-open-v1': SawyerDoorEnv,
-    'drawer-close-v1': SawyerDrawerCloseEnv,
-    'button-press-topdown-v1': SawyerButtonPressTopdownEnv,
-    'peg-insert-side-v1': SawyerPegInsertionSideEnv,
-    'window-open-v1': SawyerWindowOpenEnv,
-    'sweep-v1': SawyerSweepEnv,
-    'basket-ball-v1': SawyerBasketballEnv,
-},
-                            test={
-                                'drawer-open-v1': SawyerDrawerOpenEnv,
-                                'door-close-v1': SawyerDoorCloseEnv,
-                                'shelf-place-v1': SawyerShelfPlaceEnv,
-                                'sweep-into-v1': SawyerSweepIntoGoalEnv,
-                                'lever-pull-v1': SawyerLeverPullEnv,
-                            })
+MEDIUM_MODE_CLS_DICT = OrderedDict((
+    ('train', 
+        OrderedDict((
+            ('reach-v1', SawyerReachPushPickPlaceEnv),
+            ('push-v1', SawyerReachPushPickPlaceEnv),
+            ('pick-place-v1', SawyerReachPushPickPlaceEnv),
+            ('door-open-v1', SawyerDoorEnv),
+            ('drawer-close-v1', SawyerDrawerCloseEnv),
+            ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
+            ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
+            ('window-open-v1', SawyerWindowOpenEnv),
+            ('sweep-v1', SawyerSweepEnv),
+            ('basketball-v1', SawyerBasketballEnv)))
+    ),
+    ('test', 
+        OrderedDict((
+            ('drawer-open-v1', SawyerDrawerOpenEnv),
+            ('door-close-v1', SawyerDoorCloseEnv),
+            ('shelf-place-v1', SawyerShelfPlaceEnv),
+            ('sweep-into-v1', SawyerSweepIntoGoalEnv),
+            ('lever-pull-v1', SawyerLeverPullEnv,)))
+    )
+))
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
         'obs_type': 'plain',
         'random_init': True,
-        'task_id' : _static_task_ids[key],
+        'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key),
     })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
 }
 
 medium_mode_test_args_kwargs = {
-    key: dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : _static_task_ids[key]})
+    key: dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
@@ -208,66 +216,70 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
 '''
     ML45 environments and arguments
 '''
-HARD_MODE_CLS_DICT = dict(
-    train={
-        'reach-v1': SawyerReachPushPickPlaceEnv,
-        'push-v1': SawyerReachPushPickPlaceEnv,
-        'pick-place-v1': SawyerReachPushPickPlaceEnv,
-        'reach-wall-v1': SawyerReachPushPickPlaceWallEnv,
-        'pick-place-wall-v1': SawyerReachPushPickPlaceWallEnv,
-        'push-wall-v1': SawyerReachPushPickPlaceWallEnv,
-        'door-open-v1': SawyerDoorEnv,
-        'door-close-v1': SawyerDoorCloseEnv,
-        'drawer-open-v1': SawyerDrawerOpenEnv,
-        'drawer-close-v1': SawyerDrawerCloseEnv,
-        'button-press-topdown-v1': SawyerButtonPressTopdownEnv,
-        'button-press-v1': SawyerButtonPressEnv,
-        'button-press-topdown-wall-v1': SawyerButtonPressTopdownWallEnv,
-        'button-press-wall-v1': SawyerButtonPressWallEnv,
-        'peg-insert-side-v1': SawyerPegInsertionSideEnv,
-        'peg-unplug-side-v1': SawyerPegUnplugSideEnv,
-        'window-open-v1': SawyerWindowOpenEnv,
-        'window-close-v1': SawyerWindowCloseEnv,
-        'dissassemble-v1': SawyerNutDisassembleEnv,
-        'hammer-v1': SawyerHammerEnv,
-        'plate-slide-v1': SawyerPlateSlideEnv,
-        'plate-slide-side-v1': SawyerPlateSlideSideEnv,
-        'plate-slide-back-v1': SawyerPlateSlideBackEnv,
-        'plate-slide-back-side-v1': SawyerPlateSlideBackSideEnv,
-        'handle-press-v1': SawyerHandlePressEnv,
-        'handle-pull-v1': SawyerHandlePullEnv,
-        'handle-press-side-v1': SawyerHandlePressSideEnv,
-        'handle-pull-side-v1': SawyerHandlePullSideEnv,
-        'stick-push-v1': SawyerStickPushEnv,
-        'stick-pull-v1': SawyerStickPullEnv,
-        'basket-ball-v1': SawyerBasketballEnv,
-        'soccer-v1': SawyerSoccerEnv,
-        'faucet-open-v1': SawyerFaucetOpenEnv,
-        'faucet-close-v1': SawyerFaucetCloseEnv,
-        'coffee-push-v1': SawyerCoffeePushEnv,
-        'coffee-pull-v1': SawyerCoffeePullEnv,
-        'coffee-button-v1': SawyerCoffeeButtonEnv,
-        'sweep-v1': SawyerSweepEnv,
-        'sweep-into-v1': SawyerSweepIntoGoalEnv,
-        'pick-out-of-hole-v1': SawyerPickOutOfHoleEnv,
-        'assembly-v1': SawyerNutAssemblyEnv,
-        'shelf-place-v1': SawyerShelfPlaceEnv,
-        'push-back-v1': SawyerPushBackEnv,
-        'lever-pull-v1': SawyerLeverPullEnv,
-        'dial-turn-v1': SawyerDialTurnEnv,
-    },
-    test={
-        'bin-picking-v1': SawyerBinPickingEnv,
-        'box-close-v1': SawyerBoxCloseEnv,
-        'hand-insert-v1': SawyerHandInsertEnv,
-        'door-lock-v1': SawyerDoorLockEnv,
-        'door-unlock-v1': SawyerDoorUnlockEnv,
-    },
-)
+HARD_MODE_CLS_DICT = OrderedDict((
+    ('train', 
+        OrderedDict((
+            ('reach-v1', SawyerReachPushPickPlaceEnv),
+            ('push-v1', SawyerReachPushPickPlaceEnv),
+            ('pick-place-v1', SawyerReachPushPickPlaceEnv),
+            ('reach-wall-v1', SawyerReachPushPickPlaceWallEnv),
+            ('pick-place-wall-v1', SawyerReachPushPickPlaceWallEnv),
+            ('push-wall-v1', SawyerReachPushPickPlaceWallEnv),
+            ('door-open-v1', SawyerDoorEnv),
+            ('door-close-v1', SawyerDoorCloseEnv),
+            ('drawer-open-v1', SawyerDrawerOpenEnv),
+            ('drawer-close-v1', SawyerDrawerCloseEnv),
+            ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
+            ('button-press-v1', SawyerButtonPressEnv),
+            ('button-press-topdown-wall-v1', SawyerButtonPressTopdownWallEnv),
+            ('button-press-wall-v1', SawyerButtonPressWallEnv),
+            ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
+            ('peg-unplug-side-v1', SawyerPegUnplugSideEnv),
+            ('window-open-v1', SawyerWindowOpenEnv),
+            ('window-close-v1', SawyerWindowCloseEnv),
+            ('dissassemble-v1', SawyerNutDisassembleEnv),
+            ('hammer-v1', SawyerHammerEnv),
+            ('plate-slide-v1', SawyerPlateSlideEnv),
+            ('plate-slide-side-v1', SawyerPlateSlideSideEnv),
+            ('plate-slide-back-v1', SawyerPlateSlideBackEnv),
+            ('plate-slide-back-side-v1', SawyerPlateSlideBackSideEnv),
+            ('handle-press-v1', SawyerHandlePressEnv),
+            ('handle-pull-v1', SawyerHandlePullEnv),
+            ('handle-press-side-v1', SawyerHandlePressSideEnv),
+            ('handle-pull-side-v1', SawyerHandlePullSideEnv),
+            ('stick-push-v1', SawyerStickPushEnv),
+            ('stick-pull-v1', SawyerStickPullEnv),
+            ('basketball-v1', SawyerBasketballEnv),
+            ('soccer-v1', SawyerSoccerEnv),
+            ('faucet-open-v1', SawyerFaucetOpenEnv),
+            ('faucet-close-v1', SawyerFaucetCloseEnv),
+            ('coffee-push-v1', SawyerCoffeePushEnv),
+            ('coffee-pull-v1', SawyerCoffeePullEnv),
+            ('coffee-button-v1', SawyerCoffeeButtonEnv),
+            ('sweep-v1', SawyerSweepEnv),
+            ('sweep-into-v1', SawyerSweepIntoGoalEnv),
+            ('pick-out-of-hole-v1', SawyerPickOutOfHoleEnv),
+            ('assembly-v1', SawyerNutAssemblyEnv),
+            ('shelf-place-v1', SawyerShelfPlaceEnv),
+            ('push-back-v1', SawyerPushBackEnv),
+            ('lever-pull-v1', SawyerLeverPullEnv),
+            ('dial-turn-v1', SawyerDialTurnEnv),
+        ))
+    ),
+    ('test', 
+        OrderedDict((
+            ('bin-picking-v1', SawyerBinPickingEnv),
+            ('box-close-v1', SawyerBoxCloseEnv),
+            ('hand-insert-v1', SawyerHandInsertEnv),
+            ('door-lock-v1', SawyerDoorLockEnv),
+            ('door-unlock-v1', SawyerDoorUnlockEnv),
+        ))
+    )
+))
 
 
 def _hard_mode_args_kwargs(env_cls, key):
-    kwargs = dict(random_init=True, obs_type='plain', task_id=_static_task_ids[key])
+    kwargs = dict(random_init=True, obs_type='plain', task_id=list(ALL_ENVIRONMENTS.keys()).index(key))
     if key == 'reach-v1' or key == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
     elif key == 'push-v1' or key == 'push-wall-v1':
