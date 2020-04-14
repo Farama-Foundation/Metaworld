@@ -1,83 +1,15 @@
+from copy import deepcopy
+from types import MethodType
+
 import gym
 from gym.spaces import Box
 import numpy as np
 
+from metaworld.envs.mujoco.env_dict import _NUM_METAWORLD_ENVS
 
-class MultiTaskEnv(gym.Env):
-    def __init__(self,
-                 task_env_cls=None,
-                 task_args=None,
-                 task_kwargs=None,):
+_GOAL_DIM = 3
 
-        self._task_envs = [
-            task_env_cls(*t_args, **t_kwargs)
-            for t_args, t_kwargs in zip(task_args, task_kwargs)
-        ]
-        self._active_task = None
-
-    def reset(self, **kwargs):
-        return self.active_env.reset(**kwargs)
-
-    @property
-    def action_space(self):
-        return self.active_env.action_space
-
-    @property
-    def observation_space(self):
-        return self.active_env.observation_space
-
-    def step(self, action):
-        obs, reward, done, info = self.active_env.step(action)
-        info['task'] = self.active_task_one_hot
-        return obs, reward, done, info
-
-    def render(self, *args, **kwargs):
-        return self.active_env.render(*args, **kwargs)
-
-    def close(self):
-        for env in self._task_envs:
-            env.close()
-
-    @property
-    def task_space(self):
-        n = len(self._task_envs)
-        one_hot_ub = np.ones(n)
-        one_hot_lb = np.zeros(n)
-        return gym.spaces.Box(one_hot_lb, one_hot_ub, dtype=np.float32)
-
-    @property
-    def active_task(self):
-        return self._active_task
-
-    @property
-    def active_task_one_hot(self):
-        one_hot = np.zeros(self.task_space.shape)
-        t = self.active_task or 0
-        one_hot[t] = self.task_space.high[t]
-        return one_hot
-
-    @property
-    def active_env(self):
-        return self._task_envs[self.active_task or 0]
-
-    @property
-    def num_tasks(self):
-        return len(self._task_envs)
-
-    '''
-    API's for MAML Sampler
-    '''
-    def sample_tasks(self, meta_batch_size):
-        return np.random.randint(0, self.num_tasks, size=meta_batch_size)
-    
-    def set_task(self, task):
-        self._active_task = task
-
-    def log_diagnostics(self, paths, prefix):
-        pass
-
-
-class MultiClassMultiTaskEnv(MultiTaskEnv):
+class MultiClassMultiTaskEnv(gym.Env):
 
     # TODO maybe we should add a task_space to this
     # environment. In that case we can just do a `task_space.sample()`
@@ -103,11 +35,13 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         # hardcoded so we don't have to iterate over all envs and check the maximum
         # this is the maximum observation dimension after augmenting observation
         # e.g. adding goal
-        self._max_obs_dim = 15
-
+        self._max_obs_dim = 9
+        self._env_discrete_index = {}
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
-            task_kwargs = task_args_kwargs[task]['kwargs']
+            task_kwargs = deepcopy(task_args_kwargs[task]['kwargs'])
+            self._env_discrete_index[task] = task_kwargs['task_id']
+            del task_kwargs['task_id']
             task_env = env_cls(*task_args, **task_kwargs)
             assert np.prod(task_env.observation_space.shape) <= self._max_obs_dim
             # this multitask env only accept plain observations
@@ -120,10 +54,6 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
         # set the property discrete_goal_space as True, update the goal_space
         # and the sample_goals method will sample from a discrete space.
         self._discrete_goals = dict()
-        self._env_discrete_index = {
-            task: i
-            for i, task in enumerate(self._task_names)
-        }
         self._fully_discretized = True if not sample_goals else False
         self._n_discrete_goals = len(task_env_cls_dict.keys())
         self._active_task = 0
@@ -149,13 +79,17 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             if not env.discrete_goal_space:
                 self._fully_discretized = False
 
-        start = 0
+
+        n_discrete_goals = 0
+        # this won't work for situations where there are multiple tasks that have multiple
+        # discrete goals # TODO Avnish --- Is this a usage case that we could encounter?
         if self._fully_discretized:
-            self._env_discrete_index = dict()
+            temp_env_discrete_index = dict()
             for task, env in zip(self._task_names, self._task_envs):
-                self._env_discrete_index[task] = start
-                start += env.discrete_goal_space.n
-            self._n_discrete_goals = start
+                temp_env_discrete_index[task] = self._env_discrete_index[task]
+                n_discrete_goals += env.discrete_goal_space.n
+            self._env_discrete_index = temp_env_discrete_index
+            self._n_discrete_goals = n_discrete_goals
 
     def _check_env_list(self):
         assert len(self._task_envs) >= 1
@@ -178,7 +112,18 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
 
     @property
     def observation_space(self):
-        return Box(low=-np.inf, high=np.inf, shape=(self._max_obs_dim,))
+        """ TODO not complete, needs support for different observation types"""
+        if self._obs_type == "plain":
+            obs_dim = self._max_obs_dim
+        elif self._obs_type == "with_goal_id":
+            obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
+        elif self._obs_type == "with_goal_and_id":
+            obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS + _GOAL_DIM
+        elif self._obs_type == "with_goal":
+            obs_dim = self._max_obs_dim + _GOAL_DIM
+        else:
+            raise Exception("invalid obs_type, obs_type was {}".format(self._obs_type))
+        return Box(low=-np.inf, high=np.inf, shape=(obs_dim,))
 
     def set_task(self, task):
         if self._sample_goals:
@@ -212,45 +157,29 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             return tasks
 
     def step(self, action):
-        obs, reward, done, info = super().step(action)
+        obs, reward, done, info = self.active_env.step(action)
         obs = self._augment_observation(obs)
-        obs = np.concatenate([obs, self._pad_zeros(obs)])
         info['task_name'] = self._task_names[self._active_task]
         return obs, reward, done, info
 
     def _augment_observation(self, obs):
-        # optionally zero-pad observation, before augmenting observation
-        if np.prod(obs.shape) < self._max_plain_dim:
+        if np.prod(obs.shape) < self._max_obs_dim:
             zeros = np.zeros(
-                shape=(self._max_plain_dim - np.prod(obs.shape),)
+                shape=(self._max_obs_dim - np.prod(obs.shape),)
             )
             obs = np.concatenate([obs, zeros])
-
         # augment the observation based on obs_type:
         if self._obs_type == 'with_goal_id' or self._obs_type == 'with_goal_and_id':
             if self._obs_type == 'with_goal_and_id':
                 obs = np.concatenate([obs, self.active_env._state_goal])
-            task_id = self._env_discrete_index[self._task_names[self.active_task]] + (self.active_env.active_discrete_goal or 0)
-            task_onehot = np.zeros(shape=(self._n_discrete_goals,), dtype=np.float32)
-            task_onehot[task_id] = 1.
-            obs = np.concatenate([obs, task_onehot])
+            obs = np.concatenate([obs, self.active_task_one_hot])
         elif self._obs_type == 'with_goal':
             obs = np.concatenate([obs, self.active_env._state_goal])
         return obs
 
     def reset(self, **kwargs):
         obs = self._augment_observation(self.active_env.reset(**kwargs))
-        return np.concatenate([obs, self._pad_zeros(obs)])
-
-    def _pad_zeros(self, obs):
-        """Pad zeros to observation according to the given max_obs_dim.
-
-        Returns:
-            np.ndarray: padded observation.
-
-        """
-        dim_to_pad = np.prod(self._max_obs_dim) - np.prod(obs.shape)
-        return np.zeros(dim_to_pad)
+        return obs
 
     # Utils for ImageEnv
     # Not using the `get_image` from the base class since
@@ -279,3 +208,39 @@ class MultiClassMultiTaskEnv(MultiTaskEnv):
             env.viewer.cam.azimuth = setting['azimuth']
             env.viewer.cam.trackbodyid = -1
         self.active_env.viewer_setup = MethodType(_viewer_setup, self.active_env)
+
+    @property
+    def num_tasks(self):
+        """Number of tasks contained within this environment instance
+            e.g. MT10 has 10 available 
+        note: This might be different than the number in the benchmark if
+            the from_task api is used.
+        """
+        return len(self._task_envs)
+
+    @property
+    def active_task(self):
+        """The current task being exposed."""
+        return ((self._env_discrete_index[self._task_names[self._active_task]] +
+                (self.active_env.active_discrete_goal or 0)) % _NUM_METAWORLD_ENVS)
+
+    @property
+    def active_task_one_hot(self):
+        task_onehot = np.zeros(shape=(_NUM_METAWORLD_ENVS,), dtype=np.float32)
+        task_onehot[self.active_task] = 1.
+        return task_onehot
+
+    @property
+    def active_env(self):
+        return self._task_envs[self._active_task or 0]
+
+    @property
+    def action_space(self):
+        return self.active_env.action_space
+
+    def render(self, *args, **kwargs):
+        return self.active_env.render(*args, **kwargs)
+
+    def close(self):
+        for env in self._task_envs:
+            env.close()
