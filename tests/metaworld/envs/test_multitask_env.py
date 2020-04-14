@@ -1,18 +1,17 @@
 import pytest
 import numpy as np
 
-from metaworld.benchmarks import ML10
-from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS
+from metaworld.benchmarks import ML10, ML45
+from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS, ALL_ENVIRONMENTS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 
-
 @pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
 def test_single_env_multi_goals_discrete(env_cls):
     env_cls_dict = {'wrapped': env_cls}
-    env_args_kwargs = {'wrapped': dict(args=[], kwargs={'obs_type': 'plain'})}
+    env_args_kwargs = {'wrapped': dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : 1})}
     multi_task_env = MultiClassMultiTaskEnv(
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
@@ -35,9 +34,8 @@ def test_single_env_multi_goals_discrete(env_cls):
     step_obs, _, _, _ = multi_task_env.step(multi_task_env.action_space.sample())
     assert np.all(multi_task_env.observation_space.shape == reset_obs.shape)
     assert np.all(multi_task_env.observation_space.shape == step_obs.shape)
-    assert reset_obs[multi_task_env._max_plain_dim:][tasks_with_goals[0]['goal']] == 1
-    assert step_obs[multi_task_env._max_plain_dim:][tasks_with_goals[0]['goal']] == 1
-    assert np.sum(reset_obs[multi_task_env._max_plain_dim:]) == 1
+    assert reset_obs[multi_task_env._max_obs_dim:][env_args_kwargs['wrapped']['kwargs']['task_id'] + tasks_with_goals[0]['goal']] == 1
+    assert step_obs[multi_task_env._max_obs_dim:][env_args_kwargs['wrapped']['kwargs']['task_id'] + tasks_with_goals[0]['goal']] == 1
     assert np.sum(reset_obs[multi_task_env._max_plain_dim:]) == 1
 
 
@@ -48,7 +46,7 @@ def test_multienv_multigoals_fully_discretized(env_list):
         for i, env_cls in enumerate(env_list)
     }
     env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain'})
+        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
         for i, _ in enumerate(env_list)
     }
     multi_task_env = MultiClassMultiTaskEnv(
@@ -80,15 +78,14 @@ def test_multienv_multigoals_fully_discretized(env_list):
 
     task_name = multi_task_env._task_names[tasks_with_goals[0]['task']]
     goal = tasks_with_goals[0]['goal']
-    plain_dim = multi_task_env._max_plain_dim
-    task_start_index = multi_task_env._env_discrete_index[task_name] + multi_task_env.active_env._state_goal.shape[0]
-
+    plain_dim = multi_task_env._max_obs_dim
+    goal_dim = 3
+    task_start_index = goal_dim + multi_task_env.active_task
     # TODO these dims are ugly... rewrite assertion later
-    assert reset_obs[plain_dim:][task_start_index + goal] == 1, reset_obs
-    assert step_obs[plain_dim:][task_start_index + goal] == 1, step_obs
+    assert reset_obs[plain_dim:][task_start_index] == 1, reset_obs
+    assert step_obs[plain_dim:][task_start_index] == 1, step_obs
     assert np.sum(reset_obs[plain_dim + task_start_index: plain_dim + task_start_index + multi_task_env._n_discrete_goals]) == 1
     assert np.sum(reset_obs[plain_dim + task_start_index: plain_dim + task_start_index + multi_task_env._n_discrete_goals]) == 1
-
 
 @pytest.mark.parametrize('env_list', [HARD_MODE_LIST[10:12], HARD_MODE_LIST[30:33]])
 def test_multienv_single_goal(env_list):
@@ -97,7 +94,7 @@ def test_multienv_single_goal(env_list):
         for i, env_cls in enumerate(env_list)
     }
     env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain'})
+        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
         for i, _ in enumerate(env_list)
     }
     multi_task_env = MultiClassMultiTaskEnv(
@@ -125,7 +122,7 @@ def test_multitask_env_images(env_list):
         for i, env_cls in enumerate(env_list)
     }
     env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain'})
+        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
         for i, _ in enumerate(env_list)
     }
     multi_task_env = MultiClassMultiTaskEnv(
@@ -151,7 +148,7 @@ def test_reach_push_pick_place(env_cls):
     task_types = ['pick_place', 'reach', 'push']
     env_dict = {t: env_cls for t in task_types}
     env_args_kwargs = {
-        t: dict(args=[], kwargs={'task_type': t, 'obs_type': 'plain'})
+        t: dict(args=[], kwargs={'task_type': t, 'obs_type': 'plain', 'task_id' : 1})
         for t in task_types
     }
 
@@ -223,3 +220,43 @@ def test_task_name():
 
     _, _, _, info = env.step(env.action_space.sample())
     assert info['task_name'] in task_names
+
+@pytest.mark.parametrize('observation_type', ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal'])
+def test_observation_space(observation_type):
+    env_cls_dict = {'pick-place-v1': MEDIUM_MODE_CLS_DICT['train']['pick-place-v1']}
+    env_args_kwargs = {key: MEDIUM_MODE_ARGS_KWARGS['train'][key]
+                       for key in env_cls_dict.keys()}
+    multi_task_env = MultiClassMultiTaskEnv(
+        task_env_cls_dict=env_cls_dict,
+        task_args_kwargs=env_args_kwargs,
+        sample_goals=True,
+        obs_type=observation_type,
+    )
+    if observation_type == 'plain':
+        assert multi_task_env.observation_space.shape == (9, )
+    elif observation_type == 'with_goal_id':
+        assert multi_task_env.observation_space.shape == (59, )
+    elif observation_type == 'with_goal_and_id':
+        assert multi_task_env.observation_space.shape == (62, )
+    elif observation_type == 'with_goal':
+        assert multi_task_env.observation_space.shape == (12, )
+
+
+def test_action_space():
+    env_cls_dict = {'pick-place-v1': MEDIUM_MODE_CLS_DICT['train']['pick-place-v1']}
+    env_args_kwargs = {key: MEDIUM_MODE_ARGS_KWARGS['train'][key]
+                       for key in env_cls_dict.keys()}
+    multi_task_env = MultiClassMultiTaskEnv(
+        task_env_cls_dict=env_cls_dict,
+        task_args_kwargs=env_args_kwargs,
+        sample_goals=True,
+        obs_type="plain",
+    )
+    assert multi_task_env.action_space.shape == (4, )
+
+
+@pytest.mark.parametrize('task_name', list(ALL_ENVIRONMENTS.keys())[:10])
+def test_static_task_ids(task_name):
+    env = ML45.from_task(task_name)
+    assert env.active_task == list(ALL_ENVIRONMENTS.keys()).index(task_name)
+
