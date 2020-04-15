@@ -52,12 +52,11 @@ class SawyerButtonPressEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -126,13 +125,9 @@ class SawyerButtonPressEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -234,7 +229,7 @@ class SawyerButtonPressEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -256,7 +251,7 @@ class SawyerButtonPressEnv(SawyerXYZEnv):
         pressRew = max(pressRew, 0)
         reward = -reachDist + pressRew
 
-        return [reward, reachDist, pressDist] 
+        return [reward, reachDist, pressDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

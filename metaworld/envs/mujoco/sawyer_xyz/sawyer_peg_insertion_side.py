@@ -54,13 +54,12 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.hand_init_pos = np.array(hand_init_pos)
@@ -133,14 +132,10 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
-        # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
+        # return ob, reward, False, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -184,7 +179,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -265,7 +260,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
         placingDistHead = np.linalg.norm(pegHeadPos - placingGoal)
         placingDist = np.linalg.norm(objPos - placingGoal)
-      
+
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
@@ -293,15 +288,15 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100
             if self.pickCompleted and not(objDropped()):
@@ -346,7 +341,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         placeRew , placingDist = placeReward()
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]  
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

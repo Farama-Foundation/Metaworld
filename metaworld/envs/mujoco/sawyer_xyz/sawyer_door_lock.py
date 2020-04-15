@@ -51,12 +51,11 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -126,13 +125,9 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def get_angle(self):
         return np.array([self.data.get_joint_qpos('joint')])
@@ -256,7 +251,7 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -303,8 +298,8 @@ class SawyerDoorLockEnv(SawyerXYZEnv):
         pullRew = pullReward()
         reward = reachRew + pullRew# - actions[-1]/50
         # reward = pullRew# - actions[-1]/50
-      
-        return [reward, reachDist, pullDist] 
+
+        return [reward, reachDist, pullDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

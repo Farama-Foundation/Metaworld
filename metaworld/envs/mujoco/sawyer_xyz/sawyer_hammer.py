@@ -49,7 +49,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
@@ -58,7 +58,6 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200
         self.rewMode = rewMode
         self.rotMode = rotMode
         if rotMode == 'fixed':
@@ -129,15 +128,11 @@ class SawyerHammerEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward , reachRew, reachDist, pickRew, hammerRew , hammerDist, screwDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
-        # return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew,
+        # return ob, reward, False, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew,
         #                             'hammerRew': hammerRew, 'epRew' : reward, 'hammerDist': hammerDist, 'screwDist': screwDist}
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': screwDist, 'success': float(screwDist <= 0.05)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -184,7 +179,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -264,7 +259,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs, mode='orig'):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         hammerPos = obs[3:6]
@@ -303,15 +298,15 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (hammerPos[2] < (self.hammerHeight + 0.005)) and (hammerDist >0.02) and (reachDist > 0.02) 
+            return (hammerPos[2] < (self.hammerHeight + 0.005)) and (hammerDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100
             if self.pickCompleted and not(objDropped()):

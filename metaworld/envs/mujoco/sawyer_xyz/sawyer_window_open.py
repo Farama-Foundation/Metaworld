@@ -54,12 +54,11 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rewMode = rewMode
         self.rotMode = rotMode
         self.liftThresh = liftThresh
@@ -110,7 +109,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
+    def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
 
     def step(self, action):
@@ -134,13 +133,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         reward, reachDist, pickrew, pullDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -178,7 +173,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -197,7 +192,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -271,7 +266,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs, mode = 'general'):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]
@@ -333,15 +328,15 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
 
         # def objDropped():
-        # 	return (objPos[2] < (self.objHeight + 0.005)) and (pullDist >0.02) and (reachDist > 0.02) 
+        # 	return (objPos[2] < (self.objHeight + 0.005)) and (pullDist >0.02) and (reachDist > 0.02)
         # 	# Object on the ground, far away from the goal, and from the gripper
         # 	#Can tweak the margin limits
-       
+
         # def objGrasped(thresh = 0):
         # 	sensorData = self.data.sensordata
         # 	return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        # def orig_pickReward():       
+        # def orig_pickReward():
         # 	# hScale = 50
         # 	hScale = 100
         # 	if self.pickCompleted and not(objDropped()):
@@ -383,8 +378,8 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         # pullRew , pullDist = pullReward()
         # assert ((pullRew >=0) and (pickRew>=0))
         # reward = reachRew + pickRew + pullRew
-      
-        # return [reward, reachDist, pickRew, pullDist] 
+
+        # return [reward, reachDist, pickRew, pullDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

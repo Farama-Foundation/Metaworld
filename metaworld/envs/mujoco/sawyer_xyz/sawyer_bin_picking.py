@@ -60,13 +60,12 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150
         self.rewMode = rewMode
         self.rotMode = rotMode
 
@@ -134,13 +133,9 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew': reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -174,7 +169,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_xyz(self, goal):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
@@ -191,7 +186,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('obj')] = (
             objPos
         )
-    
+
 
 
 
@@ -270,7 +265,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         reachDist = np.linalg.norm(objPos - fingerCOM)
 
         placingDist = np.linalg.norm(objPos[:2] - placingGoal[:-1])
-      
+
 
         def reachReward():
             reachRew = -reachDist# + min(actions[-1], -1)/50
@@ -297,10 +292,10 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
@@ -312,11 +307,11 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
                return True
             else:
                return False
-        
+
         if placeCompletionCriteria():
             self.placeCompleted = True
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100
             if self.placeCompleted or (self.pickCompleted and not(objDropped())):
@@ -368,7 +363,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             reachRew = 0
             reachDist = 0
         reward = reachRew + pickRew + placeRew
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

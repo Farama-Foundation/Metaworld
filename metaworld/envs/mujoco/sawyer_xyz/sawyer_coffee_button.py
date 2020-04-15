@@ -50,12 +50,11 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
         if rotMode == 'fixed':
             self.action_space = Box(
@@ -126,13 +125,9 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         reward, reachDist, pushDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.02)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -166,7 +161,7 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -247,7 +242,7 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         return np.array(rewards)
 
     def compute_reward(self, actions, obs):
-        if isinstance(obs, dict): 
+        if isinstance(obs, dict):
             obs = obs['state_observation']
 
         objPos = obs[3:6]

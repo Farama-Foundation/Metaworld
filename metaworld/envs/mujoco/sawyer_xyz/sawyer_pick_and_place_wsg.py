@@ -19,7 +19,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
             random_init=False,
-            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.7, 0.02]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0.1, 0.8, 0.2]),  'obj_init_pos':np.array([0, 0.7, 0.02]), 'obj_init_angle': 0.3}],
             goal_low=None,
             goal_high=None,
             hand_init_pos = (0, 0.6, 0.31),
@@ -46,13 +46,12 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
 
         if obj_high is None:
             obj_high = self.hand_high
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -90,7 +89,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
     }
 
     @property
-    def model_name(self):     
+    def model_name(self):
 
         return get_asset_full_path('sawyer_xyz_wsg/sawyer_wsg_pickPlace.xml')
         #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
@@ -123,12 +122,8 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
-   
+        return ob, reward, False, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
+
     def _get_obs(self):
         hand = self.get_endeff_pos()
         objPos =  self.data.get_geom_xpos('objGeom')
@@ -150,7 +145,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -169,7 +164,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -271,7 +266,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
         reachDist = np.linalg.norm(objPos - fingerCOM)
 
         placingDist = np.linalg.norm(objPos - placingGoal)
-      
+
 
         def reachReward():
             reachRew = -reachDist + min(actions[-1], -1)/50
@@ -292,15 +287,15 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             hScale = 50
             if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
@@ -339,7 +334,7 @@ class SawyerPickAndPlaceWsgEnv(SawyerXYZEnv):
         placeRew , placingDist = placeReward()
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

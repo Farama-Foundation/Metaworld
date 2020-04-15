@@ -17,10 +17,10 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
             self,
             random_init=True,
             obs_type='with_goal',
-            # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}], 
+            # tasks = [{'goal': np.array([0., 0.6, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.001]), 'obj_init_angle': 0.3}],
             # goal_low=(-0.1, 0.6, 0.02),
             # goal_high=(0.1, 0.6, 0.02),
-            tasks = [{'goal': np.array([0., 0.92, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.081]), 'obj_init_angle': 0.3}], 
+            tasks = [{'goal': np.array([0., 0.92, 0.02]),  'obj_init_pos':np.array([0., 0.8, 0.081]), 'obj_init_angle': 0.3}],
             goal_low=(0, 0.92, 0.02),
             goal_high=(0, 0.92, 0.02),
             hand_init_pos = (0, 0.6, 0.2),
@@ -52,13 +52,12 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
 
         if goal_low is None:
             goal_low = self.hand_low
-        
+
         if goal_high is None:
             goal_high = self.hand_high
 
         self.random_init = random_init
         self.liftThresh = liftThresh
-        self.max_path_length = 200#200#150
         self.tasks = tasks
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -145,13 +144,9 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
         reward, reachDist, pushDistxy, success = self.compute_reward(action, obs_dict, mode = self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'pickRew':None, 'epRew' : reward, 'goalDist': pushDistxy, 'success': float(success)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -185,7 +180,7 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -204,7 +199,7 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -349,7 +344,7 @@ class SawyerShelfRemoveEnv(SawyerXYZEnv):
                 return 0
         pushRew = pushReward()
         reward = reachRew + pushRew
-      
+
         return [reward, reachDist, pushDistxy, objPos[-1] < self.obj_init_pos[-1] - 0.05 and pushDistxy < 0.2]
 
     def get_diagnostics(self, paths, prefix=''):

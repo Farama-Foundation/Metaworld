@@ -53,7 +53,6 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         self.obs_type = obs_type
 
         self.random_init = random_init
-        self.max_path_length = 150
         self.rotMode = rotMode
         self.rewMode = rewMode
         self.liftThresh = liftThresh
@@ -127,13 +126,9 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs_dict, mode=self.rewMode)
         self.curr_path_length +=1
         #info = self._get_info()
-        if self.curr_path_length == self.max_path_length:
-            done = True
-        else:
-            done = False
         info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
         info['goal'] = self.goal
-        return ob, reward, done, info
+        return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
@@ -167,7 +162,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    
+
     def _set_goal_marker(self, goal):
         """
         This should be use ONLY for visualization. Use self._state_goal for
@@ -186,7 +181,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
-    
+
 
 
 
@@ -210,7 +205,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        
+
         basket_pos = self.goal.copy()
         self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
         self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
@@ -302,15 +297,15 @@ class SawyerBasketballEnv(SawyerXYZEnv):
 
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
-       
+
         def objGrasped(thresh = 0):
             sensorData = self.data.sensordata
             return (sensorData[0]>thresh) and (sensorData[1]> thresh)
 
-        def orig_pickReward():       
+        def orig_pickReward():
             # hScale = 50
             hScale = 100
             # hScale = 1000
