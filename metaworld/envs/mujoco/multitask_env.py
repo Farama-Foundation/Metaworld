@@ -127,6 +127,7 @@ class MultiClassMultiTaskEnv(gym.Env):
 
     def set_task(self, task):
         if self._sample_goals:
+
             assert isinstance(task, dict)
             t = task['task']
             g = task['goal']
