@@ -21,11 +21,11 @@ extras['dev'] = [
     'pytest>=3.6',
 ]
 
-
 setup(
     name='metaworld',
     packages=find_packages(),
     include_package_data=True,
+    package_data={'metaworld': ['metaworld/envs/assets/*']},
     install_requires=required,
     extras_require=extras,
 )
