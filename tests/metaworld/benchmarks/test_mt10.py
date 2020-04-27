@@ -14,4 +14,3 @@ def test_augment_observation():
         assert obs[-10:][i] == 1
         obs = env.reset()
         assert obs[-10:][i] == 1
-
