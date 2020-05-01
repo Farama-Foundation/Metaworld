@@ -7,7 +7,7 @@ __Meta-World is an open-source simulated benchmark for meta-reinforcement learni
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
 The algorithms used in the paper can be found at [here](https://github.com/rlworkgroup/garage).
-Please note that the algorithms is not the exact code originally used in the metaworld paper.
+Please note that the algorithms is not the exact code originally used in the paper.
 
 If you would like very infrequent announcements about the status of the benchmark, critical bugs and known issues before conference deadlines, and future plans, please join our mailing list: [metaworld-announce@googlegroups.com](https://groups.google.com/forum/#!forum/metaworld-announce).
 
