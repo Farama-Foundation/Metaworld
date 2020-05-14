@@ -8,6 +8,8 @@ import numpy as np
 class MT10(MultiClassMultiTaskEnv, Benchmark):
 
     def __init__(self, env_type="train", sample_all=False, task_name=None):
+        del env_type
+
         if task_name is not None:
             if task_name not in EASY_MODE_CLS_DICT:
                 raise ValueError("{} does not exist in MT10 tasks".format(

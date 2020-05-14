@@ -1,5 +1,4 @@
 from copy import deepcopy
-from types import MethodType
 
 import gym
 from gym.spaces import Box
@@ -13,7 +12,7 @@ class MultiClassMultiTaskEnv(gym.Env):
 
     # TODO maybe we should add a task_space to this
     # environment. In that case we can just do a `task_space.sample()`
-    # and have a single task sampling API accros this repository. 
+    # and have a single task sampling API accros this repository.
 
     def __init__(self,
                  task_env_cls_dict,
@@ -44,9 +43,6 @@ class MultiClassMultiTaskEnv(gym.Env):
             del task_kwargs['task_id']
             task_env = env_cls(*task_args, **task_kwargs)
             assert np.prod(task_env.observation_space.shape) <= self._max_obs_dim
-            # this multitask env only accept plain observations
-            # since it handles all the observation augmentations
-            assert task_env.obs_type == 'plain'
             self._task_envs.append(task_env)
             self._task_names.append(task)
         # If key (taskname) is in this `self._discrete_goals`, then this task are seen
@@ -58,46 +54,39 @@ class MultiClassMultiTaskEnv(gym.Env):
         self._n_discrete_goals = len(task_env_cls_dict.keys())
         self._active_task = 0
         self._check_env_list()
-    
+
     @property
     def all_task_names(self):
         """list[str]: Name of all available tasks. Note that two envs of a task can have different goals."""
         return self._task_names
 
     def discretize_goal_space(self, discrete_goals):
-        for task, goals in discrete_goals.items():
-            if task in self._task_names:
-                idx = self._task_names.index(task)
-                self._discrete_goals[task] = discrete_goals[task]
-                self._task_envs[idx].discretize_goal_space(
-                    self._discrete_goals[task]
-                )
+        for task, _ in discrete_goals.items():
+            idx = self._task_names.index(task)
+            self._discrete_goals[task] = discrete_goals[task]
+            self._task_envs[idx].discretize_goal_space(
+                self._discrete_goals[task]
+            )
         # if obs_type include task id, then all the tasks have
         # to use a discrete goal space and we hash indexes for tasks.
         self._fully_discretized = True
-        for env in self._task_envs:
-            if not env.discrete_goal_space:
-                self._fully_discretized = False
 
 
         n_discrete_goals = 0
         # this won't work for situations where there are multiple tasks that have multiple
         # discrete goals # TODO Avnish --- Is this a usage case that we could encounter?
-        if self._fully_discretized:
-            temp_env_discrete_index = dict()
-            for task, env in zip(self._task_names, self._task_envs):
-                temp_env_discrete_index[task] = self._env_discrete_index[task]
-                n_discrete_goals += env.discrete_goal_space.n
-            self._env_discrete_index = temp_env_discrete_index
-            self._n_discrete_goals = n_discrete_goals
+        temp_env_discrete_index = dict()
+        for task, env in zip(self._task_names, self._task_envs):
+            temp_env_discrete_index[task] = self._env_discrete_index[task]
+            n_discrete_goals += env.discrete_goal_space.n
+        self._env_discrete_index = temp_env_discrete_index
+        self._n_discrete_goals = n_discrete_goals
 
     def _check_env_list(self):
         assert len(self._task_envs) >= 1
-        first_obs_type = self._task_envs[0].obs_type
         first_action_space = self._task_envs[0].action_space
 
         for env in self._task_envs:
-            assert env.obs_type == first_obs_type, "All the environment should use the same observation type!"
             assert env.action_space.shape == first_action_space.shape, "All the environment should have the same action space!"
 
         # get the greatest observation space
@@ -117,10 +106,6 @@ class MultiClassMultiTaskEnv(gym.Env):
             obs_dim = self._max_obs_dim
         elif self._obs_type == "with_goal_id":
             obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
-        elif self._obs_type == "with_goal_and_id":
-            obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS + _GOAL_DIM
-        elif self._obs_type == "with_goal":
-            obs_dim = self._max_obs_dim + _GOAL_DIM
         else:
             raise Exception("invalid obs_type, obs_type was {}".format(self._obs_type))
         return Box(low=-np.inf, high=np.inf, shape=(obs_dim,))
@@ -138,12 +123,8 @@ class MultiClassMultiTaskEnv(gym.Env):
             self._active_task = task % len(self._task_envs)
 
     def sample_tasks(self, meta_batch_size):
-        if self._sampled_all:
-            assert meta_batch_size >= len(self._task_envs)
-            tasks = [i for i in range(meta_batch_size)]
-        else:
-            tasks = np.random.randint(
-                0, self.num_tasks, size=meta_batch_size).tolist()
+        tasks = np.random.randint(0, self.num_tasks, size=meta_batch_size).tolist()
+
         if self._sample_goals:
             goals = [
                 self._task_envs[t % len(self._task_envs)].sample_goals_(1)[0]
@@ -169,51 +150,21 @@ class MultiClassMultiTaskEnv(gym.Env):
                 shape=(self._max_obs_dim - np.prod(obs.shape),)
             )
             obs = np.concatenate([obs, zeros])
+
         # augment the observation based on obs_type:
-        if self._obs_type == 'with_goal_id' or self._obs_type == 'with_goal_and_id':
-            if self._obs_type == 'with_goal_and_id':
-                obs = np.concatenate([obs, self.active_env._state_goal])
+        if self._obs_type == 'with_goal_id':
             obs = np.concatenate([obs, self.active_task_one_hot])
-        elif self._obs_type == 'with_goal':
-            obs = np.concatenate([obs, self.active_env._state_goal])
+
         return obs
 
     def reset(self, **kwargs):
         obs = self._augment_observation(self.active_env.reset(**kwargs))
         return obs
 
-    # Utils for ImageEnv
-    # Not using the `get_image` from the base class since
-    # `sim.render()` is extremely slow with mujoco_py.
-    # Ref: https://github.com/openai/mujoco-py/issues/58 
-    def get_image(self, width=84, height=84, camera_name=None):
-        self.active_env._get_viewer(mode='rgb_array').render(width, height)
-        data = self.active_env._get_viewer(mode='rgb_array').read_pixels(width, height, depth=False)
-        # original image is upside-down, so flip it
-        return data[::-1, :, :]
-
-    # This method is kinda dirty but this offer setting camera
-    # angle programatically. You can easily select a good camera angle
-    # by firing up a python interactive session then render an
-    # environment and use the mouse to select a view. To retrive camera
-    # information, just run `print(env.viewer.cam.lookat, env.viewer.cam.distance,
-    # env.viewer.cam.elevation, env.viewer.cam.azimuth)`
-    def _configure_viewer(self, setting):
-        def _viewer_setup(env):
-            env.viewer.cam.trackbodyid = 0
-            env.viewer.cam.lookat[0] = setting['lookat'][0]
-            env.viewer.cam.lookat[1] = setting['lookat'][1]
-            env.viewer.cam.lookat[2] = setting['lookat'][2]
-            env.viewer.cam.distance = setting['distance']
-            env.viewer.cam.elevation = setting['elevation']
-            env.viewer.cam.azimuth = setting['azimuth']
-            env.viewer.cam.trackbodyid = -1
-        self.active_env.viewer_setup = MethodType(_viewer_setup, self.active_env)
-
     @property
     def num_tasks(self):
         """Number of tasks contained within this environment instance
-            e.g. MT10 has 10 available 
+            e.g. MT10 has 10 available
         note: This might be different than the number in the benchmark if
             the from_task api is used.
         """

@@ -2,16 +2,20 @@ import pytest
 import numpy as np
 
 from metaworld.benchmarks import ML10, ML45
-from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS, ALL_ENVIRONMENTS
+from metaworld.envs.mujoco.env_dict import HARD_MODE_CLS_DICT, MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS, ALL_ENVIRONMENTS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWallEnv
-from metaworld.envs.mujoco.sawyer_xyz.env_lists import HARD_MODE_LIST
 
-@pytest.mark.parametrize('env_cls', HARD_MODE_LIST)
+
+HARD_MODE_LIST = (list(HARD_MODE_CLS_DICT['train'].values()) +
+                  list(HARD_MODE_CLS_DICT['test'].values()))
+
+
+@pytest.mark.parametrize('env_cls', ALL_ENVIRONMENTS.values())
 def test_single_env_multi_goals_discrete(env_cls):
     env_cls_dict = {'wrapped': env_cls}
-    env_args_kwargs = {'wrapped': dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : 1})}
+    env_args_kwargs = {'wrapped': dict(args=[], kwargs={'task_id' : 1})}
     multi_task_env = MultiClassMultiTaskEnv(
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
@@ -46,14 +50,14 @@ def test_multienv_multigoals_fully_discretized(env_list):
         for i, env_cls in enumerate(env_list)
     }
     env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
+        'env-{}'.format(i): dict(args=[], kwargs={'task_id' : i})
         for i, _ in enumerate(env_list)
     }
     multi_task_env = MultiClassMultiTaskEnv(
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=True,
-        obs_type='with_goal_and_id',
+        obs_type='with_goal_id',
         sample_all=False,
     )
     goals_dict = dict()
@@ -79,8 +83,7 @@ def test_multienv_multigoals_fully_discretized(env_list):
     task_name = multi_task_env._task_names[tasks_with_goals[0]['task']]
     goal = tasks_with_goals[0]['goal']
     plain_dim = multi_task_env._max_obs_dim
-    goal_dim = 3
-    task_start_index = goal_dim + multi_task_env.active_task
+    task_start_index = multi_task_env.active_task
     # TODO these dims are ugly... rewrite assertion later
     assert reset_obs[plain_dim:][task_start_index] == 1, reset_obs
     assert step_obs[plain_dim:][task_start_index] == 1, step_obs
@@ -94,14 +97,14 @@ def test_multienv_single_goal(env_list):
         for i, env_cls in enumerate(env_list)
     }
     env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
+        'env-{}'.format(i): dict(args=[], kwargs={'task_id' : i})
         for i, _ in enumerate(env_list)
     }
     multi_task_env = MultiClassMultiTaskEnv(
         task_env_cls_dict=env_cls_dict,
         task_args_kwargs=env_args_kwargs,
         sample_goals=False,
-        obs_type='with_goal_and_id',
+        obs_type='with_goal_id',
         sample_all=True,
     )
     assert multi_task_env._fully_discretized
@@ -115,32 +118,6 @@ def test_multienv_single_goal(env_list):
             env_cls_dict[multi_task_env._task_names[t % len(env_list)]])
 
 
-@pytest.mark.parametrize('env_list', [HARD_MODE_LIST[12:15]])
-def test_multitask_env_images(env_list):
-    env_cls_dict = {
-        'env-{}'.format(i): env_cls
-        for i, env_cls in enumerate(env_list)
-    }
-    env_args_kwargs = {
-        'env-{}'.format(i): dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : i})
-        for i, _ in enumerate(env_list)
-    }
-    multi_task_env = MultiClassMultiTaskEnv(
-        task_env_cls_dict=env_cls_dict,
-        task_args_kwargs=env_args_kwargs,
-        sample_goals=False,
-        obs_type='with_goal_and_id',
-        sample_all=True,
-    )
-    assert multi_task_env._fully_discretized
-    n_tasks = len(env_list)
-    tasks = multi_task_env.sample_tasks(n_tasks)
-    multi_task_env.set_task(tasks[0])
-    multi_task_env.reset()
-    img = multi_task_env.get_image(width=84, height=84)
-    assert img.shape[0] == 84 and img.shape[1] == 84 and img.shape[2] == 3
-
-
 @pytest.mark.parametrize('env_cls',
     [SawyerReachPushPickPlaceEnv, SawyerReachPushPickPlaceWallEnv])
 def test_reach_push_pick_place(env_cls):
@@ -148,7 +125,7 @@ def test_reach_push_pick_place(env_cls):
     task_types = ['pick_place', 'reach', 'push']
     env_dict = {t: env_cls for t in task_types}
     env_args_kwargs = {
-        t: dict(args=[], kwargs={'task_type': t, 'obs_type': 'plain', 'task_id' : 1})
+        t: dict(args=[], kwargs={'task_type': t, 'task_id' : 1})
         for t in task_types
     }
 
@@ -221,7 +198,7 @@ def test_task_name():
     _, _, _, info = env.step(env.action_space.sample())
     assert info['task_name'] in task_names
 
-@pytest.mark.parametrize('observation_type', ['plain', 'with_goal_id', 'with_goal_and_id', 'with_goal'])
+@pytest.mark.parametrize('observation_type', ['plain', 'with_goal_id'])
 def test_observation_space(observation_type):
     env_cls_dict = {'pick-place-v1': MEDIUM_MODE_CLS_DICT['train']['pick-place-v1']}
     env_args_kwargs = {key: MEDIUM_MODE_ARGS_KWARGS['train'][key]
@@ -236,10 +213,6 @@ def test_observation_space(observation_type):
         assert multi_task_env.observation_space.shape == (9, )
     elif observation_type == 'with_goal_id':
         assert multi_task_env.observation_space.shape == (59, )
-    elif observation_type == 'with_goal_and_id':
-        assert multi_task_env.observation_space.shape == (62, )
-    elif observation_type == 'with_goal':
-        assert multi_task_env.observation_space.shape == (12, )
 
 
 def test_action_space():

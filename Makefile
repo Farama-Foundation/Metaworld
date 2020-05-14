@@ -19,7 +19,7 @@ check-memory: run
 	@echo "Profiling memory usage..."
 
 ci-job:
-	pytest -n $$(nproc) --cov=metaworld -v
+	pytest -n 0 --cov=metaworld -v -m 'not large'
 	coverage xml
 	# bash <(curl -s https://codecov.io/bash)
 
@@ -45,6 +45,8 @@ run-ci:
 		-e TRAVIS_COMMIT_RANGE \
 		-e TRAVIS \
 		-e MJKEY \
+		--memory 7500m \
+		--memory-swap 7500m \
 		${ADD_ARGS} \
 		${TAG} ${RUN_CMD}
 
@@ -55,6 +57,8 @@ run: build-ci
 		-it \
 		--rm \
 		-e MJKEY="$$(cat $(MJKEY_PATH))" \
+		--memory 7500m \
+		--memory-swap 7500m \
 		--name $(CONTAINER_NAME) \
 		${ADD_ARGS} \
 		ryanjulian/metaworld-ci $(RUN_CMD)
