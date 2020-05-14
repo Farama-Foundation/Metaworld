@@ -1,6 +1,5 @@
 import gym
 import abc
-from collections import OrderedDict
 
 
 class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
@@ -43,54 +42,10 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
 
         pass
 
+    @abc.abstractmethod
     def sample_goal(self):
-        goals = self.sample_goals(1)
-        return self.unbatchify_dict(goals, 0)
+        pass
 
+    @abc.abstractmethod
     def compute_reward(self, action, obs):
-        actions = action[None]
-        next_obs = {
-            k: v[None] for k, v in obs.items()
-        }
-        return self.compute_rewards(actions, next_obs)[0]
-
-    def get_diagnostics(self, *args, **kwargs):
-        """
-        :param rollouts: List where each element is a dictionary describing a
-        rollout. Typical dictionary might look like:
-        {
-            'observations': np array,
-            'actions': np array,
-            'next_observations': np array,
-            'rewards': np array,
-            'terminals': np array,
-            'env_infos': list of dictionaries,
-            'agent_infos': list of dictionaries,
-        }
-        :return: OrderedDict. Statistics to save.
-        """
-        return OrderedDict()
-
-    @staticmethod
-    def unbatchify_dict(batch_dict, i):
-        """
-        :param batch_dict: A batch dict is a dict whose values are batch.
-        :return: the dictionary returns a dict whose values are just elements of
-        the batch.
-        """
-        new_d = {}
-        for k in batch_dict.keys():
-            new_d[k] = batch_dict[k][i]
-        return new_d
-
-    @staticmethod
-    def batchify_dict(batch_dict, i):
-        """
-        :param batch_dict: A batch dict is a dict whose values are batch.
-        :return: the dictionary returns a dict whose values are just elements of
-        the batch.
-        """
-        new_d = {}
-        for k in batch_dict.keys():
-            new_d[k] = batch_dict[k][i]
-        return new_d
+        pass

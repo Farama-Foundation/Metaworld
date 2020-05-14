@@ -1,7 +1,5 @@
 from collections import OrderedDict
 
-import numpy as np
-
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
@@ -18,7 +16,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerClo
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
@@ -36,11 +33,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballE
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_remove import SawyerShelfRemoveEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLockEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlockEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_tool import SawyerSweepToolEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall import SawyerButtonPressWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall import SawyerButtonPressTopdownWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
@@ -118,7 +113,7 @@ EASY_MODE_CLS_DICT = OrderedDict((
     ('window-open-v1', SawyerWindowOpenEnv),
     ('window-close-v1', SawyerWindowCloseEnv))
 )
-    
+
 
 '''
     MT10 environments and arguments.
@@ -142,7 +137,6 @@ EASY_MODE_CLS_DICT = OrderedDict((
 EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[],
               kwargs={
-                  'obs_type': 'plain',
                   'task_id': list(ALL_ENVIRONMENTS.keys()).index(key)
               })
     for key, _ in EASY_MODE_CLS_DICT.items()
@@ -168,7 +162,7 @@ EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
 '''
 
 MEDIUM_MODE_CLS_DICT = OrderedDict((
-    ('train', 
+    ('train',
         OrderedDict((
             ('reach-v1', SawyerReachPushPickPlaceEnv),
             ('push-v1', SawyerReachPushPickPlaceEnv),
@@ -181,7 +175,7 @@ MEDIUM_MODE_CLS_DICT = OrderedDict((
             ('sweep-v1', SawyerSweepEnv),
             ('basketball-v1', SawyerBasketballEnv)))
     ),
-    ('test', 
+    ('test',
         OrderedDict((
             ('drawer-open-v1', SawyerDrawerOpenEnv),
             ('door-close-v1', SawyerDoorCloseEnv),
@@ -192,7 +186,6 @@ MEDIUM_MODE_CLS_DICT = OrderedDict((
 ))
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
-        'obs_type': 'plain',
         'random_init': True,
         'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key),
     })
@@ -200,7 +193,7 @@ medium_mode_train_args_kwargs = {
 }
 
 medium_mode_test_args_kwargs = {
-    key: dict(args=[], kwargs={'obs_type': 'plain', 'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
@@ -217,7 +210,7 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
     ML45 environments and arguments
 '''
 HARD_MODE_CLS_DICT = OrderedDict((
-    ('train', 
+    ('train',
         OrderedDict((
             ('reach-v1', SawyerReachPushPickPlaceEnv),
             ('push-v1', SawyerReachPushPickPlaceEnv),
@@ -266,7 +259,7 @@ HARD_MODE_CLS_DICT = OrderedDict((
             ('dial-turn-v1', SawyerDialTurnEnv),
         ))
     ),
-    ('test', 
+    ('test',
         OrderedDict((
             ('bin-picking-v1', SawyerBinPickingEnv),
             ('box-close-v1', SawyerBoxCloseEnv),
@@ -278,13 +271,15 @@ HARD_MODE_CLS_DICT = OrderedDict((
 ))
 
 
-def _hard_mode_args_kwargs(env_cls, key):
-    kwargs = dict(random_init=True, obs_type='plain', task_id=list(ALL_ENVIRONMENTS.keys()).index(key))
-    if key == 'reach-v1' or key == 'reach-wall-v1':
+def _hard_mode_args_kwargs(env_cls_, key_):
+    del env_cls_
+
+    kwargs = dict(random_init=True, task_id=list(ALL_ENVIRONMENTS.keys()).index(key_))
+    if key_ == 'reach-v1' or key_ == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
-    elif key == 'push-v1' or key == 'push-wall-v1':
+    elif key_ == 'push-v1' or key_ == 'push-wall-v1':
         kwargs['task_type'] = 'push'
-    elif key == 'pick-place-v1' or key == 'pick-place-wall-v1':
+    elif key_ == 'pick-place-v1' or key_ == 'pick-place-wall-v1':
         kwargs['task_type'] = 'pick_place'
     return dict(args=[], kwargs=kwargs)
 
