@@ -42,6 +42,9 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         self.goal_low = np.array(self.goal_low)
         self.goal_high = np.array(self.goal_high)
 
+        self.goal_low = np.array(self.goal_low)
+        self.goal_high = np.array(self.goal_high)
+
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, self.goal_low)),
             np.hstack((obj_high, self.goal_high)),

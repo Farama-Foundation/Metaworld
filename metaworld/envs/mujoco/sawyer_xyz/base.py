@@ -115,17 +115,17 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             size=cls.goal_space.low.size,
         )
 
-    def _set_task_inner(self, random_init, obs_type):
+    def _set_task_inner(self, random_init, obs_type, goal=None):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         self.random_init = random_init
         self.obs_type = obs_type
+        if goal is not None:
+            self.goal = goal
 
     def set_task(self, task):
         data = pickle.loads(task.data)
         assert isinstance(self, data['env_cls'])
         del data['env_cls']
-        self._last_rand_vec = data['rand_vec']
-        self._freeze_rand_vec = True
         self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
