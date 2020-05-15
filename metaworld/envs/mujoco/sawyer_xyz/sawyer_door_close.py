@@ -4,8 +4,8 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
 
 class SawyerDoorCloseEnv(SawyerDoorEnv):
-    def __init__(self, random_init=False, **kwargs):
-        super().__init__(random_init=random_init, **kwargs)
+    def __init__(self):
+        super().__init__()
 
         self.init_config = {
             'obj_init_angle': 0.3,

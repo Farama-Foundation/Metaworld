@@ -98,7 +98,9 @@ ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
 @pytest.fixture(scope='function')
 def env(request):
-    return ALL_ENVS[request.param](random_init=True)
+    e = ALL_ENVS[request.param]()
+    e.random_init = True
+    return e
 
 
 @pytest.mark.parametrize(

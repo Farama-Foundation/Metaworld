@@ -6,14 +6,16 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerHandInsertEnv(SawyerXYZEnv):
-    def __init__(self, random_init=True):
+    goal_low = (-0.04, 0.8, -0.08)
+    goal_high = (0.04, 0.88, -0.08)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
+
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-        goal_low = (-0.04, 0.8, -0.08)
-        goal_high = (0.04, 0.88, -0.08)
 
         super().__init__(
             self.model_name,
@@ -21,7 +23,7 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
+        self.random_init = False
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.6, 0.02]),
@@ -36,14 +38,13 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
         self.max_path_length = 200
 
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, self.goal_low)),
+            np.hstack((self.hand_high, obj_high, self.goal_high)),
         )
 
         self.reset()

@@ -6,21 +6,25 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerBinPickingEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False, **kwargs):
+    hand_low = np.array((-0.5, 0.40, 0.07))
+    hand_high = np.array((0.5, 1, 0.5))
+    goal_low = hand_low
+    goal_high = hand_high
+    goal_space = Box(goal_low, goal_high)
+
+    def __init__(self):
 
         liftThresh = 0.1
-        hand_low = (-0.5, 0.40, 0.07)
-        hand_high = (0.5, 1, 0.5)
         obj_low = (-0.5, 0.40, 0.07)
         obj_high = (0.5, 1, 0.5)
 
         super().__init__(
             self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
+            hand_low=self.hand_low,
+            hand_high=self.hand_high,
         )
 
-        self.random_init = random_init
+        self.random_init = False
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -32,9 +36,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
-
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
@@ -44,15 +45,13 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         )
 
         self.goal_and_obj_space = Box(
-            np.hstack((goal_low[:2], obj_low[:2])),
-            np.hstack((goal_high[:2], obj_high[:2])),
+            np.hstack((self.goal_low[:2], obj_low[:2])),
+            np.hstack((self.goal_high[:2], obj_high[:2])),
         )
 
-        self.goal_space = Box(goal_low, goal_high)
-
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, self.goal_low)),
+            np.hstack((self.hand_high, obj_high, self.goal_high)),
         )
 
         self.reset()
