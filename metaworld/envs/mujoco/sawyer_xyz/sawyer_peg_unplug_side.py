@@ -6,12 +6,13 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerPegUnplugSideEnv(SawyerXYZEnv):
+    goal_low = (-0.25, 0.6, 0.05)
+    goal_high = (-0.15, 0.8, 0.05)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.04
-        goal_low = (-0.25, 0.6, 0.05)
-        goal_high = (-0.15, 0.8, 0.05)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, 0.05)
@@ -23,7 +24,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
+        self.random_init = False
 
         self.init_config = {
             'obj_init_pos': np.array([-0.225, 0.6, 0.05]),
@@ -45,7 +46,6 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
             np.array(obj_low),
             np.array(obj_high),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low)),

@@ -1,5 +1,6 @@
 import abc
 import copy
+import pickle
 
 from gym.spaces import Discrete
 import mujoco_py
@@ -86,7 +87,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_high = hand_high
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
-        self.goal_space = Discrete(1)  # OVERRIDE ME
         self.curr_path_length = 0
 
         # We use continuous goal space by default and
@@ -95,6 +95,27 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goal_space = None
         self.discrete_goals = []
         self.active_discrete_goal = None
+
+    @classmethod
+    def _sample_goal_do_not_use(cls):
+        return np.random.uniform(
+            cls.goal_space.low,
+            cls.goal_space.high,
+            size=cls.goal_space.low.size,
+        )
+
+    def _set_task_inner(self, random_init, obs_type, goal=None):
+        # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
+        self.random_init = random_init
+        self.obs_type = obs_type
+        if goal is not None:
+            self.goal = goal
+
+    def set_task(self, task):
+        data = pickle.loads(task.data)
+        assert isinstance(self, data['env_cls'])
+        del data['env_cls']
+        self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -110,6 +131,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def discretize_goal_space(self, goals):
+        assert False
         assert len(goals) >= 1
         self.discrete_goals = goals
         # update the goal_space to a Discrete space
@@ -122,12 +144,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     # conform to this API (i.e. using the new wrapper), we can
     # just remove the underscore in all method signature.
     def sample_goals_(self, batch_size):
+        assert False
         if self.discrete_goal_space is not None:
             return [self.discrete_goal_space.sample() for _ in range(batch_size)]
         else:
             return [self.goal_space.sample() for _ in range(batch_size)]
 
     def set_goal_(self, goal):
+        assert False
         if self.discrete_goal_space is not None:
             self.active_discrete_goal = goal
             self.goal = self.discrete_goals[goal]

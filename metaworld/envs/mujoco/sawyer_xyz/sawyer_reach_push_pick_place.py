@@ -6,11 +6,12 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
+    goal_low = (-0.1, 0.8, 0.05)
+    goal_high = (0.1, 0.9, 0.3)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self):
         liftThresh = 0.04
-        goal_low=(-0.1, 0.8, 0.05)
-        goal_high=(0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -24,30 +25,17 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.task_type = task_type
+        self.task_type = None
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
 
-        # we only do one task from [pick_place, reach, push]
-        # per instance of SawyerReachPushPickPlaceEnv.
-        # Please only set task_type from constructor.
-        if self.task_type == 'pick_place':
-            self.goal = np.array([0.1, 0.8, 0.2])
-        elif self.task_type == 'reach':
-            self.goal = np.array([-0.1, 0.8, 0.2])
-        elif self.task_type == 'push':
-            self.goal = np.array([0.1, 0.8, 0.02])
-        else:
-            raise NotImplementedError
-
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
@@ -57,10 +45,9 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         )
 
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low,)),
@@ -68,6 +55,18 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         )
 
         self.num_resets = 0
+
+    def _set_task_inner(self, *, task_type, **kwargs):
+        super()._set_task_inner(**kwargs)
+        self.task_type = task_type
+        if self.task_type == 'pick_place':
+            self.goal = np.array([0.1, 0.8, 0.2])
+        elif self.task_type == 'reach':
+            self.goal = np.array([-0.1, 0.8, 0.2])
+        elif self.task_type == 'push':
+            self.goal = np.array([0.1, 0.8, 0.02])
+        else:
+            raise NotImplementedError
         self.reset()
 
     @property
