@@ -6,10 +6,11 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
+    goal_low = (-0.1, 0.85, 0.05)
+    goal_high = (0.1, 0.9, 0.3)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-    def __init__(self, random_init=False):
-        goal_low = (-0.1, 0.85, 0.05)
-        goal_high = (0.1, 0.9, 0.3)
+    def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -31,7 +32,7 @@ class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
+        self.random_init = False
         self.max_path_length = 150
 
         self.action_space = Box(
@@ -40,10 +41,9 @@ class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
         )
 
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low,)),
