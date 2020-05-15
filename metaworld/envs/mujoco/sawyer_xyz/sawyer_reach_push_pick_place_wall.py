@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
@@ -25,9 +25,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
-
-        self.task_type = task_type
+        self.task_type = None
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),

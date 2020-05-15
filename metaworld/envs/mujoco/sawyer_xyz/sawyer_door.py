@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerDoorEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -30,7 +30,6 @@ class SawyerDoorEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         goal_low = self.hand_low
         goal_high = self.hand_high
 

@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerSoccerEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         goal_low = (-0.1, 0.8, 0.03)
         goal_high = (0.1, 0.9, 0.03)
@@ -20,8 +20,6 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.6, 0.03]),

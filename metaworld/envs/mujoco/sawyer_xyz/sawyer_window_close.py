@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerWindowCloseEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -34,7 +34,6 @@ class SawyerWindowCloseEnv(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.random_init = random_init
         self.max_path_length = 150
         self.liftThresh = liftThresh
 

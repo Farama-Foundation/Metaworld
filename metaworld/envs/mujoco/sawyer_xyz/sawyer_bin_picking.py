@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerBinPickingEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.07)
@@ -19,8 +19,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,

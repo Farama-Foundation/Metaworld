@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerShelfPlaceEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (-0.1, 0.8, 0.001)
@@ -33,7 +33,6 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
 

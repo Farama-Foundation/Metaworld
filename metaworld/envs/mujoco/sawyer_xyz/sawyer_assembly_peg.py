@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerNutAssemblyEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=True):
+    def __init__(self):
 
         liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.05)
@@ -22,8 +22,6 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,

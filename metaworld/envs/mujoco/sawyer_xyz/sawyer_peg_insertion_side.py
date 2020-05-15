@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.11
         hand_init_pos = (0, 0.6, 0.2)
@@ -35,7 +35,6 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
 

@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerStickPullEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=True):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (0.3, 0.4, 0.02)
@@ -22,8 +22,6 @@ class SawyerStickPullEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'stick_init_pos': np.array([0, 0.6, 0.02]),

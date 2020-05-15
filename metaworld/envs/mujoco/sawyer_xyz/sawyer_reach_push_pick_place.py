@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self):
         liftThresh = 0.04
         goal_low=(-0.1, 0.8, 0.05)
         goal_high=(0.1, 0.9, 0.3)
@@ -24,30 +24,17 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.task_type = task_type
+        self.task_type = None
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
 
-        # we only do one task from [pick_place, reach, push]
-        # per instance of SawyerReachPushPickPlaceEnv.
-        # Please only set task_type from constructor.
-        if self.task_type == 'pick_place':
-            self.goal = np.array([0.1, 0.8, 0.2])
-        elif self.task_type == 'reach':
-            self.goal = np.array([-0.1, 0.8, 0.2])
-        elif self.task_type == 'push':
-            self.goal = np.array([0.1, 0.8, 0.02])
-        else:
-            raise NotImplementedError
-
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
 

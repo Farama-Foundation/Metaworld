@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerHammerEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.09
         hand_low = (-0.5, 0.40, 0.05)
@@ -21,8 +21,6 @@ class SawyerHammerEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'hammer_init_pos': np.array([0, 0.6, 0.02]),
