@@ -6,22 +6,23 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerPegInsertionSideEnv(SawyerXYZEnv):
+    hand_low = (-0.5, 0.40, 0.05)
+    hand_high = (0.5, 1, 0.5)
+    goal_low = hand_low
+    goal_high = hand_high
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.11
         hand_init_pos = (0, 0.6, 0.2)
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.5, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-        goal_low = (-0.35, 0.5, 0.05)
-        goal_high = (-0.25, 0.8, 0.05)
 
         super().__init__(
             self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
+            hand_low=self.hand_low,
+            hand_high=self.hand_high,
         )
 
         self.init_config = {
@@ -32,10 +33,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
-
-        self.random_init = random_init
+        self.random_init = False
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
@@ -47,10 +45,9 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         )
 
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low,)),

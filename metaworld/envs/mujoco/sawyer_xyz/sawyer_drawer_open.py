@@ -6,17 +6,21 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerDrawerOpenEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    hand_low = (-0.5, 0.40, 0.05)
+    hand_high = (0.5, 1, 0.5)
+    goal_low = hand_low
+    goal_high = hand_high
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+    def __init__(self):
+
         obj_low = (-0.1, 0.9, 0.04)
         obj_high = (0.1, 0.9, 0.04)
 
         super().__init__(
             self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
+            hand_low=self.hand_low,
+            hand_high=self.hand_high,
         )
 
         self.init_config = {
@@ -31,10 +35,8 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
 
-        self.random_init = random_init
+        self.random_init = False
         self.max_path_length = 150
 
         self.action_space = Box(
@@ -46,7 +48,6 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
             np.array(obj_low),
             np.array(obj_high),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low,)),

@@ -6,15 +6,16 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerHammerEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    goal_low = (0., 0.85, 0.05)
+    goal_high = (0.3, 0.9, 0.05)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
+    def __init__(self):
 
         liftThresh = 0.09
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.5, 0.02)
         obj_high = (0.1, 0.6, 0.02)
-        goal_low = (0., 0.85, 0.05)
-        goal_high = (0.3, 0.9, 0.05)
 
         super().__init__(
             self.model_name,
@@ -22,7 +23,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
+        self.random_init = False
 
         self.init_config = {
             'hammer_init_pos': np.array([0, 0.6, 0.02]),
@@ -41,10 +42,9 @@ class SawyerHammerEnv(SawyerXYZEnv):
         )
 
         self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low,)),
