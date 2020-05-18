@@ -14,3 +14,11 @@ def test_augment_observation():
         assert obs[-10:][i] == 1
         obs = env.reset()
         assert obs[-10:][i] == 1
+
+
+def test_random_init():
+    """Test that random_init == False for all envs."""
+    env = MT10()
+    assert len(env._task_envs) == 10
+    for task_env in env._task_envs:
+        assert not task_env.random_init

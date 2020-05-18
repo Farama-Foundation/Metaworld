@@ -18,7 +18,10 @@ class MT10(MultiClassMultiTaskEnv, Benchmark):
             args_kwargs = {task_name: EASY_MODE_ARGS_KWARGS[task_name]}
         else:
             cls_dict = EASY_MODE_CLS_DICT
-            args_kwargs = EASY_MODE_ARGS_KWARGS
+            args_kwargs = EASY_MODE_ARGS_KWARGS.copy()
+
+        for env_args_kwargs in args_kwargs.values():
+            env_args_kwargs['kwargs']['random_init'] = False
 
         super().__init__(
             task_env_cls_dict=cls_dict,

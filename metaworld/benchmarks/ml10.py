@@ -19,6 +19,9 @@ class ML10(MultiClassMultiTaskEnv, Benchmark):
             cls_dict = MEDIUM_MODE_CLS_DICT[env_type]
             args_kwargs = MEDIUM_MODE_ARGS_KWARGS[env_type]
 
+        for env_args_kwargs in args_kwargs.values():
+            env_args_kwargs['kwargs']['random_init'] = True
+
         super().__init__(
             task_env_cls_dict=cls_dict,
             task_args_kwargs=args_kwargs,

@@ -23,6 +23,9 @@ class MT50(MultiClassMultiTaskEnv, Benchmark):
             cls_dict = {task_name: cls_dict[task_name]}
             args_kwargs = {task_name: args_kwargs[task_name]}
 
+        for env_args_kwargs in args_kwargs.values():
+            env_args_kwargs['kwargs']['random_init'] = False
+
         super().__init__(
             task_env_cls_dict=cls_dict,
             task_args_kwargs=args_kwargs,
