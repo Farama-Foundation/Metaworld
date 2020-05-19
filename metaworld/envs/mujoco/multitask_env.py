@@ -101,14 +101,18 @@ class MultiClassMultiTaskEnv(gym.Env):
 
     @property
     def observation_space(self):
-        """ TODO not complete, needs support for different observation types"""
+        """TODO not complete, needs support for different observation types."""
         if self._obs_type == "plain":
             obs_dim = self._max_obs_dim
         elif self._obs_type == "with_goal_id":
             obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
         else:
             raise Exception("invalid obs_type, obs_type was {}".format(self._obs_type))
-        return Box(low=-np.inf, high=np.inf, shape=(obs_dim,))
+        observation_space = Box(
+            self._augment_observation(self.active_env.observation_space.low),
+            self._augment_observation(self.active_env.observation_space.high),
+        )
+        return observation_space
 
     def set_task(self, task):
         if self._sample_goals:
@@ -150,11 +154,9 @@ class MultiClassMultiTaskEnv(gym.Env):
                 shape=(self._max_obs_dim - np.prod(obs.shape),)
             )
             obs = np.concatenate([obs, zeros])
-
         # augment the observation based on obs_type:
         if self._obs_type == 'with_goal_id':
             obs = np.concatenate([obs, self.active_task_one_hot])
-
         return obs
 
     def reset(self, **kwargs):
