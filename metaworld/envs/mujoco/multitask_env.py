@@ -108,11 +108,7 @@ class MultiClassMultiTaskEnv(gym.Env):
             obs_dim = self._max_obs_dim + _NUM_METAWORLD_ENVS
         else:
             raise Exception("invalid obs_type, obs_type was {}".format(self._obs_type))
-        observation_space = Box(
-            self._augment_observation(self.active_env.observation_space.low),
-            self._augment_observation(self.active_env.observation_space.high),
-        )
-        return observation_space
+        return Box(low=-np.inf, high=np.inf, shape=(obs_dim,))
 
     def set_task(self, task):
         if self._sample_goals:
