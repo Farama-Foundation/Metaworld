@@ -239,13 +239,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return super().reset()
 
     def _get_state_rand_vec(self):
-        if self._freeze_rand_vec:
-            assert self._last_rand_vec is not None
-            return self._last_rand_vec
-        else:
-            rand_vec = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=self.obj_and_goal_space.low.size)
-            self._last_rand_vec = rand_vec
-            return rand_vec
+        rand_vec = np.random.uniform(
+            self.obj_and_goal_space.low,
+            self.obj_and_goal_space.high,
+            size=self.obj_and_goal_space.low.size)
+        assert len(self.goal_space.low) == len(self._state_goal)
+        rand_vec[-len(self._state_goal):] = self._state_goal
+        return rand_vec
