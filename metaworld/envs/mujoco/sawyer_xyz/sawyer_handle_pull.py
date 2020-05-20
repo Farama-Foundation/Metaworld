@@ -81,11 +81,7 @@ class SawyerHandlePullEnv(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos
             button_pos = goal_pos.copy()
             button_pos[1] -= 0.1

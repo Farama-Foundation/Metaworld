@@ -88,11 +88,7 @@ class SawyerDoorUnlockEnv(SawyerXYZEnv):
         self._state_goal = door_pos + np.array([0.1, -0.04, 0.07])
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             door_pos = goal_pos
             self._state_goal = goal_pos + np.array([0.1, -0.04, 0.07])
 

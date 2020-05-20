@@ -91,11 +91,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = hole_pos
