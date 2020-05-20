@@ -17,7 +17,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             points from the end effector to the cabinet in the X direction.
             i.e. (self._state_goal - pos_hand)[0]
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         goal_low = (-0.1, 0.85, 0.02)
         goal_high = (0.1, 0.9, 0.02)
@@ -31,8 +31,6 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,

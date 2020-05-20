@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerHandInsertEnv(SawyerXYZEnv):
-    def __init__(self, random_init=True):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -20,8 +20,6 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.6, 0.02]),
@@ -92,17 +90,9 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         # if self.random_init:
-        goal_pos = np.random.uniform(
-            self.obj_and_goal_space.low,
-            self.obj_and_goal_space.high,
-            size=(self.obj_and_goal_space.low.size),
-        )
+        goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.15:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._state_goal = goal_pos[-3:]
 

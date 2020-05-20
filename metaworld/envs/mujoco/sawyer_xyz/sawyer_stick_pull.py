@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerStickPullEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=True):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (0.3, 0.4, 0.02)
@@ -22,8 +22,6 @@ class SawyerStickPullEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'stick_init_pos': np.array([0, 0.6, 0.02]),
@@ -115,17 +113,9 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self._state_goal = np.array([0.3, 0.4, self.stick_init_pos[-1]])
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
             self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
             self._state_goal = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
 

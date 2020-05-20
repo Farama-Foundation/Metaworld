@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerPlateSlideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         goal_low = (-0.1, 0.85, 0.02)
         goal_high = (0.1, 0.9, 0.02)
@@ -21,8 +21,6 @@ class SawyerPlateSlideEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -87,11 +85,7 @@ class SawyerPlateSlideEnv(SawyerXYZEnv):
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         if self.random_init:
-            obj_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            obj_pos = self._get_state_rand_vec()
             self.obj_init_pos = obj_pos[:3]
             goal_pos = obj_pos[3:]
             self._state_goal = goal_pos

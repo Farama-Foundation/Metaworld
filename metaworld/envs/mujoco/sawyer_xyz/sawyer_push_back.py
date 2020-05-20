@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerPushBackEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         goal_low = (-0.1, 0.6, 0.02)
         goal_high = (0.1, 0.7, 0.02)
@@ -20,8 +20,6 @@ class SawyerPushBackEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos':np.array([0, 0.8, 0.02]),
@@ -98,18 +96,10 @@ class SawyerPushBackEnv(SawyerXYZEnv):
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
             while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
                 self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 

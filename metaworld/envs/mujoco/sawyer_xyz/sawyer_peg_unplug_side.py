@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerPegUnplugSideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (-0.25, 0.6, 0.05)
@@ -22,8 +22,6 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([-0.225, 0.6, 0.05]),
@@ -90,11 +88,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = hole_pos

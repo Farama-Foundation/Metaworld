@@ -2,35 +2,35 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
+class SawyerPushWallEnv(SawyerXYZEnv):
+    goal_low = (-0.05, 0.85, 0.05)
+    goal_high = (0.05, 0.9, 0.3)
+    goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     def __init__(self):
+
         liftThresh = 0.04
-        goal_low=(-0.1, 0.8, 0.05)
-        goal_high=(0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
-        obj_high = (0.1, 0.7, 0.02)
+        obj_low = (-0.05, 0.6, 0.015)
+        obj_high = (0.05, 0.65, 0.015)
 
         self.task_types = ['pick_place', 'reach', 'push']
-
+        self.task_type = 'push'
         super().__init__(
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
         )
 
-        self.task_type = None
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
-
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -38,40 +38,27 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+        self.action_space = Box(
+            np.array([-1, -1, -1, -1]),
+            np.array([1, 1, 1, 1]),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
+        self.obj_and_goal_space = Box(
+            np.hstack((obj_low, self.goal_low)),
+            np.hstack((obj_high, self.goal_high)),
+        )
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low,)),
+            np.hstack((self.hand_high, obj_high,)),
         )
 
         self.num_resets = 0
 
-    def _set_task_inner(self, *, task_type, **kwargs):
-        super()._set_task_inner(**kwargs)
-        self.task_type = task_type
-
-        # we only do one task from [pick_place, reach, push]
-        # per instance of SawyerReachPushPickPlaceEnv.
-        # Please only set task_type from constructor.
-        if self.task_type == 'pick_place':
-            self.goal = np.array([0.1, 0.8, 0.2])
-        elif self.task_type == 'reach':
-            self.goal = np.array([-0.1, 0.8, 0.2])
-        elif self.task_type == 'push':
-            self.goal = np.array([0.1, 0.8, 0.02])
-        else:
-            raise NotImplementedError
-
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_reach_push_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_reach_push_pick_and_place_wall.xml')
 
-    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -81,7 +68,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward, _, reachDist, _, pushDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
 
         if self.task_type == 'reach':
@@ -90,12 +76,26 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             success = float(goal_dist <= 0.07)
 
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
-        info['goal'] = self.goal
+        info['goal'] = self._state_goal
 
         return ob, reward, False, info
 
-    def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+    def _get_obs(self):
+        hand = self.get_endeff_pos()
+        objPos =  self.data.get_geom_xpos('objGeom')
+        flat_obs = np.concatenate((hand, objPos))
+
+        return np.concatenate([flat_obs,])
+
+    def _get_obs_dict(self):
+        hand = self.get_endeff_pos()
+        objPos =  self.data.get_geom_xpos('objGeom')
+        flat_obs = np.concatenate((hand, objPos))
+        return dict(
+            state_observation=flat_obs,
+            state_desired_goal=self._state_goal,
+            state_achieved_goal=objPos,
+        )
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal_{}'.format(self.task_type))] = (
@@ -125,24 +125,24 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self._get_state_rand_vec()
+        obj_and_goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[3:]
-            if self.task_type == 'push':
-                self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
-                self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            else:
-                self._state_goal = goal_pos[-3:]
-                self.obj_init_pos = goal_pos[:3]
+            obj_and_goal_pos = self._get_state_rand_vec()
+            self._state_goal = obj_and_goal_pos[3:]
+            while np.linalg.norm(obj_and_goal_pos[:2] - self._state_goal[:2]) < 0.15:
+                obj_and_goal_pos = self._get_state_rand_vec()
+                self._state_goal = obj_and_goal_pos[3:]
+        if self.task_type == 'push':
+            self._state_goal = np.concatenate((obj_and_goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+            self.obj_init_pos = np.concatenate((obj_and_goal_pos[:2], [self.obj_init_pos[-1]]))
+        else:
+            self._state_goal = obj_and_goal_pos[-3:]
+            self.obj_init_pos = obj_and_goal_pos[:3]
 
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
@@ -151,14 +151,12 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
 
-        if self.task_type == 'reach':
+        if self.task_type == 'pick_place':
+            idx = 0
+        elif self.task_type == 'reach':
             idx = 1
         elif self.task_type == 'push':
             idx = 2
-        elif self.task_type == 'pick_place':
-            idx = 0
-        else:
-            raise NotImplementedError
 
         self.target_reward = self.target_rewards[idx]
         self.num_resets += 1
@@ -170,6 +168,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
+
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
@@ -196,24 +195,27 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             reachRew = c1*(self.maxReachDist - reachDist) + c1*(np.exp(-(reachDist**2)/c2) + np.exp(-(reachDist**2)/c3))
             reachRew = max(reachRew, 0)
             reward = reachRew
+
             return [reward, reachRew, reachDist, None, None, None, None, None]
 
         def compute_reward_push(actions, obs):
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
             del actions
             del obs
 
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
             assert np.all(goal == self.get_site_pos('goal_push'))
             reachDist = np.linalg.norm(fingerCOM - objPos)
             pushDist = np.linalg.norm(objPos[:2] - goal[:2])
             reachRew = -reachDist
+
             if reachDist < 0.05:
                 pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
                 pushRew = max(pushRew, 0)
             else:
                 pushRew = 0
+
             reward = reachRew + pushRew
             return [reward, reachRew, reachDist, pushRew, pushDist, None, None, None]
 
@@ -234,7 +236,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
                 else:
                     reachRew =  -reachDistxy - 2*zRew
 
-                #incentive to close fingers when reachDist is small
                 if reachDist < 0.05:
                     reachRew = -reachDist + max(actions[-1],0)/50
 
@@ -242,13 +243,9 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
             def pickCompletionCriteria():
                 tolerance = 0.01
-                if objPos[2] >= (heightTarget- tolerance):
-                    return True
-                else:
-                    return False
+                return objPos[2] >= (heightTarget- tolerance)
 
-            if pickCompletionCriteria():
-                self.pickCompleted = True
+            self.pickCompleted = pickCompletionCriteria()
 
 
             def objDropped():

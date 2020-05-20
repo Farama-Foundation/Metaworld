@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.11
         hand_init_pos = (0, 0.6, 0.2)
@@ -28,14 +28,14 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
-        self.goal = np.array([-0.3, 0.6, 0.05])
+        self._state_goal = np.array([-0.3, 0.6, 0.05])
+
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
@@ -67,7 +67,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
-        info['goal'] = self.goal
+        info['goal'] = self._state_goal
 
         return ob, reward, False, info
 
@@ -84,24 +84,16 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self.goal.copy()
+        self.sim.model.body_pos[self.model.body_name2id('box')] = self._state_goal.copy()
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('peg').copy()[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
             self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]

@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerCoffeeButtonEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -19,8 +19,6 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.9, 0.28]),
@@ -82,11 +80,7 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         obj_pos = self.obj_init_pos + np.array([0, -0.1, -0.28])
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos
             button_pos = goal_pos + np.array([0., -0.12, 0.05])
             obj_pos = goal_pos + np.array([0, -0.1, -0.28])
