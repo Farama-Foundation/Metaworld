@@ -149,4 +149,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
-        return super().reset()
+        if hasattr(self, '_state_goal'):
+            old_goal = np.array(self._state_goal)
+            result = super().reset()
+            assert np.allclose(self._state_goal, old_goal)
+            return result
+        else:
+            return super().reset()
+
+    def _get_state_rand_vec(self):
+        rand_vec = np.random.uniform(
+            self.obj_and_goal_space.low,
+            self.obj_and_goal_space.high,
+            size=self.obj_and_goal_space.low.size)
+        assert len(self.goal_space.low) == len(self._state_goal)
+        rand_vec[-len(self._state_goal):] = self._state_goal
+        return rand_vec
