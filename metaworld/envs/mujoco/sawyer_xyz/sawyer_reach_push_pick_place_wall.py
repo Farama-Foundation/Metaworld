@@ -148,18 +148,10 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self._state_goal = goal_pos[3:]
             while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
                 self._state_goal = goal_pos[3:]
             if self.task_type == 'push':
                 self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
