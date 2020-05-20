@@ -82,11 +82,7 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         obj_pos = self.obj_init_pos + np.array([0, -0.1, -0.28])
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos
             button_pos = goal_pos + np.array([0., -0.12, 0.05])
             obj_pos = goal_pos + np.array([0, -0.1, -0.28])

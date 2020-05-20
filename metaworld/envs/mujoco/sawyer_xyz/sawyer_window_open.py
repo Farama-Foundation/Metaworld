@@ -84,11 +84,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            obj_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            obj_pos = self._get_state_rand_vec()
             self.obj_init_pos = obj_pos
             goal_pos = obj_pos.copy()
             goal_pos[0] += 0.18

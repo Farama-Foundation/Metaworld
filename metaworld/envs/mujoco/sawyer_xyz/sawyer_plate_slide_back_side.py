@@ -88,11 +88,7 @@ class SawyerPlateSlideBackSideEnv(SawyerXYZEnv):
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         if self.random_init:
-            obj_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            obj_pos = self._get_state_rand_vec()
             self.obj_init_pos = obj_pos[:3]
             goal_pos = obj_pos[3:]
             self._state_goal = goal_pos
