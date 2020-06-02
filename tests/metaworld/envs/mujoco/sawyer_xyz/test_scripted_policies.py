@@ -16,7 +16,13 @@ test_cases = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, 0.99, {}],
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, 0.98, {}],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .0, 0.99, {}],
-    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.84, {}],
+    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.79, {}],
+    ['reach-v2', SawyerReachV2Policy(), .0, .99, {}],
+    ['reach-v2', SawyerReachV2Policy(), .1, .99, {}],
+    ['push-v2', SawyerPushV2Policy(), .0, .99, {}],
+    ['push-v2', SawyerPushV2Policy(), .1, .97, {}],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .0, .99, {}],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .94, {}],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .96, {}],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .96, {}],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
@@ -25,8 +31,13 @@ test_cases = [
     ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.84, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.96, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.42, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.42, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.41, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.41, {}],
+    ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.82, {}],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96, {}],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.96, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.41, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.41, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.97, {}],
 ]
@@ -45,7 +56,7 @@ for row in test_cases:
     'policy,act_noise_pct,expected_success_rate,env',
     test_cases
 )
-def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=1000):
+def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test

@@ -69,7 +69,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_place_v2.xml')
 
     def step(self, action):
         self.set_xyz_action(action[:3])
