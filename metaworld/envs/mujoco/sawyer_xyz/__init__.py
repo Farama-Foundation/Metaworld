@@ -5,7 +5,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPre
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close_v2 import SawyerDoorCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
