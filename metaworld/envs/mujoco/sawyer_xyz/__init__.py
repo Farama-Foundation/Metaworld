@@ -14,6 +14,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
