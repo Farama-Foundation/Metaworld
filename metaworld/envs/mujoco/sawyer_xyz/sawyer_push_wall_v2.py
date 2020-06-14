@@ -1,3 +1,5 @@
+"""Version 2 of SawyerPushWallEnv."""
+
 import numpy as np
 from gym.spaces import Box
 
@@ -6,6 +8,13 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerPushWallEnvV2(SawyerXYZEnv):
+    """
+    SawyerPushEnvV2 updates SawyerReachPushPickPlaceWallEnv.
+
+    Env now handles only 'Push' task type from SawyerReachPushPickPlaceWallEnv.
+    Observations now include a vector pointing from the objectposition to the
+    goal position. Allows for scripted policy.
+    """
 
     def __init__(self, random_init=False):
         liftThresh = 0.04
