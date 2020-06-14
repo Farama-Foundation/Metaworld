@@ -34,7 +34,6 @@ def check_success(env, policy, noisiness, render=False):
             success |= bool(info['success'])
 
         except ValueError as e:
-            print(e)
             env.reset()
             done = True
 
