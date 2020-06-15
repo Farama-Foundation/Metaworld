@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
@@ -21,6 +22,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEn
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close_v2 import SawyerDoorCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeButtonEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push import SawyerCoffeePushEnv
@@ -98,6 +100,10 @@ ALL_ENVIRONMENTS = OrderedDict((
     ('hand-insert-v1', SawyerHandInsertEnv),
     ('door-lock-v1', SawyerDoorLockEnv),
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
+
+ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('door-open-v2', SawyerDoorEnvV2),
+    ('door-close-v2', SawyerDoorCloseEnvV2),))
 
 _NUM_METAWORLD_ENVS = len(ALL_ENVIRONMENTS)
 

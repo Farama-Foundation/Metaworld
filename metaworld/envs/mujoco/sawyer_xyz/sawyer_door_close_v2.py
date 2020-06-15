@@ -1,0 +1,88 @@
+import numpy as np
+
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
+
+
+class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
+    """
+    Motivation for V2:
+        V1 was rarely solvable due to limited path length. The door usually
+        only got ~25% closed before hitting max_path_length
+    Changelog:
+        - (6/15/20) Increased max_path_length from 150 to 400
+    """
+    def __init__(self, random_init=False):
+        super().__init__(random_init=random_init)
+
+        self.init_config = {
+            'obj_init_angle': 0.3,
+            'obj_init_pos': np.array([0.1, 0.95, 0.1], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+        }
+        self.goal = np.array([0.2, 0.8, 0.15])
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
+        self.max_path_length = 400
+
+    def reset_model(self):
+        self._reset_hand()
+        self._state_goal = self.goal.copy()
+        self.objHeight = self.data.get_geom_xpos('handle')[2]
+
+        if self.random_init:
+            obj_pos = np.random.uniform(
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=(self.obj_and_goal_space.low.size),
+            )
+            self.obj_init_pos = obj_pos
+            goal_pos = obj_pos.copy() + np.array([0.1, -0.15, 0.05])
+            self._state_goal = goal_pos
+
+        self._set_goal_marker(self._state_goal)
+        self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
+
+        # keep the door open after resetting initial positions
+        self._set_obj_xyz(-1.5708)
+        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._state_goal[:-1])
+        self.target_reward = 1000*self.maxPullDist + 1000*2
+
+        return self._get_obs()
+
+    def compute_reward(self, actions, obs):
+        del actions
+
+        obs = obs['state_observation']
+        objPos = obs[3:6]
+
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        fingerCOM  =  (rightFinger + leftFinger)/2
+
+        pullGoal = self._state_goal
+
+        pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+        reachDist = np.linalg.norm(objPos - fingerCOM)
+        reachRew = -reachDist
+
+        self.reachCompleted = reachDist < 0.05
+
+        def pullReward():
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+
+            if self.reachCompleted:
+                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+                pullRew = max(pullRew,0)
+                return pullRew
+            else:
+                return 0
+
+        pullRew = pullReward()
+        reward = reachRew + pullRew
+
+        return [reward, reachDist, pullDist]
+
