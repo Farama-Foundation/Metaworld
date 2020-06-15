@@ -4,6 +4,23 @@ import warnings
 import numpy as np
 
 
+def assert_fully_parsed(func):
+    """Decorator function to ensure observations are fully parsed
+
+    Args:
+        func (Callable): The function to check
+
+    Returns:
+        (Callable): The input function, decorated to assert full parsing
+    """
+    def inner(obs):
+        obs_dict = func(obs)
+        assert len(obs) == sum([len(i) for i in obs_dict.values()]), \
+            'Observation not fully parsed'
+        return obs_dict
+    return inner
+
+
 def move(from_xyz, to_xyz, p):
     """Computes action components that help move from 1 position to another
 

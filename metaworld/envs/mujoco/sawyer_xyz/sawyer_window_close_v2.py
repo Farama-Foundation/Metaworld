@@ -10,7 +10,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
     Motivation for V2:
         V1 was rarely solvable due to limited path length. The window usually
         only got ~25% closed before hitting max_path_length
-    Changelog:
+    Changelog from V1 to V2:
         - (6/15/20) Increased max_path_length from 150 to 200
     """
     def __init__(self, random_init=False):

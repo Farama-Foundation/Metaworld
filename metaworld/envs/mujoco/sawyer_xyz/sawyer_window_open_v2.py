@@ -9,7 +9,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
         When V1 scripted policy failed, it was often due to limited path length.
-    Changelog:
+    Changelog from V1 to V2:
         - (6/15/20) Increased max_path_length from 150 to 200
     """
     def __init__(self, random_init=False):
