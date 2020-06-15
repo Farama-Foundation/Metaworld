@@ -10,8 +10,10 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
@@ -52,7 +54,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlate
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
 
-ALL_ENVIRONMENTS = OrderedDict((
+ALL_V1_ENVIRONMENTS = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
     ('push-v1', SawyerReachPushPickPlaceEnv),
     ('pick-place-v1', SawyerReachPushPickPlaceEnv),
@@ -109,9 +111,11 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('door-close-v2', SawyerDoorCloseEnvV2),
     ('reach-v2', SawyerReachEnvV2),
     ('push-v2', SawyerPushEnvV2),
-    ('pick-place-v2', SawyerPickPlaceEnvV2),))
+    ('pick-place-v2', SawyerPickPlaceEnvV2),
+    ('window-open-v2', SawyerWindowOpenEnvV2),
+    ('window-close-v2', SawyerWindowCloseEnvV2),))
 
-_NUM_METAWORLD_ENVS = len(ALL_ENVIRONMENTS)
+_NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
 
 EASY_MODE_CLS_DICT = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
@@ -149,7 +153,7 @@ EASY_MODE_CLS_DICT = OrderedDict((
 EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[],
               kwargs={
-                  'task_id': list(ALL_ENVIRONMENTS.keys()).index(key)
+                  'task_id': list(ALL_V1_ENVIRONMENTS.keys()).index(key)
               })
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
@@ -199,13 +203,13 @@ MEDIUM_MODE_CLS_DICT = OrderedDict((
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
         'random_init': True,
-        'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key),
+        'task_id' : list(ALL_V1_ENVIRONMENTS.keys()).index(key),
     })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
 }
 
 medium_mode_test_args_kwargs = {
-    key: dict(args=[], kwargs={'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={'task_id' : list(ALL_V1_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
@@ -286,7 +290,7 @@ HARD_MODE_CLS_DICT = OrderedDict((
 def _hard_mode_args_kwargs(env_cls_, key_):
     del env_cls_
 
-    kwargs = dict(random_init=True, task_id=list(ALL_ENVIRONMENTS.keys()).index(key_))
+    kwargs = dict(random_init=True, task_id=list(ALL_V1_ENVIRONMENTS.keys()).index(key_))
     if key_ == 'reach-v1' or key_ == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
     elif key_ == 'push-v1' or key_ == 'push-wall-v1':
