@@ -6,7 +6,7 @@ required = [
     # Please keep alphabetized
     'gym>=0.15.4',
     'mujoco-py<2.1,>=2.0',
-    'opencv-python>=4.1.0.25',
+    'numpy>=1.18',
 ]
 
 
