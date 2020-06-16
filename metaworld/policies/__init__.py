@@ -1,3 +1,5 @@
+from metaworld.policies.SawyerButtonPressV1Policy import (
+    SawyerButtonPressV1Policy)
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
 from metaworld.policies.sawyer_door_open_v1_policy import SawyerDoorOpenV1Policy
 from metaworld.policies.sawyer_door_close_v1_policy import SawyerDoorCloseV1Policy
@@ -11,7 +13,9 @@ from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugS
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
 from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2Policy
 
+
 __all__ = [
+    'SawyerButtonPressV1Policy',
     'SawyerButtonPressTopdownV1Policy',
     'SawyerDoorOpenV1Policy',
     'SawyerDoorCloseV1Policy',
@@ -23,5 +27,5 @@ __all__ = [
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
     'SawyerWindowOpenV2Policy',
-    'SawyerWindowCloseV2Policy'
+    'SawyerWindowCloseV2Policy',
 ]

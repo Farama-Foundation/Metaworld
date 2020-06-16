@@ -125,8 +125,7 @@ EASY_MODE_CLS_DICT = OrderedDict((
     ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
     ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
     ('window-open-v1', SawyerWindowOpenEnv),
-    ('window-close-v1', SawyerWindowCloseEnv))
-)
+    ('window-close-v1', SawyerWindowCloseEnv)),)
 
 
 '''

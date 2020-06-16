@@ -40,6 +40,7 @@ test_cases = [
     ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.41, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.97, {}],
+    ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
@@ -72,7 +73,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         '{} has state variable(s)'.format(policy.__class__.__name__)
 
     successes = 0
-    for i in range(iters):
+    for _ in range(iters):
         successes += float(check_success(env, policy, act_noise_pct)[0])
-
+    print(successes)
     assert successes >= expected_success_rate * iters
