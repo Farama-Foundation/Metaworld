@@ -7,8 +7,12 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
 
 test_cases = [
     # name, policy, action noise pct, success rate, env kwargs
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .96, {}],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .96, {}],
+    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
+    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .99, {}],
     ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.86, {}],
-    ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.85, {}],
+    ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.84, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.97, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.97, {}],
     ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.44, {}],
