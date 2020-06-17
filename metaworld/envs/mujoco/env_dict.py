@@ -36,6 +36,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClo
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
@@ -106,6 +107,7 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('basketball-v2', SawyerBasketballEnvV2),
     ('reach-v2', SawyerReachEnvV2),
     ('push-v2', SawyerPushEnvV2),
     ('pick-place-v2', SawyerPickPlaceEnvV2),
