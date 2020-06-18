@@ -6,7 +6,16 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerReachWallEnvV2(SawyerXYZEnv):
-
+    """
+    Motivation for V2:
+        V1 was completely unsolvable because the observation didn't say where
+        to move (where to reach).
+    Changelog from V1 to V2:
+        - (6/17/20) Separated reach from reach-push-pick-place.
+        - (6/17/20) Added a 3 element vector to the observation. This vector
+            points from the end effector to the goal coordinate.
+            i.e. (self._state_goal - pos_hand)
+    """
     def __init__(self, random_init=False, task_type='pick_place'):
 
         liftThresh = 0.04
@@ -100,14 +109,6 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         )
 
     def _set_goal_marker(self, goal):
-        # self.data.site_xpos[self.model.site_name2id('goal_{}'.format(self.task_type))] = (
-        #     goal[:3]
-        # )
-        # for task_type in self.task_types:
-        #     if task_type != self.task_type:
-        #         self.data.site_xpos[self.model.site_name2id('goal_{}'.format(task_type))] = (
-        #             np.array([10.0, 10.0, 10.0])
-        #         )
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
 
     def _set_obj_xyz(self, pos):

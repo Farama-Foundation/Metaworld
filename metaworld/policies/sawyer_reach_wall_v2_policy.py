@@ -33,6 +33,8 @@ class SawyerReachWallV2Policy(Policy):
     @staticmethod
     def desired_xyz(o_d):
         pos_hand = o_d['hand_xyz']
+        # if the hand is going to run into the wall, go up while still moving
+        # towards the goal position.
         if(-0.1 <= pos_hand[0] <= 0.3 and
                 0.60 <= pos_hand[1] <= 0.80 and
                 pos_hand[2] < 0.2):
