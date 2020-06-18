@@ -2,7 +2,6 @@
 
 import numpy as np
 from gym.spaces import Box
-
 from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
@@ -79,7 +78,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        # reward, _, reach_dist, _, push_dist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
         reward, reach_dist, push_dist = self.compute_reward(action, obs_dict)
         success = float(push_dist <= 0.07)
 
@@ -108,14 +106,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         )
 
     def _set_goal_marker(self, goal):
-        # self.data.site_xpos[self.model.site_name2id('goal_{}'.format(self.task_type))] = (
-        #     goal[:3]
-        # )
-        # for task_type in self.task_types:
-        #     if task_type != self.task_type:
-        #         self.data.site_xpos[self.model.site_name2id('goal_{}'.format(task_type))] = (
-        #             np.array([10.0, 10.0, 10.0])
-        #         )
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
 
     def _set_obj_xyz(self, pos):
@@ -131,7 +121,8 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
-        # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
+        # The convention we follow is that body_com[2] is always 0,
+        # and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
 
     def reset_model(self):
@@ -171,14 +162,20 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = (
+            self.get_site_pos('rightEndEffector'),
+            self.get_site_pos('leftEndEffector')
+        )
         self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         obs = obs['state_observation']
         obj_pos = obs[3:6]
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = (
+            self.get_site_pos('rightEndEffector'),
+            self.get_site_pos('leftEndEffector')
+        )
         fingerCOM = (rightFinger + leftFinger) / 2
 
         goal = self._state_goal
