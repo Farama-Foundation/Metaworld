@@ -38,6 +38,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnp
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
@@ -113,7 +114,9 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('push-v2', SawyerPushEnvV2),
     ('pick-place-v2', SawyerPickPlaceEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
-    ('window-close-v2', SawyerWindowCloseEnvV2),))
+    ('window-close-v2', SawyerWindowCloseEnvV2),
+    ('reach-wall-v2', SawyerReachWallEnvV2),
+))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
 

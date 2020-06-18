@@ -15,6 +15,8 @@ test_cases = [
     ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.44, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.98, {}],
+    ['reach-wall-v2', SawyerReachWallV2Policy(), 0.0, 0.98, {}],
+    ['reach-wall-v2', SawyerReachWallV2Policy(), 0.1, 0.98, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
@@ -27,10 +29,7 @@ for row in test_cases:
     row.pop(0)
 
 
-@pytest.mark.parametrize(
-    'policy,act_noise_pct,expected_success_rate,env',
-    test_cases
-)
+@pytest.mark.parametrize('policy,act_noise_pct,expected_success_rate,env', test_cases)
 def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=1000):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
@@ -49,5 +48,4 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
     successes = 0
     for i in range(iters):
         successes += float(check_success(env, policy, act_noise_pct)[0])
-
     assert successes >= expected_success_rate * iters
