@@ -1,12 +1,13 @@
 import numpy as np
 
 from metaworld.policies.action import Action
-from metaworld.policies.policy import Policy, move
+from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
 class SawyerPushWallV2Policy(Policy):
 
     @staticmethod
+    @assert_fully_parsed
     def parse_obs(obs):
         return {
             'hand_xyz': obs[:3],
