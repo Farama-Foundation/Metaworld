@@ -18,7 +18,8 @@ extras['dev'] = [
     'memory_profiler',
     'pylint',
     'pyquaternion==0.9.5',
-    'pytest>=3.6',
+    'pytest>=4.4.0',  # Required for pytest-xdist
+    'pytest-xdist',
 ]
 
 
