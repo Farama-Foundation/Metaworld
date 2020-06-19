@@ -7,6 +7,8 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
 
 test_cases = [
     # name, policy, action noise pct, success rate, env kwargs
+    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1., {}],
+    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99, {}],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .96, {}],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .96, {}],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
@@ -15,10 +17,10 @@ test_cases = [
     ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.84, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.97, {}],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.97, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.44, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.44, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.42, {}],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.42, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98, {}],
-    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.98, {}],
+    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.97, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
