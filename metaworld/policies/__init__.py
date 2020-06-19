@@ -11,6 +11,8 @@ from metaworld.policies.sawyer_reach_v2_policy import SawyerReachV2Policy
 from metaworld.policies.sawyer_basketball_v2_policy import SawyerBasketballV2Policy
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
+from metaworld.policies.sawyer_sweep_into_v1_policy import SawyerSweepIntoV1Policy
+from metaworld.policies.sawyer_sweep_v1_policy import SawyerSweepV1Policy
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
 from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2Policy
 
@@ -28,6 +30,8 @@ __all__ = [
     'SawyerBasketballV2Policy',
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
+    'SawyerSweepIntoV1Policy',
+    'SawyerSweepV1Policy',
     'SawyerWindowOpenV2Policy',
     'SawyerWindowCloseV2Policy',
 ]
