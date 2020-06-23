@@ -50,9 +50,11 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull import SawyerHandlePull
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_v2 import SawyerPlateSlideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import SawyerPlateSlideBackSideEnvV2
 
 ALL_V1_ENVIRONMENTS = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
@@ -111,6 +113,8 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('reach-v2', SawyerReachEnvV2),
     ('push-v2', SawyerPushEnvV2),
     ('pick-place-v2', SawyerPickPlaceEnvV2),
+    ('plate-slide-back-side-v2', SawyerPlateSlideBackSideEnvV2),
+    ('plate-slide-v2', SawyerPlateSlideEnvV2),
     ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
     ('window-close-v2', SawyerWindowCloseEnvV2),))

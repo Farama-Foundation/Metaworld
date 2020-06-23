@@ -46,6 +46,8 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall import Sa
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_v2 import SawyerPlateSlideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import SawyerPlateSlideBackSideEnvV2
