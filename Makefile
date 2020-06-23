@@ -30,12 +30,14 @@ ci-deploy-docker:
 	docker push ryanjulian/metaworld-ci
 
 build-ci: TAG ?= ryanjulian/metaworld-ci:latest
-build-ci: docker/docker-compose.yml
+build-ci: docker/Dockerfile
 	TAG=${TAG} \
-	docker-compose \
-		-f docker/docker-compose.yml \
-		build \
-		${ADD_ARGS}
+	docker build \
+		--cache-from ryanjulian/metaworld-ci:latest \
+		-f docker/Dockerfile \
+		-t ${TAG} \
+		${ADD_ARGS} \
+		.
 
 run-ci: TAG ?= ryanjulian/metaworld-ci
 run-ci:
