@@ -15,6 +15,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowClo
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull_v2 import SawyerLeverPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
@@ -110,6 +111,7 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
     ('basketball-v2', SawyerBasketballEnvV2),
+    ('lever-pull-v2', SawyerLeverPullEnvV2),
     ('reach-v2', SawyerReachEnvV2),
     ('push-v2', SawyerPushEnvV2),
     ('pick-place-v2', SawyerPickPlaceEnvV2),
