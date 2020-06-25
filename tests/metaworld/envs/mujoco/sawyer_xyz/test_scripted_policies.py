@@ -54,6 +54,7 @@ test_cases = [
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98, {}],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.97, {}],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94, {}],
+    ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
@@ -87,6 +88,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(check_success(env, policy, act_noise_pct)[0])
+        successes += float(check_success(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
