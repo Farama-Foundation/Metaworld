@@ -10,10 +10,6 @@ addons:
     packages:
       - docker-ce
 
-env:
-  global:
-    - DOCKER_COMPOSE_VERSION=1.23.2
-
 jobs:
   include:
     - name: "Normal tests and pre-commit checks"
@@ -22,6 +18,11 @@ jobs:
         - DEPLOY_FROM_THIS_JOB="true"
 
 before_install:
+  # Update docker
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
   # Reconfigure docker to be more efficient
   - |
     echo '{
@@ -31,12 +32,6 @@ before_install:
       "max-concurrent-uploads": 50
     }' | sudo tee /etc/docker/daemon.json
   - sudo service docker restart
-  # Reinstall docker compose with the specified version. For more information, see:
-  # https://docs.travis-ci.com/user/docker/#using-docker-compose
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
   # Pull cached docker image
   - docker pull rlworkgroup/metaworld-ci:latest
 
