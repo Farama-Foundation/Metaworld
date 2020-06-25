@@ -3,7 +3,7 @@ import pytest
 from metaworld.benchmarks import ML1, MT10, ML10, ML45, MT50
 from tests.helpers import step_env
 
-
+@pytest.mark.skip
 @pytest.mark.parametrize('name', ML1.available_tasks())
 def test_all_ml1(name):
     train_env = ML1.get_train_tasks(name)
@@ -25,6 +25,7 @@ def test_all_ml1(name):
     del test_env
 
 
+@pytest.mark.skip
 def test_all_ml10():
     ml10_train_env = ML10.get_train_tasks()
     train_tasks = ml10_train_env.sample_tasks(11)
@@ -45,6 +46,7 @@ def test_all_ml10():
     del ml10_test_env
 
 
+@pytest.mark.skip
 def test_all_mt10():
     mt10_env = MT10()
     tasks = mt10_env.sample_tasks(11)
@@ -77,6 +79,7 @@ def test_all_ml45():
     del ml45_test_env
 
 
+@pytest.mark.skip
 @pytest.mark.large
 def test_all_mt50():
     mt50_env = MT50()

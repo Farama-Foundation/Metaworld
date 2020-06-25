@@ -6,7 +6,7 @@ required = [
     # Please keep alphabetized
     'gym>=0.15.4',
     'mujoco-py<2.1,>=2.0',
-    'opencv-python>=4.1.0.25',
+    'numpy>=1.18',
 ]
 
 
@@ -18,7 +18,8 @@ extras['dev'] = [
     'memory_profiler',
     'pylint',
     'pyquaternion==0.9.5',
-    'pytest>=3.6',
+    'pytest>=4.4.0',  # Required for pytest-xdist
+    'pytest-xdist',
 ]
 
 

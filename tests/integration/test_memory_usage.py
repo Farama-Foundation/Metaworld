@@ -3,7 +3,7 @@ import memory_profiler
 import pytest
 
 from metaworld.benchmarks import ML45
-from metaworld.envs.mujoco.env_dict import ALL_ENVIRONMENTS
+from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS
 from tests.helpers import step_env
 
 
@@ -23,7 +23,7 @@ def build_and_step_all(classes):
 @pytest.fixture(scope='module')
 def mt50_usage():
     profile = {}
-    for env_cls in ALL_ENVIRONMENTS.values():
+    for env_cls in ALL_V1_ENVIRONMENTS.values():
         target = (build_and_step, [env_cls], {})
         memory_usage = memory_profiler.memory_usage(target)
         profile[env_cls] = max(memory_usage)
@@ -32,7 +32,7 @@ def mt50_usage():
 
 
 @pytest.mark.skip
-@pytest.mark.parametrize('env_cls', ALL_ENVIRONMENTS.values())
+@pytest.mark.parametrize('env_cls', ALL_V1_ENVIRONMENTS.values())
 def test_max_memory_usage(env_cls, mt50_usage):
     # No env should use more  than 250MB
     #
@@ -45,9 +45,9 @@ def test_max_memory_usage(env_cls, mt50_usage):
 @pytest.mark.skip
 def test_avg_memory_usage():
     # average usage no greater than 60MB/env
-    target = (build_and_step_all, [ALL_ENVIRONMENTS.values()], {})
+    target = (build_and_step_all, [ALL_V1_ENVIRONMENTS.values()], {})
     usage = memory_profiler.memory_usage(target)
-    average = max(usage) / len(ALL_ENVIRONMENTS)
+    average = max(usage) / len(ALL_V1_ENVIRONMENTS)
     assert average < 60
 
 

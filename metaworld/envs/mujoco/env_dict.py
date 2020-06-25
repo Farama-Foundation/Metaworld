@@ -1,20 +1,27 @@
 from collections import OrderedDict
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull_v2 import SawyerLeverPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_v2 import SawyerPegInsertionSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
@@ -30,6 +37,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClo
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
@@ -44,11 +52,13 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull import SawyerHandlePull
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_v2 import SawyerPlateSlideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import SawyerPlateSlideBackSideEnvV2
 
-ALL_ENVIRONMENTS = OrderedDict((
+ALL_V1_ENVIRONMENTS = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
     ('push-v1', SawyerReachPushPickPlaceEnv),
     ('pick-place-v1', SawyerReachPushPickPlaceEnv),
@@ -101,10 +111,19 @@ ALL_ENVIRONMENTS = OrderedDict((
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('basketball-v2', SawyerBasketballEnvV2),
+    ('lever-pull-v2', SawyerLeverPullEnvV2),
+    ('reach-v2', SawyerReachEnvV2),
+    ('push-v2', SawyerPushEnvV2),
+    ('pick-place-v2', SawyerPickPlaceEnvV2),
     ('push-wall-v2', SawyerPushWallEnvV2),
-))
+    ('plate-slide-back-side-v2', SawyerPlateSlideBackSideEnvV2),
+    ('plate-slide-v2', SawyerPlateSlideEnvV2),
+    ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
+    ('window-open-v2', SawyerWindowOpenEnvV2),
+    ('window-close-v2', SawyerWindowCloseEnvV2),))
 
-_NUM_METAWORLD_ENVS = len(ALL_ENVIRONMENTS)
+_NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
 
 EASY_MODE_CLS_DICT = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
@@ -116,8 +135,7 @@ EASY_MODE_CLS_DICT = OrderedDict((
     ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
     ('peg-insert-side-v1', SawyerPegInsertionSideEnv),
     ('window-open-v1', SawyerWindowOpenEnv),
-    ('window-close-v1', SawyerWindowCloseEnv))
-)
+    ('window-close-v1', SawyerWindowCloseEnv)),)
 
 
 '''
@@ -142,7 +160,7 @@ EASY_MODE_CLS_DICT = OrderedDict((
 EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[],
               kwargs={
-                  'task_id': list(ALL_ENVIRONMENTS.keys()).index(key)
+                  'task_id': list(ALL_V1_ENVIRONMENTS.keys()).index(key)
               })
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
@@ -192,13 +210,13 @@ MEDIUM_MODE_CLS_DICT = OrderedDict((
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
         'random_init': True,
-        'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key),
+        'task_id' : list(ALL_V1_ENVIRONMENTS.keys()).index(key),
     })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
 }
 
 medium_mode_test_args_kwargs = {
-    key: dict(args=[], kwargs={'task_id' : list(ALL_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={'task_id' : list(ALL_V1_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
@@ -279,7 +297,7 @@ HARD_MODE_CLS_DICT = OrderedDict((
 def _hard_mode_args_kwargs(env_cls_, key_):
     del env_cls_
 
-    kwargs = dict(random_init=True, task_id=list(ALL_ENVIRONMENTS.keys()).index(key_))
+    kwargs = dict(random_init=True, task_id=list(ALL_V1_ENVIRONMENTS.keys()).index(key_))
     if key_ == 'reach-v1' or key_ == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
     elif key_ == 'push-v1' or key_ == 'push-wall-v1':

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from metaworld.benchmarks import ML10, ML45
-from metaworld.envs.mujoco.env_dict import HARD_MODE_CLS_DICT, MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS, ALL_ENVIRONMENTS
+from metaworld.envs.mujoco.env_dict import HARD_MODE_CLS_DICT, MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS, ALL_V1_ENVIRONMENTS
 from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceWallEnv
@@ -12,7 +12,7 @@ HARD_MODE_LIST = (list(HARD_MODE_CLS_DICT['train'].values()) +
                   list(HARD_MODE_CLS_DICT['test'].values()))
 
 
-@pytest.mark.parametrize('env_cls', ALL_ENVIRONMENTS.values())
+@pytest.mark.parametrize('env_cls', ALL_V1_ENVIRONMENTS.values())
 def test_single_env_multi_goals_discrete(env_cls):
     env_cls_dict = {'wrapped': env_cls}
     env_args_kwargs = {'wrapped': dict(args=[], kwargs={'task_id' : 1})}
@@ -228,8 +228,8 @@ def test_action_space():
     assert multi_task_env.action_space.shape == (4, )
 
 
-@pytest.mark.parametrize('task_name', list(ALL_ENVIRONMENTS.keys())[:10])
+@pytest.mark.parametrize('task_name', list(ALL_V1_ENVIRONMENTS.keys())[:10])
 def test_static_task_ids(task_name):
     env = ML45.from_task(task_name)
-    assert env.active_task == list(ALL_ENVIRONMENTS.keys()).index(task_name)
+    assert env.active_task == list(ALL_V1_ENVIRONMENTS.keys()).index(task_name)
 

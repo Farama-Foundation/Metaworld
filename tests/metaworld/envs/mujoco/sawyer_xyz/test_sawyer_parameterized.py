@@ -4,11 +4,11 @@ import numpy as np
 
 from tests.helpers import step_env
 
-from metaworld.envs.mujoco.env_dict import ALL_ENVIRONMENTS, _hard_mode_args_kwargs
+from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, _hard_mode_args_kwargs
 
-@pytest.fixture(scope='module', params=list(ALL_ENVIRONMENTS.keys()))
+@pytest.fixture(scope='module', params=list(ALL_V1_ENVIRONMENTS.keys()))
 def env(request):
-    env_cls = ALL_ENVIRONMENTS[request.param]
+    env_cls = ALL_V1_ENVIRONMENTS[request.param]
     env_args_kwargs = _hard_mode_args_kwargs(env_cls, request.param)
     env_args = env_args_kwargs['args']
     env_kwargs = env_args_kwargs['kwargs']
