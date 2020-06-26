@@ -27,6 +27,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEn
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_v2 import SawyerShelfPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeButtonEnv
@@ -118,6 +119,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('plate-slide-back-side-v2', SawyerPlateSlideBackSideEnvV2),
     ('plate-slide-v2', SawyerPlateSlideEnvV2),
     ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
+    ('shelf-place-v2', SawyerShelfPlaceEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
     ('window-close-v2', SawyerWindowCloseEnvV2),))
 
