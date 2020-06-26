@@ -64,9 +64,11 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
+        hand_to_goal_max_x = self.hand_high[0] - np.array(goal_low)[0]
+
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, np.array(goal_low) - self.hand_high)),
-            np.hstack((self.hand_high, obj_high, self.hand_high - np.array(goal_low))),
+            np.hstack((self.hand_low, obj_low, -hand_to_goal_max_x)),
+            np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
         )
 
         self.reset()
