@@ -18,6 +18,7 @@ def check_success(env, policy, act_noise_pct, render=False):
     env.reset()
     env.reset_model()
     o = env.reset()
+    assert o.shape == env.observation_space.shape
 
     t = 0
     done = False
@@ -27,7 +28,6 @@ def check_success(env, policy, act_noise_pct, render=False):
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
         try:
             o, r, done, info = env.step(a)
-
             if render:
                 env.render()
 
