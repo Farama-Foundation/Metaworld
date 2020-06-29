@@ -6,7 +6,7 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
 
 
 test_cases = [
-    name, policy, action noise pct, success rate, env kwargs
+    # name, policy, action noise pct, success rate, env kwargs
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1., {}],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99, {}],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .0, 0.99, {}],
