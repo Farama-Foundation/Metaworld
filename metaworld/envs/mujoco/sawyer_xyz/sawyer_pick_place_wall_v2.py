@@ -8,7 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
-        V1 was completely unsolvable because the observation didn't say where
+        V1 was difficult to solve because the observation didn't say where
         to move after picking up the puck.
     Changelog from V1 to V2:
         - (6/24/20) Added a 3 element vector to the observation. This vector
@@ -61,8 +61,8 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, np.array(goal_low) - self.hand_high)),
+            np.hstack((self.hand_high, obj_high,self.hand_high - np.array(goal_low))),
         )
 
         self.num_resets = 0
