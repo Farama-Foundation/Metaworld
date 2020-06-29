@@ -7,7 +7,7 @@ from metaworld.policies.policy import Policy, move
 class SawyerReachWallV2Policy(Policy):
 
     @staticmethod
-    def parse_obs(obs):
+    def _parse_obs(obs):
         return {
             'hand_xyz': obs[:3],
             'obj_xyz': obs[3:-3],
