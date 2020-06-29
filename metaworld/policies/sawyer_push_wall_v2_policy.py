@@ -8,7 +8,7 @@ class SawyerPushWallV2Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
-    def parse_obs(obs):
+    def _parse_obs(obs):
         return {
             'hand_xyz': obs[:3],
             'obj_xyz': obs[3:-3],
@@ -16,7 +16,7 @@ class SawyerPushWallV2Policy(Policy):
         }
 
     def get_action(self, obs):
-        o_d = self.parse_obs(obs)
+        o_d = self._parse_obs(obs)
 
         action = Action({
             'delta_pos': np.arange(3),
