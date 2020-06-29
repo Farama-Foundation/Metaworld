@@ -1,7 +1,7 @@
 import numpy as np
 
 from metaworld.policies.action import Action
-from metaworld.policies.policy import Policy, move
+from metaworld.policies.policy import Policy, move, assert_fully_parsed
 
 
 class SawyerPickPlaceWallV2Policy(Policy):
