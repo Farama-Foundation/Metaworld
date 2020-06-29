@@ -15,8 +15,9 @@ def assert_fully_parsed(func):
     """
     def inner(obs):
         obs_dict = func(obs)
-        assert len(obs) == sum([len(i) for i in obs_dict.values()]), \
-            'Observation not fully parsed'
+        assert len(obs) == sum(
+            [len(i) if isinstance(i, np.ndarray) else 1 for i in obs_dict.values()]
+        ), 'Observation not fully parsed'
         return obs_dict
     return inner
 
@@ -46,7 +47,7 @@ class Policy(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def parse_obs(obs):
+    def _parse_obs(obs):
         """Pulls pertinent information out of observation and places in a dict.
 
         Args:

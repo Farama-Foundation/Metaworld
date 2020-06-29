@@ -3,11 +3,11 @@ FROM $PARENT_IMAGE
 
 # Copy setup.py first, so that the Docker cache doesn't expire until
 # dependencies change
-COPY setup.py /root/code/metaworld/setup.py
-WORKDIR /root/code/metaworld
+COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
+WORKDIR $HOME/code/metaworld
 
 # Install metaworld dependencies
 RUN pip install -e .[dev]
 
 # Add code stub last
-COPY . /root/code/metaworld
+COPY --chown=$USER:$USER . $HOME/code/metaworld

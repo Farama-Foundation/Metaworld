@@ -84,13 +84,11 @@ make run-headless ADD_ARGS="-e MY_VAR=123"
 
 Be aware of the following prerequisites to build the image.
 
-- Install [Docker CE](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Tested
-  on version 18.09.0.
-- Install [Docker Compose](https://docs.docker.com/compose/install/#install-compose). Tested
-  on version 1.23.2.
+- Install [Docker CE](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) 19.03+. Tested
+  on version 19.03.12.
 
 Tested on Ubuntu 16.04. It's recommended to use the versions indicated above
-for docker-ce and docker-compose.
+for docker-ce.
 
 ## nvidia image
 

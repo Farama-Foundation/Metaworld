@@ -5,26 +5,31 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnvV2(SawyerXYZEnv):
+class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
-        V1 was very difficult to solve because the observation didn't say where
-        to move after picking up the puck.
+        V1 was difficult to solve because the observation didn't say where
+        to insert the peg (the hole's location). Furthermore, the hole object
+        could be initialized in such a way that it severely restrained the
+        sawyer's movement.
     Changelog from V1 to V2:
-        - (6/15/20) Added a 3 element vector to the observation. This vector
-            points from the end effector to the goal coordinate.
-            i.e. (self._state_goal - pos_hand)
-        - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
+        - (6/16/20) Added a 1 element vector to the observation. This vector
+            points from the end effector to the hole in the Y direction.
+            i.e. (self._state_goal - pos_hand)[1]
+        - (6/16/20) Used existing goal_low and goal_high values to constrain
+            the hole's position, as opposed to hand_low and hand_high
     """
     def __init__(self, random_init=False):
-        liftThresh = 0.04
+        liftThresh = 0.11
+        hand_init_pos = (0, 0.6, 0.2)
 
-        goal_low = (-0.1, 0.8, 0.05)
-        goal_high = (0.1, 0.9, 0.3)
+        goal_low = (-0.35, 0.5, 0.05)
+        goal_high = (-0.25, 0.8, 0.05)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
+        obj_low = (-0.1, 0.5, 0.02)
         obj_high = (0.1, 0.7, 0.02)
+
 
         super().__init__(
             self.model_name,
@@ -33,20 +38,20 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
 
-        self.goal = np.array([0.1, 0.8, 0.2])
+        self.goal = np.array([-0.3, 0.6, 0.05])
 
-        self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
+
+        self.hand_init_pos = np.array(hand_init_pos)
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -59,23 +64,22 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
+        hand_to_goal_max_x = self.hand_high[0] - np.array(goal_low)[0]
+
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, np.array(goal_low) - self.hand_high)),
-            np.hstack((self.hand_high, obj_high, self.hand_high - np.array(goal_low))),
+            np.hstack((self.hand_low, obj_low, -hand_to_goal_max_x)),
+            np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
         )
 
-        self.num_resets = 0
         self.reset()
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_place_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_peg_insertion_side.xml')
 
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
 
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
@@ -97,21 +101,18 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     def _get_obs(self):
         pos_hand = self.get_endeff_pos()
-        pos_obj = self.data.get_geom_xpos('objGeom')
-        hand_to_goal = self._state_goal - pos_hand
+        pos_obj = self.get_body_com('peg')
+        hand_to_goal = (self._state_goal - pos_hand)[1]
 
-        flat_obs = np.concatenate((pos_hand, pos_obj, hand_to_goal))
+        flat_obs = np.hstack((pos_hand, pos_obj, hand_to_goal))
         return np.concatenate([flat_obs, ])
 
     def _get_obs_dict(self):
         return dict(
             state_observation=self._get_obs(),
             state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
+            state_achieved_goal=self.get_body_com('peg'),
         )
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -120,27 +121,12 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def fix_extreme_obj_pos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not
-        # aligned. If this is not done, the object could be initialized in an
-        # extreme position
-        diff = self.get_body_com('obj')[:2] - \
-               self.data.get_geom_xpos('objGeom')[:2]
-        adjusted_pos = orig_init_pos[:2] + diff
-        # The convention we follow is that body_com[2] is always 0,
-        # and geom_pos[2] is the object height
-        return [
-            adjusted_pos[0],
-            adjusted_pos[1],
-            self.data.get_geom_xpos('objGeom')[-1]
-        ]
-
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.sim.model.body_pos[self.model.body_name2id('box')] = self.goal.copy()
+        self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.objHeight = self.get_body_com('peg').copy()[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -149,26 +135,20 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = np.random.uniform(
                     self.obj_and_goal_space.low,
                     self.obj_and_goal_space.high,
                     size=(self.obj_and_goal_space.low.size),
                 )
-                self._state_goal = goal_pos[3:]
-            self._state_goal = goal_pos[-3:]
-            self.obj_init_pos = goal_pos[:3]
+            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
+            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(
-            np.array([self.obj_init_pos[0],
-                      self.obj_init_pos[1],
-                      self.heightTarget]) -
-            np.array(self._state_goal)) + self.heightTarget
+        self.obj_init_pos = self.get_body_com('peg')
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -188,6 +168,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         obs = obs['state_observation']
         pos_obj = obs[3:6]
+        pos_peg_head = self.get_site_pos('pegHead')
 
         finger_right, finger_left = (
             self.get_site_pos('rightEndEffector'),
@@ -196,14 +177,16 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         finger_center = (finger_right + finger_left) / 2
         heightTarget = self.heightTarget
 
-        goal = self._state_goal
-        assert np.all(goal == self.get_site_pos('goal'))
-
         tolerance = 0.01
         self.pick_completed = pos_obj[2] >= (heightTarget - tolerance)
 
-        reach_dist = np.linalg.norm(finger_center - pos_obj)
-        placing_dist = np.linalg.norm(pos_obj - goal)
+
+        placingGoal = self._state_goal
+
+        reach_dist = np.linalg.norm(pos_obj - finger_center)
+
+        placingDistHead = np.linalg.norm(pos_peg_head - placingGoal)
+        placing_dist = np.linalg.norm(pos_obj - placingGoal)
 
         def obj_dropped():
             # Object on the ground, far away from the goal, and from the gripper
@@ -214,9 +197,10 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         def reach_reward():
             reach_xy = np.linalg.norm(pos_obj[:-1] - finger_center[:-1])
-            z_rew = np.linalg.norm(finger_center[-1] - self.init_finger_center[-1])
+            z_rew = np.linalg.norm(
+                finger_center[-1] - self.init_finger_center[-1])
 
-            reach_rew = -reach_dist if reach_xy < 0.05 else -reach_xy - 2*z_rew
+            reach_rew = -reach_dist if reach_xy < 0.05 else -reach_xy - z_rew
             # Incentive to close fingers when reachDist is small
             if reach_dist < 0.05:
                 reach_rew = -reach_dist + max(actions[-1], 0)/50
@@ -237,9 +221,14 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             c2 = 0.01
             c3 = 0.001
             if self.pick_completed and reach_dist < 0.1 and not obj_dropped():
-                place_rew = c1 * (self.maxPlacingDist - placing_dist) + \
-                            c1 * (np.exp(-(placing_dist ** 2) / c2) +
-                                  np.exp(-(placing_dist ** 2) / c3))
+                if placingDistHead <= 0.05:
+                    place_rew = c1 * (self.maxPlacingDist - placing_dist) + \
+                                c1 * (np.exp(-(placing_dist ** 2) / c2) +
+                                      np.exp(-(placing_dist ** 2) / c3))
+                else:
+                    place_rew = c1 * (self.maxPlacingDist - placingDistHead) + \
+                                c1 * (np.exp(-(placingDistHead ** 2) / c2) +
+                                      np.exp(-(placingDistHead ** 2) / c3))
                 place_rew = max(place_rew, 0)
                 return [place_rew, placing_dist]
             else:

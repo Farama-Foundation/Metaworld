@@ -4,14 +4,14 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerWindowCloseV2Policy(Policy):
+class SawyerPlateSlideSideV1Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
             'hand_xyz': obs[:3],
-            'wndw_xyz': obs[3:],
+            'puck_xyz': obs[3:],
         }
 
     def get_action(self, obs):
@@ -30,12 +30,13 @@ class SawyerWindowCloseV2Policy(Policy):
     @staticmethod
     def _desired_xyz(o_d):
         pos_curr = o_d['hand_xyz']
-        pos_wndw = o_d['wndw_xyz']
-        pos_wndw += np.array([+0.03, -0.03, -0.1])
+        pos_puck = o_d['puck_xyz'] + np.array([.07, .0, -.005])
 
-        if np.linalg.norm(pos_curr[:2] - pos_wndw[:2]) > 0.04:
-            return pos_wndw + np.array([0., 0., 0.3])
-        elif abs(pos_curr[2] - pos_wndw[2]) > 0.02:
-            return pos_wndw
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04:
+            return pos_puck + np.array([.0, .0, .1])
+        elif abs(pos_curr[2] - pos_puck[2]) > 0.04:
+            return pos_puck
+        elif pos_curr[0] > -.2:
+            return np.array([pos_curr[0] - .1, .63, pos_curr[2]])
         else:
-            return pos_wndw + np.array([-0.1, 0., 0.])
+            return pos_puck + np.array([-.1, .0, .0])

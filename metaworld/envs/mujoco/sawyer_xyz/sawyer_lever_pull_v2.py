@@ -5,20 +5,21 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerDoorEnvV2(SawyerXYZEnv):
+class SawyerLeverPullEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
-        Just as door-close-v1 inherits from door-open-v1, door-close-v2 should
-        inherit from door-open-v2.
-    Changelog:
-        - <none>
+        V1 was impossible to solve because the lever would have to be pulled
+        through the table in order to reach the target location.
+    Changelog from V1 to V2:
+        - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
+            This ensures that the target point is above the table.
     """
     def __init__(self, random_init=False):
 
-        hand_low = (-0.5, 0.40, 0.05)
+        hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0., 0.85, 0.1)
-        obj_high = (0.1, 0.95, 0.1)
+        obj_low = (-0.1, 0.7, 0.05)
+        obj_high = (0.1, 0.8, 0.05)
 
         super().__init__(
             self.model_name,
@@ -27,20 +28,17 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_angle': np.array([0.3, ], dtype=np.float32),
-            'obj_init_pos': np.array([0.1, 0.95, 0.1], dtype=np.float32),
+            'obj_init_pos': np.array([0, 0.7, 0.05]),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-
-        self.goal = np.array([-0.2, 0.7, 0.15])
+        self.goal = np.array([0, 0.75, -0.12])
         self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         goal_low = self.hand_low
         goal_high = self.hand_high
 
+        self.random_init = random_init
         self.max_path_length = 150
 
         self.action_space = Box(
@@ -55,17 +53,15 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low)),
+            np.hstack((self.hand_high, obj_high)),
         )
-
-        self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
 
         self.reset()
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_door_pull.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_lever_pull.xml')
 
     def step(self, action):
         self.set_xyz_action(action[:3])
@@ -73,65 +69,46 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
+        reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
-        info =  {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
+
+        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
         info['goal'] = self.goal
 
         return ob, reward, False, info
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('handle').copy()
+        objPos = self.get_site_pos('leverStart')
         flat_obs = np.concatenate((hand, objPos))
 
         return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('handle').copy()
-        flat_obs = np.concatenate((hand, objPos))
-
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
             goal[:3]
         )
 
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.copy()
-        qvel = self.data.qvel.copy()
-        qpos[self.door_angle_idx] = pos
-        qvel[self.door_angle_idx] = 0
-        self.set_state(qpos.flatten(), qvel.flatten())
-
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
-        self.objHeight = self.data.get_geom_xpos('handle')[2]
+        self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
-            obj_pos = np.random.uniform(
+            goal_pos = np.random.uniform(
                 self.obj_and_goal_space.low,
                 self.obj_and_goal_space.high,
                 size=(self.obj_and_goal_space.low.size),
             )
-            self.obj_init_pos = obj_pos
-            goal_pos = obj_pos.copy() + np.array([-0.3, -0.25, 0.05])
-            self._state_goal = goal_pos
+            self.obj_init_pos = goal_pos[:3]
+            final_pos = goal_pos.copy()
+            final_pos[1] += 0.05
+            final_pos[2] += 0.17
+            self._state_goal = final_pos
 
+        self.sim.model.body_pos[self.model.body_name2id('lever')] = self.obj_init_pos
         self._set_goal_marker(self._state_goal)
-        self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
-        self._set_obj_xyz(0)
-        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._state_goal[:-1])
-        self.target_reward = 1000*self.maxPullDist + 1000*2
+        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -148,7 +125,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         del actions
 
-        obs = obs['state_observation']
         objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
@@ -156,7 +132,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         pullGoal = self._state_goal
 
-        pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+        pullDist = np.linalg.norm(objPos - pullGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
         reachRew = -reachDist
 
