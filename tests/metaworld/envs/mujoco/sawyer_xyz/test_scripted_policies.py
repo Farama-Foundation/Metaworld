@@ -60,6 +60,8 @@ test_cases = [
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
     ['reach-wall-v2', SawyerReachWallV2Policy(), 0.0, 0.98, {}],
     ['reach-wall-v2', SawyerReachWallV2Policy(), 0.1, 0.98, {}],
+    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.0, 0.95, {}],
+    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
