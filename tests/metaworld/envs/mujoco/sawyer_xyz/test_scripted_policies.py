@@ -58,6 +58,8 @@ test_cases = [
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.92, {}],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94, {}],
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
+    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.0, 0.95, {}],
+    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
