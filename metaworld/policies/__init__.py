@@ -1,4 +1,4 @@
-from metaworld.policies.SawyerButtonPressV1Policy import (
+from metaworld.policies.sawyer_button_press_v1_policy import (
     SawyerButtonPressV1Policy)
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
 from metaworld.policies.sawyer_door_open_v1_policy import SawyerDoorOpenV1Policy
