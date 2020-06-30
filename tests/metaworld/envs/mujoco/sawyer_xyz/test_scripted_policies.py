@@ -60,7 +60,7 @@ test_cases = [
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.0, 0.95, {}],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
-    ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.97, {}],
+    ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.95, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
 ]
 
