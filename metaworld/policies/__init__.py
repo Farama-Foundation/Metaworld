@@ -1,6 +1,9 @@
 from metaworld.policies.sawyer_button_press_v1_policy import (
     SawyerButtonPressV1Policy)
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
+from metaworld.policies.sawyer_coffee_button_v1_policy import SawyerCoffeeButtonV1Policy
+from metaworld.policies.sawyer_coffee_pull_v1_policy import SawyerCoffeePullV1Policy
+from metaworld.policies.sawyer_coffee_push_v1_policy import SawyerCoffeePushV1Policy
 from metaworld.policies.sawyer_door_open_v1_policy import SawyerDoorOpenV1Policy
 from metaworld.policies.sawyer_door_close_v1_policy import SawyerDoorCloseV1Policy
 from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Policy
@@ -27,6 +30,9 @@ from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceW
 __all__ = [
     'SawyerButtonPressV1Policy',
     'SawyerButtonPressTopdownV1Policy',
+    'SawyerCoffeeButtonV1Policy',
+    'SawyerCoffeePullV1Policy',
+    'SawyerCoffeePushV1Policy',
     'SawyerDoorOpenV1Policy',
     'SawyerDoorCloseV1Policy',
     'SawyerDrawerOpenV1Policy',

@@ -26,6 +26,9 @@ test_cases_latest_nonoise = [
     ['basketball-v2', SawyerBasketballV2Policy(), .0, .98],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94],
+    ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .0, 1.],
+    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .0, .98],
+    ['coffee-push-v1', SawyerCoffeePushV1Policy(), .0, 1.],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .0, 0.99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .0, 0.99],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .0, 0.99],
@@ -51,8 +54,11 @@ test_cases_latest_nonoise = [
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
     ['basketball-v2', SawyerBasketballV2Policy(), .1, .98],
-    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99],
+    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94],
+    ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .1, 1.],
+    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .96],
+    ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .99],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, 0.99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .1, 0.96],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.75],
@@ -62,7 +68,7 @@ test_cases_latest_noisy = [
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98],
     ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .91],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .91],
-    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.97],
+    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.96],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .78],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .99],
@@ -72,7 +78,7 @@ test_cases_latest_noisy = [
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.96],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.96],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.95],
 ]
 
 
