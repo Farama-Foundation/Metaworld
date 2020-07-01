@@ -4,8 +4,9 @@ from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, ALL_V2_ENVIRONME
 from metaworld.policies import *
 from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
 import numpy as np 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns; sns.set()
 
 
 test_cases = [
@@ -94,46 +95,54 @@ def test_scripted_policy(name, env, policy, act_noise_pct, expected_success_rate
     successes = 0
     rewards = []
     returns = []
+    first_successes = []
     for _ in range(iters):
-        success, _, _reward, _return = check_success(env,
+        success, _, _reward, _return, first_success = check_success(env,
                                                      policy,
                                                      act_noise_pct,
                                                      render=False)
         successes += float(success)
         rewards.append(_reward)
         returns.append(_return)
-    plot_rewards_and_returns(rewards, returns, name)
+        first_successes.append(first_success)
+    if act_noise_pct > 0:
+            name = name + "_with_10_percent_noise"
+    plot_rewards_and_returns(rewards, returns, name, first_successes)
 
     print(successes)
-    assert successes >= expected_success_rate * iters
+    # assert successes >= expected_success_rate * iters
 
 
-def plot_rewards_and_returns(rewards, returns, name):
+def plot_rewards_and_returns(rewards, returns, name, first_successess):
     """Plot the rewards and returns time series.
     save under data/rewards/name.png.
     """
-    rewards = np.array(rewards)
-    returns = np.array(returns)
-    rewards_mean = np.mean(rewards, axis=0)
-    returns_mean = np.mean(returns, axis=0)
-    rewards_var_column_wise = np.var(rewards, axis=0)
-    returns_mean_column_wise = np.var(returns, axis=0)
-
-    rewards_lower_bound = rewards_mean - (1.96 * rewards_var_column_wise/10)
-    rewards_upper_bound = rewards_mean + (1.96 * rewards_var_column_wise/10)
-    returns_lower_bound = returns_mean - (1.96 * returns_mean_column_wise/10)
-    returns_upper_bound = returns_mean + (1.96 * returns_mean_column_wise/10)
-    with plt.style.context('seaborn-whitegrid'):
-        fig, ax = plt.subplots(
-                            1,
-                            2,
-                            sharex=True,
-                            figsize=(6.75,3),
-                            tight_layout=True)
-        ax[0].plot(range(len(rewards_mean)), rewards_mean)
-        # ax[0].fill_between(range(len(rewards_mean)), rewards_lower_bound, rewards_upper_bound)
-        ax[1].plot(range(len(returns_mean)), returns_mean)
-        # ax[1].fill_between(range(len(returns_mean)), returns_lower_bound, returns_upper_bound)
-        fig.savefig(f'figures/{name}_rewards_returns.jpg')
+    first_success_time_step = int(np.mean(first_successess))
+    first_success_reward = np.mean(rewards, axis=0)[first_success_time_step]
+    first_success_return = np.mean(returns, axis=0)[first_success_time_step]
+    fig, ax = plt.subplots(
+                        1,
+                        2,
+                        figsize=(6.75,4))
+    rewards = [pd.DataFrame({"rewards":reward, "Time Steps":np.arange(len(reward))}) for reward in rewards]
+    reward_df = pd.concat(rewards)
+    ax[0] = sns.lineplot(x='Time Steps', y='rewards', ax=ax[0], data=reward_df, ci=95, lw=0.5)
+    ax[0].set_xlabel("Time Steps")
+    ax[0].set_ylabel("Reward")
+    ax[0].set_title("Rewards")
+    ax[0].vlines(first_success_time_step, ymin=0, ymax=first_success_reward, linestyle='--', color= "green")
+    ax[0].hlines(first_success_reward, xmin=0, xmax=first_success_time_step, linestyle='--', color= "green")
+    returns = [pd.DataFrame({"returns":_return, "Time Steps":np.arange(len(_return))}) for _return in returns]
+    returns_df = pd.concat(returns)
+    ax[1] = sns.lineplot(x='Time Steps', y='returns', ax=ax[1], color='coral', data=returns_df, ci=95, lw=0.5)
+    ax[1].set_xlabel("Time Steps")
+    ax[1].set_ylabel("Returns")
+    ax[1].set_title(f"Returns")
+    ax[1].vlines(first_success_time_step, ymin=0, ymax=first_success_return, linestyle='--', color= "green", label=f"first success = {first_success_time_step}")
+    ax[1].hlines(first_success_return, xmin=0, xmax=first_success_time_step, linestyle='--', color= "green")
+    plt.subplots_adjust(top=0.85)
+    fig.suptitle(f"{name} (n=100)")
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.savefig(f'figures/{name}_rewards_returns.jpg')
 
 

@@ -26,6 +26,8 @@ def check_success(env, policy, act_noise_pct, render=False):
     t = 0
     done = False
     success = False
+    found_success = False
+    first_success = 0
     while t < env.max_path_length:
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
@@ -40,8 +42,11 @@ def check_success(env, policy, act_noise_pct, render=False):
             returns.append(current_return)
 
             success |= bool(info['success'])
+            found_success |= success
+            if not found_success:
+                first_success = t
 
         except ValueError:
             break
     assert len(rewards) == len(returns) == t
-    return success, t, rewards, returns
+    return success, t, rewards, returns, first_success
