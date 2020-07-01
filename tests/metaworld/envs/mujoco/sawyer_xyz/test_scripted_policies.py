@@ -38,7 +38,7 @@ test_cases = [
     ['basketball-v2', SawyerBasketballV2Policy(), .0, .99, {}],
     ['basketball-v2', SawyerBasketballV2Policy(), .1, .99, {}],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .94, {}],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .94, {}],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .92, {}],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98, {}],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1., {}],
