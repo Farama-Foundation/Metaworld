@@ -3,61 +3,64 @@ import pytest
 from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, ALL_V2_ENVIRONMENTS
 from metaworld.policies import *
 from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
+import numpy as np 
+import matplotlib.pyplot as plt 
+import pandas as pd
 
 
 test_cases = [
     # name, policy, action noise pct, success rate, env kwargs
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1., {}],
-    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99, {}],
-    ['door-open-v1', SawyerDoorOpenV1Policy(), .0, 0.99, {}],
-    ['door-open-v1', SawyerDoorOpenV1Policy(), .1, 0.97, {}],
-    ['door-close-v1', SawyerDoorCloseV1Policy(), .0, 0.99, {}],
-    ['door-close-v1', SawyerDoorCloseV1Policy(), .1, 0.99, {}],
-    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, 0.99, {}],
-    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, 0.98, {}],
-    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .0, 0.99, {}],
-    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.75, {}],
-    ['lever-pull-v2', SawyerLeverPullV2Policy(), .0, 1., {}],
-    ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1., {}],
-    ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1., {}],
-    ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30, {}],
-    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .0, 1., {}],
-    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.97, {}],
-    ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .0, 1., {}],
-    ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .96, {}],
-    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .0, 1., {}],
-    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .82, {}],
-    ['plate-slide-v2', SawyerPlateSlideV2Policy(), .0, 1., {}],
-    ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .99, {}],
-    ['reach-v2', SawyerReachV2Policy(), .0, .99, {}],
-    ['reach-v2', SawyerReachV2Policy(), .1, .99, {}],
-    ['push-v2', SawyerPushV2Policy(), .0, .99, {}],
-    ['push-v2', SawyerPushV2Policy(), .1, .97, {}],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .0, .96, {}],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .92, {}],
-    ['basketball-v2', SawyerBasketballV2Policy(), .0, .99, {}],
-    ['basketball-v2', SawyerBasketballV2Policy(), .1, .99, {}],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .94, {}],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .94, {}],
-    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
-    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98, {}],
-    ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1., {}],
-    ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1., {}],
-    ['sweep-v1', SawyerSweepV1Policy(), .0, 1., {}],
-    ['sweep-v1', SawyerSweepV1Policy(), .1, 1., {}],
-    # drop the success rate threshold of this env by 0.05 due to its flakiness
-    ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.80, {}],
-    ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81, {}],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96, {}],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.96, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37, {}],
-    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37, {}],
-    # drop the success rate threshold of this env by 0.05 due to its flakiness
-    ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.93, {}],
-    # drop the success rate threshold of this env by 0.05 due to its flakiness
-    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.92, {}],
-    ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94, {}],
-    ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
+    # ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99, {}],
+    # ['door-open-v1', SawyerDoorOpenV1Policy(), .0, 0.99, {}],
+    # ['door-open-v1', SawyerDoorOpenV1Policy(), .1, 0.97, {}],
+    # ['door-close-v1', SawyerDoorCloseV1Policy(), .0, 0.99, {}],
+    # ['door-close-v1', SawyerDoorCloseV1Policy(), .1, 0.99, {}],
+    # ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, 0.99, {}],
+    # ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, 0.98, {}],
+    # ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .0, 0.99, {}],
+    # ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.75, {}],
+    # ['lever-pull-v2', SawyerLeverPullV2Policy(), .0, 1., {}],
+    # ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1., {}],
+    # ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1., {}],
+    # ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30, {}],
+    # ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .0, 1., {}],
+    # ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.97, {}],
+    # ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .0, 1., {}],
+    # ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .96, {}],
+    # ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .0, 1., {}],
+    # ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .82, {}],
+    # ['plate-slide-v2', SawyerPlateSlideV2Policy(), .0, 1., {}],
+    # ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .99, {}],
+    # ['reach-v2', SawyerReachV2Policy(), .0, .99, {}],
+    # ['reach-v2', SawyerReachV2Policy(), .1, .99, {}],
+    # ['push-v2', SawyerPushV2Policy(), .0, .99, {}],
+    # ['push-v2', SawyerPushV2Policy(), .1, .97, {}],
+    # ['pick-place-v2', SawyerPickPlaceV2Policy(), .0, .96, {}],
+    # ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .92, {}],
+    # ['basketball-v2', SawyerBasketballV2Policy(), .0, .99, {}],
+    # ['basketball-v2', SawyerBasketballV2Policy(), .1, .99, {}],
+    # ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .94, {}],
+    # ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .94, {}],
+    # ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99, {}],
+    # ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98, {}],
+    # ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1., {}],
+    # ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1., {}],
+    # ['sweep-v1', SawyerSweepV1Policy(), .0, 1., {}],
+    # ['sweep-v1', SawyerSweepV1Policy(), .1, 1., {}],
+    # # drop the success rate threshold of this env by 0.05 due to its flakiness
+    # ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.80, {}],
+    # ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81, {}],
+    # ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96, {}],
+    # ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.96, {}],
+    # ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37, {}],
+    # ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37, {}],
+    # # drop the success rate threshold of this env by 0.05 due to its flakiness
+    # ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.93, {}],
+    # # drop the success rate threshold of this env by 0.05 due to its flakiness
+    # ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.92, {}],
+    # ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94, {}],
+    # ['shelf-place-v2', SawyerShelfPlaceV2Policy(), 0.1, 0.93, {}],
 ]
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
@@ -67,14 +70,13 @@ for row in test_cases:
     # then replaces row[-1] with the env object (kwargs are no longer needed)
     row[-1] = ALL_ENVS[row[0]](random_init=True, **row[-1])
     # now remove env names from test_data, as they aren't needed in parametrize
-    row.pop(0)
 
 
 @pytest.mark.parametrize(
-    'policy,act_noise_pct,expected_success_rate,env',
+    'name,policy,act_noise_pct,expected_success_rate,env',
     test_cases
 )
-def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
+def test_scripted_policy(name, env, policy, act_noise_pct, expected_success_rate, iters=100):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -90,7 +92,48 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         '{} has state variable(s)'.format(policy.__class__.__name__)
 
     successes = 0
+    rewards = []
+    returns = []
     for _ in range(iters):
-        successes += float(check_success(env, policy, act_noise_pct, render=False)[0])
+        success, _, _reward, _return = check_success(env,
+                                                     policy,
+                                                     act_noise_pct,
+                                                     render=False)
+        successes += float(success)
+        rewards.append(_reward)
+        returns.append(_return)
+    plot_rewards_and_returns(rewards, returns, name)
+
     print(successes)
     assert successes >= expected_success_rate * iters
+
+
+def plot_rewards_and_returns(rewards, returns, name):
+    """Plot the rewards and returns time series.
+    save under data/rewards/name.png.
+    """
+    rewards = np.array(rewards)
+    returns = np.array(returns)
+    rewards_mean = np.mean(rewards, axis=0)
+    returns_mean = np.mean(returns, axis=0)
+    rewards_var_column_wise = np.var(rewards, axis=0)
+    returns_mean_column_wise = np.var(returns, axis=0)
+
+    rewards_lower_bound = rewards_mean - (1.96 * rewards_var_column_wise/10)
+    rewards_upper_bound = rewards_mean + (1.96 * rewards_var_column_wise/10)
+    returns_lower_bound = returns_mean - (1.96 * returns_mean_column_wise/10)
+    returns_upper_bound = returns_mean + (1.96 * returns_mean_column_wise/10)
+    with plt.style.context('seaborn-whitegrid'):
+        fig, ax = plt.subplots(
+                            1,
+                            2,
+                            sharex=True,
+                            figsize=(6.75,3),
+                            tight_layout=True)
+        ax[0].plot(range(len(rewards_mean)), rewards_mean)
+        # ax[0].fill_between(range(len(rewards_mean)), rewards_lower_bound, rewards_upper_bound)
+        ax[1].plot(range(len(returns_mean)), returns_mean)
+        # ax[1].fill_between(range(len(returns_mean)), returns_lower_bound, returns_upper_bound)
+        fig.savefig(f'figures/{name}_rewards_returns.jpg')
+
+

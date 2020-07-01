@@ -18,12 +18,15 @@ def check_success(env, policy, act_noise_pct, render=False):
     env.reset()
     env.reset_model()
     o = env.reset()
+    rewards = []
+    returns = []
+    current_return = 0
     assert o.shape == env.observation_space.shape
 
     t = 0
     done = False
     success = False
-    while not success and not done:
+    while t < env.max_path_length:
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
         try:
@@ -32,9 +35,13 @@ def check_success(env, policy, act_noise_pct, render=False):
                 env.render()
 
             t += 1
+            rewards.append(r)
+            current_return += r
+            returns.append(current_return)
+
             success |= bool(info['success'])
 
         except ValueError:
             break
-
-    return success, t
+    assert len(rewards) == len(returns) == t
+    return success, t, rewards, returns
