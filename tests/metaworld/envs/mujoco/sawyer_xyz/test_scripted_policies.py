@@ -26,7 +26,7 @@ test_cases = [
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .0, 1., {}],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .96, {}],
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .0, 1., {}],
-    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .82, {}],
+    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .80, {}],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .0, 1., {}],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .99, {}],
     ['reach-v2', SawyerReachV2Policy(), .0, .99, {}],
