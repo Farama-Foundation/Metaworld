@@ -8,7 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 class SawyerReachWallEnvV2(SawyerXYZEnv):
     """
     Motivation for V2:
-        V1 was completely unsolvable because the observation didn't say where
+        V1 was difficult to solve since the observations didn't say where
         to move (where to reach).
     Changelog from V1 to V2:
         - (6/17/20) Separated reach from reach-push-pick-place.
