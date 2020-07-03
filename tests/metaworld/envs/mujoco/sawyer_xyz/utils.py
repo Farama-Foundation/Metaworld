@@ -1,19 +1,19 @@
 import numpy as np
 
 
-def check_success(env, policy, act_noise_pct, render=False, end_on_success=True):
+def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=True):
     """Tests whether a given policy solves an environment
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policies.Policy): Policy that's supposed to
             succeed in env
-        act_noise_pct (float): Decimal value indicating std deviation of the
-            noise as a % of action space
+        act_noise_pct (np.ndarray): Decimal value(s) indicating std deviation of
+            the noise as a % of action space
         render (bool): Whether to render the env in a GUI
         end_on_success (bool): Whether to stop stepping after first success
     Returns:
-        (bool, int, np.ndarray, np.ndarray, bool): Success flag,
-            Trajectory length, Rewards, Returns, Index of first success
+        (bool, np.ndarray, np.ndarray, int): Success flag, Rewards, Returns,
+            Index of first success
     """
     success = False
     first_success = 0
@@ -31,7 +31,7 @@ def check_success(env, policy, act_noise_pct, render=False, end_on_success=True)
     rewards = np.array(rewards)
     returns = np.cumsum(rewards)
 
-    return success, t, rewards, returns, first_success
+    return success, rewards, returns, first_success
 
 
 def trajectory_generator(env, policy, act_noise_pct, render=False):
@@ -40,8 +40,8 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policies.Policy): Policy that's supposed to
             succeed in env
-        act_noise_pct (float): Decimal value indicating std deviation of the
-            noise as a % of action space
+        act_noise_pct (np.ndarray): Decimal value(s) indicating std deviation of
+            the noise as a % of action space
         render (bool): Whether to render the env in a GUI
     Yields:
         (float, bool, dict): Reward, Done flag, Info dictionary

@@ -2,7 +2,7 @@ import pytest
 
 from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, ALL_V2_ENVIRONMENTS
 from metaworld.policies import *
-from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
+from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 
 
 test_cases_old_nonoise = [
@@ -118,8 +118,8 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policy.Policy): Policy that's supposed to
             succeed in env
-        act_noise_pct (float): Decimal value indicating std deviation of the
-            noise as a % of action space
+        act_noise_pct (np.ndarray): Decimal value(s) indicating std deviation of
+            the noise as a % of action space
         expected_success_rate (float): Decimal value indicating % of runs that
             must be successful
         iters (int): How many times the policy should be tested
@@ -129,6 +129,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(check_success(env, policy, act_noise_pct, render=False)[0])
+        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
