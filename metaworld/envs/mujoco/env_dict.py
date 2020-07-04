@@ -40,6 +40,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_wall_v2 import SawyerPickPlaceWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
@@ -124,6 +125,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('shelf-place-v2', SawyerShelfPlaceEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
     ('window-close-v2', SawyerWindowCloseEnvV2),
+    ('reach-wall-v2', SawyerReachWallEnvV2),
     ('push-wall-v2', SawyerPushWallEnvV2),
     ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2)
 ))
