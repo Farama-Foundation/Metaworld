@@ -62,6 +62,8 @@ test_cases = [
     ['reach-wall-v2', SawyerReachWallV2Policy(), 0.1, 0.98, {}],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.0, 0.95, {}],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
+    ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.95, {}],
+    ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
 ]
 
 test_cases_old_nonoise = [
