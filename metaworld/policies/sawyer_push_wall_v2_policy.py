@@ -30,7 +30,7 @@ class SawyerPushWallV2Policy(Policy):
         return action.array
 
     @staticmethod
-    def desired_xyz(o_d):
+    def desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_obj = o_d['obj_pos']
 

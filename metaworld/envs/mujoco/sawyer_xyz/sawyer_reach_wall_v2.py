@@ -62,7 +62,6 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         )
 
         self.num_resets = 0
-        self.reset()
 
     @property
     def model_name(self):

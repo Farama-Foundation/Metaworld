@@ -37,7 +37,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
-            include_goal_in_obs=True,
         )
 
         self.init_config = {
