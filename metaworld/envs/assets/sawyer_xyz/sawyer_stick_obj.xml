@@ -31,8 +31,8 @@
             <geom type="box" pos="0 -0.09 -0.055" size="0.005 0.04 0.005" rgba="0 0 0 1" contype="1" conaffinity="1" solimp="0.99 0.99 0.01" solref="0.01 1"/>
             <site name="insertion" pos="0 -0.09 0" size="0.001" rgba="1 0 0 1"/>
         </body>
-        <site name="goal" pos="0.35 0.75 0.02" size="0.02" 
-              rgba="0 0.8 0 1"/>
+        <site name="goal" pos="0.35 0.75 0.02" size="0.02"
+              rgba="0 0.8 0 1"/> 
 
     </worldbody>
     <actuator>

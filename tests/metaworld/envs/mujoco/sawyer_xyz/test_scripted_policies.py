@@ -64,6 +64,8 @@ test_cases = [
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.95, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
+    ['stick-pull-v2', SawyerStickPullV2Policy(), .0, 0.98, {}],
+    ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88],
 ]
 
 test_cases_old_nonoise = [
@@ -110,6 +112,7 @@ test_cases_latest_nonoise = [
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96],
+    ['stick-pull-v2', SawyerStickPullV2Policy(), .0, 0.98],
 ]
 
 test_cases_latest_noisy = [
@@ -140,6 +143,7 @@ test_cases_latest_noisy = [
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.96],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.95],
+    ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88],
 ]
 
 
@@ -180,7 +184,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         iters (int): How many times the policy should be tested
     """
     assert len(vars(policy)) == 0, \
-        '{} has state variable(s)'.format(policy.__class__.__name__)
+        '{} has state variable(s): {}'.format(policy.__class__.__name__, vars(policy))
 
     successes = 0
     for _ in range(iters):
