@@ -65,7 +65,7 @@ test_cases = [
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.95, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .0, 0.98, {}],
-    ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88],
+    ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88, {}],
 ]
 
 test_cases_old_nonoise = [
@@ -184,7 +184,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         iters (int): How many times the policy should be tested
     """
     assert len(vars(policy)) == 0, \
-        '{} has state variable(s): {}'.format(policy.__class__.__name__, vars(policy))
+        '{} has state variable(s)'.format(policy.__class__.__name__)
 
     successes = 0
     for _ in range(iters):
