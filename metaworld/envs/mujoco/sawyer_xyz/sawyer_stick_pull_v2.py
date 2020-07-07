@@ -60,11 +60,11 @@ class SawyerStickPullV2Env(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
 
-        hand_to_goal_max = self.hand_high - np.array(goal_low)
+        # hand_to_goal_max = self.hand_high - np.array(goal_low)
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, -hand_to_goal_max)),
-            np.hstack((self.hand_high, obj_high, obj_high, hand_to_goal_max)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
         self.reset()
@@ -91,10 +91,8 @@ class SawyerStickPullV2Env(SawyerXYZEnv):
     def _get_obs(self):
         handPos = self.get_endeff_pos()
         stickPos = self.get_body_com('stick').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]
-        hand_to_goal = self._state_goal - handPos
-        flat_obs = np.concatenate((handPos, stickPos, objPos, hand_to_goal))
-
+        objPos = self.data.site_xpos[self.model.site_name2id('insertion')]
+        flat_obs = np.concatenate((handPos, stickPos, objPos, self._state_goal))
         return np.concatenate([flat_obs,])
 
 

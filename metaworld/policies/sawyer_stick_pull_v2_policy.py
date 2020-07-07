@@ -13,7 +13,7 @@ class SawyerStickPullV2Policy(Policy):
             'hand_pos': obs[:3],
             'stick_pos': obs[3:6],
             'obj_pos': obs[6:-3],
-            'hand_to_goal': obs[-3:],
+            'goal_pos': obs[-3:],
         }
 
     def get_action(self, obs):
@@ -34,7 +34,7 @@ class SawyerStickPullV2Policy(Policy):
         hand_pos = o_d['hand_pos']
         stick_pos = o_d['stick_pos'] + np.array([-0.02, 0.0, 0.0])
         obj_pos = o_d['obj_pos']
-        goal_vec = o_d['hand_to_goal']
+        goal_pos = o_d['goal_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02:
@@ -47,13 +47,13 @@ class SawyerStickPullV2Policy(Policy):
             return np.array([obj_pos[0], obj_pos[1], obj_pos[2]+0.05])
         # Move to the goal
         else:
-            return hand_pos + goal_vec
-        return []
+            return goal_pos
+        return
 
     @staticmethod
     def _grab_pow(o_d):
         hand_pos = o_d['hand_pos']
-        stick_pos = o_d['stick_pos']+ np.array([-0.02, 0.0, 0.0])
+        stick_pos = o_d['stick_pos'] + np.array([-0.02, 0.0, 0.0])
 
         if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02 or abs(hand_pos[2] - stick_pos[2]) > 0.1:
             return 0.
