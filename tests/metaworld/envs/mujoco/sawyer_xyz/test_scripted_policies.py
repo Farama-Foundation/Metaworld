@@ -66,6 +66,8 @@ test_cases = [
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .0, 0.98, {}],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88, {}],
+    ['stick-push-v2', SawyerStickPushV2Policy(), .0, 0.98, {}],
+    ['stick-push-v2', SawyerStickPushV2Policy(), .1, 0.98, {}],
 ]
 
 test_cases_old_nonoise = [
@@ -113,6 +115,7 @@ test_cases_latest_nonoise = [
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .0, 0.98],
+    ['stick-push-v2', SawyerStickPushV2Policy(), .0, 0.98],
 ]
 
 test_cases_latest_noisy = [
@@ -144,6 +147,7 @@ test_cases_latest_noisy = [
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.96],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.95],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.88],
+    ['stick-push-v2', SawyerStickPushV2Policy(), .1, 0.95],
 ]
 
 
@@ -188,6 +192,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(check_success(env, policy, act_noise_pct, render=False)[0])
+        successes += float(check_success(env, policy, act_noise_pct, render=True)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
