@@ -96,6 +96,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
+        self._state_goal = None  # OVERRIDE ME
+
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
         pos_delta = action * self.action_scale
@@ -146,6 +148,49 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
         return self.data.site_xpos[_id].copy()
+
+    def _get_pos_objects(self):
+        """Retrieves object position(s) from mujoco properties or instance vars
+
+        Returns:
+            np.ndarray: Flat array (usually 3 elements) representing the
+                object(s)' position(s)
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
+
+    def _get_pos_goal(self):
+        """Retrieves goal position from mujoco properties or instance vars
+
+        Returns:
+            np.ndarray: Flat array (3 elements) representing the goal position
+        """
+        assert isinstance(self._state_goal, np.ndarray)
+        assert self._state_goal.ndim == 1
+        return self._state_goal
+
+    def _get_obs(self):
+        """Combines positions of the end effector, object(s) and goal into a
+        single flat observation
+
+        Returns:
+            np.ndarray: The flat observation array (usually 9 elements)
+        """
+        pos_hand = self.get_endeff_pos()
+        pos_obj = self._get_pos_objects()
+        pos_goal = self._get_pos_goal()
+
+        return np.hstack((pos_hand, pos_obj, pos_goal))
+
+    def _get_obs_dict(self):
+        obs = self._get_obs()
+        return dict(
+            state_observation=obs,
+            state_desired_goal=obs[-3:],
+            state_achieved_goal=obs[3:-3],
+        )
+
 
     def reset(self):
         self.curr_path_length = 0

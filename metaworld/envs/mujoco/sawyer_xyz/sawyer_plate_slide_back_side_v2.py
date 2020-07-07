@@ -14,6 +14,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         very difficult as soon as noise is introduced to the action space
         (success rate dropped from 100% to 20%).
     Changelog from V1 to V2:
+        - (7/7/20) Added 3 element cabinet position to the observation
+            (for consistency with other environments)
         - (6/22/20) Cabinet now sits on ground, instead of .02 units above it
     """
     def __init__(self, random_init=False):
@@ -57,8 +59,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.reset()
@@ -88,21 +90,14 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos = self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs, ])
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos = self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
         return dict(
-            state_observation=flat_obs,
+            state_observation=self._get_obs(),
             state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
+            state_achieved_goal=self._get_pos_objects(),
         )
 
     def _set_goal_marker(self, goal):

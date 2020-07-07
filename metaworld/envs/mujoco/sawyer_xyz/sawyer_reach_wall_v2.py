@@ -11,12 +11,14 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         V1 was difficult to solve since the observations didn't say where
         to move (where to reach).
     Changelog from V1 to V2:
+        - (7/7/20) Removed 3 element vector. Replaced with 3 element position
+            of the goal (for consistency with other environments)
         - (6/17/20) Separated reach from reach-push-pick-place.
         - (6/17/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
             i.e. (self._state_goal - pos_hand)
     """
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self, random_init=False):
 
         liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
@@ -60,10 +62,9 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        hand_to_goal_max = self.hand_high - np.array(goal_low)
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,-hand_to_goal_max)),
-            np.hstack((self.hand_high, obj_high, hand_to_goal_max)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.num_resets = 0
@@ -94,19 +95,8 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        obj_pos =  self.data.get_geom_xpos('objGeom')
-        hand_to_goal = self._state_goal - hand
-        flat_obs = np.concatenate((hand, obj_pos, hand_to_goal))
-        return np.concatenate([flat_obs, ])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]

@@ -10,9 +10,9 @@ class SawyerPushWallV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'obj_xyz': obs[3:-3],
-            'goal_vec': obs[-3:]
+            'hand_pos': obs[:3],
+            'obj_pos': obs[3:6],
+            'goal_pos': obs[-3:],
         }
 
     def get_action(self, obs):
@@ -20,18 +20,18 @@ class SawyerPushWallV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self.desired_xyz(o_d), p=10.)
-        action['grab_pow'] = self.grab_pow(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self.desired_pos(o_d), p=10.)
+        action['grab_effort'] = self.grab_effort(o_d)
 
         return action.array
 
     @staticmethod
     def desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_obj = o_d['obj_xyz']
+        pos_curr = o_d['hand_pos']
+        pos_obj = o_d['obj_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02:
@@ -47,12 +47,12 @@ class SawyerPushWallV2Policy(Policy):
             elif ((-0.15 < pos_obj[0] < 0.05 or 0.15 < pos_obj[0] < 0.35)
                     and 0.695 <= pos_obj[1] <= 0.755):
                 return pos_curr + np.array([0, 1, 0])
-            return pos_curr + o_d['goal_vec']
+            return o_d['goal_pos']
 
     @staticmethod
-    def grab_pow(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_obj = o_d['obj_xyz']
+    def grab_effort(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_obj = o_d['obj_pos']
 
         if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02 or \
                           abs(pos_curr[2] - pos_obj[2]) > 0.1:

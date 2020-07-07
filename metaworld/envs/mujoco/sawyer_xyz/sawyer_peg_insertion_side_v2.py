@@ -13,6 +13,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         could be initialized in such a way that it severely restrained the
         sawyer's movement.
     Changelog from V1 to V2:
+        - (7/7/20) Removed 1 element vector. Replaced with 3 element position
+            of the hole (for consistency with other environments)
         - (6/16/20) Added a 1 element vector to the observation. This vector
             points from the end effector to the hole in the Y direction.
             i.e. (self._state_goal - pos_hand)[1]
@@ -64,11 +66,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        hand_to_goal_max_x = self.hand_high[0] - np.array(goal_low)[0]
-
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, -hand_to_goal_max_x)),
-            np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.reset()
@@ -99,20 +99,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
         return ob, rew, False, info
 
-    def _get_obs(self):
-        pos_hand = self.get_endeff_pos()
-        pos_obj = self.get_body_com('peg')
-        hand_to_goal = (self._state_goal - pos_hand)[1]
-
-        flat_obs = np.hstack((pos_hand, pos_obj, hand_to_goal))
-        return np.concatenate([flat_obs, ])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.get_body_com('peg'),
-        )
+    def _get_pos_objects(self):
+        return self.get_body_com('peg')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
