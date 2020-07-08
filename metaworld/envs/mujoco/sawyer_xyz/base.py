@@ -107,14 +107,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         self._state_goal = None  # OVERRIDE ME
 
-    @classmethod
-    def _sample_goal_do_not_use(cls):
-        return np.random.uniform(
-            cls.goal_space.low,
-            cls.goal_space.high,
-            size=cls.goal_space.low.size,
-        )
-
     def _set_task_inner(self, random_init, obs_type):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         self.random_init = random_init
