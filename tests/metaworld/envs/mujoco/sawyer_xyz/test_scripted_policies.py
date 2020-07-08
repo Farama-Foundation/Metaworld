@@ -64,6 +64,8 @@ test_cases = [
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), 0.1, 0.92, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.0, 0.95, {}],
     ['push-wall-v2', SawyerPushWallV2Policy(), 0.1, 0.85, {}],
+    ['dial-turn-v1', SawyerDialTurnV1Policy(), .0, 0.98, {}],
+    ['dial-turn-v1', SawyerDialTurnV1Policy(), .1, 0.85, {}],
 ]
 
 test_cases_old_nonoise = [
@@ -110,6 +112,7 @@ test_cases_latest_nonoise = [
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96],
+    ['dial-turn-v1', SawyerDialTurnV1Policy(), .0, 0.98],
 ]
 
 test_cases_latest_noisy = [
@@ -140,6 +143,7 @@ test_cases_latest_noisy = [
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 0.96],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 0.95],
+    ['dial-turn-v1', SawyerDialTurnV1Policy(), .1, 0.85],
 ]
 
 
