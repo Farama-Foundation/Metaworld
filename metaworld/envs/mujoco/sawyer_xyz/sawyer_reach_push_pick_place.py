@@ -55,14 +55,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         super()._set_task_inner(**kwargs)
         self.task_type = task_type
 
-        if self.task_type == 'pick_place':
-            self.goal = np.array([0.1, 0.8, 0.2])
-        elif self.task_type == 'reach':
-            self.goal = np.array([-0.1, 0.8, 0.2])
-        elif self.task_type == 'push':
-            self.goal = np.array([0.1, 0.8, 0.02])
-        else:
-            raise NotImplementedError
         self.reset()
 
     @property
