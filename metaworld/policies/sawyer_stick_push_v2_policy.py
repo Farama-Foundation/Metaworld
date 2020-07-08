@@ -46,14 +46,6 @@ class SawyerStickPushV2Policy(Policy):
             return np.array([hand_pos[0], hand_pos[1], obj_pos[2]+0.05])
         # Move to the goal
         else:
-            # push_prep_pos = obj_pos - (goal_pos - obj_pos)
-            # # Put hand in opposite side of goal to make pushing more consistent
-            # if np.linalg.norm(hand_pos[:2] - push_prep_pos[:2]) > 0.02:
-            #     return np.array([
-            #         push_prep_pos[0],
-            #         push_prep_pos[1],
-            #         hand_pos[2]
-            #     ])
             return np.array([goal_pos[0], goal_pos[1], hand_pos[2]])
 
     @staticmethod
