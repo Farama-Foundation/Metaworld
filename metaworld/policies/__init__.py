@@ -29,6 +29,7 @@ from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
 from metaworld.policies.sawyer_stick_pull_v2_policy import SawyerStickPullV2Policy
 from metaworld.policies.sawyer_stick_push_v2_policy import SawyerStickPushV2Policy
+from metaworld.policies.sawyer_dial_turn_v1_policy import SawyerDialTurnV1Policy
 
 
 __all__ = [
@@ -62,4 +63,5 @@ __all__ = [
     'SawyerPickPlaceWallV2Policy',
     'SawyerStickPullV2Policy',
     'SawyerStickPushV2Policy',
+    'SawyerDialTurnV1Policy',
 ]
