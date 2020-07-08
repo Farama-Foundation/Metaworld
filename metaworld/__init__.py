@@ -82,11 +82,17 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
     for (env_id, args) in args_kwargs.items():
         assert len(args['args']) == 0
         env_cls = classes[env_id]
-        goals = [env_cls._sample_goal_do_not_use() for _ in range(_N_GOALS)]
-        for goal in goals:
+        env = env_cls()
+        env._freeze_rand_vec = False
+        rand_vecs = []
+        for _ in range(_N_GOALS):
+            env.reset()
+            rand_vecs.append(env._last_rand_vec)
+        env.close()
+        for rand_vec in rand_vecs:
             kwargs = args['kwargs'].copy()
             del kwargs['task_id']
-            kwargs.update(dict(goal=goal, env_cls=env_cls))
+            kwargs.update(dict(rand_vec=rand_vec, env_cls=env_cls))
             kwargs.update(kwargs_override)
             tasks.append(_encode_task(env_id, kwargs))
     return tasks
