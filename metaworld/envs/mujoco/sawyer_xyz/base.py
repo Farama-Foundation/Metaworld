@@ -88,6 +88,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
+        self._freeze_rand_vec = True
+        self._last_rand_vec = None
 
         # We use continuous goal space by default and
         # can discretize the goal space by calling
@@ -96,25 +98,17 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-    @classmethod
-    def _sample_goal_do_not_use(cls):
-        return np.random.uniform(
-            cls.goal_space.low,
-            cls.goal_space.high,
-            size=cls.goal_space.low.size,
-        )
-
-    def _set_task_inner(self, random_init, obs_type, goal=None):
+    def _set_task_inner(self, random_init, obs_type):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         self.random_init = random_init
         self.obs_type = obs_type
-        if goal is not None:
-            self.goal = goal
 
     def set_task(self, task):
         data = pickle.loads(task.data)
         assert isinstance(self, data['env_cls'])
         del data['env_cls']
+        self._last_rand_vec = data['rand_vec']
+        self._freeze_rand_vec = True
         self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
@@ -182,10 +176,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return super().reset()
 
     def _get_state_rand_vec(self):
-        rand_vec = np.random.uniform(
-            self.obj_and_goal_space.low,
-            self.obj_and_goal_space.high,
-            size=self.obj_and_goal_space.low.size)
-        assert len(self.goal_space.low) == len(self._state_goal)
-        rand_vec[-len(self._state_goal):] = self._state_goal
-        return rand_vec
+        if self._freeze_rand_vec:
+            assert self._last_rand_vec is not None
+            return self._last_rand_vec
+        else:
+            rand_vec = np.random.uniform(
+                self.obj_and_goal_space.low,
+                self.obj_and_goal_space.high,
+                size=self.obj_and_goal_space.low.size)
+            self._last_rand_vec = rand_vec
+            return rand_vec
