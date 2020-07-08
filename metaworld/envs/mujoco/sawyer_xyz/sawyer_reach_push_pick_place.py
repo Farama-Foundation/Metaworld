@@ -51,6 +51,22 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
         self.num_resets = 0
 
+    def _set_task_inner(self, *, task_type, **kwargs):
+        super()._set_task_inner(**kwargs)
+        self.task_type = task_type
+
+        # we only do one task from [pick_place, reach, push]
+        # per instance of SawyerReachPushPickPlaceEnv.
+        # Please only set task_type from constructor.
+        if self.task_type == 'pick_place':
+            self.goal = np.array([0.1, 0.8, 0.2])
+        elif self.task_type == 'reach':
+            self.goal = np.array([-0.1, 0.8, 0.2])
+        elif self.task_type == 'push':
+            self.goal = np.array([0.1, 0.8, 0.02])
+        else:
+            raise NotImplementedError
+
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_reach_push_pick_and_place.xml')

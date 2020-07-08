@@ -31,17 +31,6 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
-        # we only do one task from [pick_place, reach, push]
-        # per instance of SawyerReachPushPickPlaceEnv.
-        # Please only set task_type from constructor.
-        if self.task_type == 'pick_place':
-            self.goal = np.array([0.05, 0.8, 0.2])
-        elif self.task_type == 'reach':
-            self.goal = np.array([-0.05, 0.8, 0.2])
-        elif self.task_type == 'push':
-            self.goal = np.array([0.05, 0.8, 0.015])
-        else:
-            raise NotImplementedError
 
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -62,6 +51,21 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
         )
 
         self.num_resets = 0
+
+    def _set_task_inner(self, *, task_type, **kwargs):
+        super()._set_task_inner(**kwargs)
+        self.task_type = task_type
+        # we only do one task from [pick_place, reach, push]
+        # per instance of SawyerReachPushPickPlaceEnv.
+        # Please only set task_type from constructor.
+        if self.task_type == 'pick_place':
+            self.goal = np.array([0.05, 0.8, 0.2])
+        elif self.task_type == 'reach':
+            self.goal = np.array([-0.05, 0.8, 0.2])
+        elif self.task_type == 'push':
+            self.goal = np.array([0.05, 0.8, 0.015])
+        else:
+            raise NotImplementedError
 
     @property
     def model_name(self):
