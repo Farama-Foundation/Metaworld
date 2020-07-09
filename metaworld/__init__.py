@@ -5,6 +5,7 @@ from collections import OrderedDict
 from typing import List, NamedTuple, Type
 
 import metaworld.envs.mujoco.env_dict as _env_dict
+import numpy as np
 
 
 EnvID = str
@@ -67,8 +68,8 @@ class Benchmark(abc.ABC):
         return self._test_tasks
 
 
-_ML_OVERRIDE = dict(obs_type='plain', random_init=True)
-_MT_OVERRIDE = dict(obs_type='with_goal_id', random_init=False)
+_ML_OVERRIDE = dict()
+_MT_OVERRIDE = dict()
 
 _N_GOALS = 50
 
@@ -82,12 +83,18 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
     for (env_id, args) in args_kwargs.items():
         assert len(args['args']) == 0
         env_cls = classes[env_id]
+        print(env_id)
+        import ipdb; ipdb.set_trace()
         env = env_cls()
         env._freeze_rand_vec = False
         rand_vecs = []
         for _ in range(_N_GOALS):
             env.reset()
             rand_vecs.append(env._last_rand_vec)
+
+        unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
+        assert unique_task_rand_vecs.shape[0] == _N_GOALS
+
         env.close()
         for rand_vec in rand_vecs:
             kwargs = args['kwargs'].copy()
