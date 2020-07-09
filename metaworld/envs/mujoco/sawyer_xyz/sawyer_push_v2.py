@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPushEnvV2(SawyerXYZEnv):
@@ -67,12 +67,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         )
 
         self.num_resets = 0
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_push_v2.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -189,7 +189,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         c3 = 0.001
         reach_dist = np.linalg.norm(finger_center - pos_obj)
         reach_rew = -reach_dist
-        
+
         push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
         if reach_dist < 0.05:
             push_rew = c1 * (self.maxPushDist - push_dist) + \

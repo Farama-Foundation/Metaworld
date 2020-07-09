@@ -48,7 +48,7 @@ test_cases_latest_nonoise = [
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., 0.98],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.96],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), 0., 0.95],
 ]
 
 test_cases_latest_noisy = [
@@ -98,7 +98,9 @@ ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
 @pytest.fixture(scope='function')
 def env(request):
-    return ALL_ENVS[request.param](random_init=True)
+    e = ALL_ENVS[request.param](random_init=True)
+    e.set_task(False)
+    return e
 
 
 @pytest.mark.parametrize(

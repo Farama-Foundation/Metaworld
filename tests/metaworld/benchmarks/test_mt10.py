@@ -10,6 +10,10 @@ def test_augment_observation():
     env = MT10()
     for i in range(env.num_tasks):
         env.set_task(i)
+        # Right now, env.reset() calls env.active_env.set_task() under the hood
+        # This is necessary before stepping, and calling the method directly
+        # right here doesn't seem to work.
+        env.reset()
         obs, _, _, _ = env.step(env.action_space.sample())
         assert obs[-10:][i] == 1
         obs = env.reset()

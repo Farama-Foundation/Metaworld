@@ -195,6 +195,10 @@ def test_task_name():
     env = ML10.get_test_tasks()
     assert sorted(env.all_task_names) == sorted(task_names)
 
+    # Right now, env.reset() calls env.active_env.set_task() under the hood
+    # This is necessary before stepping, and calling the method directly
+    # right here doesn't seem to work.
+    env.reset()
     _, _, _, info = env.step(env.action_space.sample())
     assert info['task_name'] in task_names
 
@@ -210,9 +214,9 @@ def test_observation_space(observation_type):
         obs_type=observation_type,
     )
     if observation_type == 'plain':
-        assert multi_task_env.observation_space.shape == (9, )
+        assert multi_task_env.observation_space.shape == (12, )
     elif observation_type == 'with_goal_id':
-        assert multi_task_env.observation_space.shape == (59, )
+        assert multi_task_env.observation_space.shape == (62, )
 
 
 def test_action_space():

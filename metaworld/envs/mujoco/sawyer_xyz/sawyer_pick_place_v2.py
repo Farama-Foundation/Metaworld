@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPickPlaceEnvV2(SawyerXYZEnv):
@@ -50,11 +50,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -67,12 +62,12 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         )
 
         self.num_resets = 0
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_place_v2.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])

@@ -1,11 +1,12 @@
 import abc
 import copy
 
+from gym.spaces import Box
 from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
-from metaworld.envs.mujoco.mujoco_env import MujocoEnv
+from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
@@ -74,7 +75,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_high=None,
             action_scale=1./100,
             action_rot_scale=1.,
-            include_goal_in_obs=True,
     ):
         super().__init__(model_name, frame_skip=frame_skip)
         self.action_scale = action_scale
@@ -97,9 +97,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-        self._state_goal = None  # OVERRIDE ME
-        self.include_goal_in_obs = include_goal_in_obs
+        self.action_space = Box(
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
+        )
 
+        self._state_goal = None  # OVERRIDE ME
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -184,7 +187,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         pos_obj = self._get_pos_objects()
         pos_goal = self._get_pos_goal()
 
-        if not self.include_goal_in_obs:
+        if self._task['partially_observable']:
             pos_goal = np.zeros_like(pos_goal)
 
         return np.hstack((pos_hand, pos_obj, pos_goal))

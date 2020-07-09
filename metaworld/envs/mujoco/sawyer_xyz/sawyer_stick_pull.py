@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerStickPullEnv(SawyerXYZEnv):
@@ -36,11 +36,6 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 200
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.04])
         self.obj_init_qpos = np.array([0., 0.09])
@@ -52,16 +47,15 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         )
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low)),
-            np.hstack((self.hand_high, obj_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
-
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -77,25 +71,16 @@ class SawyerStickPullEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        stickPos = self.get_body_com('stick').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]
-        flat_obs = np.concatenate((hand, stickPos, objPos))
-
-        return np.concatenate([flat_obs,])
-
+    def _get_pos_objects(self):
+        return np.hstack((
+            self.get_body_com('stick').copy(),
+            self.data.site_xpos[self.model.site_name2id('insertion')],
+        ))
 
     def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        stickPos = self.get_body_com('stick').copy()
-        objPos =  self.data.site_xpos[self.model.site_name2id('insertion')]
-        flat_obs = np.concatenate((hand, stickPos, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+        obs_dict = super()._get_obs_dict()
+        obs_dict['state_achieved_goal'] = self.data.site_xpos[self.model.site_name2id('insertion')]
+        return obs_dict
 
     def _set_goal_marker(self, goal):
         """

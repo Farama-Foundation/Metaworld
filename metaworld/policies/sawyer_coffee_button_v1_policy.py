@@ -10,8 +10,9 @@ class SawyerCoffeeButtonV1Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'mug_xyz': obs[3:],
+            'hand_pos': obs[:3],
+            'mug_pos': obs[3:-3],
+            'extra_info': obs[-3:],
         }
 
     def get_action(self, obs):
@@ -19,18 +20,18 @@ class SawyerCoffeeButtonV1Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self._desired_xyz(o_d), p=10.)
-        action['grab_pow'] = -1.
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['grab_effort'] = -1.
 
         return action.array
 
     @staticmethod
-    def _desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_mug = o_d['mug_xyz'] + np.array([.0, .0, .01])
+    def _desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_mug = o_d['mug_pos'] + np.array([.0, .0, .01])
 
         if abs(pos_curr[0] - pos_mug[0]) > 0.02:
             return np.array([pos_mug[0], pos_curr[1], .28])
