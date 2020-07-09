@@ -54,8 +54,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, self.goal_low)),
-            np.hstack((self.hand_high, obj_high, self.goal_high)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.reset()
