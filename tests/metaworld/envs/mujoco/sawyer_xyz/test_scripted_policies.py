@@ -28,7 +28,8 @@ ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 for row in test_cases:
     # row[-1] contains env kwargs. This instantiates an env with those kwargs,
     # then replaces row[-1] with the env object (kwargs are no longer needed)
-    row[-1] = ALL_ENVS[row[0]](random_init=True, **row[-1])
+    row[-1] = ALL_ENVS[row[0]](**row[-1])
+    row[-1]._freeze_rand_vec = False
     # now remove env names from test_data, as they aren't needed in parametrize
     row.pop(0)
 
