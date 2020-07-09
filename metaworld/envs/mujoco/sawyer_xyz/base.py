@@ -74,6 +74,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             mocap_high=None,
             action_scale=1./100,
             action_rot_scale=1.,
+            include_goal_in_obs=True,
     ):
         super().__init__(model_name, frame_skip=frame_skip)
         self.action_scale = action_scale
@@ -97,6 +98,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.active_discrete_goal = None
 
         self._state_goal = None  # OVERRIDE ME
+        self.include_goal_in_obs = include_goal_in_obs
+
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -181,13 +184,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         pos_obj = self._get_pos_objects()
         pos_goal = self._get_pos_goal()
 
+        if not self.include_goal_in_obs:
+            pos_goal = np.zeros_like(pos_goal)
+
         return np.hstack((pos_hand, pos_obj, pos_goal))
 
     def _get_obs_dict(self):
         obs = self._get_obs()
         return dict(
             state_observation=obs,
-            state_desired_goal=obs[-3:],
+            state_desired_goal=self._get_pos_goal(),
             state_achieved_goal=obs[3:-3],
         )
 
