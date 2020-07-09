@@ -19,7 +19,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         - (6/24/20) Separated pick-place-wall into from
           reach-push-pick-place-wall.
     """
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self, random_init=False):
 
         liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
@@ -50,11 +50,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
-
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
 
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),

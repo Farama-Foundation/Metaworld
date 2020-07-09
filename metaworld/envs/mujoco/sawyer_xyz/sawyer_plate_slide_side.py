@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 class SawyerPlateSlideSideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self, random_init=False, **kwargs):
 
         goal_low = (-0.3, 0.6, 0.02)
         goal_high = (-0.25, 0.7, 0.02)
@@ -36,11 +36,6 @@ class SawyerPlateSlideSideEnv(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -48,8 +43,8 @@ class SawyerPlateSlideSideEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.reset()
@@ -72,22 +67,8 @@ class SawyerPlateSlideSideEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_objCOM_marker(self):
         objPos =  self.data.get_geom_xpos('handle')

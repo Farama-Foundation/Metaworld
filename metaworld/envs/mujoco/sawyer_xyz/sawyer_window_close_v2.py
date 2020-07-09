@@ -46,11 +46,6 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.max_path_length = 200
         self.liftThresh = liftThresh
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),

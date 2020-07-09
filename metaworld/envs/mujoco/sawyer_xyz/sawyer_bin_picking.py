@@ -6,7 +6,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
 class SawyerBinPickingEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self, random_init=False, **kwargs):
 
         liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.07)
@@ -38,11 +38,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
@@ -56,8 +51,8 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.goal_space = Box(goal_low, goal_high)
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.reset()
@@ -80,22 +75,8 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_xyz(self, goal):
         del goal  # rjulian: ??? What?

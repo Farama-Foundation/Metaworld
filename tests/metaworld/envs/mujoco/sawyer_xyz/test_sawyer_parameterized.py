@@ -27,8 +27,8 @@ def test_obs_type(env):
     o = env.reset()
     o_g = env._get_obs()
     space = env.observation_space
-    assert space.shape == o.shape, 'type: {}, env: {}'.format(t, env)
-    assert space.shape == o_g.shape, 'type: {}, env: {}'.format(t, env)
+    assert space.shape == o.shape, 'env: {}'.format(env)
+    assert space.shape == o_g.shape, 'env: {}'.format(env)
 
 def test_discretize_goal_space(env):
     discrete_goals = env.sample_goals_(2)

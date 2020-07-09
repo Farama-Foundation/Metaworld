@@ -37,6 +37,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            include_goal_in_obs=True,
         )
 
         self.init_config = {
@@ -54,11 +55,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
-
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
 
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),

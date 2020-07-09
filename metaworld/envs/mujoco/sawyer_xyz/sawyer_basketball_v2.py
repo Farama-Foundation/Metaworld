@@ -48,10 +48,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.max_path_length = 150
         self.liftThresh = liftThresh
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),

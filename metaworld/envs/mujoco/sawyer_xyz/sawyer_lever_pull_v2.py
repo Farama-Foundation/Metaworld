@@ -43,11 +43,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.random_init = random_init
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),

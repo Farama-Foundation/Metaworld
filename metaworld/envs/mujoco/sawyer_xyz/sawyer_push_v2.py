@@ -189,7 +189,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         c3 = 0.001
         reach_dist = np.linalg.norm(finger_center - pos_obj)
         reach_rew = -reach_dist
-        
+
         push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
         if reach_dist < 0.05:
             push_rew = c1 * (self.maxPushDist - push_dist) + \
