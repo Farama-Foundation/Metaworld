@@ -24,7 +24,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.8, 0.05], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0, 0.88, 0.1])
+        self._state_goal = np.array([0, 0.88, 0.1])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
@@ -58,7 +58,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
         info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
-        info['goal'] = self.goal
+        info['goal'] = self._state_goal
 
         return ob, reward, False, info
 
@@ -74,16 +74,14 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos
-            button_pos = goal_pos.copy()
-            button_pos[1] += 0.08
-            button_pos[2] += 0.07
-            self._state_goal = button_pos
-            self._state_goal[2] -= 0.02
+        obj_pos = self._get_state_rand_vec()
+        self.obj_init_pos = obj_pos
+        button_pos = obj_pos.copy()
+        button_pos[1] += 0.08
+        button_pos[2] += 0.07
+        self._state_goal = button_pos
+        self._state_goal[2] -= 0.02
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal

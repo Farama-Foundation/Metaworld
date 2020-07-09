@@ -223,10 +223,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
-        if hasattr(self, '_state_goal'):
+        if self._freeze_rand_vec:
             old_goal = np.array(self._state_goal)
+            old_obj_pos = np.array(self.obj_init_pos)
             result = super().reset()
             assert np.allclose(self._state_goal, old_goal)
+            assert np.allclose(self.obj_init_pos, old_obj_pos)
             return result
         else:
             return super().reset()
