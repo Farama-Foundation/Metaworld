@@ -77,34 +77,33 @@ STEPS = 3
 #     del test_env_instances
 
 
-def test_all_mt10():
-    mt10 = MT10()
+# def test_all_mt10():
+#     mt10 = MT10()
+#     train_env_instances = {env_id: env_cls()
+#                            for (env_id, env_cls) in mt10.train_classes.items()}
+#     for task in mt10.train_tasks:
+#         env = train_env_instances[task.env_id]
+#         env.set_task(task)
+#         step_env(env, max_path_length=STEPS, render=False)
+#     for env in train_env_instances.values():
+#         env.close()
+#     del train_env_instances
+
+#     assert len(mt10.test_classes) == 0
+#     assert len(mt10.test_tasks) == 0
+
+
+def test_all_mt50():
+    mt50 = MT50()
     train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in mt10.train_classes.items()}
-    for task in mt10.train_tasks:
+                           for (env_id, env_cls) in mt50.train_classes.items()}
+    for task in mt50.train_tasks:
         env = train_env_instances[task.env_id]
         env.set_task(task)
-        import ipdb; ipdb.set_trace()
         step_env(env, max_path_length=STEPS)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
 
-    assert len(mt10.test_classes) == 0
-    assert len(mt10.test_tasks) == 0
-
-
-# def test_all_mt50():
-#     mt50 = MT50()
-#     train_env_instances = {env_id: env_cls()
-#                            for (env_id, env_cls) in mt50.train_classes.items()}
-#     for task in mt50.train_tasks:
-#         env = train_env_instances[task.env_id]
-#         env.set_task(task)
-#         step_env(env, max_path_length=STEPS)
-#     for env in train_env_instances.values():
-#         env.close()
-#     del train_env_instances
-
-#     assert len(mt50.test_classes) == 0
-#     assert len(mt50.test_tasks) == 0
+    assert len(mt50.test_classes) == 0
+    assert len(mt50.test_tasks) == 0

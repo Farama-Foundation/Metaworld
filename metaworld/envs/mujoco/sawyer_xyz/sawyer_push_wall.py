@@ -56,6 +56,9 @@ class SawyerPushWallEnv(SawyerXYZEnv):
         )
 
         self.num_resets = 0
+        self._freeze_rand_vec = False
+        self.reset()
+        self._freeze_rand_vec = True
 
     def _set_task_inner(self, *, task_type, **kwargs):
         super()._set_task_inner(**kwargs)

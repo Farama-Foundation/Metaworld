@@ -55,8 +55,10 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low,)),
             np.hstack((self.hand_high, obj_high,)),
         )
-        self._last_rand_vec = np.concatenate(self.obj_init_pos, self.goal)
+
+        self._freeze_rand_vec = False
         self.reset()
+        self._freeze_rand_vec = True
 
     @property
     def model_name(self):

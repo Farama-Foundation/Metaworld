@@ -71,7 +71,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
         )
 
+        self._freeze_rand_vec = False
         self.reset()
+        self._freeze_rand_vec = True
 
     @property
     def model_name(self):

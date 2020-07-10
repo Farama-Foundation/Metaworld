@@ -51,7 +51,9 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high,)),
         )
 
+        self._freeze_rand_vec = False
         self.reset()
+        self._freeze_rand_vec = True
 
     @property
     def model_name(self):

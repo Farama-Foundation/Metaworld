@@ -17,6 +17,10 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
+        self._freeze_rand_vec = False
+        self.reset()
+        self._freeze_rand_vec = True
+
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
