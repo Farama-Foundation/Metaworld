@@ -98,18 +98,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-    def _set_task_inner(self, random_init, obs_type):
+    def _set_task_inner(self, random_init):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         self.random_init = random_init
-        self.obs_type = obs_type
 
     def set_task(self, task):
         data = pickle.loads(task.data)
         assert isinstance(self, data['env_cls'])
         del data['env_cls']
         self._last_rand_vec = data['rand_vec']
+        del data['rand_vec']
         self._freeze_rand_vec = True
-        self._set_task_inner(**data)
+        super().reset()
+        # self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)

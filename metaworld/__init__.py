@@ -68,8 +68,8 @@ class Benchmark(abc.ABC):
         return self._test_tasks
 
 
-_ML_OVERRIDE = dict()
-_MT_OVERRIDE = dict()
+_ML_OVERRIDE = dict(random_init=True)
+_MT_OVERRIDE = dict(random_init=True)
 
 _N_GOALS = 50
 
@@ -83,9 +83,8 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
     for (env_id, args) in args_kwargs.items():
         assert len(args['args']) == 0
         env_cls = classes[env_id]
-        print(env_id)
         env = env_cls()
-        assert not hasattr(env, 'random_init')
+        env.random_init = True
         env._freeze_rand_vec = False
         rand_vecs = []
         for _ in range(_N_GOALS):

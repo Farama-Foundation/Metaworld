@@ -82,9 +82,9 @@ def test_all_mt10():
     train_env_instances = {env_id: env_cls()
                            for (env_id, env_cls) in mt10.train_classes.items()}
     for task in mt10.train_tasks:
-        import ipdb; ipdb.set_trace()
         env = train_env_instances[task.env_id]
         env.set_task(task)
+        import ipdb; ipdb.set_trace()
         step_env(env, max_path_length=STEPS)
     for env in train_env_instances.values():
         env.close()

@@ -53,8 +53,9 @@ class SawyerPushEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low,)),
             np.hstack((self.hand_high, obj_high,)),
         )
-
-        self.num_resets = 0
+        self._freeze_rand_vec = False
+        self.reset()
+        self._freeze_rand_vec = True
 
     def _set_task_inner(self, *, task_type, **kwargs):
         super()._set_task_inner(**kwargs)
@@ -167,7 +168,6 @@ class SawyerPushEnv(SawyerXYZEnv):
             raise NotImplementedError
 
         self.target_reward = self.target_rewards[idx]
-        self.num_resets += 1
 
         return self._get_obs()
 

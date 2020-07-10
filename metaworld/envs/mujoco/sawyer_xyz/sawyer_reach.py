@@ -54,7 +54,9 @@ class SawyerReachEnv(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high,)),
         )
 
-        self.num_resets = 0
+        self._freeze_rand_vec = False
+        self.reset()
+        self._freeze_rand_vec = True
 
     def _set_task_inner(self, *, task_type, **kwargs):
         super()._set_task_inner(**kwargs)
@@ -138,7 +140,6 @@ class SawyerReachEnv(SawyerXYZEnv):
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-
         obj_and_goal_pos = self._get_state_rand_vec()
         self._state_goal = obj_and_goal_pos[3:]
         while np.linalg.norm(obj_and_goal_pos[:2] - self._state_goal[:2]) < 0.15:
@@ -168,7 +169,6 @@ class SawyerReachEnv(SawyerXYZEnv):
             raise NotImplementedError
 
         self.target_reward = self.target_rewards[idx]
-        self.num_resets += 1
 
         return self._get_obs()
 
