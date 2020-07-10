@@ -26,7 +26,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([-0.1, 0.785, 0.15], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0.08, 0.785, 0.15])
+        self._state_goal = np.array([0.08, 0.785, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -64,7 +64,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self.goal
+        info['goal'] = self._state_goal
 
         return ob, reward, False, info
 
@@ -78,16 +78,15 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        if self.random_init:
-            obj_pos = self._get_state_rand_vec()
-            self.obj_init_pos = obj_pos
-            goal_pos = obj_pos.copy()
-            goal_pos[0] += 0.18
-            self._state_goal = goal_pos
+
+        obj_pos = self._get_state_rand_vec()
+        self.obj_init_pos = obj_pos
+        goal_pos = obj_pos.copy()
+        goal_pos[0] += 0.18
+        self._state_goal = goal_pos
 
         self._set_goal_marker(self._state_goal)
         wall_pos = self.obj_init_pos.copy() - np.array([-0.1, 0, 0.12])

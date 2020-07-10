@@ -84,8 +84,8 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
         assert len(args['args']) == 0
         env_cls = classes[env_id]
         print(env_id)
-        import ipdb; ipdb.set_trace()
         env = env_cls()
+        assert not hasattr(env, 'random_init')
         env._freeze_rand_vec = False
         rand_vecs = []
         for _ in range(_N_GOALS):

@@ -32,8 +32,6 @@ class SawyerReachEnv(SawyerXYZEnv):
             'hand_init_pos': np.array([0, .6, .2]),
         }
 
-        self.random_init = False
-
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -45,7 +43,6 @@ class SawyerReachEnv(SawyerXYZEnv):
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
         )
-        import ipdb; ipdb.set_trace()
 
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, self.goal_low)),

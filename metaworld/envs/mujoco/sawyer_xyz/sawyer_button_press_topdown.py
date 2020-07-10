@@ -109,7 +109,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        fingerCOM  =  (rightFinger + leftFinger) / 2
 
         pressGoal = self._state_goal[2]
 
