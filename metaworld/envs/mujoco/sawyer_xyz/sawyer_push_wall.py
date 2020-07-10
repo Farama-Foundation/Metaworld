@@ -60,11 +60,6 @@ class SawyerPushWallEnv(SawyerXYZEnv):
         self.reset()
         self._freeze_rand_vec = True
 
-    def _set_task_inner(self, *, task_type, **kwargs):
-        super()._set_task_inner(**kwargs)
-        self.task_type = task_type
-        self.reset()
-
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_reach_push_pick_and_place_wall.xml')
@@ -86,7 +81,7 @@ class SawyerPushWallEnv(SawyerXYZEnv):
             success = float(goal_dist <= 0.07)
 
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
-        info['goal'] = self.goal
+        info['goal'] = self._state_goal
 
         return ob, reward, False, info
 

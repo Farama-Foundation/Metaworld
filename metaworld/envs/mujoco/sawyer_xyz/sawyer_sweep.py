@@ -25,12 +25,14 @@ class SawyerSweepEnv(SawyerXYZEnv):
             hand_high=self.hand_high,
         )
 
+        self.random_init = False
+
         self.init_config = {
             'obj_init_pos':np.array([0., 0.6, 0.02]),
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array([0., .6, .2]),
         }
-        self._state_goal = np.array([ 1.  ,  0.6 , -0.28])
+        self.goal = np.array([0., 0.95, -0.3])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -54,8 +56,9 @@ class SawyerSweepEnv(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high,)),
         )
 
-        self._last_rand_vec = self.obj_init_pos
+        self._freeze_rand_vec = False
         self.reset()
+        self._freeze_rand_vec = True
 
     @property
     def model_name(self):
@@ -70,10 +73,10 @@ class SawyerSweepEnv(SawyerXYZEnv):
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
         reward, reachDist, pushDist = self.compute_reward(action, obs_dict)
-        self.curr_path_length += 1
+        self.curr_path_length +=1
 
         info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.05)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 
@@ -109,13 +112,19 @@ class SawyerSweepEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
+        self._state_goal = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        obj_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
-        goal_pos = obj_pos.copy() + np.array([1.0, 0, -0.3])
-        self._state_goal = goal_pos
-        self._set_goal_marker(self._state_goal)
+
+        if self.random_init:
+            obj_pos = self._get_state_rand_vec()
+            self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
+            goal_pos = obj_pos.copy()
+            goal_pos[0] = 1.0
+            goal_pos[2] = -0.3
+            self._state_goal = goal_pos
+
+            self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(self.data.get_geom_xpos('objGeom')[:-1] - self._state_goal[:-1])
         self.target_reward = 1000*self.maxPushDist + 1000*2

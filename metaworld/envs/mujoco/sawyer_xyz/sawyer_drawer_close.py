@@ -23,15 +23,18 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
             hand_high=self.hand_high,
         )
 
+        self.random_init = False
+
         self.init_config = {
             'obj_init_angle': np.array([0.3, ], dtype=np.float32),
             'obj_init_pos': np.array([0., 0.9, 0.04], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self._state_goal = np.array([0., 0.7, 0.04])
+        self.goal = np.array([0., 0.7, 0.04])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
+
 
         self.max_path_length = 150
 
@@ -49,8 +52,10 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low,)),
             np.hstack((self.hand_high, obj_high,)),
         )
-        self._last_rand_vec = self.obj_init_pos
+
+        self._freeze_rand_vec = False
         self.reset()
+        self._freeze_rand_vec = True
 
     @property
     def model_name(self):
@@ -66,7 +71,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.06)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 
@@ -99,13 +104,15 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
+        self._state_goal = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
-        obj_pos = self._get_state_rand_vec()
-        self.obj_init_pos = obj_pos
-        goal_pos = obj_pos.copy()
-        goal_pos[1] -= 0.2
-        self._state_goal = goal_pos
+        if self.random_init:
+            obj_pos = self._get_state_rand_vec()
+            self.obj_init_pos = obj_pos
+            goal_pos = obj_pos.copy()
+            goal_pos[1] -= 0.2
+            self._state_goal = goal_pos
 
         self._set_goal_marker(self._state_goal)
         drawer_cover_pos = self.obj_init_pos.copy()

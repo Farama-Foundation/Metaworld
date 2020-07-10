@@ -109,8 +109,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._last_rand_vec = data['rand_vec']
         del data['rand_vec']
         self._freeze_rand_vec = True
+        self._set_task_inner(**data)
         super().reset()
-        # self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)

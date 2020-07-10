@@ -82,9 +82,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
     tasks = []
     for (env_id, args) in args_kwargs.items():
         assert len(args['args']) == 0
-        if env_id != "bin-picking-v1":
-            continue
-        import ipdb; ipdb.set_trace()
         env_cls = classes[env_id]
         env = env_cls()
         env.random_init = True
@@ -93,7 +90,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
         for _ in range(_N_GOALS):
             env.reset()
             rand_vecs.append(env._last_rand_vec)
-
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert unique_task_rand_vecs.shape[0] == _N_GOALS
 
