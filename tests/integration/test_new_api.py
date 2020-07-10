@@ -15,7 +15,7 @@ def test_all_ml1(env_name):
     for task in ml1.train_tasks:
         env = train_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -25,7 +25,7 @@ def test_all_ml1(env_name):
     for task in ml1.test_tasks:
         env = test_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in test_env_instances.values():
         env.close()
     del test_env_instances
@@ -38,7 +38,7 @@ def test_all_ml10():
     for task in ml10.train_tasks:
         env = train_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -48,7 +48,7 @@ def test_all_ml10():
     for task in ml10.test_tasks:
         env = test_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in test_env_instances.values():
         env.close()
     del test_env_instances
@@ -61,7 +61,7 @@ def test_all_ml45():
     for task in ml45.train_tasks:
         env = train_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -71,7 +71,7 @@ def test_all_ml45():
     for task in ml45.test_tasks:
         env = test_env_instances[task.env_id]
         env.set_task(task)
-        step_env(env, max_path_length=STEPS)
+        step_env(env, max_path_length=STEPS, render=False)
     for env in test_env_instances.values():
         env.close()
     del test_env_instances
