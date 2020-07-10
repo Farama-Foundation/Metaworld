@@ -24,8 +24,6 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
             hand_high=self.hand_high,
         )
 
-        self.random_init = False
-
         self.init_config = {
             'obj_init_pos': np.array([0, 0.8, 0.05], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
@@ -132,7 +130,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        fingerCOM  =  (rightFinger + leftFinger) / 2
 
         pressGoal = self._state_goal[2]
 

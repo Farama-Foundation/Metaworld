@@ -34,8 +34,6 @@ class SawyerDoorEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = False
-
         self.max_path_length = 150
 
         self.action_space = Box(
