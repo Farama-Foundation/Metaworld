@@ -91,7 +91,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
         for _ in range(_N_GOALS):
             env.reset()
             rand_vecs.append(env._last_rand_vec)
-
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert unique_task_rand_vecs.shape[0] == _N_GOALS
 

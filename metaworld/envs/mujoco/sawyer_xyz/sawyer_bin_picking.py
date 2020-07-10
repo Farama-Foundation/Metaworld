@@ -47,6 +47,8 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         )
 
         self.goal_space = Box(goal_low, goal_high)
+        self.obj_and_goal_space = Box(low=np.array([-0.22, -0.02]),
+                                      high=np.array([0.6, 0.8]))
 
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low, goal_low)),
@@ -106,9 +108,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            self.obj_init_pos = np.random.uniform(np.array([-0.22, -0.02]),
-                                                  np.array([0.6, 0.8]),
-                                                  size=2)
+            self.obj_init_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
 
         self._set_goal_xyz(self._state_goal)
