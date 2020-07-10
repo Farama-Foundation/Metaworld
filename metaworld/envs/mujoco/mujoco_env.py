@@ -12,6 +12,19 @@ try:
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 
+
+def _assert_task_is_set(func):
+    def inner(*args, **kwargs):
+        env = args[0]
+        if not env._task_is_set:
+            raise RuntimeError(
+                'You must call env.set_task before using env.'
+                + func.__name__
+            )
+        return func(*args, **kwargs)
+    return inner
+
+
 DEFAULT_SIZE = 500
 
 class MujocoEnv(gym.Env, abc.ABC):
@@ -44,6 +57,22 @@ class MujocoEnv(gym.Env, abc.ABC):
 
         self.seed()
 
+        self._task = None
+
+    @property
+    def _task_is_set(self):
+        return not (self._task is None)
+
+    def set_task(self, is_partially_observable):
+        """Configures the environment for stepping. This must be called before
+        env.step() or env.reset()
+
+        Args:
+            is_partially_observable (bool): Specifies whether the environment
+                is fully observable
+        """
+        self._task = {'partially_observable': is_partially_observable}
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -64,6 +93,7 @@ class MujocoEnv(gym.Env, abc.ABC):
         """
         pass
 
+    @_assert_task_is_set
     def reset(self):
         self.sim.reset()
         ob = self.reset_model()

@@ -10,9 +10,10 @@ class SawyerBasketballV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'ball_xyz': obs[3:-1],
-            'hoop_vec': obs[-1]
+            'hand_pos': obs[:3],
+            'ball_pos': obs[3:6],
+            'hoop_x': obs[-3],
+            'extra_info': obs[-2:],
         }
 
     def get_action(self, obs):
@@ -20,22 +21,22 @@ class SawyerBasketballV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self._desired_xyz(o_d), p=25.)
-        action['grab_pow'] = self._grab_pow(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def _desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_ball = o_d['ball_xyz'] + np.array([.0, .0, .01])
-        # X is given by hoop_vec
+    def _desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_ball = o_d['ball_pos'] + np.array([.0, .0, .01])
+        # X is given by hoop_pos
         # Y varies between .85 and .9, so we take avg
         # Z is constant at .35
-        pos_hoop = np.array([pos_curr[0] + o_d['hoop_vec'], .875, .35])
+        pos_hoop = np.array([o_d['hoop_x'], .875, .35])
 
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > .04:
             return pos_ball + np.array([.0, .0, .3])
@@ -47,9 +48,9 @@ class SawyerBasketballV2Policy(Policy):
             return pos_hoop
 
     @staticmethod
-    def _grab_pow(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_ball = o_d['ball_xyz']
+    def _grab_effort(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_ball = o_d['ball_pos']
 
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > 0.04 \
             or abs(pos_curr[2] - pos_ball[2]) > 0.15:

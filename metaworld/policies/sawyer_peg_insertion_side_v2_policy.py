@@ -10,9 +10,10 @@ class SawyerPegInsertionSideV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'peg_xyz': obs[3:-1],
-            'hole_vec': obs[-1]
+            'hand_pos': obs[:3],
+            'peg_pos': obs[3:6],
+            'hole_y': obs[-2],
+            'extra_info': obs[[-3, -1]],
         }
 
     def get_action(self, obs):
@@ -20,22 +21,22 @@ class SawyerPegInsertionSideV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self._desired_xyz(o_d), p=25.)
-        action['grab_pow'] = self._grab_pow(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def _desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_peg = o_d['peg_xyz'] + np.array([.0, .0, .01])
+    def _desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_peg = o_d['peg_pos'] + np.array([.0, .0, .01])
         # lowest X is -.35, doesn't matter if we overshoot
         # Y is given by hole_vec
         # Z is constant at .16
-        pos_hole = np.array([-.35, pos_curr[1] + o_d['hole_vec'], .16])
+        pos_hole = np.array([-.35, o_d['hole_y'], .16])
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > .04:
             return pos_peg + np.array([.0, .0, .3])
@@ -47,9 +48,9 @@ class SawyerPegInsertionSideV2Policy(Policy):
             return pos_hole
 
     @staticmethod
-    def _grab_pow(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_peg = o_d['peg_xyz']
+    def _grab_effort(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_peg = o_d['peg_pos']
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04 \
             or abs(pos_curr[2] - pos_peg[2]) > 0.15:

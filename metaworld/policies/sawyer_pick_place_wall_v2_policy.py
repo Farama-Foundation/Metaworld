@@ -10,9 +10,9 @@ class SawyerPickPlaceWallV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'puck_xyz': obs[3:-3],
-            'goal_vec': obs[-3:]
+            'hand_pos': obs[:3],
+            'puck_pos': obs[3:6],
+            'goal_pos': obs[-3:],
         }
 
     def get_action(self, obs):
@@ -20,19 +20,19 @@ class SawyerPickPlaceWallV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self.desired_xyz(o_d), p=10.)
-        action['grab_pow'] = self.grab_pow(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self.desired_pos(o_d), p=10.)
+        action['grab_effort'] = self.grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_puck = o_d['puck_xyz']
-        goal_vec = o_d['goal_vec']
+    def desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_puck = o_d['puck_pos']
+        pos_goal = o_d['goal_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
@@ -51,16 +51,16 @@ class SawyerPickPlaceWallV2Policy(Policy):
             elif(-0.15 <= pos_curr[0] <= 0.35 and
                     0.60 <= pos_curr[1] <= 0.80 and
                     pos_curr[2] < 0.35):
-                return pos_curr + [goal_vec[0], goal_vec[1], 0]
+                return np.array([pos_goal[0], pos_goal[1], pos_curr[2]])
             # If not at the same Z height as the goal, move up to that plane
-            elif abs(goal_vec[-1]) > 0.04:
-                return pos_curr + np.array([0., 0., goal_vec[-1]])
-            return pos_curr + goal_vec
+            elif abs(pos_curr[2] - pos_goal[2]) > 0.04:
+                return np.array([pos_curr[0], pos_curr[1], pos_goal[2]])
+            return pos_goal
 
     @staticmethod
-    def grab_pow(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_puck = o_d['puck_xyz']
+    def grab_effort(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_puck = o_d['puck_pos']
 
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02 or abs(pos_curr[2] - pos_puck[2]) > 0.1:
             return 0.

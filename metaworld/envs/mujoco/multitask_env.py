@@ -34,7 +34,7 @@ class MultiClassMultiTaskEnv(gym.Env):
         # hardcoded so we don't have to iterate over all envs and check the maximum
         # this is the maximum observation dimension after augmenting observation
         # e.g. adding goal
-        self._max_obs_dim = 9
+        self._max_obs_dim = 12
         self._env_discrete_index = {}
         for task, env_cls in task_env_cls_dict.items():
             task_args = task_args_kwargs[task]['args']
@@ -139,6 +139,8 @@ class MultiClassMultiTaskEnv(gym.Env):
             return tasks
 
     def step(self, action):
+        self.active_env.set_task(is_partially_observable=False)
+
         obs, reward, done, info = self.active_env.step(action)
         obs = self._augment_observation(obs)
         info['task_name'] = self._task_names[self._active_task]
@@ -158,6 +160,8 @@ class MultiClassMultiTaskEnv(gym.Env):
         return obs
 
     def reset(self, **kwargs):
+        self.active_env.set_task(is_partially_observable=False)
+
         obs = self._augment_observation(self.active_env.reset(**kwargs))
         return obs
 
