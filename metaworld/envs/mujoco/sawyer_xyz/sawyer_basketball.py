@@ -28,7 +28,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
-        self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
+        self.goal = np.array([0, 0.9, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -61,7 +61,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
         info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
         return ob, reward, False, info
 
     def _get_pos_objects(self):
@@ -82,26 +82,22 @@ class SawyerBasketballEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        # self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
-        # self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
+        basket_pos = self.goal.copy()
+        self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
+        self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
 
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-
-        obj_goal_pos = self._get_state_rand_vec()
-        goal_pos = obj_goal_pos[-3:]
-        obj_pos_xy = obj_goal_pos[:2]
-        goal_pos_xy = goal_pos[:2]
-
-        while np.linalg.norm(obj_pos_xy - goal_pos_xy) < 0.15:
-            obj_goal_pos = self._get_state_rand_vec()
-            goal_pos = obj_goal_pos[-3:]
-            obj_pos_xy = obj_goal_pos[:2]
-            goal_pos_xy = goal_pos[:2]
-        self.obj_init_pos = np.concatenate((obj_pos_xy, [self.obj_init_pos[-1]]))
-        self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = goal_pos
-        self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
+        if self.random_init:
+            goal_pos = self._get_state_rand_vec()
+            basket_pos = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - basket_pos[:2]) < 0.15:
+                goal_pos = self._get_state_rand_vec()
+                basket_pos = goal_pos[3:]
+            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
+            self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
 
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)

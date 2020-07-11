@@ -28,7 +28,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
-        self._state_goal = np.array([-0.3, 0.6, 0.05])
+        self.goal = np.array([-0.3, 0.6, 0.05])
 
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -67,7 +67,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 

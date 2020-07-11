@@ -25,7 +25,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
             'hand_init_pos': np.array([0, 0.6, 0.2]),
         }
 
-        self._state_goal = np.array([-0.2, 0.7, 0.15])
+        self.goal = np.array([-0.2, 0.7, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -63,7 +63,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
         info =  {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
-        info['goal'] = self._state_goal
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 
