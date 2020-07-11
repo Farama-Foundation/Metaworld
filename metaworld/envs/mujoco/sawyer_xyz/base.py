@@ -107,9 +107,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         self._state_goal = None  # OVERRIDE ME
 
-    def _set_task_inner(self, random_init, obs_type):
+    def _set_task_inner(self, obs_type):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
-        self.random_init = random_init
         self.obs_type = obs_type
 
     def set_task(self, task):
