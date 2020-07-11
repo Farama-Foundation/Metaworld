@@ -13,7 +13,7 @@ class SawyerPegInsertionSideV2Policy(Policy):
             'hand_pos': obs[:3],
             'peg_pos': obs[3:6],
             'hole_y': obs[-2],
-            'extra_info': obs[[-3, -1]],
+            'extra_info': obs[[6, 7, 8, 9, 11]],
         }
 
     def get_action(self, obs):

@@ -12,7 +12,8 @@ class SawyerPickPlaceWallV2Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'puck_pos': obs[3:6],
-            'goal_pos': obs[-3:],
+            'goal_pos': obs[9:],
+            'extra_info': obs[6:9],
         }
 
     def get_action(self, obs):
