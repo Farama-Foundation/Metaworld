@@ -50,6 +50,7 @@ def test_avg_memory_usage():
     assert average < 60
 
 
+@pytest.mark.skip
 def test_from_task_memory_usage():
     target = (ALL_V1_ENVIRONMENTS['reach-v1'], (), {})
     usage = memory_profiler.memory_usage(target)

@@ -211,6 +211,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         pos_hand = self.get_endeff_pos()
         pos_obj = self._get_pos_objects()
+        if len(pos_obj) < 6:
+            assert len(pos_obj) == 3
+            pos_obj = np.hstack((pos_obj, np.array([0., 0., 0.])))
         pos_goal = self._get_pos_goal()
 
         if self._partially_observable:

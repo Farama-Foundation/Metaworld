@@ -213,7 +213,7 @@ def test_all_mt50():
         env = train_env_instances[task.env_name]
         env.set_task(task)
         obs = env.reset()
-        assert np.all(obs[-3:] != np.array([0,0,0]))
+        assert np.any(obs[-3:] != np.array([0,0,0]))
         assert env.observation_space.shape == (12,)
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
