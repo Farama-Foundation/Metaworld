@@ -16,7 +16,7 @@ except ImportError as e:
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
         env = args[0]
-        if not env._task_is_set:
+        if not env._set_task_called:
             raise RuntimeError(
                 'You must call env.set_task before using env.'
                 + func.__name__
@@ -56,22 +56,6 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.init_qvel = self.sim.data.qvel.ravel().copy()
 
         self.seed()
-
-        self._task = None
-
-    @property
-    def _task_is_set(self):
-        return not (self._task is None)
-
-    def set_task(self, is_partially_observable):
-        """Configures the environment for stepping. This must be called before
-        env.step() or env.reset()
-
-        Args:
-            is_partially_observable (bool): Specifies whether the environment
-                is fully observable
-        """
-        self._task = {'partially_observable': is_partially_observable}
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

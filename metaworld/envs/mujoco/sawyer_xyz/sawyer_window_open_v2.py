@@ -14,7 +14,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
             (for consistency with other environments)
         - (6/15/20) Increased max_path_length from 150 to 200
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -41,7 +41,6 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.random_init = random_init
         self.max_path_length = 200
         self.liftThresh = liftThresh
 
@@ -52,8 +51,8 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
     @property

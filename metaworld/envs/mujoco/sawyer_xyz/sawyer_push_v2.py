@@ -18,7 +18,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             i.e. (self._state_goal - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
         lift_thresh = 0.04
 
         goal_low = (-0.1, 0.8, 0.05)
@@ -46,7 +46,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = lift_thresh
         self.max_path_length = 150
 
@@ -62,8 +61,8 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
         self.num_resets = 0

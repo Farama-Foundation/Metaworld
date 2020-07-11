@@ -44,55 +44,76 @@ Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT
 
 
 ### Basics
-We provide two extra API's to extend a [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface for meta-RL and multi-task-RL:
-* `sample_tasks(self, meta_batch_size)`: Return a list of tasks with a length of `meta_batch_size`.
-* `set_task(self, task)`: Set the task of a multi-task environment.
+We provide a `Benchmark` API, that allows constructing environments following the [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface.
+
+To use a `Benchmark`, first construct it (this samples the tasks allowed for one run of an algorithm on the benchmark).
+Then, construct at least one instance of each environment listed in `benchmark.train_classes` and `benchmark.test_classes`.
+For each of those environments, a task must be assigned to it using
+`env.set_task(task)` from `benchmark.train_tasks` and `benchmark.test_tasks`,
+respectively.
+`Tasks` can only be assigned to environments which have a key in
+`benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
+
+Please see below for some small examples using this API.
 
 
 ### Running ML1
-```
-from metaworld.benchmarks import ML1
+```python
+import metaworld
+import random
 
+print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
 
-print(ML1.available_tasks())  # Check out the available tasks
+ml1 = metaworld.ML1('pick-place-v1') # Construct the benchmark, sampling tasks
 
-env = ML1.get_train_tasks('pick-place-v1')  # Create an environment with task `pick_place`
-tasks = env.sample_tasks(1)  # Sample a task (in this case, a goal variation)
-env.set_task(tasks[0])  # Set task
+env = ml1.train_classes['pick-place-v1']()  # Create an environment with task `pick_place`
+task = random.choice(ml1.train_tasks)
+env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
 obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
-### Running ML10 and ML45
+
+### Running a benchmark:
+ML10, MT10, ML45 and MT50
 Create an environment with train tasks:
-```
-from metaworld.benchmarks import ML10
-ml10_train_env = ML10.get_train_tasks()
-```
-Create an environment with test tasks:
-```
-ml10_test_env = ML10.get_test_tasks()
-```
+```python
+import metaworld
+import random
 
+ml10 = metaworld.ML10() # Construct the benchmark, sampling tasks
 
-### Running MT10 and MT50
-Create an environment with train tasks:
-```
-from metaworld.benchmarks import MT10
-mt10_train_env = MT10.get_train_tasks()
-```
+training_envs = []
+for name, env_cls in ml10.train_classes.items():
+  env = env_cls()
+  task = random.choice([task for task in ml10.train_tasks
+                        if task.env_name == name])
+  env.set_task(task)
 
-Create an environment with test tasks (noted that the train tasks and test tasks for multi-task (MT) environments are the same):
+for env in training_envs:
+  obs = env.reset()  # Reset environment
+  a = env.action_space.sample()  # Sample an action
+  obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
-mt10_test_env = MT10.get_test_tasks()
-```
+Create an environment with test tasks (noted that the train environments and test environments for multi-task (MT) benchmarks are the same):
+```python
+import metaworld
+import random
 
-### Running Single-Task Environments
-Meta-World can also be used as a normal `gym.Env` for single task benchmarking. Here is an example of creating a `pick_place` environoment:
-```
-from metaworld.envs.mujoco.sawyer_xyz import SawyerReachPushPickPlaceEnv
-env = SawyerReachPushPickPlaceEnv()
+ml10 = metaworld.ML10() # Construct the benchmark, sampling tasks
+
+testing_envs = []
+for name, env_cls in ml10.test_classes.items():
+  env = env_cls()
+  task = random.choice([task for task in ml10.test_tasks
+                        if task.env_name == name])
+  env.set_task(task)
+
+for env in testing_envs:
+  obs = env.reset()  # Reset environment
+  a = env.action_space.sample()  # Sample an action
+  obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
 
 ## Citing Meta-World

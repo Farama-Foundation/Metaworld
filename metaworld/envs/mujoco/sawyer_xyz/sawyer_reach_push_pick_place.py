@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self):
         liftThresh = 0.04
         goal_low=(-0.1, 0.8, 0.05)
         goal_high=(0.1, 0.9, 0.3)
@@ -24,12 +24,36 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.task_type = task_type
+        self.task_type = None
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.02]),
             'hand_init_pos': np.array([0, .6, .2]),
         }
+
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.hand_init_pos = self.init_config['hand_init_pos']
+
+        self.liftThresh = liftThresh
+        self.max_path_length = 150
+
+        self.obj_and_goal_space = Box(
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_high, goal_high)),
+        )
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
+        self.observation_space = Box(
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
+        )
+
+        self.num_resets = 0
+
+    def _set_task_inner(self, *, task_type, **kwargs):
+        super()._set_task_inner(**kwargs)
+        self.task_type = task_type
 
         # we only do one task from [pick_place, reach, push]
         # per instance of SawyerReachPushPickPlaceEnv.
@@ -42,27 +66,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
             self.goal = np.array([0.1, 0.8, 0.02])
         else:
             raise NotImplementedError
-
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.random_init = random_init
-        self.liftThresh = liftThresh
-        self.max_path_length = 150
-
-        self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
-        )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
-        )
-
-        self.num_resets = 0
 
     @property
     def model_name(self):
@@ -122,25 +125,17 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._state_goal = self._get_state_rand_vec()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self._state_goal = goal_pos[3:]
             while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
                 self._state_goal = goal_pos[3:]
             if self.task_type == 'push':
                 self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))

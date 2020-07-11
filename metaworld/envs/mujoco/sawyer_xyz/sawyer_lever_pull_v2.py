@@ -16,7 +16,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
             This ensures that the target point is above the table.
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -40,7 +40,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.random_init = random_init
         self.max_path_length = 150
 
         self.obj_and_goal_space = Box(
@@ -50,8 +49,8 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
     @property

@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
@@ -39,6 +38,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnp
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
@@ -145,25 +145,6 @@ EASY_MODE_CLS_DICT = OrderedDict((
     ('window-close-v1', SawyerWindowCloseEnv)),)
 
 
-'''
-    MT10 environments and arguments.
-    Example usage:
-
-        from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
-        from metaworld.envs.mujoco.env_dict import EASY_MODE_CLS_DICT, EASY_MODE_ARGS_KWARGS, SHARE_CLS_DEFAULT_GOALS
-
-        env = MultiClassMultiTaskEnv(
-            task_env_cls_dict=EASY_MODE_CLS_DICT,
-            task_args_kwargs=EASY_MODE_ARGS_KWARGS,
-            sample_goals=False,
-            obs_type='with_goal_id',
-        )
-        goals_dict = {
-            t: [e.goal.copy()]
-            for t, e in zip(env._task_names, env._task_envs)
-        }
-        env.discretize_goal_space(goals_dict)
-'''
 EASY_MODE_ARGS_KWARGS = {
     key: dict(args=[],
               kwargs={
@@ -171,25 +152,11 @@ EASY_MODE_ARGS_KWARGS = {
               })
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
+
 EASY_MODE_ARGS_KWARGS['reach-v1']['kwargs']['task_type'] = 'reach'
 EASY_MODE_ARGS_KWARGS['push-v1']['kwargs']['task_type'] = 'push'
 EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
-'''
-    ML10 environments and arguments
-    Example usage for meta-training:
 
-        from metaworld.envs.mujoco.multitask_env import MultiClassMultiTaskEnv
-        from metaworld.envs.mujoco.env_dict import MEDIUM_MODE_CLS_DICT, MEDIUM_MODE_ARGS_KWARGS
-
-        # goals are sampled and set anyways so we don't care about the default goal of reach
-        # pick_place, push are the same.
-        env = MultiClassMultiTaskEnv(
-            task_env_cls_dict=MEDIUM_MODE_CLS_DICT['train'],
-            task_args_kwargs=MEDIUM_MODE_ARGS_KWARGS['train'],
-            sample_goals=True,
-            obs_type='plain',
-        )
-'''
 
 MEDIUM_MODE_CLS_DICT = OrderedDict((
     ('train',
@@ -216,7 +183,6 @@ MEDIUM_MODE_CLS_DICT = OrderedDict((
 ))
 medium_mode_train_args_kwargs = {
     key: dict(args=[], kwargs={
-        'random_init': True,
         'task_id' : list(ALL_V1_ENVIRONMENTS.keys()).index(key),
     })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
@@ -304,7 +270,7 @@ HARD_MODE_CLS_DICT = OrderedDict((
 def _hard_mode_args_kwargs(env_cls_, key_):
     del env_cls_
 
-    kwargs = dict(random_init=True, task_id=list(ALL_V1_ENVIRONMENTS.keys()).index(key_))
+    kwargs = dict(task_id=list(ALL_V1_ENVIRONMENTS.keys()).index(key_))
     if key_ == 'reach-v1' or key_ == 'reach-wall-v1':
         kwargs['task_type'] = 'reach'
     elif key_ == 'push-v1' or key_ == 'push-wall-v1':

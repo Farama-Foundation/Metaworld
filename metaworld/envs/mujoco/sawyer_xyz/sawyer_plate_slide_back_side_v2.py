@@ -18,7 +18,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             (for consistency with other environments)
         - (6/22/20) Cabinet now sits on ground, instead of .02 units above it
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         goal_low = (-0.1, 0.6, 0.015)
         goal_high = (0.1, 0.6, 0.015)
@@ -32,8 +32,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -54,8 +52,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, goal_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
     @property
