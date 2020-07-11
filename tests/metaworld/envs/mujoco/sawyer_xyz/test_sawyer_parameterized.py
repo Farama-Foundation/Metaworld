@@ -21,14 +21,16 @@ def env(request):
     env.close()
 
 def test_all_envs_step(env):
+    env.set_task(is_partially_observable=False)
     step_env(env, max_path_length=10)
 
 def test_obs_type(env):
+    env.set_task(is_partially_observable=False)
     o = env.reset()
     o_g = env._get_obs()
     space = env.observation_space
-    assert space.shape == o.shape, 'type: {}, env: {}'.format(t, env)
-    assert space.shape == o_g.shape, 'type: {}, env: {}'.format(t, env)
+    assert space.shape == o.shape, 'env: {}'.format(env)
+    assert space.shape == o_g.shape, 'env: {}'.format(env)
 
 def test_discretize_goal_space(env):
     discrete_goals = env.sample_goals_(2)
@@ -47,6 +49,7 @@ def test_discretize_goal_space(env):
 # I leave two environment's refactoring at the end since they
 # contain more than one task.
 def test_init_config(env):
+    env.set_task(is_partially_observable=False)
     env.reset()
     assert 'init_config' in dir(env)
     assert np.all(env.goal_space.shape == env.goal.shape), 'goal: {}, goal_high: {}, goal_low: {}'.format(env.goal, env.goal_space.high, env.goal_space.low)

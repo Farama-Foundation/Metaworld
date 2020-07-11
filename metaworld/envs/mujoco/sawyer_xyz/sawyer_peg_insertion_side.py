@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPegInsertionSideEnv(SawyerXYZEnv):
@@ -39,28 +39,24 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
         self.hand_init_pos = np.array(hand_init_pos)
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, self.goal_low)),
             np.hstack((obj_high, self.goal_high)),
         )
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, self.goal_low)),
+            np.hstack((self.hand_high, obj_high, self.goal_high)),
         )
+
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
+
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_peg_insertion_side.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -75,22 +71,8 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.get_body_com('peg')
-        flat_obs = np.concatenate((hand, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.get_body_com('peg')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()

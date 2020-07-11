@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPlateSlideEnvV2(SawyerXYZEnv):
@@ -11,6 +11,8 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         V1 was very difficult to solve because the observation didn't say where
         the cabinet was along the X axis
     Changelog from V1 to V2:
+        - (7/7/20) Removed 1 element vector. Replaced with 3 element position
+            of the cabinet (for consistency with other environments)
         - (6/22/20) Added a 1 element vector to the observation. This vector
             points from the end effector to the cabinet in the X direction.
             i.e. (self._state_goal - pos_hand)[0]
@@ -44,30 +46,24 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        hand_to_goal_max_x = self.hand_high[0] - np.array(goal_low)[0]
+
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, -hand_to_goal_max_x)),
-            np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_plate_slide.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -88,20 +84,8 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        pos_hand = self.get_endeff_pos()
-        pos_obj = self.data.get_geom_xpos('objGeom')
-        pos_cabinet = (self._state_goal - pos_hand)[0]
-
-        flat_obs = np.hstack((pos_hand, pos_obj, pos_cabinet))
-        return np.concatenate([flat_obs, ])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (

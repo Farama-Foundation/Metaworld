@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
@@ -11,13 +11,15 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         V1 was difficult to solve because the observation didn't say where
         to move after picking up the puck.
     Changelog from V1 to V2:
+        - (7/7/20) Removed 3 element vector. Replaced with 3 element position
+            of the goal (for consistency with other environments)
         - (6/24/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
             i.e. (self._state_goal - pos_hand)
         - (6/24/20) Separated pick-place-wall into from
           reach-push-pick-place-wall.
     """
-    def __init__(self, random_init=False, task_type='pick_place'):
+    def __init__(self, random_init=False):
 
         liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
@@ -49,11 +51,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -61,19 +58,18 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, np.array(goal_low) - self.hand_high)),
-            np.hstack((self.hand_high, obj_high,self.hand_high - np.array(goal_low))),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self.num_resets = 0
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_place_wall_v2.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -98,20 +94,8 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.curr_path_length +=1
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        obj_pos =  self.data.get_geom_xpos('objGeom')
-        hand_to_goal = self._state_goal - hand
-
-        flat_obs = np.concatenate((hand, obj_pos, hand_to_goal))
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]

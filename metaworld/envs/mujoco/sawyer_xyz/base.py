@@ -2,11 +2,12 @@ import abc
 import copy
 import pickle
 
+from gym.spaces import Box
 from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
-from metaworld.envs.mujoco.mujoco_env import MujocoEnv
+from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
@@ -98,18 +99,26 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-    def _set_task_inner(self, random_init):
-        # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
-        self.random_init = random_init
+        self.action_space = Box(
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
+        )
 
-    def set_task(self, task):
-        data = pickle.loads(task.data)
-        assert isinstance(self, data['env_cls'])
-        del data['env_cls']
-        self._last_rand_vec = data['rand_vec']
-        del data['rand_vec']
+        self._state_goal = None  # OVERRIDE ME
+        self.random_init = None
+        self._partially_observable = None
+
+    def _set_task_inner(self):
+        assert isinstance(self, self._task['env_cls'])
+        del self._task['env_cls']
+
+        self._last_rand_vec = self._task['rand_vec']
+        del self._task['rand_vec']
         self._freeze_rand_vec = True
-        self._set_task_inner(**data)
+
+        self.random_init = self._task['random_init']
+        self._partially_observable = self._task['partially_observable']
+
         super().reset()
 
     def set_xyz_action(self, action):
@@ -166,6 +175,52 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         _id = self.model.site_names.index(siteName)
         return self.data.site_xpos[_id].copy()
 
+    def _get_pos_objects(self):
+        """Retrieves object position(s) from mujoco properties or instance vars
+
+        Returns:
+            np.ndarray: Flat array (usually 3 elements) representing the
+                object(s)' position(s)
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
+
+    def _get_pos_goal(self):
+        """Retrieves goal position from mujoco properties or instance vars
+
+        Returns:
+            np.ndarray: Flat array (3 elements) representing the goal position
+        """
+        assert isinstance(self._state_goal, np.ndarray)
+        assert self._state_goal.ndim == 1
+        return self._state_goal
+
+    def _get_obs(self):
+        """Combines positions of the end effector, object(s) and goal into a
+        single flat observation
+
+        Returns:
+            np.ndarray: The flat observation array (usually 9 elements)
+        """
+        pos_hand = self.get_endeff_pos()
+        pos_obj = self._get_pos_objects()
+        pos_goal = self._get_pos_goal()
+
+        if self._partially_observable:
+            pos_goal = np.zeros_like(pos_goal)
+
+        return np.hstack((pos_hand, pos_obj, pos_goal))
+
+    def _get_obs_dict(self):
+        obs = self._get_obs()
+        return dict(
+            state_observation=obs,
+            state_desired_goal=self._get_pos_goal(),
+            state_achieved_goal=obs[3:-3],
+        )
+
+    @_assert_task_is_set
     def reset(self):
         self.curr_path_length = 0
         if self._freeze_rand_vec:
@@ -176,7 +231,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             assert np.allclose(self.obj_init_pos, old_obj_pos)
             return result
         else:
-            return super().reset()
+            result = super().reset()
+            self._freeze_rand_vec = True
+            return result
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:

@@ -1,6 +1,6 @@
 import numpy as np
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv, _assert_task_is_set
 
 
 class SawyerDoorCloseEnv(SawyerDoorEnv):
@@ -18,8 +18,6 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
 
     def reset_model(self):
         self._reset_hand()

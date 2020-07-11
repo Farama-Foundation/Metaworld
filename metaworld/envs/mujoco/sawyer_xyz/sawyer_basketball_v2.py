@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerBasketballEnvV2(SawyerXYZEnv):
@@ -11,6 +11,8 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         V1 was difficult to solve because the observation didn't say where
         to drop the ball (the hoop's location).
     Changelog from V1 to V2:
+        - (7/7/20) Removed 1 element vector. Replaced with 3 element position
+            of the hoop (for consistency with other environments)
         - (6/16/20) Added a 1 element vector to the observation. This vector
             points from the end effector to the hoop in the X direction.
             i.e. (self._state_goal - pos_hand)[0]
@@ -46,28 +48,24 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.max_path_length = 150
         self.liftThresh = liftThresh
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        hand_to_goal_max_x = self.hand_high[0] - np.array(goal_low)[0]
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, -hand_to_goal_max_x)),
-            np.hstack((self.hand_high, obj_high, hand_to_goal_max_x)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
+
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
+
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_basketball.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -81,20 +79,8 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         info['goal'] = self.goal
         return ob, reward, False, info
 
-    def _get_obs(self):
-        pos_hand = self.get_endeff_pos()
-        pos_obj = self.data.get_geom_xpos('objGeom')
-        hand_to_goal = (self._state_goal - pos_hand)[0]
-
-        flat_obs = np.hstack((pos_hand, pos_obj, hand_to_goal))
-        return np.concatenate([flat_obs, ])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (

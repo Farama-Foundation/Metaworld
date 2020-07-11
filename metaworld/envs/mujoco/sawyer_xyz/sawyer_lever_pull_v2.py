@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerLeverPullEnvV2(SawyerXYZEnv):
@@ -11,6 +11,8 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         V1 was impossible to solve because the lever would have to be pulled
         through the table in order to reach the target location.
     Changelog from V1 to V2:
+        - (7/7/20) Added 3 element lever position to the observation
+            (for consistency with other environments)
         - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
             This ensures that the target point is above the table.
     """
@@ -41,11 +43,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.random_init = random_init
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -53,18 +50,18 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, goal_high)),
         )
 
         self._freeze_rand_vec = False
-        self.reset()
-        self._freeze_rand_vec = True
+
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_lever_pull.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -79,12 +76,8 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('leverStart')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
+    def _get_pos_objects(self):
+        return self.get_site_pos('leverStart')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (

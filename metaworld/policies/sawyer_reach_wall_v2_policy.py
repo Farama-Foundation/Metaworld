@@ -9,9 +9,9 @@ class SawyerReachWallV2Policy(Policy):
     @staticmethod
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'obj_xyz': obs[3:-3],
-            'goal_vec': obs[-3:]
+            'hand_pos': obs[:3],
+            'puck_pos': obs[3:6],
+            'goal_pos': obs[-3:],
         }
 
     def get_action(self, obs):
@@ -19,29 +19,22 @@ class SawyerReachWallV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(
-            o_d['hand_xyz'],
-            to_xyz=self.desired_xyz(o_d), p=5.
-        )
-        action['grab_pow'] = self.grab_pow(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=5.)
+        action['grab_effort'] = 0.
 
         return action.array
 
     @staticmethod
-    def desired_xyz(o_d):
-        pos_hand = o_d['hand_xyz']
+    def _desired_pos(o_d):
+        pos_hand = o_d['hand_pos']
+        pos_goal = o_d['goal_pos']
         # if the hand is going to run into the wall, go up while still moving
         # towards the goal position.
         if(-0.1 <= pos_hand[0] <= 0.3 and
                 0.60 <= pos_hand[1] <= 0.80 and
                 pos_hand[2] < 0.2):
-            return o_d['hand_xyz'] + \
-                [o_d['goal_vec'][0], o_d['goal_vec'][1], 1]
-        return o_d['hand_xyz'] + o_d['goal_vec']
-
-    @staticmethod
-    def grab_pow(o_d):
-        return 0.
+            return pos_goal + np.array([0., 0., 1.])
+        return pos_goal
