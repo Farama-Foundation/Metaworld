@@ -88,6 +88,9 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
         env._freeze_rand_vec = False
         env._set_task_called = True
         rand_vecs = []
+        kwargs = args['kwargs'].copy()
+        del kwargs['task_id']
+        env._set_task_inner(**kwargs)
         for _ in range(_N_GOALS):
             env.reset()
             rand_vecs.append(env._last_rand_vec)

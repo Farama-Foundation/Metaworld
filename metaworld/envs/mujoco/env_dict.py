@@ -1,8 +1,5 @@
 from collections import OrderedDict
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place import SawyerPickPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push import SawyerPushEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
@@ -41,10 +38,8 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnp
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall import SawyerReachWallEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall import SawyerPushWallEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_wall import SawyerPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_wall_v2 import SawyerPickPlaceWallEnvV2
@@ -67,9 +62,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import Sawyer
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import SawyerPlateSlideBackSideEnvV2
 
 ALL_V1_ENVIRONMENTS = OrderedDict((
-    ('reach-v1', SawyerReachEnv),
-    ('push-v1', SawyerPushEnv),
-    ('pick-place-v1', SawyerPickPlaceEnv),
+    ('reach-v1', SawyerReachPushPickPlaceEnv),
+    ('push-v1', SawyerReachPushPickPlaceEnv),
+    ('pick-place-v1', SawyerReachPushPickPlaceEnv),
     ('door-open-v1', SawyerDoorEnv),
     ('drawer-open-v1', SawyerDrawerOpenEnv),
     ('drawer-close-v1', SawyerDrawerCloseEnv),
@@ -78,9 +73,9 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('window-open-v1', SawyerWindowOpenEnv),
     ('window-close-v1', SawyerWindowCloseEnv),
     ('door-close-v1', SawyerDoorCloseEnv),
-    ('reach-wall-v1', SawyerReachWallEnv),
-    ('pick-place-wall-v1', SawyerPickPlaceWallEnv),
-    ('push-wall-v1', SawyerPushWallEnv),
+    ('reach-wall-v1', SawyerReachPushPickPlaceWallEnv),
+    ('pick-place-wall-v1', SawyerReachPushPickPlaceWallEnv),
+    ('push-wall-v1', SawyerReachPushPickPlaceWallEnv),
     ('button-press-v1', SawyerButtonPressEnv),
     ('button-press-topdown-wall-v1', SawyerButtonPressTopdownWallEnv),
     ('button-press-wall-v1', SawyerButtonPressWallEnv),
@@ -138,9 +133,9 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
 
 EASY_MODE_CLS_DICT = OrderedDict((
-    ('reach-v1', SawyerReachEnv),
-    ('push-v1', SawyerPushEnv),
-    ('pick-place-v1', SawyerPickPlaceEnv),
+    ('reach-v1', SawyerReachPushPickPlaceEnv),
+    ('push-v1', SawyerReachPushPickPlaceEnv),
+    ('pick-place-v1', SawyerReachPushPickPlaceEnv),
     ('door-open-v1', SawyerDoorEnv),
     ('drawer-open-v1', SawyerDrawerOpenEnv),
     ('drawer-close-v1', SawyerDrawerCloseEnv),
@@ -158,13 +153,17 @@ EASY_MODE_ARGS_KWARGS = {
     for key, _ in EASY_MODE_CLS_DICT.items()
 }
 
+EASY_MODE_ARGS_KWARGS['reach-v1']['kwargs']['task_type'] = 'reach'
+EASY_MODE_ARGS_KWARGS['push-v1']['kwargs']['task_type'] = 'push'
+EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
+
 
 MEDIUM_MODE_CLS_DICT = OrderedDict((
     ('train',
         OrderedDict((
-            ('reach-v1', SawyerReachEnv),
-            ('push-v1', SawyerPushEnv),
-            ('pick-place-v1', SawyerPickPlaceEnv),
+            ('reach-v1', SawyerReachPushPickPlaceEnv),
+            ('push-v1', SawyerReachPushPickPlaceEnv),
+            ('pick-place-v1', SawyerReachPushPickPlaceEnv),
             ('door-open-v1', SawyerDoorEnv),
             ('drawer-close-v1', SawyerDrawerCloseEnv),
             ('button-press-topdown-v1', SawyerButtonPressTopdownEnv),
@@ -194,6 +193,11 @@ medium_mode_test_args_kwargs = {
     for key, _ in MEDIUM_MODE_CLS_DICT['test'].items()
 }
 
+medium_mode_train_args_kwargs['reach-v1']['kwargs']['task_type'] = 'reach'
+medium_mode_train_args_kwargs['push-v1']['kwargs']['task_type'] = 'push'
+medium_mode_train_args_kwargs['pick-place-v1']['kwargs'][
+    'task_type'] = 'pick_place'
+
 MEDIUM_MODE_ARGS_KWARGS = dict(
     train=medium_mode_train_args_kwargs,
     test=medium_mode_test_args_kwargs,
@@ -204,9 +208,9 @@ MEDIUM_MODE_ARGS_KWARGS = dict(
 HARD_MODE_CLS_DICT = OrderedDict((
     ('train',
         OrderedDict((
-            ('reach-v1', SawyerReachEnv),
-            ('push-v1', SawyerPushEnv),
-            ('pick-place-v1', SawyerPickPlaceEnv),
+            ('reach-v1', SawyerReachPushPickPlaceEnv),
+            ('push-v1', SawyerReachPushPickPlaceEnv),
+            ('pick-place-v1', SawyerReachPushPickPlaceEnv),
             ('door-open-v1', SawyerDoorEnv),
             ('drawer-open-v1', SawyerDrawerOpenEnv),
             ('drawer-close-v1', SawyerDrawerCloseEnv),
@@ -215,9 +219,9 @@ HARD_MODE_CLS_DICT = OrderedDict((
             ('window-open-v1', SawyerWindowOpenEnv),
             ('window-close-v1', SawyerWindowCloseEnv),
             ('door-close-v1', SawyerDoorCloseEnv),
-            ('reach-wall-v1', SawyerReachWallEnv),
-            ('pick-place-wall-v1', SawyerPickPlaceWallEnv),
-            ('push-wall-v1', SawyerPushWallEnv),
+            ('reach-wall-v1', SawyerReachPushPickPlaceWallEnv),
+            ('pick-place-wall-v1', SawyerReachPushPickPlaceWallEnv),
+            ('push-wall-v1', SawyerReachPushPickPlaceWallEnv),
             ('button-press-v1', SawyerButtonPressEnv),
             ('button-press-topdown-wall-v1', SawyerButtonPressTopdownWallEnv),
             ('button-press-wall-v1', SawyerButtonPressWallEnv),
@@ -267,6 +271,12 @@ def _hard_mode_args_kwargs(env_cls_, key_):
     del env_cls_
 
     kwargs = dict(task_id=list(ALL_V1_ENVIRONMENTS.keys()).index(key_))
+    if key_ == 'reach-v1' or key_ == 'reach-wall-v1':
+        kwargs['task_type'] = 'reach'
+    elif key_ == 'push-v1' or key_ == 'push-wall-v1':
+        kwargs['task_type'] = 'push'
+    elif key_ == 'pick-place-v1' or key_ == 'pick-place-wall-v1':
+        kwargs['task_type'] = 'pick_place'
     return dict(args=[], kwargs=kwargs)
 
 

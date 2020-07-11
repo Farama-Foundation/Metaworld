@@ -84,7 +84,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self._state_goal.copy()
+        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array([-0.3, 0.6, 0.05])
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('peg').copy()[2]
