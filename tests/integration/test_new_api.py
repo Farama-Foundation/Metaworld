@@ -14,12 +14,12 @@ STEPS = 3
 @pytest.mark.parametrize('env_name', ML1.ENV_NAMES)
 def test_all_ml1(env_name):
     ml1 = ML1(env_name)
-    train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in ml1.train_classes.items()}
+    train_env_instances = {env_name: env_cls()
+                           for (env_name, env_cls) in ml1.train_classes.items()}
     train_env_rand_vecs = check_tasks_unique(ml1.train_tasks,
                                        ml1._train_classes.keys())
     for task in ml1.train_tasks:
-        env = train_env_instances[task.env_id]
+        env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -32,12 +32,12 @@ def test_all_ml1(env_name):
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_id: env_cls()
-                          for (env_id, env_cls) in ml1.test_classes.items()}
+    test_env_instances = {env_name: env_cls()
+                          for (env_name, env_cls) in ml1.test_classes.items()}
     test_env_rand_vecs = check_tasks_unique(ml1.test_tasks,
                                        ml1._test_classes.keys())
     for task in ml1.test_tasks:
-        env = test_env_instances[task.env_id]
+        env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -61,12 +61,12 @@ def test_all_ml1(env_name):
 
 def test_all_ml10():
     ml10 = ML10()
-    train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in ml10.train_classes.items()}
+    train_env_instances = {env_name: env_cls()
+                           for (env_name, env_cls) in ml10.train_classes.items()}
     train_env_rand_vecs = check_tasks_unique(ml10.train_tasks,
                                        ml10._train_classes.keys())
     for task in ml10.train_tasks:
-        env = train_env_instances[task.env_id]
+        env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -80,12 +80,12 @@ def test_all_ml10():
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_id: env_cls()
-                          for (env_id, env_cls) in ml10.test_classes.items()}
+    test_env_instances = {env_name: env_cls()
+                          for (env_name, env_cls) in ml10.test_classes.items()}
     test_env_rand_vecs = check_tasks_unique(ml10.test_tasks,
                                        ml10._test_classes.keys())
     for task in ml10.test_tasks:
-        env = test_env_instances[task.env_id]
+        env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -110,12 +110,12 @@ def test_all_ml10():
 
 def test_all_ml45():
     ml45 = ML45()
-    train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in ml45.train_classes.items()}
+    train_env_instances = {env_name: env_cls()
+                           for (env_name, env_cls) in ml45.train_classes.items()}
     train_env_rand_vecs = check_tasks_unique(ml45.train_tasks,
                                        ml45._train_classes.keys())
     for task in ml45.train_tasks:
-        env = train_env_instances[task.env_id]
+        env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -126,15 +126,15 @@ def test_all_ml45():
         assert np.all(np.allclose(old_state_goal, env._state_goal))
     for env in train_env_instances.values():
         env.close()
-    
+
     del train_env_instances
 
-    test_env_instances = {env_id: env_cls()
-                          for (env_id, env_cls) in ml45.test_classes.items()}
+    test_env_instances = {env_name: env_cls()
+                          for (env_name, env_cls) in ml45.test_classes.items()}
     test_env_rand_vecs = check_tasks_unique(ml45.test_tasks,
                                        ml45._test_classes.keys())
     for task in ml45.test_tasks:
-        env = test_env_instances[task.env_id]
+        env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         old_obj_init = env.obj_init_pos
@@ -157,12 +157,12 @@ def test_all_ml45():
 
 def test_all_mt10():
     mt10 = MT10()
-    train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in mt10.train_classes.items()}
+    train_env_instances = {env_name: env_cls()
+                           for (env_name, env_cls) in mt10.train_classes.items()}
     train_env_rand_vecs = check_tasks_unique(mt10.train_tasks,
                                        mt10._train_classes.keys())
     for task in mt10.train_tasks:
-        env = train_env_instances[task.env_id]
+        env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         old_obj_init = env.obj_init_pos
@@ -174,12 +174,12 @@ def test_all_mt10():
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_id: env_cls()
-                          for (env_id, env_cls) in mt10.test_classes.items()}
+    test_env_instances = {env_name: env_cls()
+                          for (env_name, env_cls) in mt10.test_classes.items()}
     test_env_rand_vecs = check_tasks_unique(mt10.test_tasks,
                                        mt10._test_classes.keys())
     for task in mt10.test_tasks:
-        env = test_env_instances[task.env_id]
+        env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -203,12 +203,12 @@ def test_all_mt10():
 
 def test_all_mt50():
     mt50 = MT50()
-    train_env_instances = {env_id: env_cls()
-                           for (env_id, env_cls) in mt50.train_classes.items()}
+    train_env_instances = {env_name: env_cls()
+                           for (env_name, env_cls) in mt50.train_classes.items()}
     train_env_rand_vecs = check_tasks_unique(mt50.train_tasks,
                                        mt50._train_classes.keys())
     for task in mt50.train_tasks:
-        env = train_env_instances[task.env_id]
+        env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         assert env.random_init == True
@@ -223,12 +223,12 @@ def test_all_mt50():
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_id: env_cls()
-                          for (env_id, env_cls) in mt50.test_classes.items()}
+    test_env_instances = {env_name: env_cls()
+                          for (env_name, env_cls) in mt50.test_classes.items()}
     test_env_rand_vecs = check_tasks_unique(mt50.test_tasks,
                                        mt50._test_classes.keys())
     for task in mt50.test_tasks:
-        env = test_env_instances[task.env_id]
+        env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
         old_obj_init = env.obj_init_pos
@@ -254,8 +254,8 @@ def check_tasks_unique(tasks, env_names):
     env_to_rand_vecs = {}
     for env_name in env_names:
         env_to_rand_vecs[env_name] = np.array(
-            [pickle.loads(task.data)['rand_vec'] 
-            for task in tasks if (task.env_id==env_name)])
+            [pickle.loads(task.data)['rand_vec']
+            for task in tasks if (task.env_name==env_name)])
         unique_task_rand_vecs = np.unique(np.array(env_to_rand_vecs[env_name]), axis=0)
         assert unique_task_rand_vecs.shape[0] == metaworld._N_GOALS
     return env_to_rand_vecs
@@ -263,15 +263,15 @@ def check_tasks_unique(tasks, env_names):
 
 def check_state_goals_unique(env_instances, env_rand_vecs):
     """Verify that all the state_goals are unique for the different rand_vecs that are sampled.
-    
+
     Note: The following envs randomize object initial position but not state_goal.
     ['hammer-v1', 'sweep-into-v1', 'bin-picking-v1']
 
     """
-    for env_id, rand_vecs in env_rand_vecs.items():
-        if env_id in set(['hammer-v1', 'sweep-into-v1', 'bin-picking-v1']):
+    for env_name, rand_vecs in env_rand_vecs.items():
+        if env_name in set(['hammer-v1', 'sweep-into-v1', 'bin-picking-v1']):
             continue
-        env = env_instances[env_id]
+        env = env_instances[env_name]
         state_goals = []
         for rand_vec in rand_vecs:
             env._last_rand_vec = rand_vec

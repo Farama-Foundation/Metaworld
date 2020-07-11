@@ -44,9 +44,17 @@ Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT
 
 
 ### Basics
-We provide two extra API's to extend a [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface for meta-RL and multi-task-RL:
-* `sample_tasks(self, meta_batch_size)`: Return a list of tasks with a length of `meta_batch_size`.
-* `set_task(self, task)`: Set the task of a multi-task environment.
+We provide a `Benchmark` API, that allows constructing environments following the [`gym.Env`](https://github.com/openai/gym/blob/c33cfd8b2cc8cac6c346bc2182cd568ef33b8821/gym/core.py#L8) interface.
+
+To use a `Benchmark`, first construct it (this samples the tasks allowed for one run of an algorithm on the benchmark).
+Then, construct at least one instance of each environment listed in `benchmark.train_classes` and `benchmark.test_classes`.
+For each of those environments, a task must be assigned to it using
+`env.set_task(task)` from `benchmark.train_tasks` and `benchmark.test_tasks`,
+respectively.
+`Tasks` can only be assigned to environments which have a key in
+`benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
+
+Please see below for some small examples using this API.
 
 
 ### Running ML1
@@ -80,7 +88,7 @@ training_envs = []
 for name, env_cls in ml10.train_classes.items():
   env = env_cls()
   task = random.choice([task for task in ml10.train_tasks
-                        if task.env_id == name])
+                        if task.env_name == name])
   env.set_task(task)
 
 for env in training_envs:
@@ -99,7 +107,7 @@ testing_envs = []
 for name, env_cls in ml10.test_classes.items():
   env = env_cls()
   task = random.choice([task for task in ml10.test_tasks
-                        if task.env_id == name])
+                        if task.env_name == name])
   env.set_task(task)
 
 for env in testing_envs:

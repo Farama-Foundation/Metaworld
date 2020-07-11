@@ -8,7 +8,7 @@ import metaworld.envs.mujoco.env_dict as _env_dict
 import numpy as np
 
 
-EnvID = str
+EnvName = str
 
 
 class Task(NamedTuple):
@@ -17,7 +17,7 @@ class Task(NamedTuple):
     Should be passed into a MetaWorldEnv's set_task method.
     """
 
-    env_id: EnvID
+    env_name: EnvName
     data: bytes  # Contains env parameters like random_init and *a* goal
 
 
@@ -32,7 +32,7 @@ class MetaWorldEnv:
         """Set the task.
 
         Raises:
-            ValueError: If task.env_id is different from the current task.
+            ValueError: If task.env_name is different from the current task.
 
         """
 
@@ -48,12 +48,12 @@ class Benchmark(abc.ABC):
         pass
 
     @property
-    def train_classes(self) -> 'OrderedDict[EnvID, Type]':
+    def train_classes(self) -> 'OrderedDict[EnvName, Type]':
         """Get all of the environment classes used for training."""
         return self._train_classes
 
     @property
-    def test_classes(self) -> 'OrderedDict[EnvID, Type]':
+    def test_classes(self) -> 'OrderedDict[EnvName, Type]':
         """Get all of the environment classes used for testing."""
         return self._test_classes
 
@@ -74,15 +74,15 @@ _MT_OVERRIDE = dict(partially_observable=False)
 _N_GOALS = 50
 
 
-def _encode_task(env_id, data):
-    return Task(env_id=env_id, data=pickle.dumps(data))
+def _encode_task(env_name, data):
+    return Task(env_name=env_name, data=pickle.dumps(data))
 
 
 def _make_tasks(classes, args_kwargs, kwargs_override):
     tasks = []
-    for (env_id, args) in args_kwargs.items():
+    for (env_name, args) in args_kwargs.items():
         assert len(args['args']) == 0
-        env_cls = classes[env_id]
+        env_cls = classes[env_name]
         env = env_cls()
         env._freeze_rand_vec = False
         env._set_task_called = True
@@ -102,7 +102,7 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
             del kwargs['task_id']
             kwargs.update(dict(rand_vec=rand_vec, env_cls=env_cls))
             kwargs.update(kwargs_override)
-            tasks.append(_encode_task(env_id, kwargs))
+            tasks.append(_encode_task(env_name, kwargs))
     return tasks
 
 
@@ -191,11 +191,11 @@ class MT50(Benchmark):
         # We're going to modify it, so make a copy
         train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'].copy()
         test_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test']
-        for (env_id, cls) in _env_dict.HARD_MODE_CLS_DICT['test'].items():
-            assert env_id not in self._train_classes
-            assert env_id not in train_kwargs
-            self._train_classes[env_id] = cls
-            train_kwargs[env_id] = test_kwargs[env_id]
+        for (env_name, cls) in _env_dict.HARD_MODE_CLS_DICT['test'].items():
+            assert env_name not in self._train_classes
+            assert env_name not in train_kwargs
+            self._train_classes[env_name] = cls
+            train_kwargs[env_name] = test_kwargs[env_name]
         self._test_classes = self._train_classes
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
