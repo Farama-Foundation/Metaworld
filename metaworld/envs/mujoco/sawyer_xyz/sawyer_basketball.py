@@ -97,7 +97,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
                 basket_pos = goal_pos[3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
-            self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
+            self._state_goal = basket_pos + np.array([0, -0.05, 0.1])
 
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)

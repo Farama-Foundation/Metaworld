@@ -83,7 +83,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
     for (env_id, args) in args_kwargs.items():
         assert len(args['args']) == 0
         env_cls = classes[env_id]
-        print(env_id)
         env = env_cls()
         env._freeze_rand_vec = False
         env._set_task_called = True
@@ -133,7 +132,9 @@ class ML1(Benchmark):
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE)
-        self._test_tasks = self._train_tasks
+        self._test_tasks = _make_tasks(self._test_classes,
+                                        {env_name: args_kwargs},
+                                        _ML_OVERRIDE)
 
 
 class ML10(Benchmark):
@@ -171,13 +172,15 @@ class MT10(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.MEDIUM_MODE_CLS_DICT['train']
-        self._test_classes = []
-        train_kwargs = _env_dict.medium_mode_train_args_kwargs
+        self._train_classes = _env_dict.EASY_MODE_CLS_DICT
+        self._test_classes = _env_dict.EASY_MODE_CLS_DICT
+        train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
-        self._test_tasks = OrderedDict()
+        self._test_tasks = _make_tasks(self._test_classes,
+                                        train_kwargs,
+                                        _MT_OVERRIDE)
 
 
 class MT50(Benchmark):
@@ -193,8 +196,10 @@ class MT50(Benchmark):
             assert env_id not in train_kwargs
             self._train_classes[env_id] = cls
             train_kwargs[env_id] = test_kwargs[env_id]
-        self._test_classes = []
+        self._test_classes = self._train_classes
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
-        self._test_tasks = OrderedDict()
+        self._test_tasks = _make_tasks(self._test_classes,
+                                        train_kwargs,
+                                        _MT_OVERRIDE)

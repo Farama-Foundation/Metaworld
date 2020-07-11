@@ -14,7 +14,7 @@ class SawyerCoffeePushEnv(SawyerXYZEnv):
         obj_low = (-0.1, 0.6, 0.)
         obj_high = (0.1, 0.7, 0.)
         goal_low = (-0.1, 0.8, 0.05)
-        goal_high = (-0.1, 0.8, 0.05)
+        goal_high = (0.1, 0.9, 0.3)
 
         super().__init__(
             self.model_name,
