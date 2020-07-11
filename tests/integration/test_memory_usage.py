@@ -2,7 +2,6 @@ import gym
 import memory_profiler
 import pytest
 
-from metaworld.benchmarks import ML45
 from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS
 from tests.helpers import step_env
 
@@ -51,8 +50,7 @@ def test_avg_memory_usage():
     assert average < 60
 
 
-@pytest.mark.skip
 def test_from_task_memory_usage():
-    target = (ML45.from_task, ['reach-v1'], {})
+    target = (ALL_V1_ENVIRONMENTS['reach-v1'], (), {})
     usage = memory_profiler.memory_usage(target)
     assert max(usage) < 250

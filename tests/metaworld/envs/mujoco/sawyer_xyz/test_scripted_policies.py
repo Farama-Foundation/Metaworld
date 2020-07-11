@@ -98,8 +98,10 @@ ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
 @pytest.fixture(scope='function')
 def env(request):
-    e = ALL_ENVS[request.param](random_init=True)
-    e.set_task(False)
+    e = ALL_ENVS[request.param]()
+    e._partially_observable = False
+    e._freeze_rand_vec = False
+    e._set_task_called = True
     return e
 
 
