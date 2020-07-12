@@ -173,14 +173,12 @@ class MT10(Benchmark):
     def __init__(self):
         super().__init__()
         self._train_classes = _env_dict.EASY_MODE_CLS_DICT
-        self._test_classes = _env_dict.EASY_MODE_CLS_DICT
+        self._test_classes = OrderedDict()
         train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
-        self._test_tasks = _make_tasks(self._test_classes,
-                                        train_kwargs,
-                                        _MT_OVERRIDE)
+        self._test_tasks = []
 
 
 class MT50(Benchmark):
@@ -196,10 +194,8 @@ class MT50(Benchmark):
             assert env_name not in train_kwargs
             self._train_classes[env_name] = cls
             train_kwargs[env_name] = test_kwargs[env_name]
-        self._test_classes = self._train_classes
+        self._test_classes = OrderedDict()
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
-        self._test_tasks = _make_tasks(self._test_classes,
-                                        train_kwargs,
-                                        _MT_OVERRIDE)
+        self._test_tasks = []

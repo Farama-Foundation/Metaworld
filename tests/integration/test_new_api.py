@@ -176,31 +176,13 @@ def test_all_mt10():
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_name: env_cls()
-                          for (env_name, env_cls) in mt10.test_classes.items()}
-    test_env_rand_vecs = check_tasks_unique(mt10.test_tasks,
-                                       mt10._test_classes.keys())
-    for task in mt10.test_tasks:
-        env = test_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
-        assert env.random_init == True
-        old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
-        step_env(env, max_path_length=STEPS, render=False)
-        assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
-    for env in test_env_instances.values():
-        env.close()
+    assert len(mt10.test_classes) == 0
+    assert len(mt10.test_tasks) == 0
     train_test_rand_vecs = set()
     for rand_vecs in train_env_rand_vecs.values():
         for rand_vec in rand_vecs:
             train_test_rand_vecs.add(tuple(rand_vec))
-    for rand_vecs in test_env_rand_vecs.values():
-        for rand_vec in rand_vecs:
-            train_test_rand_vecs.add(tuple(rand_vec))
-    assert len(train_test_rand_vecs) == (len(mt10.test_classes.keys()) + len(mt10.train_classes.keys())) * metaworld._N_GOALS
-    del test_env_instances
+    assert len(train_test_rand_vecs) == 10 * 50
 
 
 def test_all_mt50():
@@ -227,30 +209,13 @@ def test_all_mt50():
         env.close()
     del train_env_instances
 
-    test_env_instances = {env_name: env_cls()
-                          for (env_name, env_cls) in mt50.test_classes.items()}
-    test_env_rand_vecs = check_tasks_unique(mt50.test_tasks,
-                                       mt50._test_classes.keys())
-    for task in mt50.test_tasks:
-        env = test_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
-        old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
-        step_env(env, max_path_length=STEPS, render=False)
-        assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
-    for env in test_env_instances.values():
-        env.close()
+    assert len(mt50.test_classes) == 0
+    assert len(mt50.test_tasks) == 0
     train_test_rand_vecs = set()
     for rand_vecs in train_env_rand_vecs.values():
         for rand_vec in rand_vecs:
             train_test_rand_vecs.add(tuple(rand_vec))
-    for rand_vecs in test_env_rand_vecs.values():
-        for rand_vec in rand_vecs:
-            train_test_rand_vecs.add(tuple(rand_vec))
-    assert len(train_test_rand_vecs) == (len(mt50.test_classes.keys()) + len(mt50.train_classes.keys())) * metaworld._N_GOALS
-    del test_env_instances
+    assert len(train_test_rand_vecs) == 50 * 50
 
 
 def check_tasks_unique(tasks, env_names):

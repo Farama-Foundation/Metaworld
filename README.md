@@ -76,8 +76,7 @@ obs, reward, done, info = env.step(a)  # Step the environoment with the sampled 
 ```
 
 ### Running a benchmark:
-ML10, MT10, ML45 and MT50
-Create an environment with train tasks:
+Create an environment with train tasks (ML10, MT10, ML45, or MT50):
 ```python
 import metaworld
 import random
@@ -90,13 +89,14 @@ for name, env_cls in ml10.train_classes.items():
   task = random.choice([task for task in ml10.train_tasks
                         if task.env_name == name])
   env.set_task(task)
+  training_envs.append(env)
 
 for env in training_envs:
   obs = env.reset()  # Reset environment
   a = env.action_space.sample()  # Sample an action
   obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
-Create an environment with test tasks (noted that the train environments and test environments for multi-task (MT) benchmarks are the same):
+Create an environment with test tasks (this only works for ML10 and ML45, since MT10 and MT50 don't have a separate set of test tasks):
 ```python
 import metaworld
 import random
@@ -109,6 +109,7 @@ for name, env_cls in ml10.test_classes.items():
   task = random.choice([task for task in ml10.test_tasks
                         if task.env_name == name])
   env.set_task(task)
+  testing_envs.append(env)
 
 for env in testing_envs:
   obs = env.reset()  # Reset environment
