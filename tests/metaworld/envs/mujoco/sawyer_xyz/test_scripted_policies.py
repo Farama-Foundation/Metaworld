@@ -2,7 +2,7 @@ import pytest
 
 from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, ALL_V2_ENVIRONMENTS
 from metaworld.policies import *
-from tests.metaworld.envs.mujoco.sawyer_xyz.utils import check_success
+from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 
 
 test_cases_old_nonoise = [
@@ -27,7 +27,7 @@ test_cases_latest_nonoise = [
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., 0.94],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .0, 1.],
-    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .0, .98],
+    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .0, .96],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .0, .96],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .0, 0.99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .0, 0.99],
@@ -43,7 +43,9 @@ test_cases_latest_nonoise = [
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .0, 1.],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .0, 1.],
     ['reach-v2', SawyerReachV2Policy(), .0, .99],
-    ['push-v2', SawyerPushV2Policy(), .0, .99],
+    ['reach-wall-v2', SawyerReachWallV2Policy(), 0.0, 0.98],
+    ['push-v2', SawyerPushV2Policy(), .0, .98],
+    ['push-wall-v2', SawyerPushWallV2Policy(), .0, .98],
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .0, .97],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
@@ -61,19 +63,21 @@ test_cases_latest_noisy = [
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .88],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, 0.99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .1, 0.96],
-    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.75],
+    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, 0.64],
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, 0.97],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1.],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .93],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .91],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .89],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .91],
-    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.96],
+    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, 0.95],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .78],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .99],
     ['reach-v2', SawyerReachV2Policy(), .1, .99],
+    ['reach-wall-v2', SawyerReachWallV2Policy(), 0.1, 0.98],
     ['push-v2', SawyerPushV2Policy(), .1, .94],
+    ['push-wall-v2', SawyerPushWallV2Policy(), .1, .86],
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, 0.92],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
@@ -116,8 +120,8 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policy.Policy): Policy that's supposed to
             succeed in env
-        act_noise_pct (float): Decimal value indicating std deviation of the
-            noise as a % of action space
+        act_noise_pct (np.ndarray): Decimal value(s) indicating std deviation of
+            the noise as a % of action space
         expected_success_rate (float): Decimal value indicating % of runs that
             must be successful
         iters (int): How many times the policy should be tested
@@ -127,6 +131,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(check_success(env, policy, act_noise_pct, render=False)[0])
+        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
