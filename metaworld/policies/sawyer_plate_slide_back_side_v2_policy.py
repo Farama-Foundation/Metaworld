@@ -12,7 +12,7 @@ class SawyerPlateSlideBackSideV2Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'puck_pos': obs[3:6],
-            'extra_info': obs[-3:],
+            'extra_info': obs[6:],
         }
 
     def get_action(self, obs):

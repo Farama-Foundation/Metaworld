@@ -105,6 +105,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
+        self._pos_obj_max_len = 6
+        self._pos_obj_possible_lens = (3, 6)
+
         self._set_task_called = False
         self._partially_observable = True
 
@@ -207,19 +210,20 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         single flat observation
 
         Returns:
-            np.ndarray: The flat observation array (usually 9 elements)
+            np.ndarray: The flat observation array (12 elements)
         """
         pos_hand = self.get_endeff_pos()
-        pos_obj = self._get_pos_objects()
-        if len(pos_obj) < 6:
-            assert len(pos_obj) == 3
-            pos_obj = np.hstack((pos_obj, np.array([0., 0., 0.])))
-        pos_goal = self._get_pos_goal()
 
+        pos_obj_padded = np.zeros(self._pos_obj_max_len)
+        pos_obj = self._get_pos_objects()
+        assert len(pos_obj) in self._pos_obj_possible_lens
+        pos_obj_padded[:len(pos_obj)] = pos_obj
+
+        pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
 
-        return np.hstack((pos_hand, pos_obj, pos_goal))
+        return np.hstack((pos_hand, pos_obj_padded, pos_goal))
 
     def _get_obs_dict(self):
         obs = self._get_obs()
