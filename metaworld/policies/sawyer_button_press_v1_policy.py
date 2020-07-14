@@ -11,7 +11,7 @@ class SawyerButtonPressV1Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'button_start_pos': obs[3:6],
-            'extra_info': obs[6:],
+            'unused_info': obs[6:],
         }
 
     def get_action(self, obs):
@@ -39,7 +39,7 @@ class SawyerButtonPressV1Policy(Policy):
         if not np.all(np.isclose(np.array([hand_x, hand_z]),
                                 np.array([button_initial_x, button_initial_z]),
                                 atol=0.02)):
-            pos_button[1] = pos_curr[1]
+            pos_button[1] = pos_curr[1] - .1
             return pos_button
         # if the hand is aligned with the button, push the button in, by
         # increasing the hand's y position

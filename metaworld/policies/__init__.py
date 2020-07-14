@@ -2,7 +2,9 @@ from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
 from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
 from metaworld.policies.sawyer_box_close_v1_policy import SawyerBoxCloseV1Policy
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
+from metaworld.policies.sawyer_button_press_topdown_wall_v1_policy import SawyerButtonPressTopdownWallV1Policy
 from metaworld.policies.sawyer_button_press_v1_policy import SawyerButtonPressV1Policy
+from metaworld.policies.sawyer_button_press_wall_v1_policy import SawyerButtonPressWallV1Policy
 from metaworld.policies.sawyer_coffee_button_v1_policy import SawyerCoffeeButtonV1Policy
 from metaworld.policies.sawyer_coffee_pull_v1_policy import SawyerCoffeePullV1Policy
 from metaworld.policies.sawyer_coffee_push_v1_policy import SawyerCoffeePushV1Policy
@@ -43,12 +45,15 @@ from metaworld.policies.sawyer_sweep_v1_policy import SawyerSweepV1Policy
 from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2Policy
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
 
+
 __all__ = [
     'SawyerAssemblyV1Policy',
     'SawyerBasketballV1Policy',
     'SawyerBoxCloseV1Policy',
     'SawyerButtonPressTopdownV1Policy',
+    'SawyerButtonPressTopdownWallV1Policy',
     'SawyerButtonPressV1Policy',
+    'SawyerButtonPressWallV1Policy',
     'SawyerCoffeeButtonV1Policy',
     'SawyerCoffeePullV1Policy',
     'SawyerCoffeePushV1Policy',

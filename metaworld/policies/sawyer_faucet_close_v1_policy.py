@@ -12,7 +12,7 @@ class SawyerFaucetCloseV1Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'faucet_pos': obs[3:6],
-            'extra_info': obs[6:],
+            'unused_info': obs[6:],
         }
 
     def get_action(self, obs):
