@@ -2,11 +2,11 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerBinPickingEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.07)
@@ -19,8 +19,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -38,11 +36,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
@@ -54,18 +47,19 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         )
 
         self.goal_space = Box(goal_low, goal_high)
+        self.obj_and_goal_space = Box(low=np.array([-0.22, -0.02]),
+                                      high=np.array([0.6, 0.8]))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
-
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_bin_picking.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -80,22 +74,8 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_xyz(self, goal):
         del goal  # rjulian: ??? What?
@@ -128,9 +108,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            self.obj_init_pos = np.random.uniform(np.array([-0.22, -0.02]),
-                                                  np.array([0.6, 0.8]),
-                                                  size=2)
+            self.obj_init_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
 
         self._set_goal_xyz(self._state_goal)

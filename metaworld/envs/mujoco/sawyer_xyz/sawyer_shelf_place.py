@@ -2,12 +2,12 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerShelfPlaceEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (-0.1, 0.8, 0.001)
@@ -33,14 +33,8 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = liftThresh
         self.max_path_length = 150
-
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
 
         self.obj_and_goal_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -49,16 +43,15 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
-
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_shelf_placing.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -74,22 +67,8 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-        flat_obs = np.concatenate((hand, objPos))
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -115,17 +94,9 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
             self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]

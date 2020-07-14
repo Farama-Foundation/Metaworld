@@ -10,8 +10,9 @@ class SawyerDoorCloseV1Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'door_xyz': obs[3:],
+            'hand_pos': obs[:3],
+            'door_pos': obs[3:6],
+            'extra_info': obs[6:],
         }
 
     def get_action(self, obs):
@@ -19,18 +20,18 @@ class SawyerDoorCloseV1Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self._desired_xyz(o_d), p=25.)
-        action['grab_pow'] = 1.
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        action['grab_effort'] = 1.
 
         return action.array
 
     @staticmethod
-    def _desired_xyz(o_d):
-        pos_curr = o_d['hand_xyz']
-        pos_door = o_d['door_xyz']
+    def _desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_door = o_d['door_pos']
         pos_door += np.array([0.13, 0.1, 0.02])
 
         # if to the right of door handle///
