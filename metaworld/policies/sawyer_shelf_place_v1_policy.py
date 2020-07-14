@@ -4,7 +4,7 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerShelfPlaceV2Policy(Policy):
+class SawyerShelfPlaceV1Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
