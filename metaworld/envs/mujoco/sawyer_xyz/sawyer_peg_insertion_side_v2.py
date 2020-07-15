@@ -104,24 +104,17 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self.goal.copy()
+
+        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array([-0.3, 0.6, 0.05])
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('peg').copy()[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = np.random.uniform(
-                    self.obj_and_goal_space.low,
-                    self.obj_and_goal_space.high,
-                    size=(self.obj_and_goal_space.low.size),
-                )
+                goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos[-3:]
             self._state_goal = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
@@ -130,7 +123,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.get_body_com('peg')
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
-
         return self._get_obs()
 
     def _reset_hand(self):
