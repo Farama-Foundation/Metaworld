@@ -27,6 +27,7 @@ from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2
 from metaworld.policies.sawyer_reach_wall_v2_policy import SawyerReachWallV2Policy
 from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
+from metaworld.policies.sawyer_hand_insert_policy import SawyerHandInsertPolicy
 
 
 __all__ = [
@@ -58,4 +59,5 @@ __all__ = [
     'SawyerReachWallV2Policy',
     'SawyerPushWallV2Policy',
     'SawyerPickPlaceWallV2Policy',
+    'SawyerHandInsertPolicy',
 ]
