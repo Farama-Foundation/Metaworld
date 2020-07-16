@@ -135,6 +135,26 @@ class ML1(Benchmark):
         self._test_tasks = _make_tasks(self._test_classes,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE)
+        
+class MT1(Benchmark):
+
+    ENV_NAMES = _ml1_env_names()
+
+    def __init__(self, env_name):
+        super().__init__()
+        try:
+            cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
+            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
+        except KeyError:
+            cls = _env_dict.HARD_MODE_CLS_DICT['test'][env_name]
+            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test'][env_name]
+        self._train_classes = OrderedDict([(env_name, cls)])
+        self._test_classes = OrderedDict()
+        self._train_ = OrderedDict([(env_name, cls)])
+        self._train_tasks = _make_tasks(self._train_classes,
+                                        {env_name: args_kwargs},
+                                        _MT_OVERRIDE)
+        self._test_tasks = []
 
 
 class ML10(Benchmark):
