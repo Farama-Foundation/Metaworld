@@ -8,6 +8,8 @@ from metaworld.policies.sawyer_door_open_v1_policy import SawyerDoorOpenV1Policy
 from metaworld.policies.sawyer_door_close_v1_policy import SawyerDoorCloseV1Policy
 from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Policy
 from metaworld.policies.sawyer_drawer_close_v1_policy import SawyerDrawerCloseV1Policy
+from metaworld.policies.sawyer_faucet_close_v1_policy import SawyerFaucetCloseV1Policy
+from metaworld.policies.sawyer_faucet_open_v1_policy import SawyerFaucetOpenV1Policy
 from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Policy
 from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
 from metaworld.policies.sawyer_plate_slide_back_v1_policy import SawyerPlateSlideBackV1Policy
@@ -39,6 +41,8 @@ __all__ = [
     'SawyerDoorCloseV1Policy',
     'SawyerDrawerOpenV1Policy',
     'SawyerDrawerCloseV1Policy',
+    'SawyerFaucetCloseV1Policy',
+    'SawyerFaucetOpenV1Policy',
     'SawyerLeverPullV2Policy',
     'SawyerPlateSlideBackSideV2Policy',
     'SawyerPlateSlideBackV1Policy',
