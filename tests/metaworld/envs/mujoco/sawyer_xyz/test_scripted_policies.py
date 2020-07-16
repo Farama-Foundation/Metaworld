@@ -23,16 +23,18 @@ test_cases_old_noisy = [
 
 test_cases_latest_nonoise = [
     # name, policy, action noise pct, success rate
+    ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
-    ['button-press-v1', SawyerButtonPressV1Policy(), 0., .94],
+    ['button-press-v1', SawyerButtonPressV1Policy(), .0, .94],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .0, 1.],
     ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .0, .96],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .0, .96],
+    ['disassemble-v1', SawyerDisassembleV1Policy(), .0, .97],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .0, .99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .0, .99],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .0, .99],
-    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, 0.99],
+    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, .99],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .0, 1.],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .0, 1.],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .0, 1.],
@@ -57,18 +59,20 @@ test_cases_latest_nonoise = [
 
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
+    ['assembly-v1', SawyerAssemblyV1Policy(), .1, .72],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .98],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
     ['button-press-v1', SawyerButtonPressV1Policy(), 0., .94],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .1, 1.],
     ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .96],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .88],
+    ['disassemble-v1', SawyerDisassembleV1Policy(), .1, .95],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, .99],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .96],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, .64],
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .95],
-    ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, 1.],
+    ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1.],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .93],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .98],

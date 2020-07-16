@@ -1,6 +1,7 @@
-from metaworld.policies.sawyer_button_press_v1_policy import (
-    SawyerButtonPressV1Policy)
+from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
+from metaworld.policies.sawyer_button_press_v1_policy import SawyerButtonPressV1Policy
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
+from metaworld.policies.sawyer_disassemble_v1_policy import SawyerDisassembleV1Policy
 from metaworld.policies.sawyer_coffee_button_v1_policy import SawyerCoffeeButtonV1Policy
 from metaworld.policies.sawyer_coffee_pull_v1_policy import SawyerCoffeePullV1Policy
 from metaworld.policies.sawyer_coffee_push_v1_policy import SawyerCoffeePushV1Policy
@@ -32,8 +33,10 @@ from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceW
 
 
 __all__ = [
+    'SawyerAssemblyV1Policy',
     'SawyerButtonPressV1Policy',
     'SawyerButtonPressTopdownV1Policy',
+    'SawyerDisassembleV1Policy',
     'SawyerCoffeeButtonV1Policy',
     'SawyerCoffeePullV1Policy',
     'SawyerCoffeePushV1Policy',
