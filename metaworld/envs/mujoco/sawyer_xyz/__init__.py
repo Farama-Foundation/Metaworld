@@ -19,7 +19,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_v2 import SawyerShelfPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
@@ -36,7 +35,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetClo
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import SawyerReachPushPickPlaceWallEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
@@ -48,7 +46,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall import Sa
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_v2 import SawyerPlateSlideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv

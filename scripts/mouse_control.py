@@ -8,28 +8,28 @@ import sys
 import gym
 
 import numpy as np
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
-    SawyerPickAndPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
-    SawyerPushAndReachXYDoublePuckEnv,
-    SawyerPushAndReachXYZDoublePuckEnv,
-)
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
+    # SawyerPickAndPlaceEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    # SawyerPushAndReachXYDoublePuckEnv,
+    # SawyerPushAndReachXYZDoublePuckEnv,
+# )
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import SawyerPegInsertionTopdownEnv
+# from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import SawyerPegInsertionTopdownEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 
 
@@ -44,7 +44,7 @@ import gym
 import metaworld
 
 space_mouse = SpaceMouse()
-env = SawyerPegInsertionTopdownEnv(random_init=True, obs_type='with_goal')
+env = SawyerPegInsertionTopdownEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -72,7 +72,7 @@ while True:
 
     # # drotation = current.T.dot(rotation)  # relative rotation of desired from current
     # # dquat = T.mat2quat(drotation)
-    
+
     # print('current', current_z)
     # print('desired', desired_z)
 

@@ -2,12 +2,12 @@ import numpy as np
 from gym.spaces import  Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPegUnplugSideEnv(SawyerXYZEnv):
 
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         liftThresh = 0.04
         goal_low = (-0.25, 0.6, 0.05)
@@ -23,8 +23,6 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
-
         self.init_config = {
             'obj_init_pos': np.array([-0.225, 0.6, 0.05]),
             'hand_init_pos': np.array(((0, 0.6, 0.2))),
@@ -36,11 +34,6 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 200
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -48,16 +41,15 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
-
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_peg_unplug_side.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -73,23 +65,8 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('pegEnd')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
-
-    def _get_obs_dict(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.get_site_pos('pegEnd')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return dict(
-            state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=objPos,
-        )
+    def _get_pos_objects(self):
+        return self.get_site_pos('pegEnd')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -111,11 +88,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = hole_pos
