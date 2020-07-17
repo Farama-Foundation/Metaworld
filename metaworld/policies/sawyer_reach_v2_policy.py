@@ -10,9 +10,10 @@ class SawyerReachV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            'hand_xyz': obs[:3],
-            'puck_xyz': obs[3:-3],
-            'goal_vec': obs[-3:]
+            'hand_pos': obs[:3],
+            'puck_pos': obs[3:6],
+            'goal_pos': obs[9:],
+            'extra_info': obs[6:9],
         }
 
     def get_action(self, obs):
@@ -20,14 +21,10 @@ class SawyerReachV2Policy(Policy):
 
         action = Action({
             'delta_pos': np.arange(3),
-            'grab_pow': 3
+            'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_xyz'], to_xyz=self._desired_xyz(o_d), p=5.)
-        action['grab_pow'] = 0.
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=o_d['goal_pos'], p=5.)
+        action['grab_effort'] = 0.
 
         return action.array
-
-    @staticmethod
-    def _desired_xyz(o_d):
-        return o_d['hand_xyz'] + o_d['goal_vec']

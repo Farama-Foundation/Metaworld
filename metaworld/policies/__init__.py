@@ -12,14 +12,14 @@ from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Poli
 from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
 from metaworld.policies.sawyer_plate_slide_back_v1_policy import SawyerPlateSlideBackV1Policy
 from metaworld.policies.sawyer_plate_slide_side_v1_policy import SawyerPlateSlideSideV1Policy
-from metaworld.policies.sawyer_plate_slide_v2_policy import SawyerPlateSlideV2Policy
+from metaworld.policies.sawyer_plate_slide_v1_policy import SawyerPlateSlideV1Policy
 from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy
 from metaworld.policies.sawyer_push_v2_policy import SawyerPushV2Policy
 from metaworld.policies.sawyer_reach_v2_policy import SawyerReachV2Policy
-from metaworld.policies.sawyer_basketball_v2_policy import SawyerBasketballV2Policy
+from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
-from metaworld.policies.sawyer_shelf_place_v2_policy import SawyerShelfPlaceV2Policy
+from metaworld.policies.sawyer_shelf_place_v1_policy import SawyerShelfPlaceV1Policy
 from metaworld.policies.sawyer_sweep_into_v1_policy import SawyerSweepIntoV1Policy
 from metaworld.policies.sawyer_sweep_v1_policy import SawyerSweepV1Policy
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
@@ -45,14 +45,14 @@ __all__ = [
     'SawyerPlateSlideBackSideV2Policy',
     'SawyerPlateSlideBackV1Policy',
     'SawyerPlateSlideSideV1Policy',
-    'SawyerPlateSlideV2Policy',
+    'SawyerPlateSlideV1Policy',
     'SawyerPickPlaceV2Policy',
     'SawyerPushV2Policy',
     'SawyerReachV2Policy',
-    'SawyerBasketballV2Policy',
+    'SawyerBasketballV1Policy',
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
-    'SawyerShelfPlaceV2Policy',
+    'SawyerShelfPlaceV1Policy',
     'SawyerSweepIntoV1Policy',
     'SawyerSweepV1Policy',
     'SawyerWindowOpenV2Policy',

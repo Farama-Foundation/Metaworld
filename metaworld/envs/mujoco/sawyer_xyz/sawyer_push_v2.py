@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPushEnvV2(SawyerXYZEnv):
@@ -11,12 +11,14 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         V1 was very difficult to solve because the observation didn't say where
         to move after reaching the puck.
     Changelog from V1 to V2:
+        - (7/7/20) Removed 3 element vector. Replaced with 3 element position
+            of the goal (for consistency with other environments)
         - (6/15/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
             i.e. (self._state_goal - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
-    def __init__(self, random_init=False):
+    def __init__(self):
         lift_thresh = 0.04
 
         goal_low = (-0.1, 0.8, 0.05)
@@ -44,7 +46,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.random_init = random_init
         self.liftThresh = lift_thresh
         self.max_path_length = 150
 
@@ -59,19 +60,18 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        hand_to_goal_max = self.hand_high - np.array(goal_low)
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, -hand_to_goal_max)),
-            np.hstack((self.hand_high, obj_high, hand_to_goal_max)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
         self.num_resets = 0
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_push_v2.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -95,20 +95,8 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
         return ob, rew, False, info
 
-    def _get_obs(self):
-        pos_hand = self.get_endeff_pos()
-        pos_obj = self.data.get_geom_xpos('objGeom')
-        hand_to_goal = self._state_goal - pos_hand
-
-        flat_obs = np.concatenate((pos_hand, pos_obj, hand_to_goal))
-        return np.concatenate([flat_obs, ])
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self.data.get_geom_xpos('objGeom'),
-        )
+    def _get_pos_objects(self):
+        return self.data.get_geom_xpos('objGeom')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
@@ -200,7 +188,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         c3 = 0.001
         reach_dist = np.linalg.norm(finger_center - pos_obj)
         reach_rew = -reach_dist
-        
+
         push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
         if reach_dist < 0.05:
             push_rew = c1 * (self.maxPushDist - push_dist) + \

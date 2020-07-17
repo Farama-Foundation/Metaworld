@@ -2,11 +2,11 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerFaucetCloseEnv(SawyerXYZEnv):
-    def __init__(self, random_init=False):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -18,8 +18,6 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.8, 0.05]),
@@ -34,11 +32,6 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -46,16 +39,15 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low,)),
-            np.hstack((self.hand_high, obj_high,)),
+            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
+            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
-
-        self.reset()
 
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_faucet.xml')
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -69,12 +61,8 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
-    def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos = self.get_site_pos('handleStartClose')
-        flat_obs = np.concatenate((hand, objPos))
-
-        return np.concatenate([flat_obs,])
+    def _get_pos_objects(self):
+        return self.get_site_pos('handleStartClose')
 
     def _set_goal_marker(self, goal):
         """
@@ -94,11 +82,7 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
-            goal_pos = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=(self.obj_and_goal_space.low.size),
-            )
+            goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos[:3]
             final_pos = goal_pos.copy()
             final_pos += np.array([-0.1, -0.015, 0.065])
