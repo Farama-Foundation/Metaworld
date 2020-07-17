@@ -8,6 +8,7 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 test_cases_old_nonoise = [
     # This should contain configs where a V2 policy is compatible with a V1 env.
     # name, policy, action noise pct, success rate
+    ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .0, .05],
     ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1.],
     ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.85],
     ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37],
@@ -16,6 +17,7 @@ test_cases_old_nonoise = [
 test_cases_old_noisy = [
     # This should contain configs where a V2 policy is compatible with a V1 env.
     # name, policy, action noise pct, success rate
+    ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .1, .77],
     ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30],
     ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81],
     ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37],
@@ -39,6 +41,10 @@ test_cases_latest_nonoise = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, .99],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .0, 1.],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .0, 1.],
+    ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .0, .99],
+    ['handle-press-v1', SawyerHandlePressV1Policy(), .0, 1.],
+    ['handle-pull-v1', SawyerHandlePullV1Policy(), .0, 1.],
+    ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .0, .92],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .0, 1.],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .92],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99],
@@ -82,6 +88,10 @@ test_cases_latest_noisy = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
+    ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
+    ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
+    ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
+    ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1.],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .92],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
