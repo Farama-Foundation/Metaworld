@@ -12,6 +12,7 @@ class SawyerDialTurnV1Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'dial_pos': obs[3:6],
+            'goal_pos': obs[6:],
         }
 
     def get_action(self, obs):
