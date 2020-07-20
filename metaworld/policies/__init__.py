@@ -33,6 +33,7 @@ from metaworld.policies.sawyer_reach_wall_v2_policy import SawyerReachWallV2Poli
 from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
 from metaworld.policies.sawyer_push_back_v1_policy import SawyerPushBackV1Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
+from metaworld.policies.sawyer_hand_insert_policy import SawyerHandInsertPolicy
 from metaworld.policies.sawyer_pick_out_of_hole_v1_policy import SawyerPickOutOfHoleV1Policy
 
 
@@ -72,5 +73,6 @@ __all__ = [
     'SawyerPushWallV2Policy',
     'SawyerPushBackV1Policy',
     'SawyerPickPlaceWallV2Policy',
+    'SawyerHandInsertPolicy',
     'SawyerPickOutOfHoleV1Policy',
 ]

@@ -58,6 +58,7 @@ test_cases_latest_nonoise = [
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., .98],
+    ['hand-insert-v1', SawyerHandInsertPolicy(), .0, 0.96],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., .94],
 ]
 
@@ -97,6 +98,7 @@ test_cases_latest_noisy = [
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .92],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
+    ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.95],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
