@@ -4,6 +4,7 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerNutAssemblyEnv,
     SawyerBasketballEnv,
     SawyerBinPickingEnv,
+    SawyerBinPickingEnvV2,
     SawyerBoxCloseEnv,
     SawyerButtonPressEnv,
     SawyerButtonPressTopdownEnv,
@@ -61,6 +62,7 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerWindowOpenEnvV2,
 )
 
+
 ALL_V1_ENVIRONMENTS = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
     ('push-v1', SawyerReachPushPickPlaceEnv),
@@ -114,6 +116,7 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('bin-picking-v2', SawyerBinPickingEnvV2),
     ('handle-press-side-v2', SawyerHandlePressSideEnvV2),
     ('lever-pull-v2', SawyerLeverPullEnvV2),
     ('reach-v2', SawyerReachEnvV2),
