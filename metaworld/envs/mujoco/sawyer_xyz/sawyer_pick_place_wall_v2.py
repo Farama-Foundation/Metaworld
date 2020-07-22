@@ -81,12 +81,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         success = float(placing_dist <= 0.07)
 
         info = {
-            'reachDist': reach_dist,
-            'pickRew': pick_rew,
-            'epRew': reward,
-            'goalDist': placing_dist,
             'success': success,
-            'goal': self.goal
         }
 
         self.curr_path_length +=1

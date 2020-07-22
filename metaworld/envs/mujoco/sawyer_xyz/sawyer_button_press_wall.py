@@ -57,8 +57,7 @@ class SawyerButtonPressWallEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
-        info['goal'] = self.goal
+        info = {'success': float(pressDist <= 0.02)}
 
         return ob, reward, False, info
 

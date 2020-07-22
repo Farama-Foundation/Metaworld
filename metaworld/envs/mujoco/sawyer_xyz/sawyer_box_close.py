@@ -60,8 +60,7 @@ class SawyerBoxCloseEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward , _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {'success': float(placingDist <= 0.08)}
         return ob, reward, False, info
 
     def _get_pos_objects(self):

@@ -59,8 +59,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.06)}
-        info['goal'] = self.goal
+        info = {'success': float(pullDist <= 0.06)}
 
         return ob, reward, False, info
 

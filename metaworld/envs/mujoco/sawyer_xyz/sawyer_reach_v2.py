@@ -80,10 +80,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         success = float(reach_dist <= 0.05)
 
         info = {
-            'reachDist': reach_dist,
-            'epRew': reward,
             'success': success,
-            'goal': self.goal
         }
 
         self.curr_path_length += 1

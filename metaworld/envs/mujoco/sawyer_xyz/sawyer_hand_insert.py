@@ -59,8 +59,7 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
         reward, reachDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': None, 'epRew' : reward, 'pickRew':None, 'success': float(reachDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {'success': float(reachDist <= 0.05)}
 
         return ob, reward, False, info
 

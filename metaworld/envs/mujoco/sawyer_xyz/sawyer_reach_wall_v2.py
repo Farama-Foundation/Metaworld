@@ -80,10 +80,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         reward, reach_dist, = self.compute_reward(action, obs_dict)
         success = float(reach_dist <= 0.05)
         info = {
-            'reachDist': reach_dist,
-            'epRew' : reward,
             'success': success,
-            'goal': self.goal
         }
         self.curr_path_length +=1
 

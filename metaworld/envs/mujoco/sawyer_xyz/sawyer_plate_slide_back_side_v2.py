@@ -72,12 +72,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
             'success': float(pullDist <= 0.07),
-            'goal': self.goal
         }
 
         return ob, reward, False, info

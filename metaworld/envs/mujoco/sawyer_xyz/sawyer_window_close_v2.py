@@ -71,8 +71,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         reward, reachDist, pickrew, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {'success': float(pullDist <= 0.05)}
 
         return ob, reward, False, info
 

@@ -73,8 +73,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.04)}
-        info['goal'] = self.goal
+        info = {'success': float(pressDist <= 0.04)}
 
         return ob, reward, False, info
 

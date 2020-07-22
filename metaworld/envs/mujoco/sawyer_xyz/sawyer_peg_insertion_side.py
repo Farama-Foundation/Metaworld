@@ -66,8 +66,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.07)}
-        info['goal'] = self.goal
+        info = {'success': float(placingDist <= 0.07)}
 
         return ob, reward, False, info
 

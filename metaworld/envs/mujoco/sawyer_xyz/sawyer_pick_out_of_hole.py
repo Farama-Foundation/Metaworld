@@ -62,8 +62,7 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
 
-        info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {'success': float(placingDist <= 0.08)}
 
         return ob, reward, False, info
 

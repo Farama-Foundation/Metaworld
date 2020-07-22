@@ -63,8 +63,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward , _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(success)}
-        info['goal'] = self.goal
+        info = {'success': float(success)}
         return ob, reward, False, info
 
     def _get_pos_objects(self):

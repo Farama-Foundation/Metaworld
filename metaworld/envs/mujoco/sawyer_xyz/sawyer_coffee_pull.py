@@ -57,8 +57,7 @@ class SawyerCoffeePullEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.07)}
-        info['goal'] = self.goal
+        info = {'success': float(pullDist <= 0.07)}
 
         return ob, reward, False, info
 
