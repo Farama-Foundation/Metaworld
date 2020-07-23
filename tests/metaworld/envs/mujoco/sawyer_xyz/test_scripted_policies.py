@@ -52,6 +52,7 @@ test_cases_latest_nonoise = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .0, .99],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .0, 1.],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .0, 1.],
+    ['hammer-v1', SawyerHammerV1Policy(), .0, 1.],
     ['hand-insert-v1', SawyerHandInsertPolicy(), .0, 0.96],
     ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .0, .99],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .0, 1.],
@@ -82,7 +83,7 @@ test_cases_latest_nonoise = [
 
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
-    ['assembly-v1', SawyerAssemblyV1Policy(), .1, .70],
+    ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .97],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .85],
@@ -103,6 +104,7 @@ test_cases_latest_noisy = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
+    ['hammer-v1', SawyerHammerV1Policy(), .1, .97],
     ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.95],
     ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
@@ -118,11 +120,11 @@ test_cases_latest_noisy = [
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .78],
     ['plate-slide-v1', SawyerPlateSlideV1Policy(), .1, .97],
-    ['reach-v2', SawyerReachV2Policy(), .1, .99],
+    ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['reach-wall-v2', SawyerReachWallV2Policy(), .1, .98],
     ['push-back-v1', SawyerPushBackV1Policy(), .1, .91],
     ['push-v2', SawyerPushV2Policy(), .1, .94],
-    ['push-wall-v2', SawyerPushWallV2Policy(), .1, .83],
+    ['push-wall-v2', SawyerPushWallV2Policy(), .1, .82],
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
     ['soccer-v1', SawyerSoccerV1Policy(), .1, .91],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
