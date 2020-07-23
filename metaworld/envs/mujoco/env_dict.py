@@ -62,6 +62,7 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerWindowOpenEnvV2,
 )
 
+
 ALL_V1_ENVIRONMENTS = OrderedDict((
     ('reach-v1', SawyerReachPushPickPlaceEnv),
     ('push-v1', SawyerReachPushPickPlaceEnv),
