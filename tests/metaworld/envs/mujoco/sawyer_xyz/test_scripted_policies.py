@@ -8,6 +8,7 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 test_cases_old_nonoise = [
     # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
+    ['bin-picking-v1', SawyerBinPickingV2Policy(), .0, .50],
     ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .0, .05],
     ['lever-pull-v1', SawyerLeverPullV2Policy(), .0, .0],
     ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .0, .0],
@@ -19,6 +20,7 @@ test_cases_old_nonoise = [
 test_cases_old_noisy = [
     # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
+    ['bin-picking-v1', SawyerBinPickingV2Policy(), .1, .40],
     ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .1, .77],
     ['lever-pull-v1', SawyerLeverPullV2Policy(), .1, .0],
     ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .1, .0],
@@ -32,6 +34,7 @@ test_cases_latest_nonoise = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
     ['basketball-v2', SawyerBasketballV1Policy(), .0, .98],
+    ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .99],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .0, 1.],
@@ -84,6 +87,7 @@ test_cases_latest_noisy = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .96],
     ['basketball-v2', SawyerBasketballV1Policy(), .1, .96],
+    ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .97],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
@@ -96,7 +100,7 @@ test_cases_latest_noisy = [
     ['disassemble-v1', SawyerDisassembleV1Policy(), .1, .91],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, .99],
     ['door-lock-v1', SawyerDoorLockV1Policy(), .1, 1.],
-    ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .94],
+    ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .93],
     ['door-unlock-v1', SawyerDoorUnlockV1Policy(), .1, .97],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, .64],
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
