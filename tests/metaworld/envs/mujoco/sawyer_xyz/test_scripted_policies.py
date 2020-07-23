@@ -31,6 +31,7 @@ test_cases_latest_nonoise = [
     # name, policy, action noise pct, success rate
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
+    ['basketball-v2', SawyerBasketballV1Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .0, 1.],
@@ -80,7 +81,8 @@ test_cases_latest_nonoise = [
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
     ['assembly-v1', SawyerAssemblyV1Policy(), .1, .70],
-    ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
+    ['basketball-v1', SawyerBasketballV1Policy(), .1, .96],
+    ['basketball-v2', SawyerBasketballV1Policy(), .1, .96],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
@@ -99,7 +101,7 @@ test_cases_latest_noisy = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
-    ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.95],
+    ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.94],
     ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],

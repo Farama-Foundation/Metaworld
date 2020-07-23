@@ -5,13 +5,13 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
-class SawyerBasketballEnv(SawyerXYZEnv):
+class SawyerBasketballEnvV2(SawyerXYZEnv):
 
     def __init__(self):
 
         liftThresh = 0.3
-        goal_low = (-0.1, 0.85, 0.15)
-        goal_high = (0.1, 0.9+1e-7, 0.15)
+        goal_low = (-0.1, 0.85, 0.)
+        goal_high = (0.1, 0.9+1e-7, 0.)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.03)
@@ -28,7 +28,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
-        self.goal = np.array([0, 0.9, 0.15])
+        self.goal = np.array([0, 0.9, 0])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -48,7 +48,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_basketball.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_basketball.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -65,7 +65,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('bsktball')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -86,7 +86,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
         self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
 
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('bsktball')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -97,9 +97,8 @@ class SawyerBasketballEnv(SawyerXYZEnv):
                 basket_pos = goal_pos[3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
-            self._state_goal = basket_pos + np.array([0, -0.05, 0.1])
+            self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         return self._get_obs()
