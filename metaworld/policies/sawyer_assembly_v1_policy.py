@@ -13,7 +13,7 @@ class SawyerAssemblyV1Policy(Policy):
             'hand_pos': obs[:3],
             'wrench_pos': obs[3:6],
             'peg_pos': obs[9:],
-            'extra_info': obs[6:9],
+            'unused_info': obs[6:9],
         }
 
     def get_action(self, obs):

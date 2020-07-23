@@ -6,18 +6,22 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 
 
 test_cases_old_nonoise = [
-    # This should contain configs where a V2 policy is compatible with a V1 env.
+    # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
     ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .0, .05],
+    ['lever-pull-v1', SawyerLeverPullV2Policy(), .0, .0],
+    ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .0, .0],
     ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1.],
     ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.85],
     ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37],
 ]
 
 test_cases_old_noisy = [
-    # This should contain configs where a V2 policy is compatible with a V1 env.
+    # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
     ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .1, .77],
+    ['lever-pull-v1', SawyerLeverPullV2Policy(), .1, .0],
+    ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .1, .0],
     ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30],
     ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81],
     ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37],
@@ -29,7 +33,9 @@ test_cases_latest_nonoise = [
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],
-    ['button-press-v1', SawyerButtonPressV1Policy(), .0, .93],
+    ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .0, 1.],
+    ['button-press-v1', SawyerButtonPressV1Policy(), .0, 1.],
+    ['button-press-wall-v1', SawyerButtonPressWallV1Policy(), .0, 1.],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .0, 1.],
     ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .0, .96],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .0, .93],
@@ -77,7 +83,9 @@ test_cases_latest_noisy = [
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .85],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
-    ['button-press-v1', SawyerButtonPressV1Policy(), 0., .94],
+    ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
+    ['button-press-v1', SawyerButtonPressV1Policy(), .1, .98],
+    ['button-press-wall-v1', SawyerButtonPressWallV1Policy(), .1, .95],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .1, .99],
     ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .95],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .88],

@@ -12,7 +12,7 @@ class SawyerHandlePressV1Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'handle_pos': obs[3:6],
-            'extra_info': obs[6:],
+            'unused_info': obs[6:],
         }
 
     def get_action(self, obs):

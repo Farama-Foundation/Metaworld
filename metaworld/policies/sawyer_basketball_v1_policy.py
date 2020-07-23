@@ -13,7 +13,7 @@ class SawyerBasketballV1Policy(Policy):
             'hand_pos': obs[:3],
             'ball_pos': obs[3:6],
             'hoop_x': obs[-3],
-            'extra_info': obs[[6, 7, 8, 10, 11]],
+            'unused_info': obs[[6, 7, 8, 10, 11]],
         }
 
     def get_action(self, obs):

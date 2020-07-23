@@ -13,7 +13,7 @@ class SawyerCoffeePushV1Policy(Policy):
             'hand_pos': obs[:3],
             'mug_pos': obs[3:6],
             'goal_xy': obs[9:11],
-            'extra_info': obs[[6, 7, 8, 11]],
+            'unused_info': obs[[6, 7, 8, 11]],
         }
 
     def get_action(self, obs):
