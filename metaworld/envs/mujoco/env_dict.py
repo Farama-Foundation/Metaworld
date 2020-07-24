@@ -24,8 +24,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_v2 import Sawyer
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_v2 import SawyerStickPullV2Env
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_v2 import SawyerStickPushV2Env
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
@@ -124,8 +122,6 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('reach-wall-v2', SawyerReachWallEnvV2),
     ('push-wall-v2', SawyerPushWallEnvV2),
     ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2),
-    ('stick-pull-v2', SawyerStickPullV2Env),
-    ('stick-push-v2', SawyerStickPushV2Env),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
