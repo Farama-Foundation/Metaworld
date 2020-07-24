@@ -128,7 +128,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('window-close-v2', SawyerWindowCloseEnvV2),
     ('reach-wall-v2', SawyerReachWallEnvV2),
     ('push-wall-v2', SawyerPushWallEnvV2),
-    ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2)
+    ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)

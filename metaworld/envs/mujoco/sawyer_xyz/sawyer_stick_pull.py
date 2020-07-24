@@ -206,4 +206,3 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         reward = reachRew + pickRew + pullRew
 
         return [reward, reachRew, reachDist, pickRew, pullRew, pullDist, placeDist]
-
