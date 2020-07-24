@@ -1,10 +1,15 @@
 import numpy as np
+from gym.spaces import Box
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2, _assert_task_is_set
 
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
     def __init__(self):
+
+        goal_low = (.2, 0.65, 0.1499)
+        goal_high = (.3, 0.75, 0.1501)
+
         super().__init__()
 
         self.init_config = {
@@ -16,6 +21,8 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
+
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     def reset_model(self):
         self._reset_hand()
