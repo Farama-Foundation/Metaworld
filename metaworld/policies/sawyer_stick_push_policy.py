@@ -4,7 +4,7 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerStickPushPolicy(Policy):
+class SawyerStickPushV1Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
@@ -23,7 +23,7 @@ class SawyerStickPushPolicy(Policy):
             'delta_pos': np.arange(3),
             'grab_pow': 3
         })
-        #
+        
         action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_xyz(o_d), p=10.)
         action['grab_pow'] = self._grab_pow(o_d)
 
