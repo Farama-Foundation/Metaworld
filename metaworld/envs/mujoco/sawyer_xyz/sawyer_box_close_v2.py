@@ -9,12 +9,12 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
     def __init__(self):
 
         liftThresh = 0.12
-        goal_low = (-0.1, 0.85, 0.133)
-        goal_high = (0.1, 0.95, 0.133)
+        goal_low = (-0.1, 0.7, 0.133)
+        goal_high = (0.1, 0.8, 0.133)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.05, 0.55, 0.02)
-        obj_high = (0.05, 0.6, 0.02)
+        obj_low = (-0.05, 0.5, 0.02)
+        obj_high = (0.05, 0.55, 0.02)
 
         super().__init__(
             self.model_name,
@@ -24,10 +24,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': .3,
-            'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
+            'obj_init_pos': np.array([0, 0.55, 0.02], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
-        self.goal = np.array([0.0, 0.9, 0.133])
+        self.goal = np.array([0.0, 0.75, 0.133])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -48,7 +48,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_box.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_box.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -60,12 +60,18 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         obs_dict = self._get_obs_dict()
         reward , _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': placingDist,
+            'success': float(placingDist <= 0.08),
+            'goal': self.goal
+        }
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('handle').copy()
+        return self.get_body_com('top_link')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -77,8 +83,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self._state_goal = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('handle')[2]
-        self.boxheight = self.get_body_com('box')[2]
+        self.objHeight = self.get_body_com('top_link')[2]
+        self.boxheight = self.get_body_com('boxbody')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -89,14 +95,14 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             self._state_goal = goal_pos[-3:]
 
         self._set_goal_marker(self._state_goal)
-        self.sim.model.body_pos[self.model.body_name2id('box')] = np.concatenate((self._state_goal[:2], [self.boxheight]))
+        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._state_goal[:2], [self.boxheight]))
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)

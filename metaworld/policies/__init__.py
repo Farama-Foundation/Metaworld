@@ -2,6 +2,7 @@ from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
 from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
 from metaworld.policies.sawyer_bin_picking_v2_policy import SawyerBinPickingV2Policy
 from metaworld.policies.sawyer_box_close_v1_policy import SawyerBoxCloseV1Policy
+from metaworld.policies.sawyer_box_close_v2_policy import SawyerBoxCloseV2Policy
 from metaworld.policies.sawyer_button_press_topdown_v1_policy import SawyerButtonPressTopdownV1Policy
 from metaworld.policies.sawyer_button_press_topdown_v2_policy import SawyerButtonPressTopdownV2Policy
 from metaworld.policies.sawyer_button_press_topdown_wall_v1_policy import SawyerButtonPressTopdownWallV1Policy
@@ -59,6 +60,7 @@ __all__ = [
     'SawyerBasketballV1Policy',
     'SawyerBinPickingV2Policy',
     'SawyerBoxCloseV1Policy',
+    'SawyerBoxCloseV2Policy',
     'SawyerButtonPressTopdownV1Policy',
     'SawyerButtonPressTopdownV2Policy',
     'SawyerButtonPressTopdownWallV1Policy',

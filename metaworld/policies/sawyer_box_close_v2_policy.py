@@ -4,7 +4,7 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerBoxCloseV1Policy(Policy):
+class SawyerBoxCloseV2Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
@@ -32,12 +32,12 @@ class SawyerBoxCloseV1Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_lid = o_d['lid_pos'] + np.array([-.04, .0, -.06])
-        pos_box = np.array([*o_d['box_pos'], 0.15]) + np.array([-.04, .0, .0])
+        pos_lid = o_d['lid_pos'] + np.array([.0, .0, +.02])
+        pos_box = np.array([*o_d['box_pos'], 0.15]) + np.array([.0, .0, .0])
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.01:
-            return pos_lid + np.array([0., 0., 0.1])
+            return np.array([*pos_lid[:2], 0.2])
         # Once XY error is low enough, drop end effector down on top of puck
         elif abs(pos_curr[2] - pos_lid[2]) > 0.05:
             return pos_lid
@@ -51,10 +51,10 @@ class SawyerBoxCloseV1Policy(Policy):
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['lid_pos'] + np.array([-.04, .0, -.06])
+        pos_lid = o_d['lid_pos'] + np.array([.0, .0, +.02])
 
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.01 or abs(pos_curr[2] - pos_puck[2]) > 0.13:
-            return 0.
+        if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.01 or abs(pos_curr[2] - pos_lid[2]) > 0.13:
+            return .5
         # While end effector is moving down toward the puck, begin closing the grabber
         else:
-            return .8
+            return 1.
