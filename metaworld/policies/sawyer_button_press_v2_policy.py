@@ -22,7 +22,7 @@ class SawyerButtonPressV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self.desired_pos(o_d), p=4.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self.desired_pos(o_d), p=25.)
         action['grab_effort'] = 0.
 
         return action.array
