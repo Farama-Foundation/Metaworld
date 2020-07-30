@@ -5,8 +5,12 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPick
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_v2 import SawyerButtonPressTopdownEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall import SawyerButtonPressTopdownWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_wall_v2 import SawyerButtonPressTopdownWallEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_v2 import SawyerButtonPressEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall import SawyerButtonPressWallEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_wall_v2 import SawyerButtonPressWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeButtonEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull import SawyerCoffeePullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push import SawyerCoffeePushEnv
@@ -66,8 +70,12 @@ __all__ = [
     'SawyerBoxCloseEnv',
     'SawyerButtonPressEnv',
     'SawyerButtonPressTopdownEnv',
+    'SawyerButtonPressTopdownEnvV2',
     'SawyerButtonPressTopdownWallEnv',
+    'SawyerButtonPressTopdownWallEnvV2',
+    'SawyerButtonPressEnvV2',
     'SawyerButtonPressWallEnv',
+    'SawyerButtonPressWallEnvV2',
     'SawyerCoffeeButtonEnv',
     'SawyerCoffeePullEnv',
     'SawyerCoffeePushEnv',
