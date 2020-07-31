@@ -3,6 +3,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballE
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPickingEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close_v2 import SawyerBoxCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press import SawyerButtonPressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_button_press_topdown_v2 import SawyerButtonPressTopdownEnvV2
@@ -68,6 +69,7 @@ __all__ = [
     'SawyerBasketballEnv',
     'SawyerBinPickingEnv',
     'SawyerBoxCloseEnv',
+    'SawyerBoxCloseEnvV2',
     'SawyerButtonPressEnv',
     'SawyerButtonPressTopdownEnv',
     'SawyerButtonPressTopdownEnvV2',

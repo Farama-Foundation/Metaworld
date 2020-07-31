@@ -26,9 +26,9 @@
     </default>
 
     <asset>
-        <mesh file="..\objects\meshes\bin\bin.stl" name="bin"/>
-        <mesh file="..\objects\meshes\box\boxtop.stl" name="boxtop"/>
-        <mesh file="..\objects\meshes\box\boxhandle.stl" name="boxhandle"/>
+        <mesh file="../objects/meshes/bin/bin.stl" name="bin"/>
+        <mesh file="../objects/meshes/box/boxtop.stl" name="boxtop"/>
+        <mesh file="../objects/meshes/box/boxhandle.stl" name="boxhandle"/>
     </asset>
 
 </mujocoinclude>

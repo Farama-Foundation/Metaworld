@@ -8,7 +8,7 @@
         <body name="boxbody" pos="0. 0.8 0">
             <include file="../objects/assets/box.xml"/>
         </body>
-        <body name="boxbodytop" pos="0. 0.8 0">
+        <body name="boxbodytop" pos="0. 0.8 0" quat="1 0 0 1">
             <freejoint/>
             <include file="../objects/assets/boxtop.xml"/>
         </body>
