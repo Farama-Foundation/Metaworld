@@ -17,9 +17,13 @@ from metaworld.policies.sawyer_coffee_push_v1_policy import SawyerCoffeePushV1Po
 from metaworld.policies.sawyer_dial_turn_v1_policy import SawyerDialTurnV1Policy
 from metaworld.policies.sawyer_disassemble_v1_policy import SawyerDisassembleV1Policy
 from metaworld.policies.sawyer_door_close_v1_policy import SawyerDoorCloseV1Policy
+from metaworld.policies.sawyer_door_close_v2_policy import SawyerDoorCloseV2Policy
 from metaworld.policies.sawyer_door_lock_v1_policy import SawyerDoorLockV1Policy
+from metaworld.policies.sawyer_door_lock_v2_policy import SawyerDoorLockV2Policy
 from metaworld.policies.sawyer_door_open_v1_policy import SawyerDoorOpenV1Policy
+from metaworld.policies.sawyer_door_open_v2_policy import SawyerDoorOpenV2Policy
 from metaworld.policies.sawyer_door_unlock_v1_policy import SawyerDoorUnlockV1Policy
+from metaworld.policies.sawyer_door_unlock_v2_policy import SawyerDoorUnlockV2Policy
 from metaworld.policies.sawyer_drawer_close_v1_policy import SawyerDrawerCloseV1Policy
 from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Policy
 from metaworld.policies.sawyer_faucet_close_v1_policy import SawyerFaucetCloseV1Policy
@@ -81,9 +85,13 @@ __all__ = [
     'SawyerDialTurnV1Policy',
     'SawyerDisassembleV1Policy',
     'SawyerDoorCloseV1Policy',
+    'SawyerDoorCloseV2Policy',
     'SawyerDoorLockV1Policy',
+    'SawyerDoorLockV2Policy',
     'SawyerDoorOpenV1Policy',
+    'SawyerDoorOpenV2Policy',
     'SawyerDoorUnlockV1Policy',
+    'SawyerDoorUnlockV2Policy',
     'SawyerDrawerCloseV1Policy',
     'SawyerDrawerOpenV1Policy',
     'SawyerFaucetCloseV1Policy',
