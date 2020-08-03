@@ -11,8 +11,8 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.8, 0.1)
-        obj_high = (0.1, 0.85, 0.1)
+        obj_low = (-0.1, 0.8, 0.15)
+        obj_high = (0.1, 0.85, 0.15)
 
         super().__init__(
             self.model_name,
@@ -21,7 +21,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.85, 0.1]),
+            'obj_init_pos': np.array([0, 0.85, 0.15]),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0, 0.85, 0.1])
@@ -45,7 +45,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_door_lock.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_door_lock.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -76,28 +76,23 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         door_pos = self.init_config['obj_init_pos']
-        self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
-        self._state_goal = door_pos + np.array([0, -0.04, -0.03])
 
         if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            door_pos = goal_pos
-            self._state_goal = goal_pos + np.array([0, -0.04, -0.03])
+            door_pos = self._get_state_rand_vec()
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = door_pos
-        self.sim.model.body_pos[self.model.body_name2id('lock')] = door_pos
-
         for _ in range(self.frame_skip):
             self.sim.step()
 
-        self.obj_init_pos = self.data.get_geom_xpos('lockGeom')
-        self._set_goal_marker(self._state_goal)
+        self.obj_init_pos = self.get_body_com('lock_link')
+        self._state_goal = self.obj_init_pos + np.array([.0, -.04, -.1])
         self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
 
+        self._set_goal_marker(self._state_goal)
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)

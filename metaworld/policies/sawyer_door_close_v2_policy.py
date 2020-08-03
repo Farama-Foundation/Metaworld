@@ -32,7 +32,7 @@ class SawyerDoorCloseV2Policy(Policy):
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_door = o_d['door_pos']
-        pos_door += np.array([0.13, 0.1, 0.02])
+        pos_door += np.array([0.05, 0.12, 0.1])
 
         # if to the right of door handle///
         if pos_curr[0] > pos_door[0]:

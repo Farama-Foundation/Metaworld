@@ -1,15 +1,15 @@
 import numpy as np
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2, _assert_task_is_set
 
 
-class SawyerDoorCloseEnvV2(SawyerDoorEnv):
+class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
     def __init__(self):
         super().__init__()
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0.1, 0.95, 0.1], dtype=np.float32),
+            'obj_init_pos': np.array([0.1, 0.95, 0.15], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0.2, 0.8, 0.15])
@@ -25,7 +25,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnv):
         if self.random_init:
             obj_pos = self._get_state_rand_vec()
             self.obj_init_pos = obj_pos
-            goal_pos = obj_pos.copy() + np.array([0.1, -0.15, 0.05])
+            goal_pos = obj_pos.copy() + np.array([0.2, -0.2, 0.])
             self._state_goal = goal_pos
 
         self._set_goal_marker(self._state_goal)

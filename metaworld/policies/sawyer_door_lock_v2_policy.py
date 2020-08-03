@@ -31,9 +31,11 @@ class SawyerDoorLockV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_lock = o_d['lock_pos'] + np.array([.0, -.05, .0])
+        pos_lock = o_d['lock_pos'] + np.array([-.02, -.02, .0])
 
-        if np.linalg.norm(pos_curr[:2] - pos_lock[:2]) > 0.04:
+        if np.linalg.norm(pos_curr[:2] - pos_lock[:2]) > 0.02:
+            if pos_curr[2] < .25:
+                return pos_curr + np.array([.0, -.1, .1])
             return pos_lock + np.array([0., 0., 0.3])
         elif abs(pos_curr[2] - pos_lock[2]) > 0.02:
             return pos_lock
