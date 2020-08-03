@@ -11,8 +11,8 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.7, 0.05)
-        obj_high = (0.1, 0.8, 0.05)
+        obj_low = (-0.1, 0.7, 0.000)
+        obj_high = (0.1, 0.8, 0.001)
 
         super().__init__(
             self.model_name,
@@ -21,7 +21,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.7, 0.05]),
+            'obj_init_pos': np.array([0, 0.7, 0.0]),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0., 0.73, 0.08])
@@ -42,9 +42,11 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
+        self.dial_radius = 0.05
+
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_dial.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_dial.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -62,7 +64,17 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.get_site_pos('dialStart')
+        dial_center = self.get_body_com('dial').copy()
+        dial_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
+
+        offset = np.array([
+            np.sin(dial_angle_rad),
+            -np.cos(dial_angle_rad),
+            0
+        ])
+        offset *= self.dial_radius
+
+        return dial_center + offset
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -87,13 +99,11 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):

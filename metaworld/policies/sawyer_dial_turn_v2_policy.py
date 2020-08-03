@@ -12,7 +12,7 @@ class SawyerDialTurnV2Policy(Policy):
         return {
             'hand_pos': obs[:3],
             'dial_pos': obs[3:6],
-            'goal_pos': obs[6:],
+            'extra_info': obs[6:],
         }
 
     def get_action(self, obs):
@@ -23,17 +23,18 @@ class SawyerDialTurnV2Policy(Policy):
             'grab_pow': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_xyz(o_d), p=5.)
-        action['grab_pow'] = 0.
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['grab_pow'] = 1.
 
         return action.array
 
     @staticmethod
-    def _desired_xyz(o_d):
+    def _desired_pos(o_d):
         hand_pos = o_d['hand_pos']
-        dial_pos = o_d['dial_pos'] + np.array([0.0, -0.028, 0.0])
+        dial_pos = o_d['dial_pos'] + np.array([0.05, 0.02, 0.09])
+
+        if np.linalg.norm(hand_pos[:2] - dial_pos[:2]) > 0.02:
+            return np.array([*dial_pos[:2], 0.2])
         if abs(hand_pos[2] - dial_pos[2]) > 0.02:
-            return np.array([hand_pos[0], hand_pos[1], dial_pos[2]])
-        elif abs(hand_pos[1] - dial_pos[1]) > 0.02:
-            return np.array([dial_pos[0]+0.20, dial_pos[1], dial_pos[2]])
-        return np.array([dial_pos[0]-0.10, dial_pos[1], dial_pos[2]])
+            return dial_pos
+        return dial_pos + np.array([-.05, .005, .0])
