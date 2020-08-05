@@ -6,7 +6,7 @@
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
 
-      <body name="handle_press" pos="0 0.88 0">
+      <body name="box" pos="0 0.88 0">
         <include file="../objects/assets/handle_press.xml"/>
 
         <site name="goalPress" pos="0 -0.216 0.075" size="0.005" rgba="1 1 1 1"/>

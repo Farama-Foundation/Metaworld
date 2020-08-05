@@ -10,8 +10,8 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.35, 0.65, 0.05)
-        obj_high = (-0.25, 0.75, 0.05)
+        obj_low = (-0.35, 0.65, -0.001)
+        obj_high = (-0.25, 0.75, +0.001)
 
         super().__init__(
             self.model_name,
@@ -20,7 +20,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([-0.3, 0.7, 0.05]),
+            'obj_init_pos': np.array([-0.3, 0.7, 0.0]),
             'hand_init_pos': np.array((0, 0.6, 0.2),),
         }
         self.goal = np.array([-0.2, 0.7, 0.14])
@@ -45,7 +45,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_handle_press_sideway.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_handle_press_sideways.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -57,13 +57,19 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.04)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pressDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pressDist <= 0.04),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.site_xpos[self.model.site_name2id('handleStart')]
+        return self.get_site_pos('handleStart')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -74,20 +80,13 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos
-            button_pos = goal_pos.copy()
-            button_pos[0] += 0.1
-            button_pos[2] += 0.09
-            self._state_goal = button_pos
+        self.obj_init_pos = (self._get_state_rand_vec()
+                             if self.random_init
+                             else self.init_config['obj_init_pos'])
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('handle')] = self._state_goal
-        self._set_obj_xyz(-0.12)
+        self._set_obj_xyz(-0.1)
         self._state_goal = self.get_site_pos('goalPull')
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._state_goal[-1])
         self.target_reward = 1000*self.maxDist + 1000*2
@@ -95,14 +94,10 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.pickCompleted = False
+            self.do_simulation([-1, 1], self.frame_skip)
 
     def compute_reward(self, actions, obs):
         del actions
