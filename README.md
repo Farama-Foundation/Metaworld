@@ -40,7 +40,7 @@ Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT
 * [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.
 * [__ML10__](https://meta-world.github.io/figures/ml10.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 3 test tasks.
 * [__ML45__](https://meta-world.github.io/figures/ml45-1080p.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.
-* [__MT10__](https://meta-world.github.io/figures/mt10.gif) and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10 and 50 training tasks respectively. MT10 and MT50 augment environment observations with a one-hot vector which identifies the task.
+* [__MT10__](https://meta-world.github.io/figures/mt10.gif) and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10 and 50 training tasks respectively. In the original Metaworld experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don't enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as [this one](https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py)
 
 
 ### Basics
