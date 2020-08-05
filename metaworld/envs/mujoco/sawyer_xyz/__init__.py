@@ -30,8 +30,11 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_v2 import SawyerHandlePressSideEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_v2 import SawyerHandlePressEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull import SawyerHandlePullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side_v2 import SawyerHandlePullSideEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_v2 import SawyerHandlePullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull_v2 import SawyerLeverPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
@@ -99,8 +102,11 @@ __all__ = [
     'SawyerHandlePressEnv',
     'SawyerHandlePressSideEnv',
     'SawyerHandlePressSideEnvV2',
+    'SawyerHandlePressEnvV2',
     'SawyerHandlePullEnv',
     'SawyerHandlePullSideEnv',
+    'SawyerHandlePullSideEnvV2',
+    'SawyerHandlePullEnvV2',
     'SawyerLeverPullEnv',
     'SawyerLeverPullEnvV2',
     'SawyerPegInsertionSideEnv',
