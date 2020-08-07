@@ -38,6 +38,6 @@ class SawyerPlateSlideSideV2Policy(Policy):
         elif abs(pos_curr[2] - pos_puck[2]) > 0.04:
             return pos_puck
         elif pos_curr[0] > -.2:
-            return np.array([pos_curr[0] - .1, .63, pos_curr[2]])
+            return np.array([pos_curr[0] - .1, .6, pos_curr[2]])
         else:
             return pos_puck + np.array([-.1, .0, .0])

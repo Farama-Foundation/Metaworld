@@ -13,8 +13,8 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         goal_high = (0.1, 0.6, 0.015)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0., 0.85, 0.02)
-        obj_high = (0., 0.85, 0.02)
+        obj_low = (0., 0.85, 0.)
+        obj_high = (0., 0.85, 0.)
 
         super().__init__(
             self.model_name,
@@ -24,7 +24,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0., 0.85, 0.02], dtype=np.float32),
+            'obj_init_pos': np.array([0., 0.85, 0.], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
         self.goal = np.array([0., 0.6, 0.015])
@@ -60,13 +60,19 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
 
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew': None, 'success': float(pullDist <= 0.07)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pullDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pullDist <= 0.07),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.data.get_geom_xpos('puck')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -81,32 +87,30 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+
         self.obj_init_pos = self.init_config['obj_init_pos']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self._state_goal = self.goal.copy()
 
         if self.random_init:
-            obj_pos = self._get_state_rand_vec()
-            self.obj_init_pos = obj_pos[:3]
-            goal_pos = obj_pos[3:]
-            self._state_goal = goal_pos
+            rand_vec = self._get_state_rand_vec()
+            self.obj_init_pos = rand_vec[:3]
+            self._state_goal = rand_vec[3:]
 
+        self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
+        self._set_obj_xyz(np.array([0, 0.15]))
         self._set_goal_marker(self._state_goal)
-        self.sim.model.body_pos[self.model.body_name2id('cabinet')] = self.obj_init_pos
-        self._set_obj_xyz(np.array([0, 0.2]))
-        self.maxDist = np.linalg.norm(self.data.get_geom_xpos('objGeom')[:-1] - self._state_goal[:-1])
+
+        self.objHeight = self.data.get_geom_xpos('puck')[2]
+        self.maxDist = np.linalg.norm(self.data.get_geom_xpos('puck')[:-1] - self._state_goal[:-1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+            self.do_simulation([-1, 1], self.frame_skip)
 
     def compute_reward(self, actions, obs):
         del actions
