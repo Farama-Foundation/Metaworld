@@ -116,7 +116,7 @@ test_cases_latest_noisy = [
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .92],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
     ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .89],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .88],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .90],
     ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, .95],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
