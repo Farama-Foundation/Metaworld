@@ -5,28 +5,16 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
-class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
-    """
-    Motivation for V2:
-        In V1, the cabinet was lifted .02 units off the ground. In order for the
-        end effector to move the plate without running into the cabinet, its
-        movements had to be very precise. These precise movements become
-        very difficult as soon as noise is introduced to the action space
-        (success rate dropped from 100% to 20%).
-    Changelog from V1 to V2:
-        - (8/7/20) Switched to Byron's XML
-        - (7/7/20) Added 3 element cabinet position to the observation
-            (for consistency with other environments)
-        - (6/22/20) Cabinet now sits on ground, instead of .02 units above it
-    """
+class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
+
     def __init__(self):
 
         goal_low = (-0.1, 0.6, 0.015)
         goal_high = (0.1, 0.6, 0.015)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.25, 0.6, 0.)
-        obj_high = (-0.25, 0.6, 0.)
+        obj_low = (0., 0.85, 0.02)
+        obj_high = (0., 0.85, 0.02)
 
         super().__init__(
             self.model_name,
@@ -36,7 +24,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([-0.25, 0.6, 0.02], dtype=np.float32),
+            'obj_init_pos': np.array([0., 0.85, 0.02], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
         }
         self.goal = np.array([0., 0.6, 0.015])
@@ -59,7 +47,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_plate_slide_sideway.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_plate_slide.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -70,28 +58,15 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
-        self.curr_path_length += 1
+        self.curr_path_length +=1
 
-        info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.07),
-            'goal': self.goal
-        }
+        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew': None, 'success': float(pullDist <= 0.07)}
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
-
-    def _get_obs_dict(self):
-        return dict(
-            state_observation=self._get_obs(),
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=self._get_pos_objects(),
-        )
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -118,7 +93,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
         self._set_goal_marker(self._state_goal)
         self.sim.model.body_pos[self.model.body_name2id('cabinet')] = self.obj_init_pos
-        self._set_obj_xyz(np.array([-0.2, 0.]))
+        self._set_obj_xyz(np.array([0, 0.2]))
         self.maxDist = np.linalg.norm(self.data.get_geom_xpos('objGeom')[:-1] - self._state_goal[:-1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
@@ -128,11 +103,10 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+            self.do_simulation([-1,1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos(
-            'rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM = (rightFinger + leftFinger) / 2
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
 
     def compute_reward(self, actions, obs):
         del actions
@@ -141,9 +115,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos(
-            'rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM = (rightFinger + leftFinger) / 2
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        fingerCOM  =  (rightFinger + leftFinger)/2
 
         pullGoal = self._state_goal
 
@@ -155,9 +128,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         c2 = 0.01
         c3 = 0.001
         if reachDist < 0.05:
-            pullRew = 1000 * (self.maxDist - pullDist) + c1 * (
-                        np.exp(-(pullDist ** 2) / c2) + np.exp(
-                    -(pullDist ** 2) / c3))
+            pullRew = 1000*(self.maxDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
             pullRew = max(pullRew, 0)
         else:
             pullRew = 0

@@ -38,8 +38,11 @@ from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Poli
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
 from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
 from metaworld.policies.sawyer_plate_slide_back_v1_policy import SawyerPlateSlideBackV1Policy
+from metaworld.policies.sawyer_plate_slide_back_v2_policy import SawyerPlateSlideBackV2Policy
 from metaworld.policies.sawyer_plate_slide_side_v1_policy import SawyerPlateSlideSideV1Policy
+from metaworld.policies.sawyer_plate_slide_side_v2_policy import SawyerPlateSlideSideV2Policy
 from metaworld.policies.sawyer_plate_slide_v1_policy import SawyerPlateSlideV1Policy
+from metaworld.policies.sawyer_plate_slide_v2_policy import SawyerPlateSlideV2Policy
 from metaworld.policies.sawyer_push_back_v1_policy import SawyerPushBackV1Policy
 from metaworld.policies.sawyer_push_v2_policy import SawyerPushV2Policy
 from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
@@ -96,8 +99,11 @@ __all__ = [
     'SawyerPickPlaceWallV2Policy',
     'SawyerPlateSlideBackSideV2Policy',
     'SawyerPlateSlideBackV1Policy',
+    'SawyerPlateSlideBackV2Policy',
     'SawyerPlateSlideSideV1Policy',
+    'SawyerPlateSlideSideV2Policy',
     'SawyerPlateSlideV1Policy',
+    'SawyerPlateSlideV2Policy',
     'SawyerPushBackV1Policy',
     'SawyerPushV2Policy',
     'SawyerPushWallV2Policy',
