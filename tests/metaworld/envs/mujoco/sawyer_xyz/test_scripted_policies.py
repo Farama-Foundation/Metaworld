@@ -125,7 +125,7 @@ test_cases_latest_noisy = [
     ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['reach-wall-v2', SawyerReachWallV2Policy(), .1, .98],
     ['push-back-v1', SawyerPushBackV1Policy(), .1, .91],
-    ['push-v2', SawyerPushV2Policy(), .1, .74],
+    ['push-v2', SawyerPushV2Policy(), .1, .92],
     ['push-wall-v2', SawyerPushWallV2Policy(), .1, .82],
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
     ['soccer-v1', SawyerSoccerV1Policy(), .1, .91],
