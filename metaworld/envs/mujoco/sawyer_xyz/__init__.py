@@ -31,7 +31,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close_v2 import SawyerFaucetCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open_v2 import SawyerFaucetOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
