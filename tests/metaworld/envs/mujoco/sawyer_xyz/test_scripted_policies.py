@@ -115,7 +115,7 @@ test_cases_latest_noisy = [
     ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .93],
     ['door-unlock-v1', SawyerDoorUnlockV1Policy(), .1, .97],
     ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, .64],
-    ['drawer-close-v2', SawyerDrawerCloseV2Policy(), .1, .64],
+    ['drawer-close-v2', SawyerDrawerCloseV2Policy(), .1, .99],
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['drawer-open-v2', SawyerDrawerOpenV2Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],

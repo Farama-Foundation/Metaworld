@@ -23,7 +23,7 @@ class SawyerDrawerCloseV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
         action['grab_effort'] = 1.
 
         return action.array
@@ -31,16 +31,16 @@ class SawyerDrawerCloseV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_drwr = o_d['drwr_pos']
+        pos_drwr = o_d['drwr_pos'] + np.array([.0, .0, -.02])
 
         # if further forward than the drawer...
         if pos_curr[1] > pos_drwr[1]:
-            if pos_curr[2] < pos_drwr[2] + 0.4:
+            if pos_curr[2] < pos_drwr[2] + 0.23:
                 # rise up quickly (Z direction)
                 return np.array([pos_curr[0], pos_curr[1], pos_drwr[2] + 0.5])
             else:
                 # move to front edge of drawer handle, but stay high in Z
-                return pos_drwr + np.array([0., -0.075, 0.4])
+                return pos_drwr + np.array([0., -0.075, 0.23])
         # drop down to touch drawer handle
         elif abs(pos_curr[2] - pos_drwr[2]) > 0.04:
             return pos_drwr + np.array([0., -0.075, 0.])

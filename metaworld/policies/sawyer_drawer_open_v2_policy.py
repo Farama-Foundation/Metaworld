@@ -26,7 +26,7 @@ class SawyerDrawerOpenV2Policy(Policy):
         # NOTE this policy looks different from the others because it must
         # modify its p constant part-way through the task
         pos_curr = o_d['hand_pos']
-        pos_drwr = o_d['drwr_pos']
+        pos_drwr = o_d['drwr_pos'] + np.array([.0, .0, -.02])
 
         # align end effector's Z axis with drawer handle's Z axis
         if np.linalg.norm(pos_curr[:2] - pos_drwr[:2]) > 0.06:
