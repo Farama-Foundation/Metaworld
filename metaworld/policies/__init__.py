@@ -21,6 +21,7 @@ from metaworld.policies.sawyer_coffee_push_v2_policy import SawyerCoffeePushV2Po
 from metaworld.policies.sawyer_dial_turn_v1_policy import SawyerDialTurnV1Policy
 from metaworld.policies.sawyer_dial_turn_v2_policy import SawyerDialTurnV2Policy
 from metaworld.policies.sawyer_disassemble_v1_policy import SawyerDisassembleV1Policy
+from metaworld.policies.sawyer_disassemble_v2_policy import SawyerDisassembleV2Policy
 from metaworld.policies.sawyer_door_close_v1_policy import SawyerDoorCloseV1Policy
 from metaworld.policies.sawyer_door_close_v2_policy import SawyerDoorCloseV2Policy
 from metaworld.policies.sawyer_door_lock_v1_policy import SawyerDoorLockV1Policy
@@ -109,6 +110,7 @@ __all__ = [
     'SawyerDialTurnV1Policy',
     'SawyerDialTurnV2Policy',
     'SawyerDisassembleV1Policy',
+    'SawyerDisassembleV2Policy',
     'SawyerDoorCloseV1Policy',
     'SawyerDoorCloseV2Policy',
     'SawyerDoorLockV1Policy',

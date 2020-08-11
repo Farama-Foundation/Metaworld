@@ -23,6 +23,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push_v2 import SawyerCoffeeP
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_v2 import SawyerDialTurnEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg_v2 import SawyerNutDisassembleEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close_v2 import SawyerDoorCloseEnvV2
@@ -121,6 +122,7 @@ __all__ = [
     'SawyerDialTurnEnv',
     'SawyerDialTurnEnvV2',
     'SawyerNutDisassembleEnv',
+    'SawyerNutDisassembleEnvV2',
     'SawyerDoorEnv',
     'SawyerDoorCloseEnv',
     'SawyerDoorCloseEnvV2',
