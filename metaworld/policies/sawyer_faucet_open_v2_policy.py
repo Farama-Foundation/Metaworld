@@ -31,7 +31,7 @@ class SawyerFaucetOpenV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_faucet = o_d['faucet_pos'] + np.array([-.02, .0, .0])
+        pos_faucet = o_d['faucet_pos'] + np.array([-.04, .0, .03])
 
         if np.linalg.norm(pos_curr[:2] - pos_faucet[:2]) > 0.04:
             return pos_faucet + np.array([.0, .0, .1])

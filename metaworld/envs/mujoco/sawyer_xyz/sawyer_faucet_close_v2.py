@@ -10,8 +10,8 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.8, 0.05)
-        obj_high = (0.1, 0.85, 0.05)
+        obj_low = (-0.1, 0.8, 0.0)
+        obj_high = (0.1, 0.85, 0.0)
 
         super().__init__(
             self.model_name,
@@ -20,10 +20,9 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.8, 0.05]),
-            'hand_init_pos': np.array([0., .6, .2])
+            'obj_init_pos': np.array([0, 0.8, 0.0]),
+            'hand_init_pos': np.array([0., .4, .2])
         }
-        self.goal = np.array([-0.1, 0.785, 0.115])
         self.hand_init_pos = self.init_config['hand_init_pos']
         self.obj_init_pos = self.init_config['obj_init_pos']
 
@@ -38,9 +37,11 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
+        self.handle_length = 0.175
+
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_faucet.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_faucet.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -51,13 +52,28 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         ob = self._get_obs()
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pullDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pullDist <= 0.05),
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.get_site_pos('handleStartClose')
+        knob_center = self.get_body_com('faucetBase') + np.array([.0, .0, .125])
+        knob_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
+
+        offset = np.array([
+            np.sin(knob_angle_rad),
+            -np.cos(knob_angle_rad),
+            0
+        ])
+        offset *= self.handle_length
+
+        return knob_center + offset
 
     def _set_goal_marker(self, goal):
         """
@@ -73,31 +89,30 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos[:3]
-            final_pos = goal_pos.copy()
-            final_pos += np.array([-0.1, -0.015, 0.065])
-            self._state_goal = final_pos
+        # Compute faucet position
+        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
+            else self.init_config['obj_init_pos']
+        # Set mujoco body to computed position
+        self.sim.model.body_pos[self.model.body_name2id(
+            'faucetBase'
+        )] = self.obj_init_pos
 
-        self.sim.model.body_pos[self.model.body_name2id('faucet')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('faucetBase')] = self.obj_init_pos
+        self._state_goal = self.obj_init_pos + np.array(
+            [-self.handle_length, .0, .125]
+        )
         self._set_goal_marker(self._state_goal)
+
         self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
