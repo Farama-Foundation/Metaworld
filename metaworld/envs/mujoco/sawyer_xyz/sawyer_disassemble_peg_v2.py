@@ -11,10 +11,10 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         liftThresh = 0.05
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0.1, 0.75, 0.02)
-        obj_high = (0., 0.85, 0.02)
-        goal_low = (-0.1, 0.75, 0.17)
-        goal_high = (0.1, 0.85, 0.17)
+        obj_low = (0.1, 0.6, 0.025)
+        obj_high = (0., 0.75, 0.02501)
+        goal_low = (-0.1, 0.6, 0.17)
+        goal_high = (0.1, 0.75, 0.17)
 
         super().__init__(
             self.model_name,
@@ -24,8 +24,8 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0, 0.8, 0.02]),
-            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+            'obj_init_pos': np.array([0, 0.7, 0.025]),
+            'hand_init_pos': np.array((0, 0.4, 0.2), dtype=np.float32),
         }
         self.goal = np.array([0, 0.8, 0.17])
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -48,7 +48,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_assembly_peg.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_assembly_peg.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -66,7 +66,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('RoundNut-8')
+        return self.get_site_pos('RoundNut-8')
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -97,20 +97,20 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = peg_top_pos
         self._set_obj_xyz(self.obj_init_pos)
         self._set_goal_marker(self._state_goal)
-        self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
+        self.objHeight = self.get_site_pos('RoundNut-8')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+        self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
