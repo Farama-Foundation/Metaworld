@@ -24,7 +24,7 @@ class SawyerStickPullV2Policy(Policy):
             'grab_pow': 3
         })
         
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_xyz(o_d), p=10.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_xyz(o_d), p=25.)
         action['grab_pow'] = self._grab_pow(o_d)
 
         return action.array
@@ -32,31 +32,30 @@ class SawyerStickPullV2Policy(Policy):
     @staticmethod
     def _desired_xyz(o_d):
         hand_pos = o_d['hand_pos']
-        stick_pos = o_d['stick_pos'] + np.array([-0.02, 0.0, 0.0])
-        obj_pos = o_d['obj_pos']
-        goal_pos = o_d['goal_pos']
+        stick_pos = o_d['stick_pos'] + np.array([-.015, .0, .03])
+        thermos_pos = o_d['obj_pos'] + np.array([-.015, .0, .03])
+        goal_pos = o_d['goal_pos'] + np.array([-.05, .0, .0])
 
-        # If error in the XY plane is greater than 0.02, place end effector above the puck
-        if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02:
-            return stick_pos + np.array([0., 0., 0.1])
-        # Once XY error is low enough, drop end effector down on top of puck
-        elif abs(hand_pos[2] - stick_pos[2]) > 0.05 and stick_pos[-1] < 0.03:
-            return stick_pos + np.array([0., 0., 0.03])
-        # If not at the same Z height as the goal, move up to that plane
-        elif np.linalg.norm(stick_pos - obj_pos) > 0.06:
-            return np.array([obj_pos[0], obj_pos[1], obj_pos[2]+0.05])
-        # Move to the goal
+        if abs(stick_pos[0] - thermos_pos[0]) > 0.04:
+            if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02:
+                return stick_pos + np.array([0., 0., 0.1])
+            elif abs(hand_pos[2] - stick_pos[2]) > 0.02:
+                return stick_pos
+            elif abs(stick_pos[1] - thermos_pos[1]) > 0.02:
+                return np.array([stick_pos[0], thermos_pos[1], stick_pos[2]])
+            elif abs(stick_pos[2] - thermos_pos[2]) > 0.02:
+                return np.array([stick_pos[0], *thermos_pos[1:]])
+            else:
+                return thermos_pos
         else:
             return goal_pos
-        return
 
     @staticmethod
     def _grab_pow(o_d):
         hand_pos = o_d['hand_pos']
-        stick_pos = o_d['stick_pos'] + np.array([-0.02, 0.0, 0.0])
+        stick_pos = o_d['stick_pos'] + np.array([-.015, .0, .03])
 
         if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02 or abs(hand_pos[2] - stick_pos[2]) > 0.1:
-            return 0.
-        # While end effector is moving down toward the puck, begin closing the grabber
+            return -1.0
         else:
-            return 0.8
+            return +0.7

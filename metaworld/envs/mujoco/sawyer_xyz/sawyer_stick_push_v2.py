@@ -13,8 +13,8 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         goal_high = (0.4, 0.6, 0.02)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.08, 0.58, 0.02)
-        obj_high = (-0.03, 0.62, 0.02)
+        obj_low = (-0.08, 0.58, 0.000)
+        obj_high = (-0.03, 0.62, 0.001)
 
         super().__init__(
             self.model_name,
@@ -34,7 +34,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         self.max_path_length = 200
 
         # For now, fix the object initial position.
-        self.obj_init_pos = np.array([0.2, 0.6, 0.04])
+        self.obj_init_pos = np.array([0.2, 0.6, 0.0])
         self.obj_init_qpos = np.array([0.0, 0.0])
         self.obj_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
@@ -50,33 +50,42 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_stick_obj.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(np.concatenate((self._state_goal, [self.stick_init_pos[-1]])))
+        self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
-        reward , _, reachDist, pickRew, _, pushDist = self.compute_reward(action, obs_dict)
+        reward, _, reachDist, pickRew, _, pushDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': pushDist, 'success': float(pushDist <= 0.1 and reachDist <= 0.05)}
-        info['goal'] = self.goal
+        print(pushDist)
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': pushDist,
+            'success': float(pushDist <= 0.1 and reachDist <= 0.05),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
         return np.hstack((
             self.get_body_com('stick').copy(),
-            self.get_body_com('object').copy(),
+            self.get_site_pos('insertion') + np.array([.0, .09, .0]),
         ))
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
-        obs_dict['state_achieved_goal'] = self.get_body_com('object').copy()
+        obs_dict['state_achieved_goal'] = self.get_site_pos(
+            'insertion'
+        ) + np.array([.0, .09, .0])
         return obs_dict
 
     def _set_goal_marker(self, goal):
@@ -122,13 +131,11 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
