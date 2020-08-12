@@ -28,8 +28,11 @@ from metaworld.policies.sawyer_hammer_v1_policy import SawyerHammerV1Policy
 from metaworld.policies.sawyer_hand_insert_policy import SawyerHandInsertPolicy
 from metaworld.policies.sawyer_handle_press_side_v2_policy import SawyerHandlePressSideV2Policy
 from metaworld.policies.sawyer_handle_press_v1_policy import SawyerHandlePressV1Policy
+from metaworld.policies.sawyer_handle_press_v2_policy import SawyerHandlePressV2Policy
 from metaworld.policies.sawyer_handle_pull_side_v1_policy import SawyerHandlePullSideV1Policy
+from metaworld.policies.sawyer_handle_pull_side_v2_policy import SawyerHandlePullSideV2Policy
 from metaworld.policies.sawyer_handle_pull_v1_policy import SawyerHandlePullV1Policy
+from metaworld.policies.sawyer_handle_pull_v2_policy import SawyerHandlePullV2Policy
 from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Policy
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
@@ -89,8 +92,11 @@ __all__ = [
     'SawyerHandInsertPolicy',
     'SawyerHandlePressSideV2Policy',
     'SawyerHandlePressV1Policy',
+    'SawyerHandlePressV2Policy',
     'SawyerHandlePullSideV1Policy',
+    'SawyerHandlePullSideV2Policy',
     'SawyerHandlePullV1Policy',
+    'SawyerHandlePullV2Policy',
     'SawyerLeverPullV2Policy',
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
