@@ -41,10 +41,13 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickO
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_wall_v2 import SawyerPickPlaceWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_v2 import SawyerPlateSlideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back import SawyerPlateSlideBackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_v2 import SawyerPlateSlideBackEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side import SawyerPlateSlideBackSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import SawyerPlateSlideBackSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side_v2 import SawyerPlateSlideSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
@@ -110,7 +113,10 @@ __all__ = [
     'SawyerPlateSlideBackEnv',
     'SawyerPlateSlideBackSideEnv',
     'SawyerPlateSlideBackSideEnvV2',
+    'SawyerPlateSlideBackEnvV2',
     'SawyerPlateSlideSideEnv',
+    'SawyerPlateSlideSideEnvV2',
+    'SawyerPlateSlideEnvV2',
     'SawyerPushBackEnv',
     'SawyerPushEnvV2',
     'SawyerPushWallEnvV2',
