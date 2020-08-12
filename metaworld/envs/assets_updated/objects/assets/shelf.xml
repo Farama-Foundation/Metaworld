@@ -9,6 +9,6 @@
         <geom class="shelf_col" pos="0 -0.015 0.05" size="0.1 0.095 0.01" type="box"/>
         <geom class="shelf_col" pos="0 0.09 0.32" size="0.1 0.01 0.32" type="box"/>
         <geom class="shelf_col" pos="0.0 -0.008 0.021" size="0.1 0.088 0.021" type="box"/>
-        <site name="shelf_goal" pos="0 0 0.3" size="0.02" rgba="0 0.8 0 1"/>
+        <site name="goal" pos="0 0 0.3" size="0.02" rgba="0 0.8 0 1"/>
     </body>
 </mujocoinclude>

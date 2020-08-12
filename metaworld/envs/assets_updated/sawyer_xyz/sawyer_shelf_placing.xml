@@ -8,10 +8,9 @@
 
 
         <body name="obj" pos="0 0.6 0.02">
-            <freejoint/>
-            <geom class="shelf_viz" rgba="0 0 1 1" type="box" size="0.02 0.02 0.02"/>
-
-          <geom class="block_col" type="box" size="0.02 0.02 0.02" mass=".1"/>
+          <freejoint/>
+          <geom class="shelf_viz" rgba="0 0 1 1" type="box" size="0.02 0.02 0.02"/>
+          <geom class="block_col" type="box" size="0.02 0.02 0.02" mass=".01"/>
         </body>
 
         <body name="shelf" pos="0 .8 0">
