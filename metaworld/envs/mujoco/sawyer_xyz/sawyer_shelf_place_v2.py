@@ -5,7 +5,7 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
-class SawyerShelfPlaceEnv(SawyerXYZEnv):
+class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def __init__(self):
 
@@ -68,7 +68,7 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -78,11 +78,11 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        diff = self.get_body_com('obj')[:2] - self.get_body_com('obj')[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
+        return [adjustedPos[0], adjustedPos[1],self.get_body_com('obj')[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -90,7 +90,7 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:

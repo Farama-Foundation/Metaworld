@@ -51,6 +51,7 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerReachEnvV2,
     SawyerReachWallEnvV2,
     SawyerShelfPlaceEnv,
+    SawyerShelfPlaceEnvV2,
     SawyerSoccerEnv,
     SawyerStickPullEnv,
     SawyerStickPushEnv,
@@ -129,6 +130,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('reach-wall-v2', SawyerReachWallEnvV2),
     ('push-wall-v2', SawyerPushWallEnvV2),
     ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2),
+    ('shelf-place-v2', SawyerShelfPlaceEnvV2),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)

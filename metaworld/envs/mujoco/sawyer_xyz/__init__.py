@@ -48,6 +48,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import S
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_v2 import SawyerShelfPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
@@ -109,6 +110,7 @@ __all__ = [
     'SawyerReachEnvV2',
     'SawyerReachWallEnvV2',
     'SawyerShelfPlaceEnv',
+    'SawyerShelfPlaceEnvV2',
     'SawyerSoccerEnv',
     'SawyerStickPullEnv',
     'SawyerStickPushEnv',
