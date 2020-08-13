@@ -16,6 +16,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeBu
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull import SawyerCoffeePullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push import SawyerCoffeePushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_v2 import SawyerDialTurnEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
@@ -78,6 +79,7 @@ __all__ = [
     'SawyerNutAssemblyEnv',
     'SawyerBasketballEnv',
     'SawyerBinPickingEnv',
+    'SawyerBinPickingEnvV2',
     'SawyerBoxCloseEnv',
     'SawyerBoxCloseEnvV2',
     'SawyerButtonPressEnv',
@@ -92,6 +94,7 @@ __all__ = [
     'SawyerCoffeePullEnv',
     'SawyerCoffeePushEnv',
     'SawyerDialTurnEnv',
+    'SawyerDialTurnEnvV2',
     'SawyerNutDisassembleEnv',
     'SawyerDoorEnv',
     'SawyerDoorCloseEnv',
