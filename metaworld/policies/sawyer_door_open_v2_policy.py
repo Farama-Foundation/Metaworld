@@ -4,14 +4,14 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerWindowCloseV2Policy(Policy):
+class SawyerDoorOpenV2Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'wndw_pos': obs[3:6],
+            'door_pos': obs[3:6],
             'unused_info': obs[6:],
         }
 
@@ -31,11 +31,15 @@ class SawyerWindowCloseV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_wndw = o_d['wndw_pos'] + np.array([+0.03, -0.03, -0.08])
+        pos_door = o_d['door_pos']
+        pos_door[0] -= 0.05
 
-        if np.linalg.norm(pos_curr[:2] - pos_wndw[:2]) > 0.04:
-            return pos_wndw + np.array([0., 0., 0.25])
-        elif abs(pos_curr[2] - pos_wndw[2]) > 0.02:
-            return pos_wndw
+        # align end effector's Z axis with door handle's Z axis
+        if np.linalg.norm(pos_curr[:2] - pos_door[:2]) > 0.12:
+            return pos_door + np.array([0.06, 0.02, 0.2])
+        # drop down on front edge of door handle
+        elif abs(pos_curr[2] - pos_door[2]) > 0.04:
+            return pos_door + np.array([0.06, 0.02, 0.])
+        # push from front edge toward door handle's centroid
         else:
-            return pos_wndw + np.array([-0.1, 0., 0.])
+            return pos_door

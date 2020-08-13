@@ -2,27 +2,17 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.env_util import get_asset_full_path
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
-class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
-    """
-    Motivation for V2:
-        V1 was very difficult to solve because the end effector's wrist has a
-        nub that got caught on the box before pushing the handle all the way
-        down. There are a number of ways to fix this, e.g. moving box to right
-        sie of table, extending handle's length, decreasing handle's damping,
-        or moving the goal position slightly upward. I just the last one.
-    Changelog from V1 to V2:
-        - (8/05/20) Updated to new XML
-        - (6/30/20) Increased goal's Z coordinate by 0.01 in XML
-    """
-    def __init__(self, random_init=True):
+class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
+
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.35, 0.65, -0.001)
-        obj_high = (-0.25, 0.75, +0.001)
+        obj_low = (-0.1, 0.8, 0.1149)
+        obj_high = (0.1, 0.9, 0.1151)
 
         super().__init__(
             self.model_name,
@@ -30,13 +20,11 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
-        self.random_init = random_init
-
         self.init_config = {
-            'obj_init_pos': np.array([-0.3, 0.7, 0.0]),
-            'hand_init_pos': np.array((0, 0.6, 0.2),),
+            'obj_init_pos': np.array([0, 0.8, 0.115], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([-0.2, 0.7, 0.14])
+        self.goal = np.array([0, 0.88, 0.1])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
@@ -45,17 +33,11 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
-        )
-
         self.obj_and_goal_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
         self.observation_space = Box(
             np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
             np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
@@ -63,8 +45,9 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_handle_press_sideways.xml', True)
+        return get_asset_full_path('sawyer_xyz/sawyer_button_press_topdown_wall.xml', True)
 
+    @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
@@ -72,21 +55,14 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         ob = self._get_obs()
         obs_dict = self._get_obs_dict()
         reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
-        self.curr_path_length += 1
-
-        info = {
-            'reachDist': reachDist,
-            'goalDist': pressDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pressDist <= 0.04),
-            'goal': self.goal
-        }
+        self.curr_path_length +=1
+        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.02)}
+        info['goal'] = self.goal
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.get_site_pos('handleStart')
+        return self.get_body_com("button") + np.array([.0, .0, .193])
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -97,15 +73,15 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
+        self._state_goal = self.goal.copy()
 
-        self.obj_init_pos = (self._get_state_rand_vec()
-                             if self.random_init
-                             else self.init_config['obj_init_pos'])
+        if self.random_init:
+            goal_pos = self._get_state_rand_vec()
+            self.obj_init_pos = goal_pos
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self._set_obj_xyz(0)
-        self._state_goal = self.get_site_pos('goalPress')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._state_goal[-1])
+        self._state_goal = self.get_site_pos('hole')
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._state_goal[2])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
@@ -114,22 +90,28 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+            self.do_simulation([-1,1], self.frame_skip)
+
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+        self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
 
-        obs = obs['state_observation']
+        if isinstance(obs, dict):
+            obs = obs['state_observation']
 
         objPos = obs[3:6]
 
-        leftFinger = self.get_site_pos('leftEndEffector')
-        fingerCOM  =  leftFinger
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pressGoal = self._state_goal[-1]
+        pressGoal = self._state_goal[2]
 
-        pressDist = np.abs(objPos[-1] - pressGoal)
+        pressDist = np.abs(objPos[2] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
+        reachRew = -reachDist
 
         c1 = 1000
         c2 = 0.01
@@ -138,8 +120,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
         else:
             pressRew = 0
-
         pressRew = max(pressRew, 0)
-        reward = -reachDist + pressRew
+        reward = reachRew + pressRew
 
         return [reward, reachDist, pressDist]
