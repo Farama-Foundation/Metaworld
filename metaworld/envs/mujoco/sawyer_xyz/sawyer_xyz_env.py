@@ -242,6 +242,21 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         pos_hand = self.get_endeff_pos()
 
+        finger_right, finger_left = (
+            self.get_site_pos('rightEndEffector'),
+            self.get_site_pos('leftEndEffector')
+        )
+
+        # the gripper can be at maximum about ~0.1 m apart.
+        # dividing by 0.1 normalized the gripper distance between
+        # 0 and 1. Further, we clip because sometimes the grippers
+        # are slightly more than 0.1m apart (~0.00045 m)
+        # clipping removes the effects of this random extra distance
+        # that is produced by mujoco
+        gripper_distance_apart = np.linalg.norm(finger_right-finger_left)
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
+        gripper_distance_apart = np.array([gripper_distance_apart])
+
         pos_obj_padded = np.zeros(self._pos_obj_max_len)
         pos_obj = self._get_pos_objects()
         assert len(pos_obj) in self._pos_obj_possible_lens
@@ -251,7 +266,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
 
-        return np.hstack((pos_hand, pos_obj_padded, pos_goal))
+        return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded, pos_goal))
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -269,9 +284,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
+        gripper_low = 0.
+        gripper_high = 1.
         return Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
