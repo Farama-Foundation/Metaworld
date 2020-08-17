@@ -11,8 +11,10 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.7, 0.000)
-        obj_high = (0.1, 0.8, 0.001)
+        obj_low = (-0.1, 0.7, 0.0)
+        obj_high = (0.1, 0.8, 0.0)
+        goal_low = (-0.1, 0.73, 0.0299)
+        goal_high = (0.1, 0.83, 0.0301)
 
         super().__init__(
             self.model_name,
@@ -27,20 +29,14 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.goal = np.array([0., 0.73, 0.08])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-        goal_low = self.hand_low
-        goal_high = self.hand_high
 
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
         self.dial_radius = 0.05
 
@@ -58,8 +54,13 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.03)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pullDist, 'epRew': reward,
+            'pickRew': None,
+            'success': float(pullDist <= 0.03),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
@@ -102,7 +103,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
         self.reachCompleted = False
 

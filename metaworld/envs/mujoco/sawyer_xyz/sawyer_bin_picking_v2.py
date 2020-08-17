@@ -40,8 +40,9 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
+        # Small bounds around the center of the target bin
+        goal_low = np.array([0.1199, 0.699, -0.001])
+        goal_high = np.array([0.1201, 0.701, +0.001])
 
         self.liftThresh = liftThresh
         self.max_path_length = 200
@@ -57,14 +58,9 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         )
 
         self.goal_space = Box(goal_low, goal_high)
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
-        )
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
     @property

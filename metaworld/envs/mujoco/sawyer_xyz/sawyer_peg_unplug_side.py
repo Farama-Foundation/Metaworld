@@ -10,12 +10,12 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
     def __init__(self):
 
         liftThresh = 0.04
-        goal_low = (-0.25, 0.6, 0.05)
-        goal_high = (-0.15, 0.8, 0.05)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, 0.05)
         obj_high = (-0.15, 0.8, 0.05)
+        goal_low = (-0.05, 0.6, 0.019)
+        goal_high = (0.2, 0.8, 0.021)
 
         super().__init__(
             self.model_name,
@@ -34,16 +34,11 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 200
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):
