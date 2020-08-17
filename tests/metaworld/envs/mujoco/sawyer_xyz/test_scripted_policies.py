@@ -132,7 +132,7 @@ test_cases_latest_noisy = [
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
     ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .95],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
-    ['button-press-topdown-wall-v2', SawyerButtonPressTopdownWallV2Policy(), .1, .95],
+    ['button-press-topdown-wall-v2', SawyerButtonPressTopdownWallV2Policy(), .1, 1.],
     ['button-press-v1', SawyerButtonPressV1Policy(), .1, .98],
     ['button-press-v2', SawyerButtonPressV2Policy(), .1, .98],
     ['button-press-wall-v1', SawyerButtonPressWallV1Policy(), .1, .94],
@@ -148,7 +148,7 @@ test_cases_latest_noisy = [
     ['disassemble-v1', SawyerDisassembleV1Policy(), .1, .91],
     ['disassemble-v2', SawyerDisassembleV2Policy(), .1, .88],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, .99],
-    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .97],
+    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .99],
     ['door-lock-v1', SawyerDoorLockV1Policy(), .1, 1.],
     ['door-lock-v2', SawyerDoorLockV2Policy(), .1, .96],
     ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .93],
@@ -219,9 +219,11 @@ for row in test_cases_old_nonoise:
 for row in test_cases_old_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_nonoise:
-    test_cases.append(pytest.param(*row, marks=pytest.mark.skip_on_ci))
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+
+
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
@@ -240,7 +242,7 @@ def env(request):
     test_cases,
     indirect=['env']
 )
-def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
+def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=1000):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -252,6 +254,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             must be successful
         iters (int): How many times the policy should be tested
     """
+    expected_success_rate = 1.
     assert len(vars(policy)) == 0, \
         '{} has state variable(s)'.format(policy.__class__.__name__)
 

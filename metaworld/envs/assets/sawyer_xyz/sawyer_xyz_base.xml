@@ -165,7 +165,7 @@ Usage:
                                                     <!-- <site name="rightEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
                                                     <site name="rightEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
                                                     <body name="rightpad" pos ="0 .003 0" >
-                                                        <geom name="rightpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="1 1 1 1.0" solimp="0.9 0.9 0.01" solref="0.01 1" friction="2 0.1 0.002" contype="1" conaffinity="1"/>
+                                                        <geom name="rightpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="1 1 1 1.0" solimp="0.95 0.95 0.01" solref="0.01 1" contype="1" conaffinity="1"/>
                                                     </body>
 
                                                 </body>
@@ -177,7 +177,7 @@ Usage:
                                                     <!-- <site name="leftEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
                                                     <site name="leftEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
                                                     <body name="leftpad" pos ="0 -.003 0" >
-                                                        <geom name="leftpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="0 1 1 1.0" solimp="0.9 0.9 0.01" solref="0.01 1" friction="2 0.1 0.002"  contype="1" conaffinity="1" />
+                                                        <geom name="leftpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="0 1 1 1.0" solimp="0.95 0.95 0.01" solref="0.01 1"  contype="1" conaffinity="1" />
                                                     </body>
                                       
                                                 </body>
