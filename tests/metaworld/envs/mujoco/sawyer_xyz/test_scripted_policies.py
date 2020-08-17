@@ -101,72 +101,72 @@ test_cases_latest_nonoise = [
 
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
-    ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
-    ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
-    ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .96],
-    ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .84],
-    ['box-close-v2', SawyerBoxCloseV2Policy(), .1, .82],
-    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
-    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .96],
+    ['assembly-v1', SawyerAssemblyV1Policy(), .1, .78],
+    ['basketball-v1', SawyerBasketballV1Policy(), .1, .98],
+    ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .98],
+    ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .90],
+    ['box-close-v2', SawyerBoxCloseV2Policy(), .1, .89],
+    ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .99],
+    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .98],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
-    ['button-press-topdown-wall-v2', SawyerButtonPressTopdownWallV2Policy(), .1, .95],
+    ['button-press-topdown-wall-v2', SawyerButtonPressTopdownWallV2Policy(), .1, 1.],
     ['button-press-v1', SawyerButtonPressV1Policy(), .1, .98],
     ['button-press-v2', SawyerButtonPressV2Policy(), .1, .98],
-    ['button-press-wall-v1', SawyerButtonPressWallV1Policy(), .1, .95],
-    ['button-press-wall-v2', SawyerButtonPressWallV2Policy(), .1, .92],
+    ['button-press-wall-v1', SawyerButtonPressWallV1Policy(), .1, .98],
+    ['button-press-wall-v2', SawyerButtonPressWallV2Policy(), .1, .99],
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .1, .99],
-    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .95],
-    ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .88],
-    ['dial-turn-v1', SawyerDialTurnV1Policy(), .1, 0.84],
-    ['dial-turn-v2', SawyerDialTurnV2Policy(), .1, 0.84],
-    ['disassemble-v1', SawyerDisassembleV1Policy(), .1, .90],
+    ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .96],
+    ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .91],
+    ['dial-turn-v1', SawyerDialTurnV1Policy(), .1, 0.91],
+    ['dial-turn-v2', SawyerDialTurnV2Policy(), .1, 0.95],
+    ['disassemble-v1', SawyerDisassembleV1Policy(), .1, .96],
     ['door-close-v1', SawyerDoorCloseV1Policy(), .1, .99],
-    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .97],
+    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .99],
     ['door-lock-v1', SawyerDoorLockV1Policy(), .1, 1.],
-    ['door-lock-v2', SawyerDoorLockV2Policy(), .1, .96],
-    ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .93],
-    ['door-open-v2', SawyerDoorOpenV2Policy(), .1, .92],
-    ['door-unlock-v1', SawyerDoorUnlockV1Policy(), .1, .97],
-    ['door-unlock-v2', SawyerDoorUnlockV2Policy(), .1, .97],
-    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, .64],
-    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
-    ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
+    ['door-lock-v2', SawyerDoorLockV2Policy(), .1, .99],
+    ['door-open-v1', SawyerDoorOpenV1Policy(), .1, .98],
+    ['door-open-v2', SawyerDoorOpenV2Policy(), .1, .97],
+    ['door-unlock-v1', SawyerDoorUnlockV1Policy(), .1, .99],
+    ['door-unlock-v2', SawyerDoorUnlockV2Policy(), .1, .99],
+    ['drawer-close-v1', SawyerDrawerCloseV1Policy(), .1, .81],
+    ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .99],
+    ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .97],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
-    ['hammer-v1', SawyerHammerV1Policy(), .1, .97],
-    ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.95],
-    ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
+    ['hammer-v1', SawyerHammerV1Policy(), .1, .98],
+    ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.98],
+    ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, 1.],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
     ['handle-press-v2', SawyerHandlePressV2Policy(), .1, 1.],
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
-    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .65],
-    ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
-    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .51],
+    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .74],
+    ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .81],
+    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .66],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, 1.],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .90],
-    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
-    ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .89],
-    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .90],
-    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, .95],
-    ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
-    ['plate-slide-back-v2', SawyerPlateSlideBackV2Policy(), .1, .95],
-    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .78],
-    ['plate-slide-side-v2', SawyerPlateSlideSideV2Policy(), .1, .78],
-    ['plate-slide-v1', SawyerPlateSlideV1Policy(), .1, .97],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .97],
+    ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .99],
+    ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .95],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .91],
+    ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .89],
+    ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, .99],
+    ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .98],
+    ['plate-slide-back-v2', SawyerPlateSlideBackV2Policy(), .1, .98],
+    ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .87],
+    ['plate-slide-side-v2', SawyerPlateSlideSideV2Policy(), .1, .98],
+    ['plate-slide-v1', SawyerPlateSlideV1Policy(), .1, .98],
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .97],
     ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['reach-wall-v2', SawyerReachWallV2Policy(), .1, .98],
-    ['push-back-v1', SawyerPushBackV1Policy(), .1, .91],
-    ['push-v2', SawyerPushV2Policy(), .1, .94],
-    ['push-wall-v2', SawyerPushWallV2Policy(), .1, .82],
-    ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
-    ['soccer-v1', SawyerSoccerV1Policy(), .1, .91],
-    ['stick-pull-v1', SawyerStickPullV1Policy(), .1, 0.87],
-    ['stick-push-v1', SawyerStickPushV1Policy(), .1, 0.95],
+    ['push-back-v1', SawyerPushBackV1Policy(), .1, .96],
+    ['push-v2', SawyerPushV2Policy(), .1, .98],
+    ['push-wall-v2', SawyerPushWallV2Policy(), .1, .87],
+    ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .94],
+    ['soccer-v1', SawyerSoccerV1Policy(), .1, .94],
+    ['stick-pull-v1', SawyerStickPullV1Policy(), .1, 0.75],
+    ['stick-push-v1', SawyerStickPushV1Policy(), .1, 0.98],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
-    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
+    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, 1.],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, 1.],
 ]
 
 
@@ -177,9 +177,11 @@ for row in test_cases_old_nonoise:
 for row in test_cases_old_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_nonoise:
-    test_cases.append(pytest.param(*row, marks=pytest.mark.skip_on_ci))
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+
+
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
@@ -198,7 +200,7 @@ def env(request):
     test_cases,
     indirect=['env']
 )
-def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
+def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=1000):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -210,6 +212,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             must be successful
         iters (int): How many times the policy should be tested
     """
+    expected_success_rate = 1.
     assert len(vars(policy)) == 0, \
         '{} has state variable(s)'.format(policy.__class__.__name__)
 
