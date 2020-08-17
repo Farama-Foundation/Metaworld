@@ -60,7 +60,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_reach_wall_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_reach_wall_v2.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -85,7 +85,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
@@ -97,28 +97,11 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def adjust_initObjPos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not
-        # aligned. If this is not done, the object could be initialized in an
-        # extreme position
-        diff = self.get_body_com('obj')[:2] - \
-               self.data.get_geom_xpos('objGeom')[:2]
-        adjusted_pos = orig_init_pos[:2] + diff
-
-        # The convention we follow is that body_com[2] is always 0, and
-        # geom_pos[2] is the object height
-        return [
-            adjusted_pos[0],
-            adjusted_pos[1],
-            self.data.get_geom_xpos('objGeom')[-1]
-        ]
-
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
