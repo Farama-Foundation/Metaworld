@@ -64,7 +64,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_push_wall_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_push_wall_v2.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -135,7 +135,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
