@@ -33,7 +33,7 @@ test_cases_latest_nonoise = [
     # name, policy, action noise pct, success rate
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
-    ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .99],
+    ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .0, .90],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .0, 1.],

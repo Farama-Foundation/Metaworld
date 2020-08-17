@@ -6,6 +6,16 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 
 
 class SawyerBinPickingEnvV2(SawyerXYZEnv):
+    """
+    Motivation for V2:
+        V1 was often unsolvable because the cube could be located outside of
+        the starting bin. It could even be near the base of the Sawyer and out
+        of reach of the gripper. V2 changes the `obj_low` and `obj_high` bounds
+        to fix this.
+    Changelog from V1 to V2:
+        - (7/20/20) Changed object initialization space
+        - (7/24/20) Added Byron's XML changes
+    """
     def __init__(self):
 
         liftThresh = 0.1
@@ -34,7 +44,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self.liftThresh = liftThresh
-        self.max_path_length = 150
+        self.max_path_length = 200
 
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
@@ -59,7 +69,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_bin_picking.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_bin_picking.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -77,7 +87,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -86,21 +96,12 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def adjust_initObjPos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not aligned
-        # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
-        adjustedPos = orig_init_pos[:2] + diff
-
-        # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
-
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
+        self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -108,13 +109,13 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self._state_goal = self.get_body_com("bin_goal")
+        self._state_goal = self.get_body_com('bin_goal')
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._state_goal)[:-1]) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
