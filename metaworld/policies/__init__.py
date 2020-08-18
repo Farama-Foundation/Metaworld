@@ -58,6 +58,7 @@ from metaworld.policies.sawyer_reach_v2_policy import SawyerReachV2Policy
 from metaworld.policies.sawyer_reach_wall_v2_policy import SawyerReachWallV2Policy
 from metaworld.policies.sawyer_shelf_place_v1_policy import SawyerShelfPlaceV1Policy
 from metaworld.policies.sawyer_soccer_v1_policy import SawyerSoccerV1Policy
+from metaworld.policies.sawyer_soccer_v2_policy import SawyerSoccerV2Policy
 from metaworld.policies.sawyer_stick_pull_policy import SawyerStickPullV1Policy
 from metaworld.policies.sawyer_stick_push_policy import SawyerStickPushV1Policy
 from metaworld.policies.sawyer_sweep_into_v1_policy import SawyerSweepIntoV1Policy
@@ -127,6 +128,7 @@ __all__ = [
     'SawyerReachWallV2Policy',
     'SawyerShelfPlaceV1Policy',
     'SawyerSoccerV1Policy',
+    'SawyerSoccerV2Policy',
     'SawyerStickPullV1Policy',
     'SawyerStickPushV1Policy',
     'SawyerSweepIntoV1Policy',
