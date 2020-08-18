@@ -35,14 +35,21 @@ class SawyerSoccerV2Policy(Policy):
         pos_ball = o_d['ball_pos'] + np.array([.0, .0, .03])
         pos_goal = o_d['goal_pos']
 
-        curr_to_ball = pos_ball - pos_curr
-        curr_to_ball /= np.linalg.norm(curr_to_ball)
+        desired_z = 0.1 if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) < 0.02 \
+            else 0.03
 
-        ball_to_goal = pos_goal - pos_ball
-        ball_to_goal /= np.linalg.norm(ball_to_goal)
+        to_left_of_goal = pos_ball[0] - pos_goal[0] < -0.05
+        to_right_of_goal = pos_ball[0] - pos_goal[0] > 0.05
 
-        scaling = .1
-        if np.dot(curr_to_ball[:2], ball_to_goal[:2]) < .7:
-            scaling *= -1
+        offset = 0.03
+        push_location = pos_ball + np.array([.0, -offset, .0])
+        if to_left_of_goal:
+            push_location = pos_ball + np.array([-offset, .0, .0])
+        elif to_right_of_goal:
+            push_location = pos_ball + np.array([+offset, .0, .0])
 
-        return pos_ball + scaling * ball_to_goal
+        push_location[2] = desired_z
+
+        if np.linalg.norm(pos_curr - push_location) > 0.01:
+            return push_location
+        return pos_ball
