@@ -7,12 +7,6 @@
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
 
-      <!-- <body name="obj" pos="0 0.6 0.015">
-        <freejoint/>
-        <include file="../objects/assets/block.xml"/>
-
-      </body> -->
-
       <body name="obj" pos="0 0.6 0.02">
 
           <joint name="objjoint" type="free" limited='false' damping="0." armature="0."/>
