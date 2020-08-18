@@ -31,7 +31,7 @@ class SawyerHammerV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['hammer_pos'] + np.array([-.08, .0, -.01])
+        pos_puck = o_d['hammer_pos'] + np.array([-.04, .0, -.01])
         pos_goal = np.array([0.24, 0.71, 0.11]) + np.array([-.19, .0, .05])
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
@@ -50,7 +50,7 @@ class SawyerHammerV2Policy(Policy):
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['hammer_pos'] + np.array([-.08, .0, -.01])
+        pos_puck = o_d['hammer_pos'] + np.array([-.04, .0, -.01])
 
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.1:
             return 0.

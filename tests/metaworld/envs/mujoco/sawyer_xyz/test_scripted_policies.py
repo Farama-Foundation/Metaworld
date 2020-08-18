@@ -134,7 +134,7 @@ test_cases_latest_noisy = [
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
     ['hammer-v1', SawyerHammerV1Policy(), .1, .97],
-    ['hammer-v2', SawyerHammerV2Policy(), .1, .97],
+    ['hammer-v2', SawyerHammerV2Policy(), .1, .96],
     ['hand-insert-v1', SawyerHandInsertPolicy(), .1, 0.95],
     ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
