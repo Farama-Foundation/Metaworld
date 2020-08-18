@@ -161,11 +161,12 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp = (finger_right + finger_left) / 2
         obj = obs[3:6]
         target = self._state_goal
+        _TARGET_RADIUS_GRASP = 0.03
         _TARGET_RADIUS = 0.07
         tcp_to_obj = np.linalg.norm(obj - tcp)
         grasp = reward_utils.tolerance(tcp_to_obj,
-                                bounds=(0, _TARGET_RADIUS),
-                                margin=_TARGET_RADIUS,
+                                bounds=(0, _TARGET_RADIUS_GRASP),
+                                margin=_TARGET_RADIUS_GRASP,
                                 sigmoid='long_tail')
 
         obj_to_target = np.linalg.norm(obj - target)
@@ -175,12 +176,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail')
 
         tcp_to_target = np.linalg.norm(tcp - target)
-        hand_away = reward_utils.tolerance(tcp_to_target,
-                                    bounds=(4*_TARGET_RADIUS, np.inf),
-                                    margin=3*_TARGET_RADIUS,
-                                    sigmoid='long_tail')
         in_place_weight = 10.
-        grasp_or_hand_away = grasp * (1 - in_place) + hand_away * in_place
-        reward = (grasp_or_hand_away + in_place_weight * in_place) / (1 + in_place_weight)
-        
+        reward = (grasp + in_place_weight * in_place) / (1 + in_place_weight)
+        reward = in_place
+        if obj_to_target <= _TARGET_RADIUS:
+            assert reward >= 1.
+        else:
+            assert reward < 1.
         return [reward, tcp_to_obj, 0, obj_to_target]
