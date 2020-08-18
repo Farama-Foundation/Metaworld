@@ -30,6 +30,7 @@ from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Po
 from metaworld.policies.sawyer_faucet_close_v1_policy import SawyerFaucetCloseV1Policy
 from metaworld.policies.sawyer_faucet_open_v1_policy import SawyerFaucetOpenV1Policy
 from metaworld.policies.sawyer_hammer_v1_policy import SawyerHammerV1Policy
+from metaworld.policies.sawyer_hammer_v2_policy import SawyerHammerV2Policy
 from metaworld.policies.sawyer_hand_insert_policy import SawyerHandInsertPolicy
 from metaworld.policies.sawyer_handle_press_side_v2_policy import SawyerHandlePressSideV2Policy
 from metaworld.policies.sawyer_handle_press_v1_policy import SawyerHandlePressV1Policy
@@ -99,6 +100,7 @@ __all__ = [
     'SawyerFaucetCloseV1Policy',
     'SawyerFaucetOpenV1Policy',
     'SawyerHammerV1Policy',
+    'SawyerHammerV2Policy',
     'SawyerHandInsertPolicy',
     'SawyerHandlePressSideV2Policy',
     'SawyerHandlePressV1Policy',
