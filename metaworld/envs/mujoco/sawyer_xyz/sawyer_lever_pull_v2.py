@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
@@ -111,32 +112,22 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         del actions
 
-        objPos = obs[3:6]
-
+        obj = obs[3:6]
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        tcp = (rightFinger + leftFinger)/2
+        target = self._state_goal
+        _TARGET_RADIUS = 0.05
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        obj_to_target = np.linalg.norm(obj - target)
+        grasp = reward_utils.tolerance(tcp_to_obj,
+                                       bounds=(0, _TARGET_RADIUS),
+                                       margin=_TARGET_RADIUS,
+                                       sigmoid='long_tail')
+        in_place = reward_utils.tolerance(obj_to_target,
+                                          bounds=(0, _TARGET_RADIUS),
+                                          margin=_TARGET_RADIUS,
+                                          sigmoid='long_tail')
+        in_place_weight = 10.
+        reward = (grasp + in_place_weight * in_place) / (1 + in_place_weight)
 
-        pullGoal = self._state_goal
-
-        pullDist = np.linalg.norm(objPos - pullGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
-
-        self.reachCompleted = reachDist < 0.05
-
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
-
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
+        return [reward, tcp_to_obj, obj_to_target]
