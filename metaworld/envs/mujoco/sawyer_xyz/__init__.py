@@ -68,6 +68,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_v2 import SawyerSweepEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
@@ -146,6 +147,7 @@ __all__ = [
     'SawyerStickPullEnv',
     'SawyerStickPushEnv',
     'SawyerSweepEnv',
+    'SawyerSweepEnvV2',
     'SawyerSweepIntoGoalEnv',
     'SawyerWindowCloseEnv',
     'SawyerWindowCloseEnvV2',

@@ -95,6 +95,7 @@ test_cases_latest_nonoise = [
     ['stick-push-v1', SawyerStickPushV1Policy(), .0, 0.98],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .0, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .0, 1.],
+    ['sweep-v2', SawyerSweepV2Policy(), .0, 0.99],
     ['window-close-v2', SawyerWindowCloseV2Policy(), 0., .98],
     ['window-open-v2', SawyerWindowOpenV2Policy(), 0., .94],
 ]
@@ -165,6 +166,7 @@ test_cases_latest_noisy = [
     ['stick-push-v1', SawyerStickPushV1Policy(), .1, 0.95],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
+    ['sweep-v2', SawyerSweepV2Policy(), .0, 0.99],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
