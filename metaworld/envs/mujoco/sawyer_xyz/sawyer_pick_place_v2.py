@@ -175,7 +175,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     margin=_TARGET_RADIUS,
                                     sigmoid='long_tail')
 
-        tcp_to_target = np.linalg.norm(tcp - target)
         in_place_weight = 10.
         reward = (grasp + in_place_weight * in_place) / (1 + in_place_weight)
         reward = in_place
