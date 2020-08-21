@@ -41,6 +41,7 @@ from metaworld.policies.sawyer_handle_pull_v2_policy import SawyerHandlePullV2Po
 from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Policy
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
+from metaworld.policies.sawyer_peg_unplug_side_v2_policy import SawyerPegUnplugSideV2Policy
 from metaworld.policies.sawyer_pick_out_of_hole_v1_policy import SawyerPickOutOfHoleV1Policy
 from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
@@ -110,6 +111,7 @@ __all__ = [
     'SawyerLeverPullV2Policy',
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
+    'SawyerPegUnplugSideV2Policy',
     'SawyerPickOutOfHoleV1Policy',
     'SawyerPickPlaceV2Policy',
     'SawyerPickPlaceWallV2Policy',
