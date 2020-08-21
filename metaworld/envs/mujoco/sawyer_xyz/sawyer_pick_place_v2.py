@@ -57,6 +57,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
         self.num_resets = 0
+        self.obj_init_pos = None
 
     @property
     def model_name(self):
@@ -126,6 +127,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                 self._state_goal = goal_pos[3:]
             self._state_goal = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
+            finger_right, finger_left = (
+                self.get_site_pos('rightEndEffector'),
+                self.get_site_pos('leftEndEffector')
+            )
+            self.init_tcp = (finger_right + finger_left) / 2
 
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
@@ -164,17 +170,34 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         _TARGET_RADIUS_GRASP = 0.03
         _TARGET_RADIUS = 0.07
         tcp_to_obj = np.linalg.norm(obj - tcp)
+
+        grasp_margin = (np.linalg.norm(self.obj_init_pos - self.init_tcp)
+            - _TARGET_RADIUS_GRASP)
         grasp = reward_utils.tolerance(tcp_to_obj,
                                 bounds=(0, _TARGET_RADIUS_GRASP),
-                                margin=_TARGET_RADIUS_GRASP,
+                                margin=grasp_margin,
                                 sigmoid='long_tail')
 
         obj_to_target = np.linalg.norm(obj - target)
+
+        in_place_margin = (np.linalg.norm(self.obj_init_pos - target)
+            - _TARGET_RADIUS)
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=_TARGET_RADIUS,
-                                    sigmoid='long_tail')
-
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',
+                                    value_at_margin=0.05)
+        # temp = [reward_utils.tolerance(x,
+        #                               bounds=(0, _TARGET_RADIUS),
+        #                               margin=in_place_margin,
+        #                               sigmoid='long_tail',
+        #                               value_at_margin=0.1) for x in np.arange(obj_to_target, 0, -0.02)]
+        # temp2 = [reward_utils.tolerance(x,
+        #                               bounds=(0, _TARGET_RADIUS),
+        #                               margin=in_place_margin,
+        #                               sigmoid='long_tail',
+        #                               value_at_margin=0.05) for x in np.arange(obj_to_target, 0, -0.02)]
+        # import ipdb; ipdb.set_trace()
         in_place_weight = 10.
         reward = (grasp + in_place_weight * in_place) / (1 + in_place_weight)
         reward = in_place
@@ -182,4 +205,4 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             assert reward >= 1.
         else:
             assert reward < 1.
-        return [reward, tcp_to_obj, 0, obj_to_target]
+        return [10 * reward, tcp_to_obj, 0, obj_to_target]
