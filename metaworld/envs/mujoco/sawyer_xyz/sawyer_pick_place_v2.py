@@ -48,7 +48,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 150
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -75,6 +75,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         reward, tcp_to_obj, _, obj_to_target = self.compute_reward(action, obs_dict)
         success = float(obj_to_target <= 0.07)
+        # success = float(tcp_to_obj <= 0.03)
 
         info = {
             'success': success,
@@ -176,7 +177,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         grasp = reward_utils.tolerance(tcp_to_obj,
                                 bounds=(0, _TARGET_RADIUS_GRASP),
                                 margin=grasp_margin,
-                                sigmoid='long_tail')
+                                sigmoid='long_tail',)
 
         obj_to_target = np.linalg.norm(obj - target)
 
@@ -185,12 +186,14 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
-                                    sigmoid='long_tail',
-                                    value_at_margin=0.05)
-        in_place_weight = 10.
-        reward = (grasp + in_place_weight * in_place) / (1 + in_place_weight)
-        reward = in_place
-        if obj_to_target <= _TARGET_RADIUS:
+                                    sigmoid='long_tail',)
+                                    # value_at_margin=0.05)
+        in_place_weight = 5.
+        # based on Hamacher Product T-Norm
+        in_place_and_grasp = (in_place * grasp) / (in_place + grasp - (in_place * grasp))
+        assert in_place_and_grasp <= 1.
+        reward = (grasp + in_place_weight * in_place_and_grasp) / (1 + in_place_weight)
+        if obj_to_target <= _TARGET_RADIUS and tcp_to_obj <= _TARGET_RADIUS_GRASP:
             assert reward >= 1.
         else:
             assert reward < 1.
