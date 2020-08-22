@@ -12,8 +12,11 @@ from metaworld.policies.sawyer_button_press_v2_policy import SawyerButtonPressV2
 from metaworld.policies.sawyer_button_press_wall_v1_policy import SawyerButtonPressWallV1Policy
 from metaworld.policies.sawyer_button_press_wall_v2_policy import SawyerButtonPressWallV2Policy
 from metaworld.policies.sawyer_coffee_button_v1_policy import SawyerCoffeeButtonV1Policy
+from metaworld.policies.sawyer_coffee_button_v2_policy import SawyerCoffeeButtonV2Policy
 from metaworld.policies.sawyer_coffee_pull_v1_policy import SawyerCoffeePullV1Policy
+from metaworld.policies.sawyer_coffee_pull_v2_policy import SawyerCoffeePullV2Policy
 from metaworld.policies.sawyer_coffee_push_v1_policy import SawyerCoffeePushV1Policy
+from metaworld.policies.sawyer_coffee_push_v2_policy import SawyerCoffeePushV2Policy
 from metaworld.policies.sawyer_dial_turn_v1_policy import SawyerDialTurnV1Policy
 from metaworld.policies.sawyer_dial_turn_v2_policy import SawyerDialTurnV2Policy
 from metaworld.policies.sawyer_disassemble_v1_policy import SawyerDisassembleV1Policy
@@ -81,8 +84,11 @@ __all__ = [
     'SawyerButtonPressWallV1Policy',
     'SawyerButtonPressWallV2Policy',
     'SawyerCoffeeButtonV1Policy',
+    'SawyerCoffeeButtonV2Policy',
     'SawyerCoffeePullV1Policy',
+    'SawyerCoffeePullV2Policy',
     'SawyerCoffeePushV1Policy',
+    'SawyerCoffeePushV2Policy',
     'SawyerDialTurnV1Policy',
     'SawyerDialTurnV2Policy',
     'SawyerDisassembleV1Policy',
