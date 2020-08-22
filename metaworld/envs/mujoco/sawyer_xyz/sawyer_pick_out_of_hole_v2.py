@@ -12,10 +12,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         liftThresh = 0.11
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0, 0.84, -0.03)
-        obj_high = (0, 0.84, -0.03)
-        goal_low = (-0.1, 0.6, 0.15)
-        goal_high = (0.1, 0.7, 0.3)
+        obj_low = (0, 0.75, 0.0)
+        obj_high = (0, 0.75, 0.0)
+        goal_low = (-0.1, 0.5, 0.15)
+        goal_high = (0.1, 0.6, 0.3)
 
         super().__init__(
             self.model_name,
@@ -24,7 +24,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.84, -0.03]),
+            'obj_init_pos': np.array([0, 0.6, 0.0]),
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array([0., .6, .2]),
         }
@@ -44,7 +44,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -53,17 +53,22 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs_dict)
-        self.curr_path_length +=1
+        reward, reachDist, pickRew, placingDist = self.compute_reward(action, ob)
+        self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': placingDist, 'epRew' : reward, 'pickRew':pickRew, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': placingDist,
+            'epRew': reward,
+            'pickRew': pickRew,
+            'success': float(placingDist <= 0.08),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
@@ -72,39 +77,41 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
+
+        pos_obj = self.init_config['obj_init_pos']
+        pos_goal = self.goal.copy()
 
         if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[-3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[-3:]
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+            pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
+            while np.linalg.norm(pos_obj[:2] - pos_goal[:2]) < 0.15:
+                pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
 
-        self._set_goal_marker(self._state_goal)
+        self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+
+        self._state_goal = pos_goal
+        self._set_goal_marker(self._state_goal)
+
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(
+            np.array([*self.obj_init_pos[:2], self.heightTarget])
+            - self._state_goal
+        ) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+        self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
-
         objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
