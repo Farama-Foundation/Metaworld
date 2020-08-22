@@ -32,7 +32,7 @@ class SawyerPegInsertionSideV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_peg = o_d['peg_pos'] + np.array([.0, .0, .01])
+        pos_peg = o_d['peg_pos'] + np.array([.03, .0, .01])
         # lowest X is -.35, doesn't matter if we overshoot
         # Y is given by hole_vec
         # Z is constant at .16
@@ -50,7 +50,7 @@ class SawyerPegInsertionSideV2Policy(Policy):
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_peg = o_d['peg_pos']
+        pos_peg = o_d['peg_pos'] + np.array([.03, .0, .01])
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04 \
             or abs(pos_curr[2] - pos_peg[2]) > 0.15:

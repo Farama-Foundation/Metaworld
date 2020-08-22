@@ -7,7 +7,7 @@
       <include file="../objects/assets/xyz_base.xml"/>
 
       <body name="plug1" pos="-.252 .6 .131">
-        <freejoint/>
+        <joint type="free"/>
         <include file="../objects/assets/plug.xml"/>
 
       </body>

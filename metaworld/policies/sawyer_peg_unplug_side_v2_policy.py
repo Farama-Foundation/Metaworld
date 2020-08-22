@@ -31,22 +31,22 @@ class SawyerPegUnplugSideV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_peg = o_d['peg_pos'] + np.array([.005, .0, .015])
+        pos_peg = o_d['peg_pos'] + np.array([-.02, .0, .035])
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04:
-            return pos_peg + np.array([0., 0., 0.3])
-        elif abs(pos_curr[2] - pos_peg[2]) > 0.02:
-            return pos_peg
+            return pos_peg + np.array([0., 0., 0.2])
+        elif abs(pos_curr[2] - .15) > 0.02:
+            return np.array([*pos_peg[:2], .15])
         else:
-            return pos_peg + np.array([0.1, 0., 0.])
+            return pos_curr + np.array([.01, .0, .0])
 
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_peg = o_d['peg_pos']
+        pos_peg = o_d['peg_pos'] + np.array([-.02, .0, .035])
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04 \
             or abs(pos_curr[2] - pos_peg[2]) > 0.15:
             return -1.
         else:
-            return .7
+            return .1
