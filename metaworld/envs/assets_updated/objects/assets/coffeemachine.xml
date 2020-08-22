@@ -16,7 +16,7 @@
             <geom class="cm_col" euler="1.57 0 0" pos="0 -0.109 0.135" size="0.009 0.018" type="cylinder"/>
             <geom class="cm_col" pos="0.0 -0.141 0.152" size="0.016 0.041" type="cylinder"/>
             <geom class="cm_col" pos="0 0 0.3" size="0.1 0.098 0.07" type="box"/>
-            <site name="coffee_goal" pos="0 -.15 0" size="0.01" rgba="1 0 0 1"/>
+            <site name="coffee_goal" pos="0 -.22 0" size="0.01" rgba="1 0 0 1"/>
 
         </body>
 

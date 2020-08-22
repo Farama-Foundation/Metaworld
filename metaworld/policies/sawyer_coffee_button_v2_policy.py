@@ -11,7 +11,7 @@ class SawyerCoffeeButtonV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'mug_pos': obs[3:6],
+            'button_pos': obs[3:6],
             'unused_info': obs[6:],
         }
 
@@ -31,9 +31,9 @@ class SawyerCoffeeButtonV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_mug = o_d['mug_pos'] + np.array([.0, .0, .01])
+        pos_button = o_d['button_pos'] + np.array([.0, .0, -.07])
 
-        if abs(pos_curr[0] - pos_mug[0]) > 0.02:
-            return np.array([pos_mug[0], pos_curr[1], .28])
+        if np.linalg.norm(pos_curr[[0, 2]] - pos_button[[0, 2]]) > 0.02:
+            return np.array([pos_button[0], pos_curr[1], pos_button[2]])
         else:
-            return pos_curr + np.array([.0, .1, .0])
+            return pos_button + np.array([.0, .2, .0])

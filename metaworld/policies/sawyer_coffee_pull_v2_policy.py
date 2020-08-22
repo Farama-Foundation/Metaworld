@@ -31,24 +31,24 @@ class SawyerCoffeePullV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_mug = o_d['mug_pos']
+        pos_mug = o_d['mug_pos'] + np.array([.01, .0, .05])
 
         if np.linalg.norm(pos_curr[:2] - pos_mug[:2]) > 0.06:
             return pos_mug + np.array([.0, .0, .15])
         elif abs(pos_curr[2] - pos_mug[2]) > 0.04:
             return pos_mug
-        elif pos_curr[1] > .7:
-            return np.array([.5, .62, .1])
+        elif pos_curr[1] > .65:
+            return np.array([.5, .6, .1])
         else:
-            return np.array([pos_curr[0] - .1, .62, .1])
+            return np.array([pos_curr[0] - .1, .6, .1])
 
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_mug = o_d['mug_pos']
+        pos_mug = o_d['mug_pos'] + np.array([.01, .0, .05])
 
         if np.linalg.norm(pos_curr[:2] - pos_mug[:2]) > 0.06 or \
-            abs(pos_curr[2] - pos_mug[2]) > 0.06:
+            abs(pos_curr[2] - pos_mug[2]) > 0.1:
             return -1.
         else:
             return .9

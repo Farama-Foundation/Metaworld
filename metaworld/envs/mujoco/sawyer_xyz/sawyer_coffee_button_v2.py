@@ -9,14 +9,16 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
     def __init__(self):
 
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.8, 0.28)
-        obj_high = (0.1, 0.9, 0.28)
+        self.max_dist = 0.03
+
+        hand_low = (-0.5, .4, 0.05)
+        hand_high = (0.5, 1., 0.5)
+        obj_low = (-0.1, 0.8, -.001)
+        obj_high = (0.1, 0.9, +.001)
         # goal_low[3] would be .1, but objects aren't fully initialized until a
         # few steps after reset(). In that time, it could be .01
-        goal_low = (-0.1, 0.7, 0.01)
-        goal_high = (0.1, 0.8, 0.1)
+        goal_low = obj_low + np.array([-.001, -.22 + self.max_dist, .299])
+        goal_high = obj_high + np.array([+.001, -.22 + self.max_dist, .301])
 
         super().__init__(
             self.model_name,
@@ -27,7 +29,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_pos': np.array([0, 0.9, 0.28]),
             'obj_init_angle': 0.3,
-            'hand_init_pos': np.array([0., .6, .2]),
+            'hand_init_pos': np.array([0., .4, .2]),
         }
         self.goal = np.array([0, 0.78, 0.33])
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -42,9 +44,11 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
+        self.target_reward = 1000 * self.max_dist + 1000 * 2
+
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_coffee.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_coffee.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -53,59 +57,62 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pushDist = self.compute_reward(action, obs_dict)
+        reward, reachDist, pushDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
-        info = {'reachDist': reachDist, 'goalDist': pushDist, 'epRew' : reward, 'pickRew':None, 'success': float(pushDist <= 0.02)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pushDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pushDist <= 0.02),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.site_xpos[self.model.site_name2id('buttonStart')]
+        return self.get_site_pos('buttonStart')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('coffee_goal')] = (
             goal[:3]
         )
 
+    def _set_obj_xyz(self, pos):
+        qpos = self.data.qpos.flatten()
+        qvel = self.data.qvel.flatten()
+        qpos[0:3] = pos.copy()
+        qvel[9:15] = 0
+        self.set_state(qpos, qvel)
+
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        obj_pos = self.obj_init_pos + np.array([0, -0.1, -0.28])
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos
-            button_pos = goal_pos + np.array([0., -0.12, 0.05])
-            obj_pos = goal_pos + np.array([0, -0.1, -0.28])
-            self._state_goal = button_pos
+        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
+            else self.init_config['obj_init_pos']
+        self.sim.model.body_pos[self.model.body_name2id(
+            'coffee_machine'
+        )] = self.obj_init_pos
 
-        self.sim.model.body_pos[self.model.body_name2id('coffee_machine')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
-        self._set_obj_xyz(obj_pos)
-        self._state_goal = self.get_site_pos('coffee_goal')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._state_goal[1])
-        self.target_reward = 1000*self.maxDist + 1000*2
+        pos_mug = self.obj_init_pos + np.array([.0, -.22, .0])
+        self._set_obj_xyz(pos_mug)
+
+        pos_button = self.obj_init_pos + np.array([.0, -.22, .3])
+        self._state_goal = pos_button + np.array([.0, self.max_dist, .0])
+        self._set_goal_marker(self._state_goal)
+
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
-
-        obs = obs['state_observation']
 
         objPos = obs[3:6]
 
@@ -121,7 +128,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         c2 = 0.01
         c3 = 0.001
         if reachDist < 0.05:
-            pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
+            pressRew = 1000 * (self.max_dist - pressDist) + c1 * (np.exp(-(pressDist ** 2) / c2) + np.exp(-(pressDist ** 2) / c3))
         else:
             pressRew = 0
 
