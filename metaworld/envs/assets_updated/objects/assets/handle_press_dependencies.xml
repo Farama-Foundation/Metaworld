@@ -25,13 +25,13 @@
     </default>
 
     <asset>
-        <mesh file="..\objects\meshes\handle_press\handle_press_base.stl" name="handle_press_base"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_col1.stl" name="handle_press_col1"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_col2.stl" name="handle_press_col2"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_col3.stl" name="handle_press_col3"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_grip.stl" name="handle_press_grip"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_lever.stl" name="handle_press_lever"/>
-        <mesh file="..\objects\meshes\handle_press\handle_press_trim.stl" name="handle_press_trim"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_base.stl" name="handle_press_base"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_col1.stl" name="handle_press_col1"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_col2.stl" name="handle_press_col2"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_col3.stl" name="handle_press_col3"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_grip.stl" name="handle_press_grip"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_lever.stl" name="handle_press_lever"/>
+        <mesh file="../objects/meshes/handle_press/handle_press_trim.stl" name="handle_press_trim"/>
     </asset>
 
 </mujocoinclude>

@@ -31,10 +31,10 @@ class SawyerWindowCloseV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_wndw = o_d['wndw_pos'] + np.array([+0.03, -0.03, -0.1])
+        pos_wndw = o_d['wndw_pos'] + np.array([+0.03, -0.03, -0.08])
 
         if np.linalg.norm(pos_curr[:2] - pos_wndw[:2]) > 0.04:
-            return pos_wndw + np.array([0., 0., 0.3])
+            return pos_wndw + np.array([0., 0., 0.25])
         elif abs(pos_curr[2] - pos_wndw[2]) > 0.02:
             return pos_wndw
         else:

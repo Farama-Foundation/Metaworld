@@ -6,19 +6,23 @@ __Meta-World is an open-source simulated benchmark for meta-reinforcement learni
 
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
-If you would like very infrequent announcements about the status of the benchmark, critical bugs and known issues before conference deadlines, and future plans, please join our mailing list: [metaworld-announce@googlegroups.com](https://groups.google.com/forum/#!forum/metaworld-announce).
-
 __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
   * [Basics](#basics)
-  * [Running ML1](#running-ml1)
-  * [Running ML10 and ML45](#running-ml10-and-ml45)
-  * [Running MT10 and MT50](#running-mt10-and-mt50)
-  * [Running Single-Task Environments](#running-single-task-environments)
+  * [Running ML1, MT1](#running-ml1-or-mt1)
+  * [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
 - [Citing Meta-World](#citing-meta-world)
 - [Become a Contributor](#become-a-contributor)
 - [Acknowledgements](#acknowledgements)
+
+## Join the Community
+**Join our mailing list: [metaworld-announce@googlegroups.com](https://groups.google.com/forum/#!forum/metaworld-announce/join)** for infrequent announcements about the status of the benchmark, critical bugs and known issues before conference deadlines, and future plans, please 
+
+Need some help? Have a question which is not quite a bug and not quite a feature request?
+
+**Join the community Slack** by filling out
+[this Google Form](https://docs.google.com/forms/d/e/1FAIpQLSf4AXRIbA1cLGjku4lIRQ6btStWPeIMeG3J17i4_FhFQU8X0g/viewform).
 
 ## Installation
 Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:
@@ -40,7 +44,7 @@ Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT
 * [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.
 * [__ML10__](https://meta-world.github.io/figures/ml10.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 3 test tasks.
 * [__ML45__](https://meta-world.github.io/figures/ml45-1080p.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.
-* [__MT10__](https://meta-world.github.io/figures/mt10.gif) and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10 and 50 training tasks respectively. MT10 and MT50 augment environment observations with a one-hot vector which identifies the task.
+* [__MT10__](https://meta-world.github.io/figures/mt10.gif), __MT1__, and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10, 1, and 50 training tasks respectively. __MT1__ is similar to __ML1__ becau you can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.  In the original Metaworld experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don't enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as [this one](https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py)
 
 
 ### Basics
@@ -57,7 +61,7 @@ respectively.
 Please see below for some small examples using this API.
 
 
-### Running ML1
+### Running ML1 or MT1
 ```python
 import metaworld
 import random
@@ -74,8 +78,8 @@ obs = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
 obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
 ```
-
-### Running a benchmark:
+__MT1__ can be run the same way except that it does not contain any `test_tasks`
+### Running a benchmark
 Create an environment with train tasks (ML10, MT10, ML45, or MT50):
 ```python
 import metaworld

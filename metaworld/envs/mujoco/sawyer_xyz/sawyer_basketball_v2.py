@@ -10,12 +10,12 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     def __init__(self):
 
         liftThresh = 0.3
-        goal_low = (-0.1, 0.85, 0.)
-        goal_high = (0.1, 0.9+1e-7, 0.)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.03)
         obj_high = (0.1, 0.7, 0.03)
+        goal_low = (-0.1, 0.85, 0.)
+        goal_high = (0.1, 0.9+1e-7, 0.)
 
         super().__init__(
             self.model_name,
@@ -36,14 +36,13 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.max_path_length = 150
         self.liftThresh = liftThresh
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
+        self.goal_space = Box(
+            np.array(goal_low) + np.array([0, -0.083, 0.25]),
+            np.array(goal_high) + np.array([0, -0.083, 0.25])
         )
 
     @property
