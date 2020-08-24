@@ -4,6 +4,7 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerNutAssemblyEnv,
     SawyerNutAssemblyEnvV2,
     SawyerBasketballEnv,
+    SawyerBasketballEnvV2,
     SawyerBinPickingEnv,
     SawyerBinPickingEnvV2,
     SawyerBoxCloseEnv,
@@ -134,6 +135,7 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
     ('assembly-v2', SawyerNutAssemblyEnvV2),
+    ('basketball-v2', SawyerBasketballEnvV2),
     ('bin-picking-v2', SawyerBinPickingEnvV2),
     ('box-close-v2', SawyerBoxCloseEnvV2),
     ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
