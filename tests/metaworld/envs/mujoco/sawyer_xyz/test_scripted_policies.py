@@ -156,7 +156,7 @@ test_cases_latest_noisy = [
     ['plate-slide-v2', SawyerPlateSlideV2Policy(), .1, .97],
     ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['reach-wall-v2', SawyerReachWallV2Policy(), .1, .98],
-    ['push-back-v1', SawyerPushBackV1Policy(), .1, .91],
+    ['push-back-v1', SawyerPushBackV1Policy(), .1, .90],
     ['push-v2', SawyerPushV2Policy(), .1, .94],
     ['push-wall-v2', SawyerPushWallV2Policy(), .1, .82],
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
