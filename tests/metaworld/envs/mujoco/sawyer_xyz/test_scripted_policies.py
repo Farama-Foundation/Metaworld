@@ -32,6 +32,7 @@ test_cases_old_noisy = [
 test_cases_latest_nonoise = [
     # name, policy, action noise pct, success rate
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
+    ['assembly-v2', SawyerAssemblyV2Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
@@ -102,6 +103,7 @@ test_cases_latest_nonoise = [
 test_cases_latest_noisy = [
     # name, policy, action noise pct, success rate
     ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
+    ['assembly-v2', SawyerAssemblyV2Policy(), .1, .70],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .96],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .84],
@@ -149,7 +151,7 @@ test_cases_latest_noisy = [
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .90],
     ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, .95],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
-    ['plate-slide-back-v2', SawyerPlateSlideBackV2Policy(), .1, .95],
+    ['plate-slide-back-v2', SawyerPlateSlideBackV2Policy(), .1, .94],
     ['plate-slide-side-v1', SawyerPlateSlideSideV1Policy(), .1, .78],
     ['plate-slide-side-v2', SawyerPlateSlideSideV2Policy(), .1, .78],
     ['plate-slide-v1', SawyerPlateSlideV1Policy(), .1, .97],
