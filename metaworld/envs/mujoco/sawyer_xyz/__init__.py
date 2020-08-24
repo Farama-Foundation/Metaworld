@@ -1,5 +1,7 @@
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_v2 import SawyerNutAssemblyEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPickingEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
@@ -77,7 +79,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowO
 
 __all__ = [
     'SawyerNutAssemblyEnv',
+    'SawyerNutAssemblyEnvV2',
     'SawyerBasketballEnv',
+    'SawyerBasketballEnvV2',
     'SawyerBinPickingEnv',
     'SawyerBinPickingEnvV2',
     'SawyerBoxCloseEnv',
