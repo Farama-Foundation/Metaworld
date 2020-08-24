@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerNutAssemblyEnv,
+    SawyerNutAssemblyEnvV2,
     SawyerBasketballEnv,
     SawyerBasketballEnvV2,
     SawyerBinPickingEnv,
@@ -133,6 +134,7 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('assembly-v2', SawyerNutAssemblyEnvV2),
     ('basketball-v2', SawyerBasketballEnvV2),
     ('bin-picking-v2', SawyerBinPickingEnvV2),
     ('box-close-v2', SawyerBoxCloseEnvV2),
