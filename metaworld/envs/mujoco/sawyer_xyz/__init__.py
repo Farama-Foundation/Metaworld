@@ -76,7 +76,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_v2 import SawyerStickPul
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_v2 import SawyerStickPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_v2 import SawyerSweepEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal_v2 import SawyerSweepIntoGoalEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
@@ -160,7 +162,9 @@ __all__ = [
     'SawyerStickPushEnv',
     'SawyerStickPushEnvV2',
     'SawyerSweepEnv',
+    'SawyerSweepEnvV2',
     'SawyerSweepIntoGoalEnv',
+    'SawyerSweepIntoGoalEnvV2',
     'SawyerWindowCloseEnv',
     'SawyerWindowCloseEnvV2',
     'SawyerWindowOpenEnv',

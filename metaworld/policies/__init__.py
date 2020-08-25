@@ -68,7 +68,9 @@ from metaworld.policies.sawyer_stick_pull_v2_policy import SawyerStickPullV2Poli
 from metaworld.policies.sawyer_stick_push_v1_policy import SawyerStickPushV1Policy
 from metaworld.policies.sawyer_stick_push_v2_policy import SawyerStickPushV2Policy
 from metaworld.policies.sawyer_sweep_into_v1_policy import SawyerSweepIntoV1Policy
+from metaworld.policies.sawyer_sweep_into_v2_policy import SawyerSweepIntoV2Policy
 from metaworld.policies.sawyer_sweep_v1_policy import SawyerSweepV1Policy
+from metaworld.policies.sawyer_sweep_v2_policy import SawyerSweepV2Policy
 from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2Policy
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
 
@@ -144,7 +146,9 @@ __all__ = [
     'SawyerStickPushV1Policy',
     'SawyerStickPushV2Policy',
     'SawyerSweepIntoV1Policy',
+    'SawyerSweepIntoV2Policy',
     'SawyerSweepV1Policy',
+    'SawyerSweepV2Policy',
     'SawyerWindowOpenV2Policy',
     'SawyerWindowCloseV2Policy',
 ]
