@@ -12,6 +12,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (0., 0.85, 0.15)
         obj_high = (0.1, 0.95, 0.15)
+        goal_low = (-.3, 0.4, 0.1499)
+        goal_high = (-.2, 0.5, 0.1501)
 
         super().__init__(
             self.model_name,
@@ -30,21 +32,13 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
-
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
 
@@ -87,9 +81,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
-        self.obj_init_pos = self._get_state_rand_vec()
-        goal_pos = self.obj_init_pos.copy() + np.array([-0.3, -0.45, 0.])
-        self._state_goal = goal_pos
+        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
+            else self.init_config['obj_init_pos']
+        self._state_goal = self.obj_init_pos + np.array([-0.3, -0.45, 0.])
 
         self._set_goal_marker(self._state_goal)
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos

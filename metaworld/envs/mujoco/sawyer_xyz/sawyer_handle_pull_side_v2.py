@@ -10,8 +10,8 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.35, 0.65, -0.001)
-        obj_high = (-0.25, 0.75, +0.001)
+        obj_low = (-0.35, 0.65, 0.0)
+        obj_high = (-0.25, 0.75, 0.0)
 
         super().__init__(
             self.model_name,
@@ -32,16 +32,11 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):
