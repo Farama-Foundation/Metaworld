@@ -67,7 +67,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     _HAND_SPACE = Box(
-        np.array([-0.51, .38, -.05]),
+        np.array([-0.51, .379, -.05]),
         np.array([+0.51, 1.0, .51])
     )
 
