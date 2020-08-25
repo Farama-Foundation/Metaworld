@@ -63,7 +63,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         reward, _, reachDist, pickRew, _, pushDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        print(pushDist)
         info = {
             'reachDist': reachDist,
             'pickRew': pickRew,
