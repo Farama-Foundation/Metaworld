@@ -243,9 +243,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def observation_space(self):
         obj_low = np.full(6, -np.inf)
         obj_high = np.full(6, +np.inf)
+        goal_low = np.zeros(3) if self._partially_observable \
+            else self.goal_space.low
+        goal_high = np.zeros(3) if self._partially_observable \
+            else self.goal_space.high
         return Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, self.goal_space.low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, self.goal_space.high))
+            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
         )
 
     def reset(self):

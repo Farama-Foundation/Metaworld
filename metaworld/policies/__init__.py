@@ -1,4 +1,5 @@
 from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
+from metaworld.policies.sawyer_assembly_v2_policy import SawyerAssemblyV2Policy
 from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
 from metaworld.policies.sawyer_bin_picking_v2_policy import SawyerBinPickingV2Policy
 from metaworld.policies.sawyer_box_close_v1_policy import SawyerBoxCloseV1Policy
@@ -28,7 +29,9 @@ from metaworld.policies.sawyer_door_unlock_v2_policy import SawyerDoorUnlockV2Po
 from metaworld.policies.sawyer_drawer_close_v1_policy import SawyerDrawerCloseV1Policy
 from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Policy
 from metaworld.policies.sawyer_faucet_close_v1_policy import SawyerFaucetCloseV1Policy
+from metaworld.policies.sawyer_faucet_close_v2_policy import SawyerFaucetCloseV2Policy
 from metaworld.policies.sawyer_faucet_open_v1_policy import SawyerFaucetOpenV1Policy
+from metaworld.policies.sawyer_faucet_open_v2_policy import SawyerFaucetOpenV2Policy
 from metaworld.policies.sawyer_hammer_v1_policy import SawyerHammerV1Policy
 from metaworld.policies.sawyer_hand_insert_policy import SawyerHandInsertPolicy
 from metaworld.policies.sawyer_handle_press_side_v2_policy import SawyerHandlePressSideV2Policy
@@ -42,6 +45,7 @@ from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Poli
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
 from metaworld.policies.sawyer_pick_out_of_hole_v1_policy import SawyerPickOutOfHoleV1Policy
+from metaworld.policies.sawyer_pick_out_of_hole_v2_policy import SawyerPickOutOfHoleV2Policy
 from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
 from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
@@ -69,6 +73,7 @@ from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Po
 
 __all__ = [
     'SawyerAssemblyV1Policy',
+    'SawyerAssemblyV2Policy',
     'SawyerBasketballV1Policy',
     'SawyerBinPickingV2Policy',
     'SawyerBoxCloseV1Policy',
@@ -98,7 +103,9 @@ __all__ = [
     'SawyerDrawerCloseV1Policy',
     'SawyerDrawerOpenV1Policy',
     'SawyerFaucetCloseV1Policy',
+    'SawyerFaucetCloseV2Policy',
     'SawyerFaucetOpenV1Policy',
+    'SawyerFaucetOpenV2Policy',
     'SawyerHammerV1Policy',
     'SawyerHandInsertPolicy',
     'SawyerHandlePressSideV2Policy',
@@ -112,6 +119,7 @@ __all__ = [
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
     'SawyerPickOutOfHoleV1Policy',
+    'SawyerPickOutOfHoleV2Policy',
     'SawyerPickPlaceV2Policy',
     'SawyerPickPlaceWallV2Policy',
     'SawyerPlateSlideBackSideV2Policy',
