@@ -66,6 +66,11 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
+    _HAND_SPACE = Box(
+        np.array([-0.51, .38, -.05]),
+        np.array([+0.51, 1.0, .51])
+    )
+
     def __init__(
             self,
             model_name,
@@ -112,6 +117,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = True
 
         self._state_goal = None  # OVERRIDE ME
+        self._random_reset_space = None  # OVERRIDE ME
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -233,6 +239,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             state_achieved_goal=obs[3:-3],
         )
 
+    @property
+    def observation_space(self):
+        obj_low = np.full(6, -np.inf)
+        obj_high = np.full(6, +np.inf)
+        goal_low = np.zeros(3) if self._partially_observable \
+            else self.goal_space.low
+        goal_high = np.zeros(3) if self._partially_observable \
+            else self.goal_space.high
+        return Box(
+            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+        )
+
     def reset(self):
         self.curr_path_length = 0
         return super().reset()
@@ -243,8 +262,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return self._last_rand_vec
         else:
             rand_vec = np.random.uniform(
-                self.obj_and_goal_space.low,
-                self.obj_and_goal_space.high,
-                size=self.obj_and_goal_space.low.size)
+                self._random_reset_space.low,
+                self._random_reset_space.high,
+                size=self._random_reset_space.low.size)
             self._last_rand_vec = rand_vec
             return rand_vec

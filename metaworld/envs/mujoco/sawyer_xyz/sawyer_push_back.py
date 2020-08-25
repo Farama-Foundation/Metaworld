@@ -8,8 +8,8 @@ from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_
 class SawyerPushBackEnv(SawyerXYZEnv):
     def __init__(self):
 
-        goal_low = (-0.1, 0.6, 0.02)
-        goal_high = (0.1, 0.7, 0.02)
+        goal_low = (-0.1, 0.6, 0.0199)
+        goal_high = (0.1, 0.7, 0.0201)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.02)
@@ -33,16 +33,11 @@ class SawyerPushBackEnv(SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):

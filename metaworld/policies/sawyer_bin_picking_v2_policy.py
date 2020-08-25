@@ -34,6 +34,12 @@ class SawyerBinPickingV2Policy(Policy):
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
         pos_bin = np.array([.12, .7, .02])
 
+        # This forces the scripted policy to pretend like the cube is located
+        # more centrally in the bin (in Y direction). When the fingers close,
+        # they'll drag the cube so that it's no longer located near an edge.
+        # This ensures that the fingers don't get caught outside of the bin.
+        pos_cube[1] = max(.675, min(pos_cube[1], .725))
+
         if np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > .02:
             return pos_cube + np.array([.0, .0, .15])
         elif abs(pos_curr[2] - pos_cube[2]) > .01:
@@ -50,8 +56,11 @@ class SawyerBinPickingV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
 
+        # See note above in `_desired_pos`
+        pos_cube[1] = max(.675, min(pos_cube[1], .725))
+
         if (np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.02
-            or abs(pos_curr[2] - pos_cube[2]) > 0.1):
+            or abs(pos_curr[2] - pos_cube[2]) > 0.02):
             return -1.
         else:
             return .6
