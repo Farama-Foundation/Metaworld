@@ -8,9 +8,13 @@
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
 
-      <body name="obj" pos="0 0.6 0.08">
-        <freejoint/>
-        <include file="../objects/assets/block_cyl.xml"/>
+      <body name="obj" pos="0 0.6 0.02">
+        <joint name="objjoint" type="free" limited='false' damping="0.0" armature="0" />
+        <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+        <geom name="objGeom" type="cylinder" pos="0 0 0" solimp="0.99 0.99 0.01"
+              size="0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
+              contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="block_red"
+        />
       </body>
       <body pos="0 .6 0">
         <geom material="table_wood" pos="0.0 -0.175 0.027" size="0.7 0.225 0.027" type="box" conaffinity="0" contype="0" group="1"/>

@@ -21,12 +21,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     def __init__(self):
         lift_thresh = 0.04
 
-        goal_low = (-0.1, 0.8, 0.05)
-        goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
+        goal_low = (-0.1, 0.8, 0.01)
+        goal_high = (0.1, 0.9, 0.02)
 
         super().__init__(
             self.model_name,
@@ -47,23 +47,18 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = lift_thresh
-        self.max_path_length = 150
+        self.max_path_length = 200
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
         )
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
         self.num_resets = 0
 
@@ -96,7 +91,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return ob, rew, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
@@ -113,14 +108,14 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         # aligned. If this is not done, the object could be initialized in an
         # extreme position
         diff = self.get_body_com('obj')[:2] - \
-               self.data.get_geom_xpos('objGeom')[:2]
+               self.get_body_com('obj')[:2]
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
         return [
             adjusted_pos[0],
             adjusted_pos[1],
-            self.data.get_geom_xpos('objGeom')[-1]
+            self.get_body_com('obj')[-1]
         ]
 
     def reset_model(self):
@@ -128,7 +123,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self._state_goal = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -150,7 +145,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
