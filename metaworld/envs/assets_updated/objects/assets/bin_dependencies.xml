@@ -24,7 +24,7 @@
     </default>
 
     <asset>
-        <mesh file="..\objects\meshes\bin\bin.stl" name="bin"/>
+        <mesh file="../objects/meshes/bin/bin.stl" name="bin"/>
     </asset>
 
 </mujocoinclude>

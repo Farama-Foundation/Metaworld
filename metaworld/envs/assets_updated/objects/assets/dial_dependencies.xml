@@ -24,8 +24,8 @@
     </default>
 
     <asset>
-        <mesh file="..\objects\meshes\dial\dial.stl" name="dial"/>
-        <mesh file="..\objects\meshes\dial\dialhead.stl" name="dialhead"/>
+        <mesh file="../objects/meshes/dial/dial.stl" name="dial"/>
+        <mesh file="../objects/meshes/dial/dialhead.stl" name="dialhead"/>
 
     </asset>
 
