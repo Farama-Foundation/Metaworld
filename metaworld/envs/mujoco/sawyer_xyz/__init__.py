@@ -1,5 +1,7 @@
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_v2 import SawyerNutAssemblyEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPickingEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
@@ -29,7 +31,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close_v2 import SawyerFaucetCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open_v2 import SawyerFaucetOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
@@ -78,7 +82,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowO
 
 __all__ = [
     'SawyerNutAssemblyEnv',
+    'SawyerNutAssemblyEnvV2',
     'SawyerBasketballEnv',
+    'SawyerBasketballEnvV2',
     'SawyerBinPickingEnv',
     'SawyerBinPickingEnvV2',
     'SawyerBoxCloseEnv',

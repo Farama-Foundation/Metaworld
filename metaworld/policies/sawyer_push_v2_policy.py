@@ -32,7 +32,8 @@ class SawyerPushV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['puck_pos']
+        pos_puck = o_d['puck_pos'] + np.array([-0.005, 0, 0])
+        pos_goal = o_d['goal_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
@@ -42,14 +43,14 @@ class SawyerPushV2Policy(Policy):
             return pos_puck + np.array([0., 0., 0.03])
         # Move to the goal
         else:
-            return o_d['goal_pos']
+            return pos_goal
 
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
 
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02 or abs(pos_curr[2] - pos_puck[2]) > 0.1:
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02 or abs(pos_curr[2] - pos_puck[2]) > 0.10:
             return 0.
         # While end effector is moving down toward the puck, begin closing the grabber
         else:

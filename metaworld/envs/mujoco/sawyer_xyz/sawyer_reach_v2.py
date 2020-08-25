@@ -85,7 +85,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
@@ -102,14 +102,14 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         # aligned. If this is not done, the object could be initialized in an
         # extreme position
         diff = self.get_body_com('obj')[:2] - \
-               self.data.get_geom_xpos('objGeom')[:2]
+               self.get_body_com('obj')[:2]
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
         return [
             adjusted_pos[0],
             adjusted_pos[1],
-            self.data.get_geom_xpos('objGeom')[-1]
+            self.get_body_com('obj')[-1]
         ]
 
     def reset_model(self):
@@ -117,7 +117,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self._state_goal = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
+        self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
@@ -139,7 +139,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)

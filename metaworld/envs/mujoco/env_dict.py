@@ -2,7 +2,9 @@ from collections import OrderedDict
 
 from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerNutAssemblyEnv,
+    SawyerNutAssemblyEnvV2,
     SawyerBasketballEnv,
+    SawyerBasketballEnvV2,
     SawyerBinPickingEnv,
     SawyerBinPickingEnvV2,
     SawyerBoxCloseEnv,
@@ -32,7 +34,9 @@ from metaworld.envs.mujoco.sawyer_xyz import (
     SawyerDrawerCloseEnv,
     SawyerDrawerOpenEnv,
     SawyerFaucetCloseEnv,
+    SawyerFaucetCloseEnvV2,
     SawyerFaucetOpenEnv,
+    SawyerFaucetOpenEnvV2,
     SawyerHammerEnv,
     SawyerHandInsertEnv,
     SawyerHandlePressEnv,
@@ -133,6 +137,8 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('door-unlock-v1', SawyerDoorUnlockEnv),))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
+    ('assembly-v2', SawyerNutAssemblyEnvV2),
+    ('basketball-v2', SawyerBasketballEnvV2),
     ('bin-picking-v2', SawyerBinPickingEnvV2),
     ('box-close-v2', SawyerBoxCloseEnvV2),
     ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
@@ -144,6 +150,8 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
     ('door-lock-v2', SawyerDoorLockEnvV2),
     ('door-open-v2', SawyerDoorEnvV2),
     ('door-unlock-v2', SawyerDoorUnlockEnvV2),
+    ('faucet-open-v2', SawyerFaucetOpenEnvV2),
+    ('faucet-close-v2', SawyerFaucetCloseEnvV2),
     ('handle-press-side-v2', SawyerHandlePressSideEnvV2),
     ('handle-press-v2', SawyerHandlePressEnvV2),
     ('handle-pull-side-v2', SawyerHandlePullSideEnvV2),

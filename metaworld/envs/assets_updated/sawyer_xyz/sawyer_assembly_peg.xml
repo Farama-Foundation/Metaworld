@@ -7,7 +7,7 @@
     <worldbody>
 
         <include file="../objects/assets/xyz_base.xml"/>
-        <body name="RoundNut" pos="0.1 0.6 0.02">
+        <body name="RoundNut" pos="0.1 0.6 0.02" quat="1 0 0 1">
             <freejoint/>
             <include file="../objects/assets/assembly_peg.xml"/>
 
@@ -24,6 +24,6 @@
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
     </actuator>
     <equality>
-        <weld body1="mocap" body2="hand" solref="0.02 1"></weld>
+        <weld body1="mocap" body2="hand" solref="0.02 1"/>
     </equality>
 </mujoco>
