@@ -56,6 +56,7 @@ from metaworld.policies.sawyer_plate_slide_side_v2_policy import SawyerPlateSlid
 from metaworld.policies.sawyer_plate_slide_v1_policy import SawyerPlateSlideV1Policy
 from metaworld.policies.sawyer_plate_slide_v2_policy import SawyerPlateSlideV2Policy
 from metaworld.policies.sawyer_push_back_v1_policy import SawyerPushBackV1Policy
+from metaworld.policies.sawyer_push_back_v2_policy import SawyerPushBackV2Policy
 from metaworld.policies.sawyer_push_v2_policy import SawyerPushV2Policy
 from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
 from metaworld.policies.sawyer_reach_v2_policy import SawyerReachV2Policy
@@ -129,6 +130,7 @@ __all__ = [
     'SawyerPlateSlideV1Policy',
     'SawyerPlateSlideV2Policy',
     'SawyerPushBackV1Policy',
+    'SawyerPushBackV2Policy',
     'SawyerPushV2Policy',
     'SawyerPushWallV2Policy',
     'SawyerReachV2Policy',
