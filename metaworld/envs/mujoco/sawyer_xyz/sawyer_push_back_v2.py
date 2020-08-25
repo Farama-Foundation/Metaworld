@@ -31,7 +31,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
+        self.max_path_length = 200
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -105,7 +105,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(150):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
