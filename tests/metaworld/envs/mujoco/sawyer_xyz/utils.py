@@ -52,12 +52,14 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     env.reset_model()
     o = env.reset()
     assert o.shape == env.observation_space.shape
+    assert env.observation_space.contains(o)
 
     for _ in range(env.max_path_length):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
         o, r, done, info = env.step(a)
+        assert env.observation_space.contains(o)
         if render:
             env.render()
 

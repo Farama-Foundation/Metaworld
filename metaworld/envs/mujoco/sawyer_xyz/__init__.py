@@ -1,5 +1,7 @@
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_v2 import SawyerNutAssemblyEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPickingEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
@@ -16,11 +18,16 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_button import SawyerCoffeeBu
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_pull import SawyerCoffeePullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_coffee_push import SawyerCoffeePushEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn_v2 import SawyerDialTurnEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_disassemble_peg import SawyerNutDisassembleEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close import SawyerDoorCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_close_v2 import SawyerDoorCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock import SawyerDoorLockEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_lock_v2 import SawyerDoorLockEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlockEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock_v2 import SawyerDoorUnlockEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
@@ -30,8 +37,11 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsert
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_v2 import SawyerHandlePressSideEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_v2 import SawyerHandlePressEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull import SawyerHandlePullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side import SawyerHandlePullSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_side_v2 import SawyerHandlePullSideEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_pull_v2 import SawyerHandlePullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull_v2 import SawyerLeverPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
@@ -71,8 +81,11 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowO
 
 __all__ = [
     'SawyerNutAssemblyEnv',
+    'SawyerNutAssemblyEnvV2',
     'SawyerBasketballEnv',
+    'SawyerBasketballEnvV2',
     'SawyerBinPickingEnv',
+    'SawyerBinPickingEnvV2',
     'SawyerBoxCloseEnv',
     'SawyerBoxCloseEnvV2',
     'SawyerButtonPressEnv',
@@ -87,11 +100,16 @@ __all__ = [
     'SawyerCoffeePullEnv',
     'SawyerCoffeePushEnv',
     'SawyerDialTurnEnv',
+    'SawyerDialTurnEnvV2',
     'SawyerNutDisassembleEnv',
     'SawyerDoorEnv',
     'SawyerDoorCloseEnv',
+    'SawyerDoorCloseEnvV2',
     'SawyerDoorLockEnv',
+    'SawyerDoorLockEnvV2',
     'SawyerDoorUnlockEnv',
+    'SawyerDoorUnlockEnvV2',
+    'SawyerDoorEnvV2',
     'SawyerDrawerCloseEnv',
     'SawyerDrawerOpenEnv',
     'SawyerFaucetCloseEnv',
@@ -101,8 +119,11 @@ __all__ = [
     'SawyerHandlePressEnv',
     'SawyerHandlePressSideEnv',
     'SawyerHandlePressSideEnvV2',
+    'SawyerHandlePressEnvV2',
     'SawyerHandlePullEnv',
     'SawyerHandlePullSideEnv',
+    'SawyerHandlePullSideEnvV2',
+    'SawyerHandlePullEnvV2',
     'SawyerLeverPullEnv',
     'SawyerLeverPullEnvV2',
     'SawyerPegInsertionSideEnv',

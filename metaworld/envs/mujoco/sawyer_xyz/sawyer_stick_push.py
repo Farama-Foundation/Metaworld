@@ -9,12 +9,12 @@ class SawyerStickPushEnv(SawyerXYZEnv):
     def __init__(self):
 
         liftThresh = 0.04
-        goal_low = (0.4, 0.55, 0.02)
-        goal_high = (0.4, 0.6, 0.02)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.02)
         obj_high = (-0.03, 0.62, 0.02)
+        goal_low = (0.399, 0.55, 0.0199)
+        goal_high = (0.401, 0.6, 0.0201)
 
         super().__init__(
             self.model_name,
@@ -38,14 +38,9 @@ class SawyerStickPushEnv(SawyerXYZEnv):
         self.obj_init_qpos = np.array([0.0, 0.0])
         self.obj_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
-        )
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
         )
 
     @property

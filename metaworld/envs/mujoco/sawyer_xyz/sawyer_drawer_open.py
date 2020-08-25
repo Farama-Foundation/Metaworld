@@ -12,6 +12,8 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.9, 0.04)
         obj_high = (0.1, 0.9, 0.04)
+        goal_low = (-0.1, 0.5499, 0.04)
+        goal_high = (0.1, 0.5501, 0.04)
 
         super().__init__(
             self.model_name,
@@ -24,28 +26,17 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
             'obj_init_pos': np.array([0., 0.9, 0.04], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-
-        self.goal = np.array([0., 0.55, 0.04])
-
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
-
         self.max_path_length = 150
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):
@@ -62,7 +53,6 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length +=1
         info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.08)}
-        info['goal'] = self.goal
 
         return ob, reward, False, info
 
@@ -81,7 +71,7 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._state_goal = self.obj_init_pos - np.array([.0, .35, .0])
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
         if self.random_init:
