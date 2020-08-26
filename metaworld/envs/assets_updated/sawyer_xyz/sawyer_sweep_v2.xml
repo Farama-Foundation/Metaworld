@@ -6,7 +6,7 @@
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
 
-      <body name="block" pos="0 0.6 0.02">
+      <body name="obj" pos="0 0.6 0.02">
         <freejoint/>
         <include file="../objects/assets/block.xml"/>
 
