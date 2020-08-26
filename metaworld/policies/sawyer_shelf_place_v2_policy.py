@@ -32,17 +32,17 @@ class SawyerShelfPlaceV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_block = o_d['block_pos'] + np.array([.005, .0, .015])
+        pos_block = o_d['block_pos'] + np.array([-.005, .0, .015])
         pos_shelf_x = o_d['shelf_x']
         if np.linalg.norm(pos_curr[:2] - pos_block[:2]) > 0.04:
             # positioning over block
             return pos_block + np.array([0., 0., 0.3])
-        elif abs(pos_curr[2] - pos_block[2]) > 0.02:
+        elif abs(pos_curr[2] - pos_block[2]) > 0.04:
             # grabbing block
             return pos_block
         elif np.abs(pos_curr[0] - pos_shelf_x) > 0.02:
             # centering with goal pos
-            return np.array([pos_shelf_x, pos_curr[1], pos_curr[2]])
+            return np.array([pos_shelf_x, pos_curr[1], 0.3])
         elif pos_curr[2] < 0.30:
             # move up to correct height
             pos_new = pos_curr + np.array([0., 0., 0.30])

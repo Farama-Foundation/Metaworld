@@ -10,12 +10,12 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
     def __init__(self):
 
         liftThresh = 0.04
-        goal_low = (-0.1, 0.8, 0.001)
-        goal_high = (0.1, 0.9, 0.001)
+        goal_low = (-0.1, 0.8, 0.299)
+        goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.5, 0.02)
-        obj_high = (0.1, 0.6, 0.02)
+        obj_low = (-0.1, 0.5, 0.019)
+        obj_high = (0.1, 0.6, 0.021)
 
         super().__init__(
             self.model_name,
@@ -28,24 +28,20 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             'obj_init_angle': 0.3,
             'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0., 0.85, 0.001], dtype=np.float32)
+        self.goal = np.array([0., 0.85, 0.301], dtype=np.float32)
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 150
+        self.max_path_length = 200
+        self.num_resets = 0
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):
@@ -86,7 +82,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.sim.model.body_pos[self.model.body_name2id('shelf')] = self.goal.copy()
+        self.sim.model.body_pos[self.model.body_name2id('shelf')] = self.goal.copy() - np.array([0, 0, 0.3])
         self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
@@ -97,19 +93,22 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
+            base_shelf_pos = goal_pos - np.array([0, 0, 0, 0, 0, 0.3])
+            self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
+            self.sim.model.body_pos[self.model.body_name2id('shelf')] = base_shelf_pos[-3:]
             self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
 
         self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
+        self.num_resets += 1
 
         return self._get_obs()
 
+
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
