@@ -29,7 +29,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock_v2 import SawyerDoorUnlockEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_v2 import SawyerDrawerCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_v2 import SawyerDrawerOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close_v2 import SawyerFaucetCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpenEnv
@@ -72,6 +74,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWal
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_v2 import SawyerShelfPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer_v2 import SawyerSoccerEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_v2 import SawyerStickPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
@@ -118,7 +121,9 @@ __all__ = [
     'SawyerDoorUnlockEnvV2',
     'SawyerDoorEnvV2',
     'SawyerDrawerCloseEnv',
+    'SawyerDrawerCloseEnvV2',
     'SawyerDrawerOpenEnv',
+    'SawyerDrawerOpenEnvV2',
     'SawyerFaucetCloseEnv',
     'SawyerFaucetOpenEnv',
     'SawyerHammerEnv',
@@ -159,6 +164,7 @@ __all__ = [
     'SawyerShelfPlaceEnv',
     'SawyerShelfPlaceEnvV2',
     'SawyerSoccerEnv',
+    'SawyerSoccerEnvV2',
     'SawyerStickPullEnv',
     'SawyerStickPullEnvV2',
     'SawyerStickPushEnv',
