@@ -5,17 +5,17 @@ from metaworld.envs.env_util import get_asset_full_path
 from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv, _assert_task_is_set
 
 
-class SawyerShelfPlaceEnv(SawyerXYZEnv):
+class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     def __init__(self):
 
-        liftThresh = 0.04
-        hand_low = (-0.5, 0.40, 0.05)
+        liftThresh = 0.11
+        hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.5, 0.02)
-        obj_high = (0.1, 0.6, 0.02)
-        goal_low = (-0.1, 0.75, 0.001)
-        goal_high = (0.1, 0.85, 0.001)
+        obj_low = (0, 0.75, 0.0)
+        obj_high = (0, 0.75, 0.0)
+        goal_low = (-0.1, 0.5, 0.15)
+        goal_high = (0.1, 0.6, 0.3)
 
         super().__init__(
             self.model_name,
@@ -24,32 +24,27 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos':np.array([0, 0.6, 0.02]),
+            'obj_init_pos': np.array([0, 0.6, 0.0]),
             'obj_init_angle': 0.3,
-            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+            'hand_init_pos': np.array([0., .6, .2]),
         }
-        self.goal = np.array([0., 0.85, 0.001], dtype=np.float32)
+        self.goal = np.array([0., 0.6, 0.2])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
+        self.max_path_length = 200
         self.liftThresh = liftThresh
-        self.max_path_length = 150
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(
-            np.array(goal_low) + np.array([.0, .0, .299]),
-            np.array(goal_high) + np.array([.0, .0, .301])
-        )
-
-        self.num_resets = 0
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_shelf_placing.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_out_of_hole.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -58,97 +53,89 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward , _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
+        reward, reachDist, pickRew, placingDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': placingDist,
+            'epRew': reward,
+            'pickRew': pickRew,
+            'success': float(placingDist <= 0.08),
+            'goal': self.goal
+        }
 
         return ob, reward, False, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.get_body_com('obj')
 
     def _set_goal_marker(self, goal):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
             goal[:3]
         )
 
-    def adjust_initObjPos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not aligned
-        # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
-        adjustedPos = orig_init_pos[:2] + diff
-
-        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
-
     def reset_model(self):
         self._reset_hand()
-        self.sim.model.body_pos[self.model.body_name2id('shelf')] = self.goal.copy()
-        self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
+
+        pos_obj = self.init_config['obj_init_pos']
+        pos_goal = self.goal.copy()
 
         if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('shelf')] = goal_pos[-3:]
-            self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
+            pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
+            while np.linalg.norm(pos_obj[:2] - pos_goal[:2]) < 0.15:
+                pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
 
-        self._set_goal_marker(self._state_goal)
+        self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
-        self.target_reward = 1000*self.maxPlacingDist + 1000*2
-        self.num_resets += 1
+
+        self._state_goal = pos_goal
+        self._set_goal_marker(self._state_goal)
+
+        self.objHeight = self.get_body_com('obj')[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+        self.maxPlacingDist = np.linalg.norm(
+            np.array([*self.obj_init_pos[:2], self.heightTarget])
+            - self._state_goal
+        ) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+        self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-
-        obs = obs['state_observation']
-
         objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        placingGoal = self._state_goal
+        goal = self._state_goal
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
-
-        placingDist = np.linalg.norm(objPos - placingGoal)
-
+        placingDist = np.linalg.norm(objPos - goal)
+        assert np.all(goal == self.get_site_pos('goal'))
 
         def reachReward():
             reachRew = -reachDist
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
             zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-
             if reachDistxy < 0.05:
                 reachRew = -reachDist
             else:
                 reachRew =  -reachDistxy - 2*zRew
-
             # incentive to close fingers when reachDist is small
             if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1],0)/50
+
             return reachRew , reachDist
 
         def pickCompletionCriteria():
@@ -166,9 +153,9 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         def orig_pickReward():
             hScale = 100
             if self.pickCompleted and not(objDropped()):
-                return hScale*heightTarget
-            elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)):
-                return hScale* min(heightTarget, objPos[2])
+                return hScale*(heightTarget - self.objHeight + 0.02)
+            elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)) :
+                return hScale* (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
             else:
                 return 0
 
@@ -190,4 +177,4 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
 
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]
+        return [reward, reachDist, pickRew, placingDist]
