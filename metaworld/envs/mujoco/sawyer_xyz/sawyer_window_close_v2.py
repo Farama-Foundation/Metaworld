@@ -11,6 +11,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         V1 was rarely solvable due to limited path length. The window usually
         only got ~25% closed before hitting max_path_length
     Changelog from V1 to V2:
+        - (8/11/20) Updated to Byron's XML
         - (7/7/20) Added 3 element handle position to the observation
             (for consistency with other environments)
         - (6/15/20) Increased max_path_length from 150 to 200
@@ -20,8 +21,8 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0., 0.75, 0.15)
-        obj_high = (0., 0.9, 0.15)
+        obj_low = (0., 0.75, 0.2)
+        obj_high = (0., 0.9, 0.2)
 
         super().__init__(
             self.model_name,
@@ -31,10 +32,9 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0.1, 0.785, 0.15], dtype=np.float32),
-            'hand_init_pos': np.array([0, 0.6, 0.2], dtype=np.float32),
+            'obj_init_pos': np.array([0.1, 0.785, 0.16], dtype=np.float32),
+            'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([-0.08, 0.785, 0.15])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -45,20 +45,18 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.max_path_length = 200
         self.liftThresh = liftThresh
 
-        self.obj_and_goal_space = Box(
+        self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
+        self.maxPullDist = 0.2
+        self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_window_horizontal.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -71,8 +69,13 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         reward, reachDist, pickrew, pullDist = self.compute_reward(action, obs_dict)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':pickrew, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pullDist,
+            'epRew': reward,
+            'pickRew': pickrew,
+            'success': float(pullDist <= 0.05),
+        }
 
         return ob, reward, False, info
 
@@ -86,37 +89,26 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
-        self.objHeight = self.data.get_geom_xpos('handle')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
-            obj_pos = self._get_state_rand_vec()
-            self.obj_init_pos = obj_pos
-            goal_pos = obj_pos.copy()
-            goal_pos[0] -= 0.18
-            self._state_goal = goal_pos
+            self.obj_init_pos = self._get_state_rand_vec()
 
+        self._state_goal = self.obj_init_pos.copy()
         self._set_goal_marker(self._state_goal)
-        wall_pos = self.obj_init_pos.copy() - np.array([0.1, 0, 0.12])
-        window_another_pos = self.obj_init_pos.copy() + np.array([0, 0.03, 0])
-        self.sim.model.body_pos[self.model.body_name2id('window')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('window_another')] = window_another_pos
-        self.sim.model.body_pos[self.model.body_name2id('wall')] = wall_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
-        self.maxPullDist = 0.2
-        self.target_reward = 1000*self.maxPullDist + 1000*2
+
+        self.sim.model.body_pos[self.model.body_name2id(
+            'window'
+        )] = self.obj_init_pos
+        self.data.set_joint_qpos('window_slide', 0.2)
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+            self.do_simulation([-1, 1], self.frame_skip)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):

@@ -6,8 +6,6 @@ __Meta-World is an open-source simulated benchmark for meta-reinforcement learni
 
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
-If you would like very infrequent announcements about the status of the benchmark, critical bugs and known issues before conference deadlines, and future plans, please join our mailing list: [metaworld-announce@googlegroups.com](https://groups.google.com/forum/#!forum/metaworld-announce).
-
 __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
@@ -17,6 +15,14 @@ __Table of Contents__
 - [Citing Meta-World](#citing-meta-world)
 - [Become a Contributor](#become-a-contributor)
 - [Acknowledgements](#acknowledgements)
+
+## Join the Community
+**Join our mailing list: [metaworld-announce@googlegroups.com](https://groups.google.com/forum/#!forum/metaworld-announce/join)** for infrequent announcements about the status of the benchmark, critical bugs and known issues before conference deadlines, and future plans, please 
+
+Need some help? Have a question which is not quite a bug and not quite a feature request?
+
+**Join the community Slack** by filling out
+[this Google Form](https://docs.google.com/forms/d/e/1FAIpQLSf4AXRIbA1cLGjku4lIRQ6btStWPeIMeG3J17i4_FhFQU8X0g/viewform).
 
 ## Installation
 Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:

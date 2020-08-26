@@ -13,8 +13,8 @@ class SawyerHammerEnv(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.5, 0.02)
         obj_high = (0.1, 0.6, 0.02)
-        goal_low = (0., 0.85, 0.05)
-        goal_high = (0.3, 0.9, 0.05)
+        goal_low = (0.2399, .7399, 0.109)
+        goal_high = (0.2401, .7401, 0.111)
 
         super().__init__(
             self.model_name,
@@ -33,16 +33,8 @@ class SawyerHammerEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
         self.max_path_length = 200
 
-        self.obj_and_goal_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.observation_space = Box(
-            np.hstack((self.hand_low, obj_low, obj_low, goal_low)),
-            np.hstack((self.hand_high, obj_high, obj_high, goal_high)),
-        )
 
     @property
     def model_name(self):
@@ -86,21 +78,27 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = np.array([0.24, 0.85, 0.05])
-        self.sim.model.body_pos[self.model.body_name2id('screw')] = np.array([0.24, 0.71, 0.11])
-        self._state_goal = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('box')]
-        self.obj_init_pos = np.array([0.24, 0.71, 0.11])
-        self.hammer_init_pos = self.init_config['hammer_init_pos']
+
+        # Set position of box & nail (these are not randomized)
+        self.sim.model.body_pos[self.model.body_name2id(
+            'box'
+        )] = np.array([0.24, 0.85, 0.05])
+        self.sim.model.body_pos[self.model.body_name2id(
+            'screw'
+        )] = np.array([0.24, 0.71, 0.11])
+        # Update _state_goal
+        self._state_goal = self.get_site_pos('goal')
+
+        # Update heights (for use in reward function)
         self.hammerHeight = self.get_body_com('hammer').copy()[2]
         self.heightTarget = self.hammerHeight + self.liftThresh
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = self._get_state_rand_vec()
-            self.hammer_init_pos = np.concatenate((goal_pos[:2], [self.hammer_init_pos[-1]]))
-
+        # Randomize hammer position
+        self.hammer_init_pos = self._get_state_rand_vec() if self.random_init \
+            else self.init_config['hammer_init_pos']
         self._set_hammer_xyz(self.hammer_init_pos)
+
+        # Update distances (for use in reward function)
         self.obj_init_pos = self.sim.model.site_pos[self.model.site_name2id('screwHead')] + self.sim.model.body_pos[self.model.body_name2id('screw')]
         self.maxHammerDist = np.linalg.norm(np.array([self.hammer_init_pos[0], self.hammer_init_pos[1], self.heightTarget]) - np.array(self.obj_init_pos)) + \
                                 self.heightTarget + np.abs(self.obj_init_pos[1] - self._state_goal[1])

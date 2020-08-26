@@ -8,12 +8,12 @@
 
       <body name="obj" pos="0 0.6 0.02">
         <freejoint/>
-        <include file="../objects/assets/block.xml"/>
+        <include file="../objects/assets/block_cyl.xml"/>
       </body>
 
-      <site name="goal" pos="0.1 0.6 0.02" size="0.02"
-            rgba="0 0.8 0 1"/>
-
+      <!-- reach goal -->
+      <site name="goal" pos="-0.1 0.8 0.2" size="0.02"
+            rgba="0.8 0 0 1"/>
     </worldbody>
 
     <actuator>
