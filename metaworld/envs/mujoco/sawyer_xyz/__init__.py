@@ -1,5 +1,7 @@
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg import SawyerNutAssemblyEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_assembly_peg_v2 import SawyerNutAssemblyEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball import SawyerBasketballEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_basketball_v2 import SawyerBasketballEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking_v2 import SawyerBinPickingEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_close import SawyerBoxCloseEnv
@@ -27,9 +29,13 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock import SawyerDoorUnlock
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_unlock_v2 import SawyerDoorUnlockEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_v2 import SawyerDoorEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close import SawyerDrawerCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_close_v2 import SawyerDrawerCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open import SawyerDrawerOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_drawer_open_v2 import SawyerDrawerOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close import SawyerFaucetCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_close_v2 import SawyerFaucetCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open import SawyerFaucetOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open_v2 import SawyerFaucetOpenEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer_v2 import SawyerHammerEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
@@ -47,6 +53,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPeg
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_v2 import SawyerPegInsertionSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole_v2 import SawyerPickOutOfHoleEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_wall_v2 import SawyerPickPlaceWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide import SawyerPlateSlideEnv
@@ -58,6 +65,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_back_side_v2 import Saw
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side import SawyerPlateSlideSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_plate_slide_side_v2 import SawyerPlateSlideSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back import SawyerPushBackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_back_v2 import SawyerPushBackEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_v2 import SawyerPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_wall_v2 import SawyerPushWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
@@ -65,11 +73,17 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place_wall import S
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_v2 import SawyerReachEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_wall_v2 import SawyerReachWallEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place import SawyerShelfPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_shelf_place_v2 import SawyerShelfPlaceEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer import SawyerSoccerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_soccer_v2 import SawyerSoccerEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull_v2 import SawyerStickPullEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push_v2 import SawyerStickPushEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep import SawyerSweepEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_v2 import SawyerSweepEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_sweep_into_goal_v2 import SawyerSweepIntoGoalEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close import SawyerWindowCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_close_v2 import SawyerWindowCloseEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open import SawyerWindowOpenEnv
@@ -78,7 +92,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_window_open_v2 import SawyerWindowO
 
 __all__ = [
     'SawyerNutAssemblyEnv',
+    'SawyerNutAssemblyEnvV2',
     'SawyerBasketballEnv',
+    'SawyerBasketballEnvV2',
     'SawyerBinPickingEnv',
     'SawyerBinPickingEnvV2',
     'SawyerBoxCloseEnv',
@@ -106,7 +122,9 @@ __all__ = [
     'SawyerDoorUnlockEnvV2',
     'SawyerDoorEnvV2',
     'SawyerDrawerCloseEnv',
+    'SawyerDrawerCloseEnvV2',
     'SawyerDrawerOpenEnv',
+    'SawyerDrawerOpenEnvV2',
     'SawyerFaucetCloseEnv',
     'SawyerFaucetOpenEnv',
     'SawyerHammerEnv',
@@ -126,6 +144,7 @@ __all__ = [
     'SawyerPegInsertionSideEnvV2',
     'SawyerPegUnplugSideEnv',
     'SawyerPickOutOfHoleEnv',
+    'SawyerPickOutOfHoleEnvV2',
     'SawyerPickPlaceEnvV2',
     'SawyerPickPlaceWallEnvV2',
     'SawyerPlateSlideEnv',
@@ -137,6 +156,7 @@ __all__ = [
     'SawyerPlateSlideSideEnvV2',
     'SawyerPlateSlideEnvV2',
     'SawyerPushBackEnv',
+    'SawyerPushBackEnvV2',
     'SawyerPushEnvV2',
     'SawyerPushWallEnvV2',
     'SawyerReachPushPickPlaceEnv',
@@ -144,11 +164,17 @@ __all__ = [
     'SawyerReachEnvV2',
     'SawyerReachWallEnvV2',
     'SawyerShelfPlaceEnv',
+    'SawyerShelfPlaceEnvV2',
     'SawyerSoccerEnv',
+    'SawyerSoccerEnvV2',
     'SawyerStickPullEnv',
+    'SawyerStickPullEnvV2',
     'SawyerStickPushEnv',
+    'SawyerStickPushEnvV2',
     'SawyerSweepEnv',
+    'SawyerSweepEnvV2',
     'SawyerSweepIntoGoalEnv',
+    'SawyerSweepIntoGoalEnvV2',
     'SawyerWindowCloseEnv',
     'SawyerWindowCloseEnvV2',
     'SawyerWindowOpenEnv',
