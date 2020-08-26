@@ -4,7 +4,7 @@ from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
 
-class SawyerPushV2Policy(Policy):
+class SawyerPushBackV2Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
@@ -32,26 +32,25 @@ class SawyerPushV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['puck_pos'] + np.array([-0.005, 0, 0])
-        pos_goal = o_d['goal_pos']
+        pos_puck = o_d['puck_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
-            return pos_puck + np.array([0., 0., 0.2])
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04:
+            return pos_puck + np.array([0., 0., 0.3])
         # Once XY error is low enough, drop end effector down on top of puck
-        elif abs(pos_curr[2] - pos_puck[2]) > 0.04:
-            return pos_puck + np.array([0., 0., 0.03])
+        elif abs(pos_curr[2] - pos_puck[2]) > 0.055:
+            return pos_puck
         # Move to the goal
         else:
-            return pos_goal
+            return o_d['goal_pos'] + np.array([0.0, 0.0, pos_curr[2]])
 
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
 
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02 or abs(pos_curr[2] - pos_puck[2]) > 0.10:
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.085:
             return 0.
         # While end effector is moving down toward the puck, begin closing the grabber
         else:
-            return 0.6
+            return 0.9

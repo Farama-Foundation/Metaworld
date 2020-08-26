@@ -1,4 +1,5 @@
 from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
+from metaworld.policies.sawyer_assembly_v2_policy import SawyerAssemblyV2Policy
 from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
 from metaworld.policies.sawyer_bin_picking_v2_policy import SawyerBinPickingV2Policy
 from metaworld.policies.sawyer_box_close_v1_policy import SawyerBoxCloseV1Policy
@@ -26,10 +27,15 @@ from metaworld.policies.sawyer_door_open_v2_policy import SawyerDoorOpenV2Policy
 from metaworld.policies.sawyer_door_unlock_v1_policy import SawyerDoorUnlockV1Policy
 from metaworld.policies.sawyer_door_unlock_v2_policy import SawyerDoorUnlockV2Policy
 from metaworld.policies.sawyer_drawer_close_v1_policy import SawyerDrawerCloseV1Policy
+from metaworld.policies.sawyer_drawer_close_v2_policy import SawyerDrawerCloseV2Policy
 from metaworld.policies.sawyer_drawer_open_v1_policy import SawyerDrawerOpenV1Policy
+from metaworld.policies.sawyer_drawer_open_v2_policy import SawyerDrawerOpenV2Policy
 from metaworld.policies.sawyer_faucet_close_v1_policy import SawyerFaucetCloseV1Policy
+from metaworld.policies.sawyer_faucet_close_v2_policy import SawyerFaucetCloseV2Policy
 from metaworld.policies.sawyer_faucet_open_v1_policy import SawyerFaucetOpenV1Policy
+from metaworld.policies.sawyer_faucet_open_v2_policy import SawyerFaucetOpenV2Policy
 from metaworld.policies.sawyer_hammer_v1_policy import SawyerHammerV1Policy
+from metaworld.policies.sawyer_hammer_v2_policy import SawyerHammerV2Policy
 from metaworld.policies.sawyer_hand_insert_v1_policy import SawyerHandInsertV1Policy
 from metaworld.policies.sawyer_hand_insert_v2_policy import SawyerHandInsertV2Policy
 from metaworld.policies.sawyer_handle_press_side_v2_policy import SawyerHandlePressSideV2Policy
@@ -43,6 +49,7 @@ from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Poli
 from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
 from metaworld.policies.sawyer_peg_unplug_side_v1_policy import SawyerPegUnplugSideV1Policy
 from metaworld.policies.sawyer_pick_out_of_hole_v1_policy import SawyerPickOutOfHoleV1Policy
+from metaworld.policies.sawyer_pick_out_of_hole_v2_policy import SawyerPickOutOfHoleV2Policy
 from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy
 from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
 from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
@@ -53,22 +60,30 @@ from metaworld.policies.sawyer_plate_slide_side_v2_policy import SawyerPlateSlid
 from metaworld.policies.sawyer_plate_slide_v1_policy import SawyerPlateSlideV1Policy
 from metaworld.policies.sawyer_plate_slide_v2_policy import SawyerPlateSlideV2Policy
 from metaworld.policies.sawyer_push_back_v1_policy import SawyerPushBackV1Policy
+from metaworld.policies.sawyer_push_back_v2_policy import SawyerPushBackV2Policy
 from metaworld.policies.sawyer_push_v2_policy import SawyerPushV2Policy
 from metaworld.policies.sawyer_push_wall_v2_policy import SawyerPushWallV2Policy
 from metaworld.policies.sawyer_reach_v2_policy import SawyerReachV2Policy
 from metaworld.policies.sawyer_reach_wall_v2_policy import SawyerReachWallV2Policy
 from metaworld.policies.sawyer_shelf_place_v1_policy import SawyerShelfPlaceV1Policy
+from metaworld.policies.sawyer_shelf_place_v2_policy import SawyerShelfPlaceV2Policy
 from metaworld.policies.sawyer_soccer_v1_policy import SawyerSoccerV1Policy
-from metaworld.policies.sawyer_stick_pull_policy import SawyerStickPullV1Policy
-from metaworld.policies.sawyer_stick_push_policy import SawyerStickPushV1Policy
+from metaworld.policies.sawyer_soccer_v2_policy import SawyerSoccerV2Policy
+from metaworld.policies.sawyer_stick_pull_v1_policy import SawyerStickPullV1Policy
+from metaworld.policies.sawyer_stick_pull_v2_policy import SawyerStickPullV2Policy
+from metaworld.policies.sawyer_stick_push_v1_policy import SawyerStickPushV1Policy
+from metaworld.policies.sawyer_stick_push_v2_policy import SawyerStickPushV2Policy
 from metaworld.policies.sawyer_sweep_into_v1_policy import SawyerSweepIntoV1Policy
+from metaworld.policies.sawyer_sweep_into_v2_policy import SawyerSweepIntoV2Policy
 from metaworld.policies.sawyer_sweep_v1_policy import SawyerSweepV1Policy
+from metaworld.policies.sawyer_sweep_v2_policy import SawyerSweepV2Policy
 from metaworld.policies.sawyer_window_close_v2_policy import SawyerWindowCloseV2Policy
 from metaworld.policies.sawyer_window_open_v2_policy import SawyerWindowOpenV2Policy
 
 
 __all__ = [
     'SawyerAssemblyV1Policy',
+    'SawyerAssemblyV2Policy',
     'SawyerBasketballV1Policy',
     'SawyerBinPickingV2Policy',
     'SawyerBoxCloseV1Policy',
@@ -96,10 +111,15 @@ __all__ = [
     'SawyerDoorUnlockV1Policy',
     'SawyerDoorUnlockV2Policy',
     'SawyerDrawerCloseV1Policy',
+    'SawyerDrawerCloseV2Policy',
     'SawyerDrawerOpenV1Policy',
+    'SawyerDrawerOpenV2Policy',
     'SawyerFaucetCloseV1Policy',
+    'SawyerFaucetCloseV2Policy',
     'SawyerFaucetOpenV1Policy',
+    'SawyerFaucetOpenV2Policy',
     'SawyerHammerV1Policy',
+    'SawyerHammerV2Policy',
     'SawyerHandInsertV1Policy',
     'SawyerHandInsertV2Policy',
     'SawyerHandlePressSideV2Policy',
@@ -113,6 +133,7 @@ __all__ = [
     'SawyerPegInsertionSideV2Policy',
     'SawyerPegUnplugSideV1Policy',
     'SawyerPickOutOfHoleV1Policy',
+    'SawyerPickOutOfHoleV2Policy',
     'SawyerPickPlaceV2Policy',
     'SawyerPickPlaceWallV2Policy',
     'SawyerPlateSlideBackSideV2Policy',
@@ -123,16 +144,23 @@ __all__ = [
     'SawyerPlateSlideV1Policy',
     'SawyerPlateSlideV2Policy',
     'SawyerPushBackV1Policy',
+    'SawyerPushBackV2Policy',
     'SawyerPushV2Policy',
     'SawyerPushWallV2Policy',
     'SawyerReachV2Policy',
     'SawyerReachWallV2Policy',
     'SawyerShelfPlaceV1Policy',
+    'SawyerShelfPlaceV2Policy',
     'SawyerSoccerV1Policy',
+    'SawyerSoccerV2Policy',
     'SawyerStickPullV1Policy',
+    'SawyerStickPullV2Policy',
     'SawyerStickPushV1Policy',
+    'SawyerStickPushV2Policy',
     'SawyerSweepIntoV1Policy',
+    'SawyerSweepIntoV2Policy',
     'SawyerSweepV1Policy',
+    'SawyerSweepV2Policy',
     'SawyerWindowOpenV2Policy',
     'SawyerWindowCloseV2Policy',
 ]
