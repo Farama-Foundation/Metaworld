@@ -53,6 +53,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull_v2 import SawyerLeverPul
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side_v2 import SawyerPegInsertionSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side_v2 import SawyerPegUnplugSideEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole import SawyerPickOutOfHoleEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_out_of_hole_v2 import SawyerPickOutOfHoleEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_place_v2 import SawyerPickPlaceEnvV2
@@ -145,6 +146,7 @@ __all__ = [
     'SawyerPegInsertionSideEnv',
     'SawyerPegInsertionSideEnvV2',
     'SawyerPegUnplugSideEnv',
+    'SawyerPegUnplugSideEnvV2',
     'SawyerPickOutOfHoleEnv',
     'SawyerPickOutOfHoleEnvV2',
     'SawyerPickPlaceEnvV2',
