@@ -195,7 +195,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         reward = in_place_and_grasp
         if obj_to_target <= _TARGET_RADIUS and tcp_to_obj <= _TARGET_RADIUS_GRASP:
             assert reward >= 1.
-            reward += 100
         else:
             assert reward < 1.
         return [10 * reward, tcp_to_obj, 0, obj_to_target]
