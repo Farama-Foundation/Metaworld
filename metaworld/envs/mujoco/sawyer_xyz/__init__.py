@@ -39,6 +39,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_faucet_open_v2 import SawyerFaucetO
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer_v2 import SawyerHammerEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert import SawyerHandInsertEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_hand_insert_v2 import SawyerHandInsertEnvV2
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press import SawyerHandlePressEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side import SawyerHandlePressSideEnv
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_handle_press_side_v2 import SawyerHandlePressSideEnvV2
@@ -130,6 +131,7 @@ __all__ = [
     'SawyerHammerEnv',
     'SawyerHammerEnvV2',
     'SawyerHandInsertEnv',
+    'SawyerHandInsertEnvV2',
     'SawyerHandlePressEnv',
     'SawyerHandlePressSideEnv',
     'SawyerHandlePressSideEnvV2',
