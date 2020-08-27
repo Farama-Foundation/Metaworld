@@ -36,6 +36,6 @@ class SawyerReachWallV2Policy(Policy):
         # towards the goal position.
         if(-0.1 <= pos_hand[0] <= 0.3 and
                 0.60 <= pos_hand[1] <= 0.80 and
-                pos_hand[2] < 0.2):
+                pos_hand[2] < 0.25):
             return pos_goal + np.array([0., 0., 1.])
         return pos_goal

@@ -48,7 +48,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 150
+        self.max_path_length = 200
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -60,7 +60,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_place_wall_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_place_wall_v2.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
@@ -146,7 +146,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
+        for _ in range(50):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)

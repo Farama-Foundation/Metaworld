@@ -38,7 +38,7 @@ class SawyerShelfPlaceV1Policy(Policy):
             # positioning over block
             return pos_block + np.array([0., 0., 0.3])
         elif abs(pos_curr[2] - pos_block[2]) > 0.02:
-            # grabbing block 
+            # grabbing block
             return pos_block
         elif np.abs(pos_curr[0] - pos_shelf_x) > 0.02:
             # centering with goal pos
