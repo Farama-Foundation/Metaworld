@@ -7,9 +7,7 @@
 
         <body name="drawer" pos="0. 0.9 0">
             <include file="../objects/assets/drawer.xml"/>
-
         </body>
-        <site name="handleStart" pos="0 .74 .09" size="0.01" rgba="1 0 0 1"/>
 
         <site name="goal" pos="0. 0.74 0.05" size="0.02"
               rgba="0 0.8 0 1"/>

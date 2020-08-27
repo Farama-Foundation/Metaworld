@@ -45,6 +45,8 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
             np.array(goal_high) + np.array([.0, .0, .301])
         )
 
+        self.num_resets = 0
+
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_shelf_placing.xml')
@@ -103,6 +105,7 @@ class SawyerShelfPlaceEnv(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
+        self.num_resets += 1
 
         return self._get_obs()
 
