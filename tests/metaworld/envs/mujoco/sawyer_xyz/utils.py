@@ -52,25 +52,23 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     env.reset_model()
     o = env.reset()
     assert o.shape == env.observation_space.shape
-    assert env.observation_space.contains(o), \
-        "Initial Observation Out of Bounds - low:{}, obs:{}, high:{}".format(
-            env.observation_space.low,
-            o,
-            env.observation_space.high
-        )
+    assert env.observation_space.contains(o), obs_space_error_text(env, o)
 
     for _ in range(env.max_path_length):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
         o, r, done, info = env.step(a)
-        assert env.observation_space.contains(o), \
-            "Observation Out of Bounds - low:{}, obs:{}, high:{}".format(
-                env.observation_space.low,
-                o,
-                env.observation_space.high
-            )
+        assert env.observation_space.contains(o), obs_space_error_text(env, o)
         if render:
             env.render()
 
         yield r, done, info
+
+
+def obs_space_error_text(env, obs):
+    return "Obs Out of Bounds\n\tlow: {}, \n\tobs: {}, \n\thigh: {}".format(
+        env.observation_space.low[[0, 1, 2, 9, 10, 11]],
+        obs[[0, 1, 2, 9, 10, 11]],
+        env.observation_space.high[[0, 1, 2, 9, 10, 11]]
+    )
