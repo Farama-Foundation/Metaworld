@@ -139,7 +139,7 @@ test_cases_latest_noisy = [
     ['coffee-button-v1', SawyerCoffeeButtonV1Policy(), .1, .99],
     ['coffee-button-v2', SawyerCoffeeButtonV2Policy(), .1, .99],
     ['coffee-pull-v1', SawyerCoffeePullV1Policy(), .1, .95],
-    ['coffee-pull-v2', SawyerCoffeePullV2Policy(), .1, .51],
+    ['coffee-pull-v2', SawyerCoffeePullV2Policy(), .1, .82],
     ['coffee-push-v1', SawyerCoffeePushV1Policy(), .1, .86],
     ['coffee-push-v2', SawyerCoffeePushV2Policy(), .1, .88],
     ['dial-turn-v1', SawyerDialTurnV1Policy(), .1, 0.84],
