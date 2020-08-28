@@ -1,18 +1,26 @@
 <mujoco>
     <include file="../scene/basic_scene.xml"/>
     <include file="../objects/assets/block_dependencies.xml"/>
+    <include file="../objects/assets/wall_dependencies.xml"/>
     <include file="../objects/assets/xyz_base_dependencies.xml"/>
 
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
 
-      <body name="obj" pos="0 0.6 0.02">
+      <body name="obj" pos="0 0.6 0.015">
         <freejoint/>
         <include file="../objects/assets/block.xml"/>
+
       </body>
 
-      <site name="goal" pos="0.1 0.6 0.02" size="0.02"
-            rgba="0 0.8 0 1"/>
+      <body name="wall" pos="0.1 0.75 .06">
+        <geom material="wall_brick" type="box" size=".12 .01 .06"/>
+        <geom class="wall_col" type="box" size=".12 .01 .06"/>
+      </body>
+
+      <!-- reach goal -->
+      <site name="goal" pos="-0.1 0.8 0.2" size="0.02"
+            rgba="0.8 0 0 1"/>
 
     </worldbody>
 

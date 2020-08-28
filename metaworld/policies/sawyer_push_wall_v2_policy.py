@@ -32,7 +32,7 @@ class SawyerPushWallV2Policy(Policy):
     @staticmethod
     def desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_obj = o_d['obj_pos']
+        pos_obj = o_d['obj_pos'] + np.array([-0.005, 0, 0])
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02:
