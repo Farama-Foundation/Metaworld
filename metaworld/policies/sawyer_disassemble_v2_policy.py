@@ -53,7 +53,7 @@ class SawyerDisassembleV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_wrench = o_d['wrench_pos'] + np.array([-.02, .0, .01])
 
-        if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.10:
+        if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.07:
             return 0.
         else:
             return 0.8
