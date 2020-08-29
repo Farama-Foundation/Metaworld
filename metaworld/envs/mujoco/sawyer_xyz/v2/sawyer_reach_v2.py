@@ -59,7 +59,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_reach_v2.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_reach_v2.xml', True)
 
     @_assert_task_is_set
     def step(self, action):
