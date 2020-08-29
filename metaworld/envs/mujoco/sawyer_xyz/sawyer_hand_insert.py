@@ -45,27 +45,28 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, reachDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'goalDist': None, 'epRew' : reward, 'pickRew':None, 'success': float(reachDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': None,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(reachDist <= 0.05)
+        }
 
         return ob, reward, False, info
 
+    @property
+    def _target_site_config(self):
+        return [('goal', np.hstack(
+            (*self._state_goal[:2], self.obj_init_pos[2])
+        ))]
+
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            np.concatenate((goal[:2], [self.obj_init_pos[-1]]))
-        )
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -75,7 +76,6 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
-
 
     def reset_model(self):
         self._reset_hand()
@@ -91,27 +91,21 @@ class SawyerHandInsertEnv(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._state_goal = goal_pos[-3:]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._state_goal[-1])
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        super()._reset_hand(10)
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
 
-        obs = obs['state_observation']
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         goal = self._state_goal

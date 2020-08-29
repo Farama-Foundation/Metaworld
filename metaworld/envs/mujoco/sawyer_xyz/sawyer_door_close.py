@@ -28,7 +28,6 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
             goal_pos = obj_pos.copy() + np.array([0.1, -0.15, 0.05])
             self._state_goal = goal_pos
 
-        self._set_goal_marker(self._state_goal)
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
         self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
 
@@ -41,11 +40,9 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
 
     def compute_reward(self, actions, obs):
         del actions
-
-        obs = obs['state_observation']
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         pullGoal = self._state_goal

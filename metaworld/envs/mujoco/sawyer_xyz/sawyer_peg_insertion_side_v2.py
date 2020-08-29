@@ -69,12 +69,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # Keep goal marker in place
-        self._set_goal_marker(self._state_goal)
-
-        ob = self._get_obs()
+        ob = super().step(action)
 
         rew, reach_dist, pick_rew, placing_dist = self.compute_reward(action, ob)
         success = float(placing_dist <= 0.07)
@@ -84,8 +79,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'pickRew': pick_rew,
             'epRew': rew,
             'goalDist': placing_dist,
-            'success': success,
-            'goal': self.goal
+            'success': success
         }
 
         self.curr_path_length += 1
@@ -93,16 +87,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         return self.get_body_com('peg')
-
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
-
-    def _set_goal_marker(self, pos):
-        self.data.site_xpos[self.model.site_name2id('goal')] = pos
 
     def reset_model(self):
         self._reset_hand()
@@ -119,7 +103,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
         self._state_goal = pos_box + np.array([.03, .0, .13])
-        self._set_goal_marker(self._state_goal)
 
         self.objHeight = self.obj_init_pos[2]
         self.heightTarget = self.objHeight + self.liftThresh
@@ -133,25 +116,22 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+        super()._reset_hand()
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pick_completed = False
 
     def compute_reward(self, actions, obs):
         pos_obj = obs[3:6]
-        pos_peg_head = self.get_site_pos('pegHead')
+        pos_peg_head = self._get_site_pos('pegHead')
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         finger_center = (finger_right + finger_left) / 2
         heightTarget = self.heightTarget

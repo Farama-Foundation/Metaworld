@@ -43,16 +43,22 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pressDist = self.compute_reward(action, obs_dict)
-        self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'goalDist': pressDist, 'epRew': reward, 'pickRew':None, 'success': float(pressDist <= 0.03)}
-        info['goal'] = self.goal
+        ob = super().step(action)
+        reward, reachDist, pressDist = self.compute_reward(action, ob)
+        self.curr_path_length += 1
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pressDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pressDist <= 0.03)
+        }
+
         return ob, reward, False, info
+
+    @property
+    def _target_site_config(self):
+        return []
 
     def _get_pos_objects(self):
         return self.get_body_com("button") + np.array([.0, -.193, .0])
@@ -75,29 +81,24 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         self._set_obj_xyz(0)
-        self._state_goal = self.get_site_pos('hole')
+        self._state_goal = self._get_site_pos('hole')
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._state_goal[1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+        super()._reset_hand()
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
-
-        obs = obs['state_observation']
         objPos = obs[3:6]
 
-        leftFinger = self.get_site_pos('leftEndEffector')
+        leftFinger = self._get_site_pos('leftEndEffector')
         fingerCOM  =  leftFinger
 
         pressGoal = self._state_goal[1]

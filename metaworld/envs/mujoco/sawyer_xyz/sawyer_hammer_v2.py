@@ -45,12 +45,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, _, reachDist, pickRew, _, _, screwDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, _, reachDist, pickRew, _, _, screwDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
         info = {
@@ -58,8 +54,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             'pickRew': pickRew,
             'epRew': reward,
             'goalDist': screwDist,
-            'success': float(screwDist <= 0.05),
-            'goal': self.goal
+            'success': float(screwDist <= 0.05)
         }
 
         return ob, reward, False, info
@@ -85,7 +80,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             'box'
         )] = np.array([0.24, 0.85, 0.0])
         # Update _state_goal
-        self._state_goal = self.get_site_pos('goal')
+        self._state_goal = self._get_site_pos('goal')
 
         # Randomize hammer position
         self.hammer_init_pos = self._get_state_rand_vec() if self.random_init \
@@ -97,7 +92,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self.heightTarget = self.hammerHeight + self.liftThresh
 
         # Update distances (for use in reward function)
-        nail_init_pos = self.get_site_pos('nailHead')
+        nail_init_pos = self._get_site_pos('nailHead')
         self.max_nail_dist = (self._state_goal - nail_init_pos)[1]
         self.max_hammer_dist = np.linalg.norm(
             np.array([
@@ -110,20 +105,15 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
-
+        super()._reset_hand()
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
 
         hammer_pos = obs[3:6]
         nail_pos = obs[6:9]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM = (rightFinger + leftFinger) / 2.0
 
         hammerDist = np.linalg.norm(nail_pos - hammer_pos)

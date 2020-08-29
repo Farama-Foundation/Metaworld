@@ -45,11 +45,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
+        ob = super().step(action)
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
         info = {
@@ -61,6 +57,13 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         }
 
         return ob, reward, False, info
+
+    @property
+    def _target_site_config(self):
+        return [
+            ('goal_open', self._state_goal),
+            ('goal_close', np.array([10., 10., 10.]))
+        ]
 
     def _get_pos_objects(self):
         knob_center = self.get_body_com('faucetBase') + np.array([.0, .0, .125])
@@ -74,14 +77,6 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         offset *= self.handle_length
 
         return knob_center + offset
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal_open')] = (
-            goal[:3]
-        )
-        self.data.site_xpos[self.model.site_name2id('goal_close')] = (
-            np.array([10.0, 10.0, 10.0])
-        )
 
     def reset_model(self):
         self._reset_hand()
@@ -97,18 +92,13 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         self._state_goal = self.obj_init_pos + np.array(
             [+self.handle_length, .0, .125]
         )
-        self._set_goal_marker(self._state_goal)
 
         self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
-
+        super()._reset_hand()
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
@@ -116,7 +106,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         pullGoal = self._state_goal

@@ -58,13 +58,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
         info = {
@@ -72,8 +67,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             'goalDist': pullDist,
             'epRew': reward,
             'pickRew': None,
-            'success': float(pullDist <= 0.07),
-            'goal': self.goal
+            'success': float(pullDist <= 0.07)
         }
 
         return ob, reward, False, info
@@ -86,11 +80,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             state_observation=self._get_obs(),
             state_desired_goal=self._state_goal,
             state_achieved_goal=self._get_pos_objects(),
-        )
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            goal[:3]
         )
 
     def _set_obj_xyz(self, pos):
@@ -112,7 +101,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.]))
-        self._set_goal_marker(self._state_goal)
 
         self.objHeight = self.data.get_geom_xpos('puck')[2]
         self.maxDist = np.linalg.norm(self.data.get_geom_xpos('puck')[:-1] - self._state_goal[:-1])
@@ -121,20 +109,15 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+        super()._reset_hand()
 
     def compute_reward(self, actions, obs):
         del actions
 
-        obs = obs['state_observation']
-
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos(
-            'rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos(
+            'rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pullGoal = self._state_goal

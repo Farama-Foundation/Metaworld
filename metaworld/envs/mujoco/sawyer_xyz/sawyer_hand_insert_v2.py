@@ -45,13 +45,8 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, reachDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
         info = {
@@ -59,19 +54,19 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             'goalDist': None,
             'epRew': reward,
             'pickRew': None,
-            'success': float(reachDist <= 0.05),
-            'goal': self.goal
+            'success': float(reachDist <= 0.05)
         }
 
         return ob, reward, False, info
 
+    @property
+    def _target_site_config(self):
+        return [('goal', np.hstack(
+            (*self._state_goal[:2], self.obj_init_pos[2])
+        ))]
+
     def _get_pos_objects(self):
         return self.get_body_com('obj')
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            np.concatenate((goal[:2], [self.obj_init_pos[-1]]))
-        )
 
     def reset_model(self):
         self._reset_hand()
@@ -86,26 +81,20 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._state_goal = goal_pos[-3:]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._state_goal[-1])
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
-
+        super()._reset_hand()
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
+        del obs
 
-        obs = obs['state_observation']
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         goal = self._state_goal

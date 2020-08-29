@@ -63,22 +63,15 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
+        ob = super().step(action)
 
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-
-        reward, reach_dist = self.compute_reward(action, obs_dict)
+        reward, reach_dist = self.compute_reward(action, ob)
         success = float(reach_dist <= 0.05)
 
         info = {
             'reachDist': reach_dist,
             'epRew': reward,
-            'success': success,
-            'goal': self.goal
+            'success': success
         }
 
         self.curr_path_length += 1
@@ -86,16 +79,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
-
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -129,7 +112,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             self._state_goal = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxReachDist = np.linalg.norm(
             self.init_finger_center - np.array(self._state_goal))
@@ -139,27 +121,24 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+        super()._reset_hand()
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         finger_center = (finger_right + finger_left) / 2
 
         goal = self._state_goal
-        assert np.all(goal == self.get_site_pos('goal'))
+        assert np.all(goal == self._get_site_pos('goal'))
 
         c1 = 1000
         c2 = 0.01

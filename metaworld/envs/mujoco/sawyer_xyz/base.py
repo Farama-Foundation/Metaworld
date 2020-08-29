@@ -116,6 +116,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._set_task_called = False
         self._partially_observable = True
 
+        self.hand_init_pos = None  # OVERRIDE ME
         self._state_goal = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
 
@@ -186,9 +187,29 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def get_site_pos(self, siteName):
+    def _get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
         return self.data.site_xpos[_id].copy()
+
+    def _set_pos_site(self, name, pos):
+        """Sets the position of the site corresponding to `name`
+
+        Args:
+            name (str): The site's name
+            pos (np.ndarray): Flat, 3 element array indicating site's location
+        """
+        assert isinstance(pos, np.ndarray)
+        assert pos.ndim == 1
+
+        self.data.site_xpos[self.model.site_name2id(name)] = pos[:3]
+
+    @property
+    def _target_site_config(self):
+        """Retrieves site name(s) and position(s) corresponding to env targets
+
+        :rtype: list of (str, np.ndarray)
+        """
+        return [('goal', self._state_goal)]
 
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars
@@ -252,9 +273,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
         )
 
+    @_assert_task_is_set
+    def step(self, action):
+        self.set_xyz_action(action[:3])
+        self.do_simulation([action[-1], -action[-1]])
+
+        for site in self._target_site_config:
+            self._set_pos_site(*site)
+
+        return self._get_obs()
+
     def reset(self):
         self.curr_path_length = 0
         return super().reset()
+
+    def _reset_hand(self, steps=50):
+        for _ in range(steps):
+            self.data.set_mocap_pos('mocap', self.hand_init_pos)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation([-1, 1], self.frame_skip)
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:

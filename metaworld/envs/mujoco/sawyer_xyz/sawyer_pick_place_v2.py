@@ -63,15 +63,9 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
+        ob = super().step(action)
 
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-
-        rew, reach_dist, pick_rew, placing_dist = self.compute_reward(action, obs_dict)
+        rew, reach_dist, pick_rew, placing_dist = self.compute_reward(action, ob)
         success = float(placing_dist <= 0.07)
 
         info = {
@@ -79,8 +73,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             'pickRew': pick_rew,
             'epRew': rew,
             'goalDist': placing_dist,
-            'success': success,
-            'goal': self.goal
+            'success': success
         }
 
         self.curr_path_length += 1
@@ -88,16 +81,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = goal[:3]
-
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -131,7 +114,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self._state_goal = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(
             np.array([self.obj_init_pos[0],
@@ -144,31 +126,27 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
+        super()._reset_hand()
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pick_completed = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
         pos_obj = obs[3:6]
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
         finger_center = (finger_right + finger_left) / 2
         heightTarget = self.heightTarget
 
         goal = self._state_goal
-        assert np.all(goal == self.get_site_pos('goal'))
+        assert np.all(goal == self._get_site_pos('goal'))
 
         tolerance = 0.01
         self.pick_completed = pos_obj[2] >= (heightTarget - tolerance)

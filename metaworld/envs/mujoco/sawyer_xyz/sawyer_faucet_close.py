@@ -44,32 +44,28 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
+        ob = super().step(action)
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
-        info = {'reachDist': reachDist, 'goalDist': pullDist, 'epRew' : reward, 'pickRew':None, 'success': float(pullDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'goalDist': pullDist,
+            'epRew': reward,
+            'pickRew': None,
+            'success': float(pullDist <= 0.05)
+        }
 
         return ob, reward, False, info
 
-    def _get_pos_objects(self):
-        return self.get_site_pos('handleStartClose')
+    @property
+    def _target_site_config(self):
+        return [
+            ('goal_close', self._state_goal),
+            ('goal_open', np.array([10., 10., 10.]))
+        ]
 
-    def _set_goal_marker(self, goal):
-        """
-        This should be use ONLY for visualization. Use self._state_goal for
-        logging, learning, etc.
-        """
-        self.data.site_xpos[self.model.site_name2id('goal_close')] = (
-            goal[:3]
-        )
-        self.data.site_xpos[self.model.site_name2id('goal_open')] = (
-            np.array([10.0, 10.0, 10.0])
-        )
+    def _get_pos_objects(self):
+        return self._get_site_pos('handleStartClose')
 
     def reset_model(self):
         self._reset_hand()
@@ -85,18 +81,14 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('faucet')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('faucetBase')] = self.obj_init_pos
-        self._set_goal_marker(self._state_goal)
         self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+        super()._reset_hand(10)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
@@ -104,7 +96,7 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         del actions
 
         objPos = obs[3:6]
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
         pullGoal = self._state_goal
         pullDist = np.linalg.norm(objPos - pullGoal)

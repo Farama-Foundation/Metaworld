@@ -46,11 +46,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
+        ob = super().step(action)
         reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
@@ -58,8 +54,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             'reachDist': reachDist,
             'goalDist': pullDist, 'epRew': reward,
             'pickRew': None,
-            'success': float(pullDist <= 0.03),
-            'goal': self.goal
+            'success': float(pullDist <= 0.03)
         }
 
         return ob, reward, False, info
@@ -77,11 +72,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         return dial_center + offset
 
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            goal[:3]
-        )
-
     def reset_model(self):
         self._reset_hand()
         self._state_goal = self.goal.copy()
@@ -94,17 +84,12 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             self._state_goal = final_pos
 
         self.sim.model.body_pos[self.model.body_name2id('dial')] = self.obj_init_pos
-        self._set_goal_marker(self._state_goal)
         self.maxPullDist = np.abs(self._state_goal[1] - self.obj_init_pos[1])
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
-
+        super()._reset_hand()
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
@@ -112,7 +97,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         pullGoal = self._state_goal

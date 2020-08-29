@@ -68,13 +68,8 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, _, reachDist, _, pushDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, _, reachDist, _, pushDist, pickRew, _, placingDist = self.compute_reward(action, ob)
         self.curr_path_length +=1
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
 
@@ -83,30 +78,26 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
         else:
             success = float(goal_dist <= 0.07)
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': goal_dist, 'success': success}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': goal_dist,
+            'success': success
+        }
 
         return ob, reward, False, info
 
+    @property
+    def _target_site_config(self):
+        far_away = np.array([10., 10., 10.])
+        return [
+            ('goal_' + t, self._state_goal if t == self.task_type else far_away)
+            for t in self.task_types
+        ]
+
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal_{}'.format(self.task_type))] = (
-            goal[:3]
-        )
-        for task_type in self.task_types:
-            if task_type != self.task_type:
-                self.data.site_xpos[self.model.site_name2id('goal_{}'.format(task_type))] = (
-                    np.array([10.0, 10.0, 10.0])
-                )
-
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -138,7 +129,6 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
                 self._state_goal = goal_pos[-3:]
                 self.obj_init_pos = goal_pos[:3]
 
-        self._set_goal_marker(self._state_goal)
         self._set_obj_xyz(self.obj_init_pos)
         self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
@@ -158,21 +148,17 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+        super()._reset_hand(10)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
@@ -199,7 +185,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
             c1 = 1000
             c2 = 0.01
             c3 = 0.001
-            assert np.all(goal == self.get_site_pos('goal_push'))
+            assert np.all(goal == self._get_site_pos('goal_push'))
             reachDist = np.linalg.norm(fingerCOM - objPos)
             pushDist = np.linalg.norm(objPos[:2] - goal[:2])
             reachRew = -reachDist
@@ -218,7 +204,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
 
             reachDist = np.linalg.norm(objPos - fingerCOM)
             placingDist = np.linalg.norm(objPos - goal)
-            assert np.all(goal == self.get_site_pos('goal_pick_place'))
+            assert np.all(goal == self._get_site_pos('goal_pick_place'))
 
             def reachReward():
                 reachRew = -reachDist

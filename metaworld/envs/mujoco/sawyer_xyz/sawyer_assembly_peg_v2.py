@@ -50,17 +50,22 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward , _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(action, obs_dict)
-        self.curr_path_length +=1
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': placingDist, 'success': float(success)}
-        info['goal'] = self.goal
+        ob = super().step(action)
+        reward, _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(action, ob)
+        self.curr_path_length += 1
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': placingDist,
+            'success': float(success)
+        }
+
         return ob, reward, False, info
+
+    @property
+    def _target_site_config(self):
+        return [('pegTop', self._state_goal)]
 
     def _get_pos_objects(self):
         return self.data.site_xpos[self.model.site_name2id('RoundNut-8')]
@@ -69,11 +74,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         obs_dict = super()._get_obs_dict()
         obs_dict['state_achieved_goal'] = self.get_body_com('RoundNut')
         return obs_dict
-
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('pegTop')] = (
-            goal[:3]
-        )
 
     def reset_model(self):
         self._reset_hand()
@@ -92,29 +92,24 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._state_goal
-        self._set_goal_marker(self._state_goal)
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+        super()._reset_hand()
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
         self.placeCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
 
         graspPos = obs[3:6]
         objPos = self.get_body_com('RoundNut')
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget

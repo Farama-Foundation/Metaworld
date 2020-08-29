@@ -42,16 +42,17 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, _, reachDist, pickRew, _, _, screwDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, _, reachDist, pickRew, _, _, screwDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew' : reward, 'goalDist': screwDist, 'success': float(screwDist <= 0.05)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': screwDist,
+            'success': float(screwDist <= 0.05)
+        }
 
         return ob, reward, False, info
 
@@ -87,7 +88,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
             'screw'
         )] = np.array([0.24, 0.71, 0.11])
         # Update _state_goal
-        self._state_goal = self.get_site_pos('goal')
+        self._state_goal = self._get_site_pos('goal')
 
         # Update heights (for use in reward function)
         self.hammerHeight = self.get_body_com('hammer').copy()[2]
@@ -106,23 +107,19 @@ class SawyerHammerEnv(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
+        super()._reset_hand(10)
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
 
         hammerPos = obs[3:6]
         hammerHeadPos = self.data.get_geom_xpos('hammerHead').copy()
         objPos = self.data.site_xpos[self.model.site_name2id('screwHead')]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget

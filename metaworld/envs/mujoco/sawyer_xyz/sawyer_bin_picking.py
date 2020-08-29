@@ -56,16 +56,17 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward , _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
 
-        info = {'reachDist': reachDist, 'pickRew':pickRew, 'epRew': reward, 'goalDist': placingDist, 'success': float(placingDist <= 0.08)}
-        info['goal'] = self.goal
+        info = {
+            'reachDist': reachDist,
+            'pickRew': pickRew,
+            'epRew': reward,
+            'goalDist': placingDist,
+            'success': float(placingDist <= 0.08)
+        }
 
         return ob, reward, False, info
 
@@ -76,13 +77,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         del goal  # rjulian: ??? What?
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        self.set_state(qpos, qvel)
-
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
     def adjust_initObjPos(self, orig_init_pos):
@@ -114,20 +108,16 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1,1], self.frame_skip)
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        super()._reset_hand(10)
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.pickCompleted = False
         self.placeCompleted = False
 
     def compute_reward(self, actions, obs):
-        obs = obs['state_observation']
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget

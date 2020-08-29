@@ -48,13 +48,8 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
-        ob = self._get_obs()
-        obs_dict = self._get_obs_dict()
-        reward, reachDist, pullDist = self.compute_reward(action, obs_dict)
+        ob = super().step(action)
+        reward, reachDist, pullDist = self.compute_reward(action, ob)
         self.curr_path_length += 1
         info = {
             'reachDist': reachDist,
@@ -69,11 +64,6 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
     def _get_pos_objects(self):
         return self.get_body_com('drawer_link') + np.array([.0, -.16, .05])
 
-    def _set_goal_marker(self, goal):
-        self.data.site_xpos[self.model.site_name2id('goal')] = (
-            goal[:3]
-        )
-
     def reset_model(self):
         self._reset_hand()
 
@@ -86,25 +76,18 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         )] = self.obj_init_pos
         # Set _state_goal to current drawer position (closed) minus an offset
         self._state_goal = self.obj_init_pos + np.array([.0, -.16 - self.maxDist, .09])
-        self._set_goal_marker(self._state_goal)
 
         return self._get_obs()
 
     def _reset_hand(self):
-        for _ in range(50):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
-
+        super()._reset_hand()
         self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
         del actions
 
-        obs = obs['state_observation']
-
         objPos = obs[3:6]
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
         pullGoal = self._state_goal
         pullDist = np.abs(objPos[1] - pullGoal[1])
