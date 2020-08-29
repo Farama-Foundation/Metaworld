@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from metaworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 from metaworld.policies.policy import Policy, move
 from metaworld.policies.action import Action
