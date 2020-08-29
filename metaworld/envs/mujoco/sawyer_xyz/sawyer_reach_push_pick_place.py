@@ -93,7 +93,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
     def _target_site_config(self):
         far_away = np.array([10., 10., 10.])
         return [
-            ('goal_' + t, self._state_goal if t == self.task_type else far_away)
+            ('goal_' + t, self._target_pos if t == self.task_type else far_away)
             for t in self.task_types
         ]
 
@@ -111,7 +111,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self._get_state_rand_vec()
+        self._target_pos = self._get_state_rand_vec()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -119,21 +119,21 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            self._target_pos = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[3:]
+                self._target_pos = goal_pos[3:]
             if self.task_type == 'push':
-                self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
                 self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             else:
-                self._state_goal = goal_pos[-3:]
+                self._target_pos = goal_pos[-3:]
                 self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._state_goal))
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._target_pos))
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
         self.target_rewards = [1000*self.maxPlacingDist + 1000*2, 1000*self.maxReachDist + 1000*2, 1000*self.maxPushDist + 1000*2]
 
         if self.task_type == 'reach':
@@ -164,7 +164,7 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        goal = self._state_goal
+        goal = self._target_pos
 
         def compute_reward_reach(actions, obs):
             del actions

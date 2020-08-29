@@ -19,7 +19,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             of the goal (for consistency with other environments)
         - (6/15/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
-            i.e. (self._state_goal - pos_hand)
+            i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
@@ -96,7 +96,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -104,15 +104,15 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            self._target_pos = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[3:]
-            self._state_goal = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self._target_pos = goal_pos[3:]
+            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxpush_dist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
+        self.maxpush_dist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.target_reward = 1000*self.maxpush_dist + 1000*2
         self.num_resets += 1
         return self._get_obs()
@@ -135,7 +135,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         )
         fingerCOM = (rightFinger + leftFinger) / 2
 
-        goal = self._state_goal
+        goal = self._target_pos
         assert np.all(goal == self._get_site_pos('goal'))
 
         reach_dist = np.linalg.norm(fingerCOM - obj_pos)

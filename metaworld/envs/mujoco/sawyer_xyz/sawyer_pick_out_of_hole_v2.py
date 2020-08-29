@@ -79,13 +79,13 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)
 
-        self._state_goal = pos_goal
+        self._target_pos = pos_goal
 
         self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = np.linalg.norm(
             np.array([*self.obj_init_pos[:2], self.heightTarget])
-            - self._state_goal
+            - self._target_pos
         ) + self.heightTarget
 
         return self._get_obs()
@@ -104,7 +104,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        goal = self._state_goal
+        goal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
         placingDist = np.linalg.norm(objPos - goal)

@@ -117,7 +117,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = True
 
         self.hand_init_pos = None  # OVERRIDE ME
-        self._state_goal = None  # OVERRIDE ME
+        self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
 
     def _set_task_inner(self):
@@ -175,8 +175,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if self.discrete_goal_space is not None:
             self.active_discrete_goal = goal
             self.goal = self.discrete_goals[goal]
-            self._state_goal_idx = np.zeros(len(self.discrete_goals))
-            self._state_goal_idx[goal] = 1.
+            self._target_pos_idx = np.zeros(len(self.discrete_goals))
+            self._target_pos_idx[goal] = 1.
         else:
             self.goal = goal
 
@@ -209,7 +209,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         :rtype: list of (str, np.ndarray)
         """
-        return [('goal', self._state_goal)]
+        return [('goal', self._target_pos)]
 
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars
@@ -228,9 +228,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         Returns:
             np.ndarray: Flat array (3 elements) representing the goal position
         """
-        assert isinstance(self._state_goal, np.ndarray)
-        assert self._state_goal.ndim == 1
-        return self._state_goal
+        assert isinstance(self._target_pos, np.ndarray)
+        assert self._target_pos.ndim == 1
+        return self._target_pos
 
     def _get_obs(self):
         """Combines positions of the end effector, object(s) and goal into a

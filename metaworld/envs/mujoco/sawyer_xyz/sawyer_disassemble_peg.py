@@ -62,7 +62,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
-        return [('pegTop', self._state_goal)]
+        return [('pegTop', self._target_pos)]
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('RoundNut-8')
@@ -74,7 +74,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = np.array(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
 
@@ -83,7 +83,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos[:3]
-            self._state_goal = goal_pos[:3] + np.array([0, 0, 0.15])
+            self._target_pos = goal_pos[:3] + np.array([0, 0, 0.15])
 
         peg_pos = self.obj_init_pos + np.array([0., 0., 0.03])
         peg_top_pos = self.obj_init_pos + np.array([0., 0., 0.08])
@@ -92,7 +92,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.objHeight = self.data.get_geom_xpos('RoundNut-8')[2]
         self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
 
@@ -112,7 +112,7 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        placingGoal = self._state_goal
+        placingGoal = self._target_pos
 
         reachDist = np.linalg.norm(graspPos - fingerCOM)
         reachDistxy = np.linalg.norm(graspPos[:-1] - fingerCOM[:-1])

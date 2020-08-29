@@ -81,11 +81,11 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(pos_plug)
         self.obj_init_pos = pos_plug
 
-        self._state_goal = pos_plug + np.array([.2, .0, .0])
+        self._target_pos = pos_plug + np.array([.2, .0, .0])
 
         self.objHeight = pos_plug[2]
         self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        self.maxPlacingDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
 
         return self._get_obs()
@@ -100,7 +100,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        placingGoal = self._state_goal
+        placingGoal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 

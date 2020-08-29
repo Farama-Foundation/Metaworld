@@ -19,21 +19,21 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
         if self.random_init:
             obj_pos = self._get_state_rand_vec()
             self.obj_init_pos = obj_pos
             goal_pos = obj_pos.copy() + np.array([0.1, -0.15, 0.05])
-            self._state_goal = goal_pos
+            self._target_pos = goal_pos
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
 
         # keep the door open after resetting initial positions
         self._set_obj_xyz(-1.5708)
-        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._state_goal[:-1])
+        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._target_pos[:-1])
         self.target_reward = 1000*self.maxPullDist + 1000*2
 
         return self._get_obs()
@@ -45,7 +45,7 @@ class SawyerDoorCloseEnv(SawyerDoorEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
         reachDist = np.linalg.norm(objPos - fingerCOM)

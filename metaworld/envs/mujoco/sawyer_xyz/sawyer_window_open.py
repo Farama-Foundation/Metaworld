@@ -68,7 +68,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
@@ -77,14 +77,14 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
             self.obj_init_pos = obj_pos
             goal_pos = obj_pos.copy()
             goal_pos[0] += 0.18
-            self._state_goal = goal_pos
+            self._target_pos = goal_pos
 
         wall_pos = self.obj_init_pos.copy() - np.array([-0.1, 0, 0.12])
         window_another_pos = self.obj_init_pos.copy() + np.array([0.2, 0.03, 0])
         self.sim.model.body_pos[self.model.body_name2id('window')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('window_another')] = window_another_pos
         self.sim.model.body_pos[self.model.body_name2id('wall')] = wall_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
         self.maxPullDist = 0.2
         self.target_reward = 1000*self.maxPullDist + 1000*2
 
@@ -105,7 +105,7 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.abs(objPos[0] - pullGoal[0])
         reachDist = np.linalg.norm(objPos - fingerCOM)

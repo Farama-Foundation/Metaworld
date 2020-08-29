@@ -62,7 +62,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
-        return [('coffee_goal', self._state_goal)]
+        return [('coffee_goal', self._target_pos)]
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
@@ -96,7 +96,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
             'coffee_machine'
         )] = pos_machine
 
-        self._state_goal = pos_mug_goal
+        self._target_pos = pos_mug_goal
 
         self.maxPushDist = np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2])
 
@@ -117,7 +117,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        goal = self._state_goal
+        goal = self._target_pos
 
         c1 = 1000
         c2 = 0.01

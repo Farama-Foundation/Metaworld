@@ -67,22 +67,22 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[-3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            self._target_pos = goal_pos[-3:]
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[-3:]
+                self._target_pos = goal_pos[-3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
 
@@ -101,7 +101,7 @@ class SawyerPickOutOfHoleEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        goal = self._state_goal
+        goal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
         placingDist = np.linalg.norm(objPos - goal)

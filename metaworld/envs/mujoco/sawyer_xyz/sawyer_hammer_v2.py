@@ -79,8 +79,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id(
             'box'
         )] = np.array([0.24, 0.85, 0.0])
-        # Update _state_goal
-        self._state_goal = self._get_site_pos('goal')
+        # Update _target_pos
+        self._target_pos = self._get_site_pos('goal')
 
         # Randomize hammer position
         self.hammer_init_pos = self._get_state_rand_vec() if self.random_init \
@@ -93,7 +93,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
         # Update distances (for use in reward function)
         nail_init_pos = self._get_site_pos('nailHead')
-        self.max_nail_dist = (self._state_goal - nail_init_pos)[1]
+        self.max_nail_dist = (self._target_pos - nail_init_pos)[1]
         self.max_hammer_dist = np.linalg.norm(
             np.array([
                 self.hammer_init_pos[0],
@@ -117,7 +117,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         fingerCOM = (rightFinger + leftFinger) / 2.0
 
         hammerDist = np.linalg.norm(nail_pos - hammer_pos)
-        screwDist = np.abs(nail_pos[1] - self._state_goal[1])
+        screwDist = np.abs(nail_pos[1] - self._target_pos[1])
         reachDist = np.linalg.norm(hammer_pos - fingerCOM)
 
         def reachReward():

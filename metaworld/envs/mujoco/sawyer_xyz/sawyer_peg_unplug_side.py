@@ -75,21 +75,21 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.goal.copy()
         hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
         self.obj_init_pos = hole_pos
-        self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
+        self._target_pos = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
             self.sim.model.body_pos[self.model.body_name2id('box')] = goal_pos
             hole_pos = self.sim.model.site_pos[self.model.site_name2id('hole')] + self.sim.model.body_pos[self.model.body_name2id('box')]
             self.obj_init_pos = hole_pos
-            self._state_goal = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
+            self._target_pos = np.concatenate(([hole_pos[0] + 0.2], hole_pos[1:]))
 
         self.sim.model.body_pos[self.model.body_name2id('peg')] = self.obj_init_pos
         self._set_obj_xyz(0)
         self.objHeight = self.get_body_com('peg').copy()[0]
         self.heightTarget = self.objHeight + self.liftThresh
         self.obj_init_pos = self.get_body_com('peg')
-        self.maxPlacingDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        self.maxPlacingDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
 
         return self._get_obs()
@@ -107,7 +107,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        placingGoal = self._state_goal
+        placingGoal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 

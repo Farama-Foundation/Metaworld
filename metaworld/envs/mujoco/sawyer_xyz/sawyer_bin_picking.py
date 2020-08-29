@@ -70,6 +70,10 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
         return ob, reward, False, info
 
+    @property
+    def _target_site_config(self):
+        return []
+
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
 
@@ -90,7 +94,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -100,10 +104,10 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             self.obj_init_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
 
-        self._set_goal_xyz(self._state_goal)
+        self._set_goal_xyz(self._target_pos)
         self._set_obj_xyz(self.obj_init_pos)
-        self._state_goal = self.get_body_com("bin_goal")
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._state_goal)[:-1]) + self.heightTarget
+        self._target_pos = self.get_body_com("bin_goal")
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._target_pos)[:-1]) + self.heightTarget
 
         return self._get_obs()
 
@@ -121,7 +125,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        placingGoal = self._state_goal
+        placingGoal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 

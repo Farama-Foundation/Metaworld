@@ -81,8 +81,8 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         self._set_obj_xyz(0)
-        self._state_goal = self._get_site_pos('goalPress')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._state_goal[-1])
+        self._target_pos = self._get_site_pos('goalPress')
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._target_pos[-1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
@@ -95,7 +95,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         leftFinger = self._get_site_pos('leftEndEffector')
         fingerCOM  =  leftFinger
 
-        pressGoal = self._state_goal[-1]
+        pressGoal = self._target_pos[-1]
 
         pressDist = np.abs(objPos[-1] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

@@ -74,17 +74,17 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos[:3]
             final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
-            self._state_goal = final_pos
+            self._target_pos = final_pos
 
         self.sim.model.body_pos[self.model.body_name2id('dial')] = self.obj_init_pos
-        self.maxPullDist = np.abs(self._state_goal[1] - self.obj_init_pos[1])
+        self.maxPullDist = np.abs(self._target_pos[1] - self.obj_init_pos[1])
 
         return self._get_obs()
 
@@ -100,7 +100,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.abs(objPos[1] - pullGoal[1])
         reachDist = np.linalg.norm(objPos - fingerCOM)

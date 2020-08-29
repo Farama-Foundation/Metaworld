@@ -73,20 +73,20 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self.init_config['obj_init_pos']
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
 
         if self.random_init:
             rand_vec = self._get_state_rand_vec()
             self.obj_init_pos = rand_vec[:3]
-            self._state_goal = rand_vec[3:]
+            self._target_pos = rand_vec[3:]
 
         self.sim.model.body_pos[
-            self.model.body_name2id('puck_goal')] = self._state_goal
+            self.model.body_name2id('puck_goal')] = self._target_pos
         self._set_obj_xyz(np.zeros(2))
 
         self.objHeight = self.data.get_geom_xpos('puck')[2]
         self.maxDist = np.linalg.norm(
-            self.obj_init_pos[:-1] - self._state_goal[:-1])
+            self.obj_init_pos[:-1] - self._target_pos[:-1])
         self.target_reward = 1000 * self.maxDist + 1000 * 2
 
         return self._get_obs()
@@ -102,7 +102,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 

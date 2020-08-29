@@ -74,19 +74,19 @@ class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._state_goal)[:2])
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
@@ -105,7 +105,7 @@ class SawyerSweepIntoGoalEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        goal = self._state_goal
+        goal = self._target_pos
 
         c1 = 1000
         c2 = 0.01

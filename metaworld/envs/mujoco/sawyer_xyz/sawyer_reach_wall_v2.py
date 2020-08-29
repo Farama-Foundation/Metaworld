@@ -16,7 +16,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         - (6/17/20) Separated reach from reach-push-pick-place.
         - (6/17/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
-            i.e. (self._state_goal - pos_hand)
+            i.e. (self._target_pos - pos_hand)
     """
     def __init__(self):
 
@@ -82,23 +82,23 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            self._target_pos = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[3:]
-            self._state_goal = goal_pos[-3:]
+                self._target_pos = goal_pos[3:]
+            self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxReachDist = np.linalg.norm(
-            self.init_fingerCOM - np.array(self._state_goal)
+            self.init_fingerCOM - np.array(self._target_pos)
         )
         self.target_reward = 1000*self.maxReachDist + 1000*2
         self.num_resets += 1
@@ -126,7 +126,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         )
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        goal = self._state_goal
+        goal = self._target_pos
         assert np.all(goal == self._get_site_pos('goal'))
 
         reach_dist = np.linalg.norm(fingerCOM - goal)

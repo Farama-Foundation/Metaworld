@@ -63,14 +63,14 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
-        return [('coffee_goal', self._state_goal)]
+        return [('coffee_goal', self._target_pos)]
 
     def _get_pos_objects(self):
         return self.data.site_xpos[self.model.site_name2id('buttonStart')]
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
@@ -81,13 +81,13 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
             self.obj_init_pos = goal_pos
             button_pos = goal_pos + np.array([0., -0.12, 0.05])
             obj_pos = goal_pos + np.array([0, -0.1, -0.28])
-            self._state_goal = button_pos
+            self._target_pos = button_pos
 
         self.sim.model.body_pos[self.model.body_name2id('coffee_machine')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
+        self.sim.model.body_pos[self.model.body_name2id('button')] = self._target_pos
         self._set_obj_xyz(obj_pos)
-        self._state_goal = self._get_site_pos('coffee_goal')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._state_goal[1])
+        self._target_pos = self._get_site_pos('coffee_goal')
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._target_pos[1])
         self.target_reward = 1000*self.maxDist + 1000*2
         return self._get_obs()
 
@@ -106,7 +106,7 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         leftFinger = self._get_site_pos('leftEndEffector')
         fingerCOM  =  leftFinger
 
-        pressGoal = self._state_goal[1]
+        pressGoal = self._target_pos[1]
 
         pressDist = np.abs(objPos[1] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

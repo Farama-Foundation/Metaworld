@@ -87,8 +87,8 @@ class SawyerHammerEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id(
             'screw'
         )] = np.array([0.24, 0.71, 0.11])
-        # Update _state_goal
-        self._state_goal = self._get_site_pos('goal')
+        # Update _target_pos
+        self._target_pos = self._get_site_pos('goal')
 
         # Update heights (for use in reward function)
         self.hammerHeight = self.get_body_com('hammer').copy()[2]
@@ -102,7 +102,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
         # Update distances (for use in reward function)
         self.obj_init_pos = self.sim.model.site_pos[self.model.site_name2id('screwHead')] + self.sim.model.body_pos[self.model.body_name2id('screw')]
         self.maxHammerDist = np.linalg.norm(np.array([self.hammer_init_pos[0], self.hammer_init_pos[1], self.heightTarget]) - np.array(self.obj_init_pos)) + \
-                                self.heightTarget + np.abs(self.obj_init_pos[1] - self._state_goal[1])
+                                self.heightTarget + np.abs(self.obj_init_pos[1] - self._target_pos[1])
 
         return self._get_obs()
 
@@ -125,7 +125,7 @@ class SawyerHammerEnv(SawyerXYZEnv):
         heightTarget = self.heightTarget
 
         hammerDist = np.linalg.norm(objPos - hammerHeadPos)
-        screwDist = np.abs(objPos[1] - self._state_goal[1])
+        screwDist = np.abs(objPos[1] - self._target_pos[1])
         reachDist = np.linalg.norm(hammerPos - fingerCOM)
 
         def reachReward():

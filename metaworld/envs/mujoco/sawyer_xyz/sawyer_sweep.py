@@ -67,7 +67,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
@@ -77,10 +77,10 @@ class SawyerSweepEnv(SawyerXYZEnv):
             goal_pos = obj_pos.copy()
             goal_pos[0] = 1.0
             goal_pos[2] = -0.3
-            self._state_goal = goal_pos
+            self._target_pos = goal_pos
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(self.data.get_geom_xpos('objGeom')[:-1] - self._state_goal[:-1])
+        self.maxPushDist = np.linalg.norm(self.data.get_geom_xpos('objGeom')[:-1] - self._target_pos[:-1])
         self.target_reward = 1000*self.maxPushDist + 1000*2
 
         return self._get_obs()
@@ -100,7 +100,7 @@ class SawyerSweepEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pushGoal = self._state_goal
+        pushGoal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
         pushDistxy = np.linalg.norm(objPos[:-1] - pushGoal[:-1])

@@ -78,12 +78,12 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
             else self.init_config['obj_init_pos']
-        self._state_goal = self.obj_init_pos + np.array([-0.3, -0.45, 0.])
+        self._target_pos = self.obj_init_pos + np.array([-0.3, -0.45, 0.])
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
         self._set_obj_xyz(0)
-        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._state_goal[:-1])
+        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._target_pos[:-1])
         self.target_reward = 1000*self.maxPullDist + 1000*2
 
         return self._get_obs()
@@ -102,7 +102,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
         reachDist = np.linalg.norm(objPos - fingerCOM)

@@ -15,7 +15,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             of the goal (for consistency with other environments)
         - (6/15/20) Added a 3 element vector to the observation. This vector
             points from the end effector to the goal coordinate.
-            i.e. (self._state_goal - pos_hand)
+            i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
@@ -99,7 +99,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
@@ -107,11 +107,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
-            self._state_goal = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._state_goal[:2]) < 0.15:
+            self._target_pos = goal_pos[3:]
+            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
                 goal_pos = self._get_state_rand_vec()
-                self._state_goal = goal_pos[3:]
-            self._state_goal = goal_pos[-3:]
+                self._target_pos = goal_pos[3:]
+            self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
@@ -119,7 +119,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             np.array([self.obj_init_pos[0],
                       self.obj_init_pos[1],
                       self.heightTarget]) -
-            np.array(self._state_goal)) + self.heightTarget
+            np.array(self._target_pos)) + self.heightTarget
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.num_resets += 1
 
@@ -145,7 +145,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         finger_center = (finger_right + finger_left) / 2
         heightTarget = self.heightTarget
 
-        goal = self._state_goal
+        goal = self._target_pos
         assert np.all(goal == self._get_site_pos('goal'))
 
         tolerance = 0.01

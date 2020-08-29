@@ -74,8 +74,8 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id(
             'drawer'
         )] = self.obj_init_pos
-        # Set _state_goal to current drawer position (closed) minus an offset
-        self._state_goal = self.obj_init_pos + np.array([.0, -.16 - self.maxDist, .09])
+        # Set _target_pos to current drawer position (closed) minus an offset
+        self._target_pos = self.obj_init_pos + np.array([.0, -.16 - self.maxDist, .09])
 
         return self._get_obs()
 
@@ -89,7 +89,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         objPos = obs[3:6]
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
         pullDist = np.abs(objPos[1] - pullGoal[1])
         reachDist = np.linalg.norm(objPos - fingerCOM)
         reachRew = -reachDist

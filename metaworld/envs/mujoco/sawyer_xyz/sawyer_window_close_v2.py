@@ -83,7 +83,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         if self.random_init:
             self.obj_init_pos = self._get_state_rand_vec()
 
-        self._state_goal = self.obj_init_pos.copy()
+        self._target_pos = self.obj_init_pos.copy()
 
         self.sim.model.body_pos[self.model.body_name2id(
             'window'
@@ -104,7 +104,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.abs(objPos[0] - pullGoal[0])
         reachDist = np.linalg.norm(objPos - fingerCOM)

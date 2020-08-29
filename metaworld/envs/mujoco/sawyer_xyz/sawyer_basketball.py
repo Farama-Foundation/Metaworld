@@ -72,7 +72,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
 
         basket_pos = self.goal.copy()
         self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
-        self._state_goal = self.data.site_xpos[self.model.site_name2id('goal')]
+        self._target_pos = self.data.site_xpos[self.model.site_name2id('goal')]
 
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         self.heightTarget = self.objHeight + self.liftThresh
@@ -85,10 +85,10 @@ class SawyerBasketballEnv(SawyerXYZEnv):
                 basket_pos = goal_pos[3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
-            self._state_goal = basket_pos + np.array([0, -0.05, 0.1])
+            self._target_pos = basket_pos + np.array([0, -0.05, 0.1])
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
         return self._get_obs()
 
     def _reset_hand(self):
@@ -104,7 +104,7 @@ class SawyerBasketballEnv(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        goal = self._state_goal
+        goal = self._target_pos
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
         placingDist = np.linalg.norm(objPos - goal)

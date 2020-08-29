@@ -62,7 +62,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
     @property
     def _target_site_config(self):
         return [('goal', np.hstack(
-            (*self._state_goal[:2], self.obj_init_pos[2])
+            (*self._target_pos[:2], self.obj_init_pos[2])
         ))]
 
     def _get_pos_objects(self):
@@ -70,7 +70,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
 
@@ -79,10 +79,10 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.15:
             goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self._state_goal = goal_pos[-3:]
+        self._target_pos = goal_pos[-3:]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._state_goal[-1])
+        self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._target_pos[-1])
 
         return self._get_obs()
 
@@ -97,7 +97,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        goal = self._state_goal
+        goal = self._target_pos
 
         c1 = 1000
         c2 = 0.01

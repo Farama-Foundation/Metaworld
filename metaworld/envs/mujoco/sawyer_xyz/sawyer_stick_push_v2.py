@@ -93,7 +93,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self.stick_init_pos = self.init_config['stick_init_pos']
-        self._state_goal = np.array([0.4, 0.6, self.stick_init_pos[-1]])
+        self._target_pos = np.array([0.4, 0.6, self.stick_init_pos[-1]])
         self.stickHeight = self.get_body_com('stick').copy()[2]
         self.heightTarget = self.stickHeight + self.liftThresh
 
@@ -102,13 +102,13 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = self._get_state_rand_vec()
             self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            self._state_goal = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
+            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
         self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._state_goal[:2])
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:2])
 
         return self._get_obs()
 
@@ -125,7 +125,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        pushGoal = self._state_goal
+        pushGoal = self._target_pos
 
         pushDist = np.linalg.norm(objPos[:2] - pushGoal[:2])
         placeDist = np.linalg.norm(objPos - stickPos)

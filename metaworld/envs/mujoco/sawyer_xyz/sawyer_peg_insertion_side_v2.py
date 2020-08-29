@@ -18,7 +18,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             of the hole (for consistency with other environments)
         - (6/16/20) Added a 1 element vector to the observation. This vector
             points from the end effector to the hole in the Y direction.
-            i.e. (self._state_goal - pos_hand)[1]
+            i.e. (self._target_pos - pos_hand)[1]
         - (6/16/20) Used existing goal_low and goal_high values to constrain
             the hole's position, as opposed to hand_low and hand_high
     """
@@ -102,7 +102,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
-        self._state_goal = pos_box + np.array([.03, .0, .13])
+        self._target_pos = pos_box + np.array([.03, .0, .13])
 
         self.objHeight = self.obj_init_pos[2]
         self.heightTarget = self.objHeight + self.liftThresh
@@ -110,7 +110,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             self.obj_init_pos[0],
             self.obj_init_pos[1],
             self.heightTarget
-        ]) - self._state_goal) + self.heightTarget
+        ]) - self._target_pos) + self.heightTarget
         self.target_reward = 1000 * self.maxPlacingDist + 1000 * 2
 
         return self._get_obs()
@@ -140,7 +140,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.pick_completed = pos_obj[2] >= (heightTarget - tolerance)
 
 
-        placingGoal = self._state_goal
+        placingGoal = self._target_pos
 
         reach_dist = np.linalg.norm(pos_obj - finger_center)
 

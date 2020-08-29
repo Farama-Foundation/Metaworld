@@ -59,7 +59,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
     @property
     def _target_site_config(self):
         return [
-            ('goal_unlock', self._state_goal),
+            ('goal_unlock', self._target_pos),
             ('goal_lock', np.array([10., 10., 10.]))
         ]
 
@@ -84,8 +84,8 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(1.5708)
 
         self.obj_init_pos = self.get_body_com('lock_link')
-        self._state_goal = self.obj_init_pos + np.array([.1, -.04, .0])
-        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        self._target_pos = self.obj_init_pos + np.array([.1, -.04, .0])
+        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -104,7 +104,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.linalg.norm(objPos - pullGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

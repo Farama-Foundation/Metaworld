@@ -68,7 +68,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.obj_init_pos - np.array([.0, .2, .0])
+        self._target_pos = self.obj_init_pos - np.array([.0, .2, .0])
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
         if self.random_init:
@@ -76,15 +76,15 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
             self.obj_init_pos = obj_pos
             goal_pos = obj_pos.copy()
             goal_pos[1] -= 0.2
-            self._state_goal = goal_pos
+            self._target_pos = goal_pos
 
         drawer_cover_pos = self.obj_init_pos.copy()
         drawer_cover_pos[2] -= 0.02
         self.sim.model.body_pos[self.model.body_name2id('drawer')] = self.obj_init_pos
         self.sim.model.body_pos[self.model.body_name2id('drawer_cover')] = drawer_cover_pos
-        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._state_goal
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
         self._set_obj_xyz(-0.2)
-        self.maxDist = np.abs(self.data.get_geom_xpos('handle')[1] - self._state_goal[1])
+        self.maxDist = np.abs(self.data.get_geom_xpos('handle')[1] - self._target_pos[1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
@@ -102,7 +102,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal[1]
+        pullGoal = self._target_pos[1]
 
         reachDist = np.linalg.norm(objPos - fingerCOM)
 

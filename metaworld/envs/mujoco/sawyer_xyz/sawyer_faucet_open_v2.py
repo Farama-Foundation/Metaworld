@@ -61,7 +61,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
     @property
     def _target_site_config(self):
         return [
-            ('goal_open', self._state_goal),
+            ('goal_open', self._target_pos),
             ('goal_close', np.array([10., 10., 10.]))
         ]
 
@@ -89,11 +89,11 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
             'faucetBase'
         )] = self.obj_init_pos
 
-        self._state_goal = self.obj_init_pos + np.array(
+        self._target_pos = self.obj_init_pos + np.array(
             [+self.handle_length, .0, .125]
         )
 
-        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -109,7 +109,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.linalg.norm(objPos - pullGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

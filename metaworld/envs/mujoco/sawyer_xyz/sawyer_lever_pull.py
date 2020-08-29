@@ -64,7 +64,7 @@ class SawyerLeverPullEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
@@ -73,10 +73,10 @@ class SawyerLeverPullEnv(SawyerXYZEnv):
             final_pos = goal_pos.copy()
             final_pos[1] += 0.05
             final_pos[2] -= 0.17
-            self._state_goal = final_pos
+            self._target_pos = final_pos
 
         self.sim.model.body_pos[self.model.body_name2id('lever')] = self.obj_init_pos
-        self.maxPullDist = np.linalg.norm(self._state_goal - self.obj_init_pos)
+        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -95,7 +95,7 @@ class SawyerLeverPullEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pullGoal = self._state_goal
+        pullGoal = self._target_pos
 
         pullDist = np.linalg.norm(objPos - pullGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

@@ -74,7 +74,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -82,14 +82,14 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
             button_pos = goal_pos.copy()
             button_pos[1] += 0.08
             button_pos[2] += 0.07
-            self._state_goal = button_pos
-            self._state_goal[2] -= 0.02
+            self._target_pos = button_pos
+            self._target_pos[2] -= 0.02
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('button')] = self._state_goal
+        self.sim.model.body_pos[self.model.body_name2id('button')] = self._target_pos
         self._set_obj_xyz(0)
-        self._state_goal = self._get_site_pos('hole')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._state_goal[2])
+        self._target_pos = self._get_site_pos('hole')
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][2] - self._target_pos[2])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
@@ -108,7 +108,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
 
-        pressGoal = self._state_goal[2]
+        pressGoal = self._target_pos[2]
 
         pressDist = np.abs(objPos[2] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

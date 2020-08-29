@@ -65,7 +65,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('top_link')[2]
@@ -77,11 +77,11 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
                 goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self._state_goal = goal_pos[-3:]
+            self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._state_goal[:2], [self.boxheight]))
+        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [self.boxheight]))
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
 
@@ -99,7 +99,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         fingerCOM  =  (rightFinger + leftFinger)/2
 
         heightTarget = self.heightTarget
-        placeGoal = self._state_goal
+        placeGoal = self._target_pos
 
         placingDist = np.linalg.norm(objPos - placeGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

@@ -67,7 +67,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
-        return [('coffee_goal', self._state_goal)]
+        return [('coffee_goal', self._target_pos)]
 
     def _get_pos_objects(self):
         return self._get_site_pos('buttonStart')
@@ -92,7 +92,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(pos_mug)
 
         pos_button = self.obj_init_pos + np.array([.0, -.22, .3])
-        self._state_goal = pos_button + np.array([.0, self.max_dist, .0])
+        self._target_pos = pos_button + np.array([.0, self.max_dist, .0])
 
         return self._get_obs()
 
@@ -108,7 +108,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         leftFinger = self._get_site_pos('leftEndEffector')
         fingerCOM  =  leftFinger
 
-        pressGoal = self._state_goal[1]
+        pressGoal = self._target_pos[1]
 
         pressDist = np.abs(objPos[1] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)

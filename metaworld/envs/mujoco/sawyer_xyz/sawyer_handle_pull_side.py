@@ -74,7 +74,7 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._state_goal = self.goal.copy()
+        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
 
         if self.random_init:
@@ -83,13 +83,13 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
             button_pos = goal_pos.copy()
             button_pos[0] += 0.1
             button_pos[2] += 0.09
-            self._state_goal = button_pos
+            self._target_pos = button_pos
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id('handle')] = self._state_goal
+        self.sim.model.body_pos[self.model.body_name2id('handle')] = self._target_pos
         self._set_obj_xyz(-0.12)
-        self._state_goal = self._get_site_pos('goalPull')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._state_goal[-1])
+        self._target_pos = self._get_site_pos('goalPull')
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._target_pos[-1])
         self.target_reward = 1000*self.maxDist + 1000*2
 
         return self._get_obs()
@@ -109,7 +109,7 @@ class SawyerHandlePullSideEnv(SawyerXYZEnv):
         leftFinger = self._get_site_pos('leftEndEffector')
         fingerCOM  =  leftFinger
 
-        pressGoal = self._state_goal[-1]
+        pressGoal = self._target_pos[-1]
 
         pressDist = np.abs(objPos[-1] - pressGoal)
         reachDist = np.linalg.norm(objPos - fingerCOM)
