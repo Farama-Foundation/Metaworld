@@ -106,9 +106,14 @@ class MujocoEnv(gym.Env, abc.ABC):
         for _ in range(n_frames):
             self.sim.step()
 
-    def render(self, mode='human'):
+    def render(self, mode='human', res=(640, 480)):
         if mode == 'human':
             self._get_viewer(mode).render()
+        elif mode == 'offscreen':
+            return self.sim.render(*res, mode='offscreen',
+                    camera_name='topview')[:,:,::-1]
+        else:
+            raise ValueError("mode can only be either 'human' or 'offscreen'")
 
     def close(self):
         if self.viewer is not None:
