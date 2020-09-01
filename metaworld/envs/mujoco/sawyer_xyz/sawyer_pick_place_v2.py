@@ -194,11 +194,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         assert in_place_and_grasp <= 1.
         # here's a simple fix for most "hoving is equivalent to finishing" 
         # issues: add a small control cost to to the reward function
-        if (grasp == 1):
-            c = 0.5
-        else:
-            c = 0.05
-        reward = in_place_and_grasp - (c * np.linalg.norm(action))
+        c = 0.05
+        reward = in_place_and_grasp - (c * np.linalg.norm(action[:3]))
         # if obj_to_target <= _TARGET_RADIUS and tcp_to_obj <= _TARGET_RADIUS_GRASP:
         #     assert reward >= 1.
         # else:
