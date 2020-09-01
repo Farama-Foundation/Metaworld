@@ -73,12 +73,14 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         obs = self._get_obs()
         obs_dict = self._get_obs_dict()
 
-        reward, tcp_to_obj, _, obj_to_target = self.compute_reward(action, obs_dict)
+        reward, tcp_to_obj, _, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs_dict)
         success = float(obj_to_target <= 0.07)
-        success = float(tcp_to_obj <= 0.03)
-
+        grasp_success = float(tcp_to_obj <= 0.03)
         info = {
             'success': success,
+            'grasp_success': grasp_success,
+            'grasp_reward': grasp_reward,
+            'in_place_reward': in_place_reward
         }
 
         self.curr_path_length += 1
@@ -159,7 +161,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pick_completed = False
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(self, action, obs):
         finger_right, finger_left = (
             self.get_site_pos('rightEndEffector'),
             self.get_site_pos('leftEndEffector')
@@ -190,11 +192,15 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         # based on Hamacher Product T-Norm
         in_place_and_grasp = (in_place * grasp) / (in_place + grasp - (in_place * grasp))
         assert in_place_and_grasp <= 1.
-        #in_place_weight = 10.
-        # reward = (grasp + in_place_weight * in_place * grasp) / (1 + in_place_weight)
-        reward = in_place_and_grasp
-        if obj_to_target <= _TARGET_RADIUS and tcp_to_obj <= _TARGET_RADIUS_GRASP:
-            assert reward >= 1.
+        # here's a simple fix for most "hoving is equivalent to finishing" 
+        # issues: add a small control cost to to the reward function
+        if (grasp == 1):
+            c = 0.5
         else:
-            assert reward < 1.
-        return [10 * reward, tcp_to_obj, 0, obj_to_target]
+            c = 0.05
+        reward = in_place_and_grasp - (c * np.linalg.norm(action))
+        # if obj_to_target <= _TARGET_RADIUS and tcp_to_obj <= _TARGET_RADIUS_GRASP:
+        #     assert reward >= 1.
+        # else:
+        #     assert reward < 1.
+        return [10 * reward, tcp_to_obj, 0, obj_to_target, grasp, in_place]
