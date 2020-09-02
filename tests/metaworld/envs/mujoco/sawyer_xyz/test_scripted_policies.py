@@ -130,7 +130,7 @@ test_cases_latest_noisy = [
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .84],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .1, .82],
     ['button-press-topdown-v1', SawyerButtonPressTopdownV1Policy(), .1, .98],
-    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .95],
+    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .93],
     ['button-press-topdown-wall-v1', SawyerButtonPressTopdownWallV1Policy(), .1, .99],
     ['button-press-topdown-wall-v2', SawyerButtonPressTopdownWallV2Policy(), .1, .95],
     ['button-press-v1', SawyerButtonPressV1Policy(), .1, .98],
