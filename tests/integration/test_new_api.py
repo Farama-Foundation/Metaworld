@@ -24,10 +24,10 @@ def test_all_ml1(env_name):
         env.reset()
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -42,10 +42,10 @@ def test_all_ml1(env_name):
         env.reset()
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in test_env_instances.values():
         env.close()
     train_test_rand_vecs = set()
@@ -71,10 +71,10 @@ def test_all_ml10():
         env.reset()
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
         step_env(env, max_path_length=STEPS, render=False)
     for env in train_env_instances.values():
         env.close()
@@ -90,10 +90,10 @@ def test_all_ml10():
         env.reset()
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
         step_env(env, max_path_length=STEPS, render=False)
     for env in test_env_instances.values():
         env.close()
@@ -120,10 +120,10 @@ def test_all_ml45():
         obs = env.reset()
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
         env.close()
 
@@ -140,10 +140,10 @@ def test_all_ml45():
         assert np.all(obs[-3:] == np.array([0,0,0]))
         assert env.observation_space.shape == (12,)
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in test_env_instances.values():
         env.close()
     train_test_rand_vecs = set()
@@ -168,10 +168,10 @@ def test_all_mt10():
         env.set_task(task)
         env.reset()
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -199,12 +199,12 @@ def test_all_mt50():
         assert env.observation_space.shape == (12,)
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
-        old_state_goal = env._state_goal
+        old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
-        assert np.all(np.allclose(old_state_goal, env._state_goal))
+        assert np.all(np.allclose(old_target_pos, env._target_pos))
     # only needs to be done for 50 environments once
-    check_state_goals_unique(train_env_instances, train_env_rand_vecs)
+    check_target_poss_unique(train_env_instances, train_env_rand_vecs)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -230,7 +230,7 @@ def check_tasks_unique(tasks, env_names):
     return env_to_rand_vecs
 
 
-def check_state_goals_unique(env_instances, env_rand_vecs):
+def check_target_poss_unique(env_instances, env_rand_vecs):
     """Verify that all the state_goals are unique for the different rand_vecs that are sampled.
 
     Note: The following envs randomize object initial position but not state_goal.
@@ -245,7 +245,7 @@ def check_state_goals_unique(env_instances, env_rand_vecs):
         for rand_vec in rand_vecs:
             env._last_rand_vec = rand_vec
             env.reset()
-            state_goals.append(env._state_goal)
+            state_goals.append(env._target_pos)
         state_goals = np.array(state_goals)
-        unique_state_goals = np.unique(state_goals, axis=0)
-        assert unique_state_goals.shape[0] == metaworld._N_GOALS == len(rand_vecs)
+        unique_target_poss = np.unique(state_goals, axis=0)
+        assert unique_target_poss.shape[0] == metaworld._N_GOALS == len(rand_vecs)

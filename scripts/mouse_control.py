@@ -4,12 +4,9 @@ For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
 """
-import sys
-import gym
 
 import numpy as np
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     # SawyerPickAndPlaceEnv
@@ -19,29 +16,12 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_door import SawyerDoorEnv
 # )
 
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_dial_turn import SawyerDialTurnEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_lever_pull import SawyerLeverPullEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_push import SawyerStickPushEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stick_pull import SawyerStickPullEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_hammer import SawyerHammerEnv
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_bin_picking import SawyerBinPickingEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
 # from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import SawyerPegInsertionTopdownEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_unplug_side import SawyerPegUnplugSideEnv
-
 
 
 from robosuite.devices import SpaceMouse
-from metaworld.envs.mujoco.utils import rotation
-from robosuite.utils.transform_utils import mat2quat
-from metaworld.envs.env_util import quat_to_zangle, zangle_to_quat
-
-
-import gym
-import metaworld
 
 space_mouse = SpaceMouse()
 env = SawyerPegInsertionTopdownEnv()
