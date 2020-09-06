@@ -34,7 +34,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
+        
 
         goal_low = np.array(goal_low)
         goal_high = np.array(goal_high)

@@ -70,6 +70,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .35, -.0525]),
         np.array([+0.525, 1.025, .525])
     )
+    max_path_length = 200
 
     def __init__(
             self,
