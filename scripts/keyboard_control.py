@@ -8,6 +8,12 @@ import sys
 
 import numpy as np
 
+from metaworld.envs.mujoco.sawyer_xyz import SawyerPickPlaceEnvV2
+
+
+
+
+
 import pygame
 from pygame.locals import QUIT, KEYDOWN
 
@@ -34,23 +40,15 @@ char_to_action = {
 }
 
 import pygame
-# env = gym.make('SawyerPushAndReachEnvEasy-v0')
-# env = SawyerPushAndReachXYEnv(
-#     goal_low=(-0.15, 0.4, 0.02, -.1, .5),
-#     goal_high=(0.15, 0.75, 0.02, .1, .7),
-#     puck_low=(-.3, .25),
-#     puck_high=(.3, .9),
-#     hand_low=(-0.15, 0.4, 0.05),
-#     hand_high=(0.15, .75, 0.3),
-#     norm_order=2,
-#     xml_path='sawyer_xyz/sawyer_push_puck_small_arena.xml',
-#     reward_type='state_distance',
-#     reset_free=False,
-# )
-# env = SawyerSweepEnv()
-# env = SawyerSweepIntoGoalEnv()
-env = SawyerBoxCloseEnv(random_init=True)
-NDIM = env.action_space.low.size
+
+
+
+env = SawyerPickPlaceEnvV2()
+env._partially_observable = False
+env._freeze_rand_vec = False
+env._set_task_called = True
+env.reset()
+env._freeze_rand_vec = True
 lock_action = False
 random_action = False
 obs = env.reset()
@@ -75,10 +73,6 @@ while True:
                     action[3] = 1
                 elif new_action == 'open':
                     action[3] = -1
-                elif new_action == 'put obj in hand':
-                    print("putting obj in hand")
-                    env.put_obj_in_hand()
-                    action[3] = 1
                 elif new_action is not None:
                     action[:3] = new_action[:3]
                 else:
