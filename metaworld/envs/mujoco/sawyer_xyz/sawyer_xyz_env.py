@@ -111,8 +111,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
-        self._pos_obj_max_len = 6
-        self._pos_obj_possible_lens = (3, 6)
+        self._pos_obj_max_len = 14
+        self._pos_obj_possible_lens = (7, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -120,10 +120,18 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
+        self.prev_obs = self._get_cur_obj_tcp_position_orientation()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         pass
+
+    @property
+    def tcp_center(self):
+        right_finger_pos = self._get_site_pos('rightEndEffector')
+        left_finger_pos = self._get_site_pos('leftEndEffector')
+        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
+        return tcp_center
 
     def set_task(self, task):
         self._set_task_called = True
@@ -233,25 +241,53 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert self._target_pos.ndim == 1
         return self._target_pos
 
+    def _get_cur_obj_tcp_position_orientation(self):
+        """Combines positions of the end effector, object(s) and goal into a
+        single flat observation
+
+        Returns:
+            np.ndarray: The flat observation array (18 elements)
+        """
+        pos_hand = self.get_endeff_pos()
+
+        finger_right, finger_left = (
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
+        )
+
+        # the gripper can be at maximum about ~0.1 m apart.
+        # dividing by 0.1 normalized the gripper distance between
+        # 0 and 1. Further, we clip because sometimes the grippers
+        # are slightly more than 0.1m apart (~0.00045 m)
+        # clipping removes the effects of this random extra distance
+        # that is produced by mujoco
+        gripper_distance_apart = np.linalg.norm(finger_right-finger_left)
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
+        gripper_distance_apart = np.array([gripper_distance_apart])
+
+        pos_obj_padded = np.zeros(self._pos_obj_max_len)
+        pos_obj, ori_obj, pos_obj_2, ori_obj_2 = self._get_pos_orientation_objects()
+        position_orientation_objs = np.concatenate([pos_obj, ori_obj, pos_obj_2, ori_obj_2])
+        assert len(position_orientation_objs) in self._pos_obj_possible_lens
+        pos_obj_padded[:len(position_orientation_objs)] = position_orientation_objs
+        return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded))
+
     def _get_obs(self):
         """Combines positions of the end effector, object(s) and goal into a
         single flat observation
 
         Returns:
-            np.ndarray: The flat observation array (12 elements)
+            np.ndarray: The flat observation array (39 elements)
         """
-        pos_hand = self.get_endeff_pos()
-
-        pos_obj_padded = np.zeros(self._pos_obj_max_len)
-        pos_obj = self._get_pos_objects()
-        assert len(pos_obj) in self._pos_obj_possible_lens
-        pos_obj_padded[:len(pos_obj)] = pos_obj
-
+        # do frame stacking
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-
-        return np.hstack((pos_hand, pos_obj_padded, pos_goal))
+        cur_obj_tcp_position_orientation = self._get_cur_obj_tcp_position_orientation()
+        # do frame stacking
+        obs = np.hstack((cur_obj_tcp_position_orientation, self.prev_obs, pos_goal))
+        self.prev_obs = cur_obj_tcp_position_orientation
+        return obs
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -263,15 +299,17 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(6, -np.inf)
-        obj_high = np.full(6, +np.inf)
+        obj_low = np.full(self._pos_obj_max_len, -np.inf)
+        obj_high = np.full(self._pos_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
+        gripper_low = 0.
+        gripper_high = 1.
         return Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
