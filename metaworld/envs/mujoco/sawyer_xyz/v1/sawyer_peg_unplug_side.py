@@ -32,7 +32,7 @@ class SawyerPegUnplugSideEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
+        
 
         self._random_reset_space = Box(
             np.array(obj_low),

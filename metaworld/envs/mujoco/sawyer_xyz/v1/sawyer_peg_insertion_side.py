@@ -37,7 +37,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self.liftThresh = liftThresh
-        self.max_path_length = 150
+        
 
         self.hand_init_pos = np.array(hand_init_pos)
 

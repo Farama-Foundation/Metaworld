@@ -34,7 +34,7 @@ class SawyerWindowCloseEnv(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
+        
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(

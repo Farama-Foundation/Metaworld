@@ -30,7 +30,7 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
+        
 
         self._random_reset_space = Box(
             np.array(obj_low),
