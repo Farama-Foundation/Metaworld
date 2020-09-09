@@ -30,10 +30,7 @@ class SawyerStickPushEnv(SawyerXYZEnv):
         self.stick_init_pos = self.init_config['stick_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-        self.max_path_length = 200
-
-        # For now, fix the object initial position.
+        self.liftThresh = liftThresh# For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.04])
         self.obj_init_qpos = np.array([0.0, 0.0])
         self.obj_space = Box(np.array(obj_low), np.array(obj_high))

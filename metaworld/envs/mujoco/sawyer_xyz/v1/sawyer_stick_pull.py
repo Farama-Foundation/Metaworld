@@ -32,7 +32,6 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
 
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.04])
