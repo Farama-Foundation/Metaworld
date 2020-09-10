@@ -119,8 +119,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
             finger_right, finger_left = (
-                self.get_site_pos('rightEndEffector'),
-                self.get_site_pos('leftEndEffector')
+                self._get_site_pos('rightEndEffector'),
+                self._get_site_pos('leftEndEffector')
             )
             self.init_tcp = (finger_right + finger_left) / 2
 
@@ -153,7 +153,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp = (finger_right + finger_left) / 2
         obj = obs[4:7]
         tcp_opened = obs[3]
-        target = self._state_goal
+        target = self._target_pos
         _TARGET_RADIUS_GRASP = 0.03
         _TARGET_RADIUS = 0.07
         tcp_to_obj = np.linalg.norm(obj - tcp)

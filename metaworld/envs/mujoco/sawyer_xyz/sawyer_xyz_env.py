@@ -243,8 +243,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         pos_hand = self.get_endeff_pos()
 
         finger_right, finger_left = (
-            self.get_site_pos('rightEndEffector'),
-            self.get_site_pos('leftEndEffector')
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
         )
 
         # the gripper can be at maximum about ~0.1 m apart.
