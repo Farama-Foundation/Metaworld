@@ -111,8 +111,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
-        self._pos_obj_max_len = 6
-        self._pos_obj_possible_lens = (3, 6)
+        self._pos_obj_max_len = 14
+        self._pos_obj_possible_lens = (7, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -124,6 +124,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         pass
+
+    @property
+    def tcp_center(self):
+        right_finger_pos = self._get_site_pos('rightEndEffector')
+        left_finger_pos = self._get_site_pos('leftEndEffector')
+        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
+        return tcp_center
 
     def set_task(self, task):
         self._set_task_called = True
@@ -238,7 +245,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         single flat observation
 
         Returns:
-            np.ndarray: The flat observation array (12 elements)
+            np.ndarray: The flat observation array (21 elements)
         """
         pos_hand = self.get_endeff_pos()
 
@@ -258,14 +265,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         gripper_distance_apart = np.array([gripper_distance_apart])
 
         pos_obj_padded = np.zeros(self._pos_obj_max_len)
-        pos_obj = self._get_pos_objects()
-        assert len(pos_obj) in self._pos_obj_possible_lens
-        pos_obj_padded[:len(pos_obj)] = pos_obj
+        pos_obj, ori_obj, pos_obj_2, ori_obj_2 = self._get_pos_orientation_objects()
+        position_orientation_objs = np.concatenate([pos_obj, ori_obj, pos_obj_2, ori_obj_2])
+        assert len(position_orientation_objs) in self._pos_obj_possible_lens
+        pos_obj_padded[:len(position_orientation_objs)] = position_orientation_objs
 
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-
         return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded, pos_goal))
 
     def _get_obs_dict(self):
@@ -278,8 +285,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(6, -np.inf)
-        obj_high = np.full(6, +np.inf)
+        obj_low = np.full(self._pos_obj_max_len, -np.inf)
+        obj_high = np.full(self._pos_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \

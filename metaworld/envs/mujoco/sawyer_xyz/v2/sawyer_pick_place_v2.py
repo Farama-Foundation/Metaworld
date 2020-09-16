@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -84,8 +85,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
         return obs, reward, False, info
 
-    def _get_pos_objects(self):
-        return self.get_body_com('obj')
+    def _get_pos_orientation_objects(self):
+        position = self.get_body_com('obj')
+        orientation = Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')).as_quat()
+        return position, orientation, np.array([]), np.array([])
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -146,11 +150,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.pick_completed = False
 
     def compute_reward(self, action, obs):
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        tcp = (finger_right + finger_left) / 2
+        tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
         target = self._target_pos
@@ -164,7 +164,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                 bounds=(0, _TARGET_RADIUS_GRASP),
                                 margin=tcp_obj_margin,
                                 sigmoid='long_tail',)
-        
+
         # rewards for closing the gripper
         tcp_opened_margin = 0.73  # computed using scripted policy manually
         tcp_close = reward_utils.tolerance(tcp_opened,
@@ -178,9 +178,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         if tcp_opened <= tcp_opened_margin and tcp_to_obj <= _TARGET_RADIUS_GRASP:
             assert grasp >= 1.
         else:
-            if not grasp < 1.:
-                import ipdb; ipdb.set_trace()
-            
+            assert grasp < 1.
+
         obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = (np.linalg.norm(self.obj_init_pos - target))

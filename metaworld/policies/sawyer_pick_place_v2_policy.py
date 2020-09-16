@@ -13,8 +13,9 @@ class SawyerPickPlaceV2Policy(Policy):
             'hand_pos': obs[:3],
             'gripper_distance_apart': obs[3],
             'puck_pos': obs[4:7],
-            'goal_pos': obs[10:],
-            'unused_info': obs[7:10],
+            'puck_rot': obs[7:11],
+            'goal_pos': obs[18:21],
+            'unused_info': obs[11:18],
         }
 
     def get_action(self, obs):
