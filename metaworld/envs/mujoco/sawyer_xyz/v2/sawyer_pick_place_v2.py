@@ -122,11 +122,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                 self._target_pos = goal_pos[3:]
             self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
-            finger_right, finger_left = (
-                self._get_site_pos('rightEndEffector'),
-                self._get_site_pos('leftEndEffector')
-            )
-            self.init_tcp = (finger_right + finger_left) / 2
+            self.init_tcp = self.tcp_center
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(
@@ -164,7 +160,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                 bounds=(0, _TARGET_RADIUS_GRASP),
                                 margin=tcp_obj_margin,
                                 sigmoid='long_tail',)
-
+        # reward = tcp_obj
+        # reward = reward / 3
         # rewards for closing the gripper
         tcp_opened_margin = 0.73  # computed using scripted policy manually
         tcp_close = reward_utils.tolerance(tcp_opened,
@@ -173,8 +170,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                 sigmoid='long_tail',)
 
         # based on Hamacher Product T-Norm
-        hammacher_prod_tcp_obj_tcp_close = (tcp_obj * tcp_close) / (tcp_obj + tcp_close - (tcp_obj * tcp_close))
-        grasp = (tcp_obj + hammacher_prod_tcp_obj_tcp_close) / 2
+        hprod_tcp_obj_tcp_close = (tcp_obj * tcp_close) / (tcp_obj + tcp_close - (tcp_obj * tcp_close))
+        grasp = (tcp_obj + hprod_tcp_obj_tcp_close) / 2
         if tcp_opened <= tcp_opened_margin and tcp_to_obj <= _TARGET_RADIUS_GRASP:
             assert grasp >= 1.
         else:
@@ -187,7 +184,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
-                                    # value_at_margin=0.05)
+                                    #value_at_margin=0.2)
         # based on Hamacher Product T-Norm
         in_place_and_grasp = (in_place * grasp) / (in_place + grasp - (in_place * grasp))
         assert in_place_and_grasp <= 1.

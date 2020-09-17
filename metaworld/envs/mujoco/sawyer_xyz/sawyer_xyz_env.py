@@ -120,6 +120,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
+        self.prev_obs = self._get_cur_obj_tcp_position_orientation()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -240,12 +241,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert self._target_pos.ndim == 1
         return self._target_pos
 
-    def _get_obs(self):
+    def _get_cur_obj_tcp_position_orientation(self):
         """Combines positions of the end effector, object(s) and goal into a
         single flat observation
 
         Returns:
-            np.ndarray: The flat observation array (21 elements)
+            np.ndarray: The flat observation array (18 elements)
         """
         pos_hand = self.get_endeff_pos()
 
@@ -269,11 +270,24 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         position_orientation_objs = np.concatenate([pos_obj, ori_obj, pos_obj_2, ori_obj_2])
         assert len(position_orientation_objs) in self._pos_obj_possible_lens
         pos_obj_padded[:len(position_orientation_objs)] = position_orientation_objs
+        return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded))
 
+    def _get_obs(self):
+        """Combines positions of the end effector, object(s) and goal into a
+        single flat observation
+
+        Returns:
+            np.ndarray: The flat observation array (39 elements)
+        """
+        # do frame stacking
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-        return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded, pos_goal))
+        cur_obj_tcp_position_orientation = self._get_cur_obj_tcp_position_orientation()
+        # do frame stacking
+        obs = np.hstack((cur_obj_tcp_position_orientation, self.prev_obs, pos_goal))
+        self.prev_obs = cur_obj_tcp_position_orientation
+        return obs
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -294,8 +308,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         gripper_low = 0.
         gripper_high = 1.
         return Box(
-            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
