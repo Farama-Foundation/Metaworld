@@ -3,6 +3,41 @@ from gym.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.visual.kitchen import (
+    CoffeeMug,
+    CoffeeMachine,
+    Dial,
+    FaucetBase,
+    ToasterHandle,
+)
+from metaworld.envs.mujoco.sawyer_xyz.visual.machineshop import (
+    ButtonBox,
+    ElectricalPlug,
+    ElectricalOutlet,
+    HammerBody,
+    NailBox,
+    Lever,
+    ScrewEye,
+    ScrewEyePeg,
+)
+from metaworld.envs.mujoco.sawyer_xyz.visual.office import (
+    BinLid,
+    BinA,
+    BinB,
+    Door,
+    Drawer,
+    Shelf,
+    Window,
+)
+from metaworld.envs.mujoco.sawyer_xyz.visual.sports import (
+    Basketball,
+    BasketballHoop,
+    Puck,
+    SoccerGoal,
+    Thermos,
+)
+from metaworld.envs.mujoco.sawyer_xyz.visual.tool import \
+    set_position_of, get_position_of
 
 
 class VisualSawyerSandboxEnv(SawyerXYZEnv):
@@ -14,8 +49,8 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (0, 0.6, 0.02)
         obj_high = (0, 0.6, 0.02)
-        goal_low = (-0.1, 0.75, 0.1)
-        goal_high = (0.1, 0.85, 0.1)
+        goal_low = (-1., 0, 0.)
+        goal_high = (1., 1., 1.)
 
         super().__init__(
             self.model_name,
@@ -26,9 +61,9 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.4), dtype=np.float32),
         }
-        self.goal = np.array([0.1, 0.8, 0.1], dtype=np.float32)
+        self.goal = np.array([-0.2, 0.8, 0.05], dtype=np.float32)
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
@@ -65,15 +100,10 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
-        return [('pegTop', self._target_pos)]
+        return []
 
     def _get_pos_objects(self):
         return self.data.site_xpos[self.model.site_name2id('RoundNut-8')]
-
-    def _get_obs_dict(self):
-        obs_dict = super()._get_obs_dict()
-        obs_dict['state_achieved_goal'] = self.get_body_com('RoundNut')
-        return obs_dict
 
     def reset_model(self):
         self._reset_hand()
@@ -81,17 +111,51 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.objHeight = self.data.site_xpos[self.model.site_name2id('RoundNut-8')][2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos[:3]
-            self._target_pos = goal_pos[-3:]
+        # tool = Dial()
+        # tool = CoffeeMug()
+        # tool = CoffeeMachine()
+        # tool = FaucetBase()
+        # tool = ToasterHandle()
+        # tool = ButtonBox()
+        # tool = ElectricalOutlet()
+        # tool = ElectricalPlug()
+        # tool = HammerBody() TODO
+        # tool = NailBox()
+        # tool = Lever()
+        # tool = ScrewEye()
+        # tool = ScrewEyePeg()
+        # tool = Basketball()
+        # tool = BasketballHoop()
+        # tool = Puck()
+        # tool = SoccerGoal()
+        # tool = Thermos()
+        # tool = BinLid()
+        # tool = BinA()
+        # tool = BinB()
+        # tool = Door()
+        # tool = Drawer()
+        # tool = Shelf()
+        tool = Window()
+        tool_pos = get_position_of(tool, self.sim)
+        for site, corner in zip(
+                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+                tool.get_bbox_corners()
+        ):
+            self.sim.model.site_pos[
+                self.model.site_name2id(f'BBox{site}')
+            ] = tool_pos + np.array(corner)
 
-        peg_pos = self._target_pos - np.array([0., 0., 0.05])
-        self._set_obj_xyz(self.obj_init_pos)
-        self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
-        self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
+        # if self.random_init:
+        #     goal_pos = self._get_state_rand_vec()
+        #     while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
+        #         goal_pos = self._get_state_rand_vec()
+        #     self.obj_init_pos = goal_pos[:3]
+        #     self._target_pos = goal_pos[-3:]
+
+        # peg_pos = self._target_pos - np.array([0., 0., 0.05])
+        # self._set_obj_xyz(self.obj_init_pos)
+        # self.sim.model.body_pos[self.model.body_name2id('Pole')] = peg_pos
+        # self.sim.model.site_pos[self.model.site_name2id('poleTop')] = self._target_pos
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
@@ -107,7 +171,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
 
         graspPos = obs[3:6]
-        objPos = self.get_body_com('RoundNut')
+        objPos = self.get_body_com('ScrewEye')
 
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2

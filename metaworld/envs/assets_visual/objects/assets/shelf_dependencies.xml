@@ -20,9 +20,6 @@
           <default class="shelf_col">
               <geom conaffinity="1" condim="3" contype="0" group="4" material="shelf_col" solimp="0.99 0.99 0.01" solref="0.01 1"/>
           </default>
-          <default class="block_col">
-              <geom conaffinity="1" condim="3" contype="1s" group="4" material="shelf_col" solimp="0.99 0.99 0.01" solref="0.01 1"/>
-          </default>
       </default>
     </default>
 

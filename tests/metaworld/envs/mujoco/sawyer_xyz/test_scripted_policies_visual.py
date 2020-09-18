@@ -12,7 +12,7 @@ test_cases_nonoise = [
 
 test_cases_noisy = [
     # name, policy, action noise pct, success rate
-    ['visual-sandbox-small', SawyerAssemblyV2Policy(), .1, .70],
+    ['visual-sandbox-small', SawyerPegUnplugSideV2Policy(), .1, .70],
 ]
 
 
