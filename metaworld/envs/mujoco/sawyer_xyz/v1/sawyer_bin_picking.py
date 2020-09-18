@@ -1,7 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
-from metaworld.envs.env_util import get_asset_full_path
+from metaworld.envs.asset_path_utils import full_v1_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
@@ -34,7 +34,6 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self.liftThresh = liftThresh
-        
 
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
@@ -52,7 +51,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_bin_picking.xml')
+        return full_v1_path_for('sawyer_xyz/sawyer_bin_picking.xml')
 
     @_assert_task_is_set
     def step(self, action):

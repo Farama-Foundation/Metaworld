@@ -37,7 +37,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     max_path_length = 150
 
-    def __init__(self, model_path, frame_skip):
+    def __init__(self, model_path, frame_skip, rgb_array_res=(640, 480)):
         if not path.exists(model_path):
             raise IOError("File %s does not exist" % model_path)
 
@@ -47,6 +47,7 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.data = self.sim.data
         self.viewer = None
         self._viewers = {}
+        self._rgb_array_res = rgb_array_res
 
         self.metadata = {
             'render.modes': ['human'],
@@ -109,6 +110,14 @@ class MujocoEnv(gym.Env, abc.ABC):
     def render(self, mode='human'):
         if mode == 'human':
             self._get_viewer(mode).render()
+        elif mode == 'rgb_array':
+            return self.sim.render(
+                *self._rgb_array_res,
+                mode='offscreen',
+                camera_name='topview'
+            )[:, :, ::-1]
+        else:
+            raise ValueError("mode can only be either 'human' or 'rgb_array'")
 
     def close(self):
         if self.viewer is not None:
