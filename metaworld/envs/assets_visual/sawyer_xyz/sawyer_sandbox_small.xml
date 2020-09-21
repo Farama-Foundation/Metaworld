@@ -22,6 +22,8 @@
     <include file="../objects/assets/thermos_dependencies.xml"/>
     <include file="../objects/assets/window_dependencies.xml"/>
 
+    <size njmax="8000" nconmax="4000"/>
+
     <worldbody>
         <include file="../objects/assets/xyz_base.xml"/>
 

@@ -3,41 +3,41 @@ from gym.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-from metaworld.envs.mujoco.sawyer_xyz.visual.kitchen import (
-    CoffeeMug,
-    CoffeeMachine,
-    Dial,
-    FaucetBase,
-    ToasterHandle,
+from .heuristics import (
+    GreaterThanYValue,
+    MinimizeOcclusions  ,
+    OnTopOf,
 )
-from metaworld.envs.mujoco.sawyer_xyz.visual.machineshop import (
-    ButtonBox,
-    ElectricalPlug,
-    ElectricalOutlet,
-    HammerBody,
-    NailBox,
-    Lever,
-    ScrewEye,
-    ScrewEyePeg,
-)
-from metaworld.envs.mujoco.sawyer_xyz.visual.office import (
-    BinLid,
-    BinA,
-    BinB,
-    Door,
-    Drawer,
-    Shelf,
-    Window,
-)
-from metaworld.envs.mujoco.sawyer_xyz.visual.sports import (
+from .tools import (
     Basketball,
     BasketballHoop,
+    BinA,
+    BinB,
+    BinLid,
+    ButtonBox,
+    CoffeeMachine,
+    CoffeeMug,
+    Dial,
+    Door,
+    Drawer,
+    ElectricalPlug,
+    ElectricalOutlet,
+    FaucetBase,
+    HammerBody,
+    Lever,
+    NailBox,
     Puck,
+    ScrewEye,
+    ScrewEyePeg,
+    Shelf,
     SoccerGoal,
     Thermos,
+    ToasterHandle,
+    Window,
 )
-from metaworld.envs.mujoco.sawyer_xyz.visual.tool import \
-    set_position_of, get_position_of
+from .tools.tool import get_position_of, set_position_of
+from .solver import Solver
+from .voxelspace import VoxelSpace
 
 
 class VisualSawyerSandboxEnv(SawyerXYZEnv):
@@ -111,51 +111,65 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.objHeight = self.data.site_xpos[self.model.site_name2id('RoundNut-8')][2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        # tool = Dial()
-        # tool = CoffeeMug()
-        # tool = CoffeeMachine()
-        # tool = FaucetBase()
-        # tool = ToasterHandle()
-        # tool = ButtonBox()
-        # tool = ElectricalOutlet()
-        # tool = ElectricalPlug()
-        # tool = HammerBody() TODO
-        # tool = NailBox()
-        # tool = Lever()
-        # tool = ScrewEye()
-        # tool = ScrewEyePeg()
-        # tool = Basketball()
-        # tool = BasketballHoop()
-        # tool = Puck()
-        # tool = SoccerGoal()
-        # tool = Thermos()
-        # tool = BinLid()
-        # tool = BinA()
-        # tool = BinB()
-        # tool = Door()
-        # tool = Drawer()
-        # tool = Shelf()
-        tool = Window()
-        tool_pos = get_position_of(tool, self.sim)
-        for site, corner in zip(
-                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
-                tool.get_bbox_corners()
-        ):
-            self.sim.model.site_pos[
-                self.model.site_name2id(f'BBox{site}')
-            ] = tool_pos + np.array(corner)
+        basketball = Basketball()
+        hoop = BasketballHoop()
+        bin_a = BinA()
+        bin_b = BinB()
+        bin_lid = BinLid()
+        button = ButtonBox()
+        coffee_machine = CoffeeMachine()
+        coffee_mug = CoffeeMug()
+        dial = Dial()
+        door = Door()
+        drawer = Drawer()
+        plug = ElectricalPlug()
+        outlet = ElectricalOutlet()
+        faucet = FaucetBase()
+        hammer = HammerBody()
+        lever = Lever()
+        nail = NailBox()
+        puck = Puck()
+        screw_eye = ScrewEye()
+        screw_eye_peg = ScrewEyePeg()
+        shelf = Shelf()
+        soccer_goal = SoccerGoal()
+        thermos = Thermos()
+        toaster = ToasterHandle()
+        window = Window()
 
-        # if self.random_init:
-        #     goal_pos = self._get_state_rand_vec()
-        #     while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-        #         goal_pos = self._get_state_rand_vec()
-        #     self.obj_init_pos = goal_pos[:3]
-        #     self._target_pos = goal_pos[-3:]
+        world = VoxelSpace((0.8, 2.75, 0.5), 100)
+        solver = Solver(world)
 
-        # peg_pos = self._target_pos - np.array([0., 0., 0.05])
-        # self._set_obj_xyz(self.obj_init_pos)
-        # self.sim.model.body_pos[self.model.body_name2id('Pole')] = peg_pos
-        # self.sim.model.site_pos[self.model.site_name2id('poleTop')] = self._target_pos
+        # Place large artifacts along the back of the table
+        solver.apply(GreaterThanYValue(0.76), [
+            door, nail, hoop, window, soccer_goal, coffee_machine, drawer
+        ])
+        # Place certain artifacts on top of one another to save space
+        solver.apply(OnTopOf(coffee_machine),   [toaster])
+        solver.apply(OnTopOf(drawer),           [shelf])
+        solver.apply(OnTopOf(nail),             [outlet])
+        solver.apply(OnTopOf(door),             [button])
+        # Place the rest of the tools/artifacts such that they don't occlude
+        # one another
+        solver.apply(MinimizeOcclusions(), [
+            thermos, lever, faucet, basketball, hammer, bin_a, bin_b, bin_lid,
+            coffee_mug, dial, plug, puck, screw_eye, screw_eye_peg
+        ])
+
+        for tool in solver.tools:
+            tool.specified_pos[1] += 0.2
+            set_position_of(tool, self.sim, self.model)
+
+
+        # tool_pos = get_position_of(hammer, self.sim)
+        # for site, corner in zip(
+        #         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+        #         hammer.get_bbox_corners()
+        # ):
+        #     self.sim.model.site_pos[
+        #         self.model.site_name2id(f'BBox{site}')
+        #     ] = tool_pos + np.array(corner)
+
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
