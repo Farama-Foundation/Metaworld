@@ -152,7 +152,8 @@ ALL_V1_ENVIRONMENTS = OrderedDict((
     ('box-close-v1', SawyerBoxCloseEnv),
     ('hand-insert-v1', SawyerHandInsertEnv),
     ('door-lock-v1', SawyerDoorLockEnv),
-    ('door-unlock-v1', SawyerDoorUnlockEnv),))
+    ('door-unlock-v1', SawyerDoorUnlockEnv),
+))
 
 ALL_V2_ENVIRONMENTS = OrderedDict((
     ('assembly-v2', SawyerNutAssemblyEnvV2),

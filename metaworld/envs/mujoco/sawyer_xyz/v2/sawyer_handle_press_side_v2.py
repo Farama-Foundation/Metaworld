@@ -1,7 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
-from metaworld.envs.env_util import get_asset_full_path
+from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
@@ -58,7 +58,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_handle_press_sideways.xml', True)
+        return full_v2_path_for('sawyer_xyz/sawyer_handle_press_sideways.xml')
 
     def step(self, action):
         self.set_xyz_action(action[:3])
