@@ -73,7 +73,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(tcp_open <= 0.73 and near_object)
+        grasp_success = float(self.touching_object)
         info = {
             'success': success,
             'near_object': near_object,
@@ -84,6 +84,37 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         self.curr_path_length += 1
         return obs, reward, False, info
+
+    @property
+    def touching_object(self):
+        object_geom_id = self.unwrapped.model.geom_name2id('objGeom')
+        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
+        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+
+        leftpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (leftpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        rightpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (rightpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        leftpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in leftpad_object_contacts)
+
+        rightpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in rightpad_object_contacts)
+
+        gripping = (0 < leftpad_object_contact_force
+                    and 0 < rightpad_object_contact_force)
+
+        return gripping
 
     def _get_pos_orientation_objects(self):
         position = self.get_body_com('obj')
@@ -159,9 +190,9 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp_obj = reward_utils.tolerance(tcp_to_obj,
                                 bounds=(0, _TARGET_RADIUS_GRASP),
                                 margin=tcp_obj_margin,
-                                sigmoid='long_tail',)
-        # reward = tcp_obj
-        # reward = reward / 3
+                                sigmoid='long_tail',
+                                value_at_margin=0.2)
+
         # rewards for closing the gripper
         tcp_opened_margin = 0.73  # computed using scripted policy manually
         tcp_close = reward_utils.tolerance(tcp_opened,
@@ -178,6 +209,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             assert grasp < 1.
 
         obj_to_target = np.linalg.norm(obj - target)
+       
 
         in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
         in_place = reward_utils.tolerance(obj_to_target,
