@@ -179,7 +179,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.pick_completed = False
 
     def _gripper_caging_reward(self, action, obj_position):
-        pad_success_margin = 0.04
+        pad_success_margin = 0.05
         tcp = self.tcp_center
         left_pad = self.get_body_com('leftpad')
         right_pad = self.get_body_com('rightpad')
@@ -188,18 +188,18 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
         left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
-                                bounds=(0, pad_success_margin),
+                                bounds=(0.015, pad_success_margin),
                                 margin=right_caging_margin,
                                 sigmoid='long_tail',)
                                 # value_at_margin=0.1)
         left_caging = reward_utils.tolerance(delta_object_y_left_pad,
-                                bounds=(0, pad_success_margin),
+                                bounds=(0.015, pad_success_margin),
                                 margin=left_caging_margin,
                                 sigmoid='long_tail',)
                                 # value_at_margin=0.1)
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
-        # hammacher product
+        # hamacher product
         y_caging = ((right_caging * left_caging) / (right_caging + left_caging -
             (right_caging * left_caging)))
         assert y_caging >= 0 and y_caging <= 1
@@ -219,13 +219,22 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         assert right_caging >= 0 and right_caging <= 1
         gripper_closed = min(max(0, action[-1]), 1)
         assert gripper_closed >= 0 and gripper_closed <= 1
-        y_caging_and_gripping = ((y_caging * gripper_closed) / (y_caging + gripper_closed -
-            (y_caging * gripper_closed)))
-        assert y_caging_and_gripping >= 0 and y_caging_and_gripping <= 1
-        y_caging_and_gripping_and_x_z_caging = ((y_caging_and_gripping * x_z_caging) /
-            (y_caging_and_gripping + x_z_caging -(y_caging_and_gripping * x_z_caging)))
-        assert y_caging_and_gripping_and_x_z_caging >= 0 and y_caging_and_gripping_and_x_z_caging <= 1
-        return y_caging_and_gripping_and_x_z_caging
+        caging = ((y_caging * x_z_caging) / (y_caging + x_z_caging -
+            (y_caging * x_z_caging)))
+        assert caging >= 0 and caging <= 1
+        gripping = caging * gripper_closed
+        assert gripping >= 0 and gripping <= 1
+        caging_and_gripping = ((caging * gripping) / (caging + gripping -
+            (caging * gripping)))
+        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+        return caging_and_gripping
+        # y_caging_and_gripping = ((y_caging * gripper_closed) / (y_caging + gripper_closed -
+        #     (y_caging * gripper_closed)))
+        # assert y_caging_and_gripping >= 0 and y_caging_and_gripping <= 1
+        # y_caging_and_gripping_and_x_z_caging = ((y_caging_and_gripping * x_z_caging) /
+        #     (y_caging_and_gripping + x_z_caging -(y_caging_and_gripping * x_z_caging)))
+        # assert y_caging_and_gripping_and_x_z_caging >= 0 and y_caging_and_gripping_and_x_z_caging <= 1
+        # return y_caging_and_gripping_and_x_z_caging
 
 
     def compute_reward(self, action, obs):
@@ -299,5 +308,5 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             (object_grasped + in_place -(object_grasped * in_place)))
         assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
         # reward = in_place_and_object_grasped
-        reward = in_place_and_object_grasped
+        reward = object_grasped
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
