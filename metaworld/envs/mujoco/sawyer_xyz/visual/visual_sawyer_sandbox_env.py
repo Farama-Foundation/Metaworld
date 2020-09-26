@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box
+from dm_control.mujoco import Physics
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -68,6 +69,16 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
+        self._obj_names = list(self.model.body_names)
+
+        print(self._obj_names)
+
+        # self.physics = Physics.from_xml_path(self.model_name)
+        # # print(self.physics.named.data.xpos)
+        # # print(self.physics.named.data.cvel)
+        # self.model = self.physics
+        # self._set_obj_pos_by_name('Basketball', [0.8,0.4,0.03])
+
         self.liftThresh = liftThresh
         self.max_path_length = 200
 
@@ -86,6 +97,13 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
+        # self._set_obj_vel_by_name('Basketball', np.array([0,0,0,0.5,0,0]))
+        # self._set_obj_pos_by_name('BasketballHoop', [0.6, 1.14, 0.03])
+        print(self._get_obj_pos_by_name('BasketballHoop'))
+        print(self._get_obj_vel_by_name('BasketballHoop'))
+        print(self._get_obj_quat_by_name('BasketballHoop'))
+        print("~~~~~~~~~~~~~~~~~~~~~~")
+
         reward, _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(action, ob)
         self.curr_path_length += 1
         info = {
@@ -103,7 +121,41 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         return []
 
     def _get_pos_objects(self):
+        '''
+        Note: At a later point it may be worth it to replace this with
+        self._get_obj_pos_dict
+        '''
         return self.data.site_xpos[self.model.site_name2id('RoundNut-8')]
+
+    def _get_obj_pos_by_name(self, obj_name):
+        return self.sim.data.body_xpos[self.model.body_name2id(obj_name)]
+
+    def _set_obj_pos_by_name(self, obj_name, new_pos):
+        self.sim.model.body_pos[self.model.body_name2id(obj_name)] = new_pos
+        return
+
+    def _get_obj_pos_dict(self):
+        return {
+            name: self._get_obj_pos_by_name(name) for name in self._obj_names
+        }
+
+    def _get_obj_quat_by_name(self, obj_name):
+        return self.sim.data.body_xquat[self.model.body_name2id(obj_name)]
+
+    def _set_obj_quat_by_name(self, obj_name, new_pos):
+        self.sim.model.body_quat[self.model.body_name2id(obj_name)] = new_pos
+        return
+
+    def _get_obj_vel_by_name(self, obj_name):
+        return self.sim.data.cvel[self.model.body_name2id(obj_name)]
+
+    def _set_obj_vel_by_name(self, obj_name, new_vel):
+        '''
+        mjmodel does not have access to set cvel values since they are calculated:
+        self.sim.model.cvel[self.model.body_name2id(obj_name)] = new_vel
+        '''
+        raise NotImplementedError
+
 
     def reset_model(self):
         self._reset_hand()
@@ -160,6 +212,8 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             tool.specified_pos[1] += 0.2
             set_position_of(tool, self.sim, self.model)
 
+        self._set_obj_pos_by_name('BasketballHoop', [0.6, 2.14, 0.03])
+        self._set_obj_quat_by_name('BasketballHoop', [0.70, 0.70, 0., 0.])
 
         # tool_pos = get_position_of(hammer, self.sim)
         # for site, corner in zip(
@@ -171,7 +225,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         #     ] = tool_pos + np.array(corner)
 
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
-
         return self._get_obs()
 
     def _reset_hand(self):
@@ -266,4 +319,3 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         reward = reachRew + pickRew + placeRew
         success = (abs(objPos[0] - placingGoal[0]) < 0.03 and abs(objPos[1] - placingGoal[1]) < 0.03 and placingDistFinal <= 0.04)
         return [reward, reachRew, reachDist, pickRew, placeRew, placingDist, placingDistFinal, success]
-
