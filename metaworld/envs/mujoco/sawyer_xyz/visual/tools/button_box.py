@@ -10,4 +10,4 @@ class ButtonBox(Artifact):
 
     @property
     def resting_pos_z(self):
-        return .1
+        return .115

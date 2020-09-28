@@ -6,4 +6,4 @@ from .tool import Artifact
 class NailBox(Artifact):
     @property
     def bbox(self):
-        return np.array([-.1, -.22, .0, .1, .1, .22])
+        return np.array([-.11, -.22, .0, .11, .1, .22])

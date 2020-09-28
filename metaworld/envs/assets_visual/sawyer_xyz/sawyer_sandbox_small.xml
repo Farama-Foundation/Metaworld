@@ -29,7 +29,7 @@
 
         <!--Shop: Assembly-->
         <body name="ScrewEye" pos="0.2 0.7 0.02" quat="1 0 0 1">
-            <freejoint/>
+            <freejoint name="ScrewEyeJoint"/>
             <include file="../objects/assets/assembly_peg.xml"/>
         </body>
 
@@ -40,7 +40,7 @@
 
         <!--Sports: Basketball-->
         <body name="Basketball" pos="0.45 0.4 0.03">
-            <freejoint/>
+            <freejoint name="BasketballJoint"/>
             <include file="../objects/assets/basketball.xml"/>
         </body>
 
@@ -58,10 +58,10 @@
         </body>
 
         <!--Office: Box-->
-        <body name="BinLid" pos="0 0.3 0" quat="1 0 0 1">
-            <freejoint/>
-            <include file="../objects/assets/boxtop.xml"/>
-        </body>
+<!--        <body name="BinLid" pos="0 0.25 0" quat="1 0 0 1">-->
+<!--            <freejoint name="BinLidJoint"/>-->
+<!--            <include file="../objects/assets/boxtop.xml"/>-->
+<!--        </body>-->
 
         <!--Shop: Button-->
         <body name="ButtonBox" euler="-1.57 0 0" pos="-1.0 0.9 0.42">
@@ -70,8 +70,8 @@
         </body>
 
         <!--Kitchen: Coffee-->
-        <body name="CoffeeMug" pos=".5 .7 0.1">
-            <joint type="free"/>
+        <body name="CoffeeMug" pos=".5 .7 .0">
+            <freejoint name="CoffeeMugJoint"/>
             <include file="../objects/assets/mug.xml"/>
         </body>
 
@@ -104,8 +104,8 @@
         </body>
 
         <!--Hammer-->
-        <body name="HammerBody" pos="-0.1 0.6 0.02">
-            <freejoint/>
+        <body name="HammerBody" pos="-0.1 0.6 0.05">
+            <freejoint name="HammerBodyJoint"/>
             <include file="../objects/assets/hammer.xml"/>
         </body>
 
@@ -128,22 +128,21 @@
         </body>
 
         <!--Peg-->
-        <body name="Peg" pos="-0.3 0.4 0.03">
-            <joint type="free"/>
-            <include file="../objects/assets/peg_insert.xml"/>
-        </body>
+<!--        <body name="Peg" pos="-0.3 0.4 0.03">-->
+<!--            <include file="../objects/assets/peg_insert.xml"/>-->
+<!--        </body>-->
 
         <!--Sports: Puck-->
         <body name="Puck" pos="0.3 0.3 0.04">
-            <freejoint/>
+            <freejoint name="PuckJoint"/>
             <include file="../objects/assets/block_cyl.xml"/>
         </body>
 
         <!--Shop: Unplug Outlet-->
-        <body name="ElectricalPlug" pos="-.582 1.0 .351">
-            <joint type="free"/>
-            <include file="../objects/assets/plug.xml"/>
-        </body>
+<!--        <body name="ElectricalPlug" pos="-.582 1.0 .351">-->
+<!--            <freejoint name="ElectricalPlugJoint"/>-->
+<!--            <include file="../objects/assets/plug.xml"/>-->
+<!--        </body>-->
 
         <body name="ElectricalOutlet" pos="-0.63 1.0 0.22">
             <include file="../objects/assets/plug_wall.xml"/>

@@ -11,9 +11,40 @@ def set_position_of(tool, mjsim, mjmodel):
     mjsim.model.body_pos[mjmodel.body_name2id(tool.name)] = tool.specified_pos
 
 
+def get_joint_pos_of(tool, mjsim):
+    return mjsim.data.get_joint_qpos(tool.name + 'Joint')
+
+
+def set_joint_pos_of(tool, mjsim, pos):
+    mjsim.data.set_joint_qpos(tool.name + 'Joint', pos)
+
+
+def get_quat_of(tool, mjsim):
+    return mjsim.data.get_body_xquat[tool.name]
+
+
+def set_quat_of(tool, mjsim, mjmodel):
+    assert(len(tool.specified_quat) == 4)
+    mjsim.model.body_quat[mjmodel.body_name2id(tool.name)] = tool.specified_quat
+    return
+
+
+def get_vel_of(tool, mjsim, mjmodel):
+    return mjsim.data.cvel[mjmodel.body_name2id(tool.name)]
+
+
+def set_vel_of(tool, mjsim, mjmodel):
+    '''
+    mjmodel does not have access to set cvel values since they are calculated:
+    mjsim.model.cvel[mjmodel.body_name2id(tool.name)] = new_vel
+    '''
+    raise NotImplementedError
+
+
 class Tool(abc.ABC):
     def __init__(self):
         self.specified_pos = None
+        self.specified_quat = None
 
     @property
     def name(self):

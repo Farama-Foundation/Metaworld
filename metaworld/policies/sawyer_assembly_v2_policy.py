@@ -32,6 +32,7 @@ class SawyerAssemblyV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
+        return pos_curr
         pos_wrench = o_d['wrench_pos'] + np.array([-.02, .0, .0])
         pos_peg = o_d['peg_pos'] + np.array([.12, .0, .14])
 

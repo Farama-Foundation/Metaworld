@@ -10,4 +10,4 @@ class Puck(Tool):
 
     @property
     def resting_pos_z(self):
-        return .04
+        return .025
