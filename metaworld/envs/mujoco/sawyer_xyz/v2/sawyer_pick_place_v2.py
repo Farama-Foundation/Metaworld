@@ -69,11 +69,13 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         ob = super().step(action)
 
         obs = self._get_obs()
+        obj = obs[4:7]
+
 
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(self.touching_object and tcp_open > 0)
+        grasp_success = float(self.touching_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             'success': success,
             'near_object': near_object,
@@ -191,12 +193,10 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                 bounds=(0.015, pad_success_margin),
                                 margin=right_caging_margin,
                                 sigmoid='long_tail',)
-                                # value_at_margin=0.1)
         left_caging = reward_utils.tolerance(delta_object_y_left_pad,
                                 bounds=(0.015, pad_success_margin),
                                 margin=left_caging_margin,
                                 sigmoid='long_tail',)
-                                # value_at_margin=0.1)
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
         # hamacher product
@@ -208,14 +208,13 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-        
+
         x_z_success_margin = 0.01
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
                                 margin=tcp_obj_x_z_margin,
                                 sigmoid='long_tail',)
-                                # value_at_margin=0.1)
         assert right_caging >= 0 and right_caging <= 1
         gripper_closed = min(max(0, action[-1]), 1)
         assert gripper_closed >= 0 and gripper_closed <= 1
@@ -300,13 +299,16 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
-                                    #value_at_margin=0.2)
         assert in_place >= 0 and in_place <= 1
         object_grasped = self._gripper_caging_reward(action, obj)
         assert object_grasped >= 0 and object_grasped <= 1
-        in_place_and_object_grasped = ((object_grasped * in_place) /
-            (object_grasped + in_place -(object_grasped * in_place)))
-        assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
-        # reward = in_place_and_object_grasped
-        reward = object_grasped
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        in_place_grasped = in_place * object_grasped
+        if not object_grasped and not in_place_grasped:
+            reward = 0
+        else:
+            in_place_and_object_grasped = ((object_grasped * in_place_grasped) /
+                (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
+            assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
+            reward = in_place_and_object_grasped
+        # reward = object_grasped
+        return [10 * reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
