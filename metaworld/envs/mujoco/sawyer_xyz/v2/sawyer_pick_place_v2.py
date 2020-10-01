@@ -192,16 +192,20 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
                                 bounds=(0.015, pad_success_margin),
                                 margin=right_caging_margin,
-                                sigmoid='long_tail',)
+                                sigmoid='cosine',)
         left_caging = reward_utils.tolerance(delta_object_y_left_pad,
                                 bounds=(0.015, pad_success_margin),
                                 margin=left_caging_margin,
-                                sigmoid='long_tail',)
+                                sigmoid='cosine',)
+        import ipdb; ipdb.set_trace()
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
         # hamacher product
-        y_caging = ((right_caging * left_caging) / (right_caging + left_caging -
-            (right_caging * left_caging)))
+        if not right_caging and not left_caging:
+            y_caging = 0
+        else:
+            y_caging = ((right_caging * left_caging) / (right_caging + left_caging -
+                (right_caging * left_caging)))
         assert y_caging >= 0 and y_caging <= 1
         tcp_xz = tcp + np.array([0., -tcp[1], 0.])
         obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
@@ -214,78 +218,28 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
                                 margin=tcp_obj_x_z_margin,
-                                sigmoid='long_tail',)
+                                sigmoid='cosine',)
         assert right_caging >= 0 and right_caging <= 1
-        gripper_closed = min(max(0, action[-1]), 1)
+        gripper_closed = min(max(0, action[-1]), 0.8)
         assert gripper_closed >= 0 and gripper_closed <= 1
-        caging = ((y_caging * x_z_caging) / (y_caging + x_z_caging -
-            (y_caging * x_z_caging)))
+        if not y_caging and not x_z_caging:
+            caging = 0
+        else:
+            caging = ((y_caging * x_z_caging) / (y_caging + x_z_caging -
+                (y_caging * x_z_caging)))
         assert caging >= 0 and caging <= 1
         gripping = caging * gripper_closed
         assert gripping >= 0 and gripping <= 1
-        caging_and_gripping = ((caging * gripping) / (caging + gripping -
-            (caging * gripping)))
+        if not gripping and not caging:
+            caging_and_gripping = 0
+        else:
+            caging_and_gripping = ((caging * gripping) / (caging + gripping -
+                (caging * gripping)))
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
         return caging_and_gripping
-        # y_caging_and_gripping = ((y_caging * gripper_closed) / (y_caging + gripper_closed -
-        #     (y_caging * gripper_closed)))
-        # assert y_caging_and_gripping >= 0 and y_caging_and_gripping <= 1
-        # y_caging_and_gripping_and_x_z_caging = ((y_caging_and_gripping * x_z_caging) /
-        #     (y_caging_and_gripping + x_z_caging -(y_caging_and_gripping * x_z_caging)))
-        # assert y_caging_and_gripping_and_x_z_caging >= 0 and y_caging_and_gripping_and_x_z_caging <= 1
-        # return y_caging_and_gripping_and_x_z_caging
 
 
     def compute_reward(self, action, obs):
-        # tcp = self.tcp_center
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        # target = self._target_pos
-        # _TARGET_RADIUS_GRASP = 0.03
-        # _TARGET_RADIUS = 0.07
-        # tcp_to_obj = np.linalg.norm(obj - tcp)
-
-        # tcp_obj_margin = (np.linalg.norm(self.obj_init_pos - self.init_tcp)
-        #     - _TARGET_RADIUS_GRASP)
-        # tcp_obj = reward_utils.tolerance(tcp_to_obj,
-        #                         bounds=(0, _TARGET_RADIUS_GRASP),
-        #                         margin=tcp_obj_margin,
-        #                         sigmoid='long_tail',
-        #                         value_at_margin=0.2)
-
-        # # rewards for closing the gripper
-        # tcp_opened_margin = 0.73  # computed using scripted policy manually
-        # tcp_close = reward_utils.tolerance(tcp_opened,
-        #                         bounds=(0, tcp_opened_margin),
-        #                         margin=1 - tcp_opened_margin,
-        #                         sigmoid='long_tail',)
-
-        # # based on Hamacher Product T-Norm
-        # hprod_tcp_obj_tcp_close = (tcp_obj * tcp_close) / (tcp_obj + tcp_close - (tcp_obj * tcp_close))
-        # grasp = (tcp_obj + hprod_tcp_obj_tcp_close) / 2
-        # if tcp_opened <= tcp_opened_margin and tcp_to_obj <= _TARGET_RADIUS_GRASP:
-        #     assert grasp >= 1.
-        # else:
-        #     assert grasp < 1.
-
-        # obj_to_target = np.linalg.norm(obj - target)
-       
-
-        # in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
-        # in_place = reward_utils.tolerance(obj_to_target,
-        #                             bounds=(0, _TARGET_RADIUS),
-        #                             margin=in_place_margin,
-        #                             sigmoid='long_tail',)
-        #                             #value_at_margin=0.2)
-        # # based on Hamacher Product T-Norm
-        # in_place_and_grasp = (in_place * grasp) / (in_place + grasp - (in_place * grasp))
-        # assert in_place_and_grasp <= 1.
-        # # here's a simple fix for most "hoving is equivalent to finishing" 
-        # # issues: add a small control cost to to the reward function
-        # c = 0.05
-        # reward = in_place_and_grasp - (c * np.linalg.norm(action[:3]))
-        # return [10 * reward, tcp_to_obj, tcp_opened, obj_to_target, grasp, in_place]
-
         _TARGET_RADIUS = 0.07
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -298,7 +252,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
-                                    sigmoid='long_tail',)
+                                    sigmoid='cosine',)
         assert in_place >= 0 and in_place <= 1
         object_grasped = self._gripper_caging_reward(action, obj)
         assert object_grasped >= 0 and object_grasped <= 1
