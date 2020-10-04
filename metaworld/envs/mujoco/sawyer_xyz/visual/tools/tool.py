@@ -19,6 +19,14 @@ def set_joint_pos_of(tool, mjsim, pos):
     mjsim.data.set_joint_qpos(tool.name + 'Joint', pos)
 
 
+def get_joint_vel_of(tool, mjsim):
+    return mjsim.data.get_joint_qvel(tool.name + 'Joint')
+
+
+def set_joint_vel_of(tool, mjsim, vel):
+    mjsim.data.set_joint_qvel(tool.name + 'Joint', vel)
+
+
 def get_quat_of(tool, mjsim):
     return mjsim.data.get_body_xquat[tool.name]
 

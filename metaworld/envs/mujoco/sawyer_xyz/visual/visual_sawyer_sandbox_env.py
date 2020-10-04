@@ -39,7 +39,14 @@ from .tools import (
     ToasterHandle,
     Window,
 )
-from .tools.tool import get_position_of, set_position_of, get_vel_of
+from .tools.tool import (
+    get_position_of,
+    set_position_of,
+    get_joint_pos_of,
+    set_joint_pos_of,
+    get_joint_vel_of,
+    set_joint_vel_of,
+)
 from .solver import Solver
 from .voxelspace import VoxelSpace
 
@@ -124,8 +131,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.objHeight = self.data.site_xpos[self.model.site_name2id('RoundNut-8')][2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         basketball = Basketball()
         hoop = BasketballHoop()
@@ -234,7 +239,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         super()._reset_hand()
 
         rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
+        self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
         self.placeCompleted = False
 
@@ -254,10 +259,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
                 print(f'Skipping {tool.name} placement. You sure it\'s in XML?')
                 continue
             if tool.name + 'Joint' in self.model.joint_names:
-                joint_name = tool.name + 'Joint'
-                # qpos_idx = self.model.get_joint_qpos_addr(joint_name)
-                # qpos_old = self.sim.data.qpos[qpos_idx[0]:qpos_idx[1]]
-                qpos_old = self.sim.data.get_joint_qpos(joint_name)
+                qpos_old = get_joint_pos_of(tool, self.sim)
                 qpos_new = qpos_old.copy()
 
                 print(tool.name)
@@ -266,8 +268,8 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
                 qpos_new[:3] = tool.specified_pos
                 qpos_new[3:] = np.round(qpos_old[3:], decimals=1)
 
-                self.sim.data.set_joint_qpos(joint_name, qpos_new)
-                self.sim.data.set_joint_qvel(joint_name, np.zeros(6))
+                set_joint_pos_of(tool, self.sim, qpos_new)
+                set_joint_vel_of(tool, self.sim, np.zeros(6))
             else:
                 set_position_of(tool, self.sim, self.model)
 
@@ -277,9 +279,8 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
             for tool in self._solver.tools:
                 if tool.name + 'Joint' in self.model.joint_names:
-                    joint_name = tool.name + 'Joint'
-                    qvel_old = self.sim.data.get_joint_qvel(joint_name)
+                    qvel_old = get_joint_vel_of(tool, self.sim)
                     qvel_new = qvel_old.copy()
                     qvel_new /= 2 ** step
 
-                    self.sim.data.set_joint_qvel(joint_name, qvel_new)
+                    set_joint_vel_of(tool, self.sim, qvel_new)
