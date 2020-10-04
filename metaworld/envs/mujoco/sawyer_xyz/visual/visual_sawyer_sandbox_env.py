@@ -167,9 +167,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         solver.apply(OnTopOf(nail),             [outlet])
         solver.apply(OnTopOf(door),             [button])
 
-        # # Put the plug in the outlet
-        # plug.specified_pos = outlet.specified_pos + np.array([.044, .0, .131])
-        # solver.did_manual_set(plug)
         # Put the faucet under the basketball hoop
         faucet.specified_pos = hoop.specified_pos + np.array([.0, -.1, .0])
         faucet.specified_pos[2] = faucet.resting_pos_z * world.resolution
@@ -213,7 +210,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             LessThanXValue(world.size[0] - edge_buffer)
         ], [
             hammer, screw_eye, bin_lid, coffee_mug, puck, basketball, plug
-        ], tries=100, shuffle=False)
+        ], tries=1000, shuffle=False)
 
         for tool in solver.tools:
             tool.specified_pos[0] -= world.size[0] / 2.0
@@ -224,8 +221,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
         self._make_everything_match_solver()
         self._anneal_free_joints(steps=50)
-        # if not self._check_config_stability():
-        #     self.reset_model()
 
         # print(self.model.joint_names)
         # print(self.model.body_names)
