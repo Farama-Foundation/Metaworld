@@ -12,7 +12,7 @@ class Ceiling(Heuristic):
         i_grid, j_grid = np.meshgrid(*ij, indexing='ij')
         k_max = self._ceil_func(i_grid, j_grid)
 
-        unavailable = voxel_space.mat.copy()
+        unavailable = voxel_space.mat.copy().astype('bool')
         unavailable[
             np.arange(unavailable.shape[2]) > k_max[:, :, np.newaxis]
         ] = True

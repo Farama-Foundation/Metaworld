@@ -17,7 +17,7 @@ class VoxelSpace(abc.ABC):
         self.resolution = resolution
         self.mat = np.zeros(
             list(map(lambda s: int(s * resolution), size)),
-            dtype='bool'
+            dtype='int8'
         )
 
     @staticmethod
@@ -26,7 +26,7 @@ class VoxelSpace(abc.ABC):
             ijk_bbox[0]:ijk_bbox[3],
             ijk_bbox[1]:ijk_bbox[4],
             ijk_bbox[2]:ijk_bbox[5]
-        ] = value
+        ] += int(value) * 2 - 1
 
     def fill(self, ijk_bbox, value=True):
         VoxelSpace._fill(self.mat, ijk_bbox, value)
@@ -34,7 +34,7 @@ class VoxelSpace(abc.ABC):
     def fill_tool(self, tool, value=True):
         self.fill((
             tool.bbox * self.resolution + np.hstack([tool.specified_pos] * 2)
-        ).astype('uint32'))
+        ).astype('uint32'), value)
 
     def pick_least_overlap(self, ijks, tool_bbox):
         best_ijk = None
@@ -57,7 +57,7 @@ class VoxelSpace(abc.ABC):
             # This allows us to reuse the tool_voxels array rather than
             # recreating it for each iteration of the for loop
             VoxelSpace._fill(tool_voxels, tool_bbox, True)
-            volume = np.any([self.mat, tool_voxels], axis=0).sum()
+            volume = np.any([self.mat.astype('bool'), tool_voxels], axis=0).sum()
             VoxelSpace._fill(tool_voxels, tool_bbox, False)
 
             # If this combo happens to create to the highest volume, save it

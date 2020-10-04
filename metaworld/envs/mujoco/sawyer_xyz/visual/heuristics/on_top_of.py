@@ -24,7 +24,7 @@ class OnTopOf(Heuristic):
         j = int(base_ijk[1])
         k = int(base_top + tool.resting_pos_z * res)
 
-        unavailable = voxel_space.mat[:, :, int(base_top):].sum(axis=2)
+        unavailable = voxel_space.mat.astype('bool')[:, :, int(base_top):].sum(axis=2)
         mask = np.ones_like(voxel_space.mat[:, :, k])
         mask[i_min:i_max, j] = False
 

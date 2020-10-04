@@ -12,6 +12,6 @@ class LessThanYValue(Heuristic):
         j_max = int(self._y_value * res)
         k = int(tool.resting_pos_z * res)
 
-        unavailable = np.ones_like(voxel_space.mat[:, :, k])
+        unavailable = np.ones_like(voxel_space.mat.astype('bool')[:, :, k])
         unavailable[:, :j_max] = False
         return unavailable, k

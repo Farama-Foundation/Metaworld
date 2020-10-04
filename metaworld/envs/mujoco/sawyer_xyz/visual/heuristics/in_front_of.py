@@ -24,7 +24,7 @@ class InFrontOf(Heuristic):
             i_max = i_min + 1
         k = int(tool.resting_pos_z * res)
 
-        unavailable = voxel_space.mat[:, :, k:k + int(tool_bbox[5])].sum(axis=2)
+        unavailable = voxel_space.mat.astype('bool')[:, :, k:k + int(tool_bbox[5])].sum(axis=2)
         j = unavailable[i_min:i_max].argmax(axis=1).min() - int(tool_bbox[4])
         mask = np.ones_like(unavailable)
         mask[i_min:i_max, j] = False

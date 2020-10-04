@@ -12,6 +12,6 @@ class GreaterThanXValue(Heuristic):
         i_min = int(self._x_value * res)
         k = int(tool.resting_pos_z * res)
 
-        unavailable = np.ones_like(voxel_space.mat[:, :, k])
+        unavailable = np.ones_like(voxel_space.mat.astype('bool')[:, :, k])
         unavailable[i_min:, :] = False
         return unavailable, k
