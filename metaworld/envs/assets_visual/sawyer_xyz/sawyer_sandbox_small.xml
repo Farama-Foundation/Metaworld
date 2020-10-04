@@ -138,11 +138,11 @@
             <include file="../objects/assets/block_cyl.xml"/>
         </body>
 
-        <!--Shop: Unplug Outlet-->
-<!--        <body name="ElectricalPlug" pos="-.582 1.0 .351">-->
-<!--            <freejoint name="ElectricalPlugJoint"/>-->
-<!--            <include file="../objects/assets/plug.xml"/>-->
-<!--        </body>-->
+        Shop: Unplug Outlet
+        <body name="ElectricalPlug" pos="-.582 1.0 .351">
+            <freejoint name="ElectricalPlugJoint"/>
+            <include file="../objects/assets/plug.xml"/>
+        </body>
 
         <body name="ElectricalOutlet" pos="-0.63 1.0 0.22">
             <include file="../objects/assets/plug_wall.xml"/>

@@ -51,9 +51,9 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0, 0.6, 0.02)
-        obj_high = (0, 0.6, 0.02)
-        goal_low = (-1., 0, 0.)
+        obj_low = (-1, -1, -1)
+        obj_high = (1, 1, 1)
+        goal_low = (-1., -1., -1.)
         goal_high = (1., 1., 1.)
 
         super().__init__(
@@ -100,7 +100,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             'success': float(False)
         }
 
-        self.show_bbox_for(Lever())
+        self.show_bbox_for(BinA())
 
         return ob, 0, False, info
 
@@ -167,9 +167,9 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         solver.apply(OnTopOf(nail),             [outlet])
         solver.apply(OnTopOf(door),             [button])
 
-        # Put the plug in the outlet
-        plug.specified_pos = outlet.specified_pos + np.array([.044, .0, .131])
-        solver.did_manual_set(plug)
+        # # Put the plug in the outlet
+        # plug.specified_pos = outlet.specified_pos + np.array([.044, .0, .131])
+        # solver.did_manual_set(plug)
         # Put the faucet under the basketball hoop
         faucet.specified_pos = hoop.specified_pos + np.array([.0, -.1, .0])
         faucet.specified_pos[2] = faucet.resting_pos_z * world.resolution
@@ -208,12 +208,12 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         solver.apply([
             # Must have this Y constraint to avoid placing inside the door
             # and drawer whose voxels got erased
-            LessThanYValue(0.75 * world.size[1]),
+            LessThanYValue(0.6 * world.size[1]),
             GreaterThanXValue(edge_buffer),
             LessThanXValue(world.size[0] - edge_buffer)
         ], [
-            hammer, basketball, screw_eye, bin_lid, coffee_mug, puck
-        ], tries=50, shuffle=False)
+            hammer, screw_eye, bin_lid, coffee_mug, puck, basketball, plug
+        ], tries=100, shuffle=False)
 
         for tool in solver.tools:
             tool.specified_pos[0] -= world.size[0] / 2.0
@@ -223,6 +223,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self._solver = solver
 
         self._make_everything_match_solver()
+        self._anneal_free_joints(steps=50)
         # if not self._check_config_stability():
         #     self.reset_model()
 
@@ -257,7 +258,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             if tool.name not in self._all_tool_names:
                 print(f'Skipping {tool.name} placement. You sure it\'s in XML?')
                 continue
-            if (tool.name + 'Joint' in self.model.joint_names):
+            if tool.name + 'Joint' in self.model.joint_names:
                 joint_name = tool.name + 'Joint'
                 # qpos_idx = self.model.get_joint_qpos_addr(joint_name)
                 # qpos_old = self.sim.data.qpos[qpos_idx[0]:qpos_idx[1]]
@@ -275,15 +276,15 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             else:
                 set_position_of(tool, self.sim, self.model)
 
-    def _check_config_stability(self, steps=10):
-        for _ in range(steps):
+    def _anneal_free_joints(self, steps=10):
+        for step in range(steps):
             self.sim.step()
 
             for tool in self._solver.tools:
-                if tool.pos_is_static or tool.name not in self._all_tool_names:
-                    continue
-                vel = get_vel_of(tool, self.sim, self.model)
-                if np.linalg.norm(vel) > 8:
-                    return False
+                if tool.name + 'Joint' in self.model.joint_names:
+                    joint_name = tool.name + 'Joint'
+                    qvel_old = self.sim.data.get_joint_qvel(joint_name)
+                    qvel_new = qvel_old.copy()
+                    qvel_new /= 2 ** step
 
-        return True
+                    self.sim.data.set_joint_qvel(joint_name, qvel_new)

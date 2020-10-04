@@ -10,4 +10,4 @@ class CoffeeMug(Tool):
 
     @property
     def resting_pos_z(self):
-        return .0
+        return .04
