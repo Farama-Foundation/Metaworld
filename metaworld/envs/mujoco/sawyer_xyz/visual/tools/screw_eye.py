@@ -10,4 +10,4 @@ class ScrewEye(Tool):
 
     @property
     def resting_pos_z(self):
-        return 0.04
+        return 0.05

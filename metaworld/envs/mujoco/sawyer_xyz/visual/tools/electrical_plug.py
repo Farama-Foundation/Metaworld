@@ -10,4 +10,4 @@ class ElectricalPlug(Tool):
 
     @property
     def resting_pos_z(self):
-        return .02
+        return .03

@@ -22,6 +22,8 @@ class Solver:
         if not isinstance(heuristics, list):
             heuristics = [heuristics]
 
+        has_no_overlap = True
+
         if shuffle:
             random.shuffle(tools)
         for tool in tools:
@@ -36,14 +38,17 @@ class Solver:
             ijs = self._rg.choice(ijs_available, tries)
             ijks = np.hstack((ijs, np.full((len(ijs), 1), max(ks))))
 
-            ijk, bbox, vol = self._voxel_space.pick_least_overlap(
+            ijk, bbox, vol, perfect = self._voxel_space.pick_least_overlap(
                 ijks,
                 tool.bbox
             )
+            has_no_overlap &= perfect
             self._voxel_space.fill(bbox)
             tool.specified_pos = ijk / self._voxel_space.resolution
 
             self._tools.append(tool)
+
+        return has_no_overlap
 
     @staticmethod
     def _ijs_available(mask):

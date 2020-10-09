@@ -55,7 +55,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     def __init__(self):
 
-        liftThresh = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-1, -1, -1)
@@ -80,9 +79,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self._all_tool_names = list(self.model.body_names)
-
-        self.liftThresh = liftThresh
-        self.max_path_length = 200
+        self.max_path_length = 500
 
         goal_low = np.array(goal_low)
         goal_high = np.array(goal_high)
@@ -103,12 +100,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
         self.curr_path_length += 1
-        info = {
-            'success': float(False)
-        }
-
-        self.show_bbox_for(BinA())
-
+        info = {'success': float(False)}
         return ob, 0, False, info
 
     @property
@@ -120,13 +112,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         Note: At a later point it may be worth it to replace this with
         self._get_obj_pos_dict
         '''
-        return self.data.site_xpos[self.model.site_name2id('RoundNut-8')]
-
-    # def _get_obj_pos_dict(self):
-    #     return {
-    #         name: get_position_of(name) for name in self._obj_names
-    #     }
-
+        return np.zeros(3)
 
     def reset_model(self):
         self._reset_hand()
@@ -207,15 +193,19 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         world.fill_tool(drawer, value=False)
 
         edge_buffer = (world.size[0] - 1.0) / 2.0
-        solver.apply([
+        created_overlaps = solver.apply([
             # Must have this Y constraint to avoid placing inside the door
             # and drawer whose voxels got erased
             LessThanYValue(0.6 * world.size[1]),
             GreaterThanXValue(edge_buffer),
             LessThanXValue(world.size[0] - edge_buffer)
         ], [
-            hammer, screw_eye, bin_lid, coffee_mug, puck, basketball, plug
-        ], tries=1000, shuffle=False)
+            hammer, bin_lid, screw_eye, coffee_mug, puck, basketball, plug
+        ], tries=100, shuffle=False)
+
+        if created_overlaps:
+            print('Reconfiguring to avoid overlaps')
+            self.reset_model()
 
         for tool in solver.tools:
             tool.specified_pos[0] -= world.size[0] / 2.0
@@ -232,16 +222,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         # print(self.model.jnt_pos)
         # print(self.model.jnt_type)
 
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM = (rightFinger + leftFinger)/2
-        self.pickCompleted = False
-        self.placeCompleted = False
 
     def show_bbox_for(self, tool):
         tool_pos = get_position_of(tool, self.sim)
@@ -280,7 +261,9 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             for tool in self._solver.tools:
                 if tool.name + 'Joint' in self.model.joint_names:
                     qvel_old = get_joint_vel_of(tool, self.sim)
+
                     qvel_new = qvel_old.copy()
-                    qvel_new /= 2 ** step
+                    qvel_new[[0, 1, 3, 4, 5]] /= 2 ** step
+                    qvel_new[2] /= 1.05 ** step
 
                     set_joint_vel_of(tool, self.sim, qvel_new)
