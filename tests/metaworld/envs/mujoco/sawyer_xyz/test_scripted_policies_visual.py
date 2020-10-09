@@ -58,6 +58,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(trajectory_summary(env, policy, act_noise_pct, render=True)[0])
+        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters

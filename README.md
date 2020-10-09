@@ -13,6 +13,7 @@ __Table of Contents__
   * [Running ML1, MT1](#running-ml1-or-mt1)
   * [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
 - [Citing Meta-World](#citing-meta-world)
+- [Accompanying Baselines](accompanying-baselines)
 - [Become a Contributor](#become-a-contributor)
 - [Acknowledgements](#acknowledgements)
 
@@ -122,7 +123,7 @@ for env in testing_envs:
 ```
 
 ## Citing Meta-World
-You use Meta-World for academic research, please kindly cite our CoRL 2019 paper the using following BibTeX entry.
+If you use Meta-World for academic research, please kindly cite our CoRL 2019 paper the using following BibTeX entry.
 
 ```
 @inproceedings{yu2019meta,
@@ -136,6 +137,10 @@ You use Meta-World for academic research, please kindly cite our CoRL 2019 paper
   url={https://arxiv.org/abs/1910.10897}
 }
 ```
+
+## Accompanying Baselines
+If you're looking for implementations of the baselines algorithms used in the Metaworld conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage). 
+Note that these aren't the exact same baselines that were used in the original conference publication, however they are true to the original baselines.
 
 ## Become a Contributor
 We welcome all contributions to Meta-World. Please refer to the [contributor's guide](https://github.com/rlworkgroup/metaworld/blob/master/CONTRIBUTING.md) for how to prepare your contributions.
