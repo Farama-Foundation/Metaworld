@@ -221,20 +221,16 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         caging = ((y_caging * x_z_caging) / (y_caging + x_z_caging -
             (y_caging * x_z_caging)))
         assert caging >= 0 and caging <= 1
-        gripping = caging * gripper_closed
+        # gripping = caging * gripper_closed
+        if caging > 0.95:
+            gripping = gripper_closed
+        else:
+            gripping = 0.
         assert gripping >= 0 and gripping <= 1
         caging_and_gripping = ((caging * gripping) / (caging + gripping -
             (caging * gripping)))
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
         return caging_and_gripping
-        # y_caging_and_gripping = ((y_caging * gripper_closed) / (y_caging + gripper_closed -
-        #     (y_caging * gripper_closed)))
-        # assert y_caging_and_gripping >= 0 and y_caging_and_gripping <= 1
-        # y_caging_and_gripping_and_x_z_caging = ((y_caging_and_gripping * x_z_caging) /
-        #     (y_caging_and_gripping + x_z_caging -(y_caging_and_gripping * x_z_caging)))
-        # assert y_caging_and_gripping_and_x_z_caging >= 0 and y_caging_and_gripping_and_x_z_caging <= 1
-        # return y_caging_and_gripping_and_x_z_caging
-
 
     def compute_reward(self, action, obs):
         # tcp = self.tcp_center
@@ -302,7 +298,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         assert in_place >= 0 and in_place <= 1
         object_grasped = self._gripper_caging_reward(action, obj)
         assert object_grasped >= 0 and object_grasped <= 1
-        in_place_grasped = in_place * object_grasped
+        in_place_grasped = in_place
         if not object_grasped and not in_place_grasped:
             reward = 0
         else:
