@@ -81,7 +81,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward
+            'in_place_reward': in_place_reward,
+            'obj_to_target': obj_to_target
         }
 
         self.curr_path_length += 1
@@ -209,7 +210,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
 
-        x_z_success_margin = 0.01
+        x_z_success_margin = 0.005
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
@@ -222,7 +223,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             (y_caging * x_z_caging)))
         assert caging >= 0 and caging <= 1
         # gripping = caging * gripper_closed
-        if caging > 0.95:
+        if caging > 0.97:
             gripping = gripper_closed
         else:
             gripping = 0.
@@ -282,7 +283,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         # reward = in_place_and_grasp - (c * np.linalg.norm(action[:3]))
         # return [10 * reward, tcp_to_obj, tcp_opened, obj_to_target, grasp, in_place]
 
-        _TARGET_RADIUS = 0.07
+        _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
@@ -306,5 +307,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                 (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
             assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
             reward = in_place_and_object_grasped
+        reward *= 10
         # reward = object_grasped
-        return [10 * reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
