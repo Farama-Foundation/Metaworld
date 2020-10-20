@@ -1,6 +1,6 @@
 <mujocoinclude>
     <body childclass="dial_base">
-      <joint name="knob_Joint_1" axis="0 0 1" type="hinge" limited="true" range="-3.14 3.14"/>
+      <joint name="dialKnobJoint" axis="0 0 1" type="hinge" limited="true" range="-3.14 3.14"/>
 
       <geom material="dial_metal" mesh="dial" pos="0 0 0.018"/>
       <geom material="dial_metal" mesh="dialhead" pos="0 0 0.051"/>
