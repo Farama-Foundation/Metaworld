@@ -61,7 +61,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         dial_center = self.get_body_com('dial').copy()
-        dial_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
+        dial_angle_rad = self.data.get_joint_qpos('dialKnobJoint')
 
         offset = np.array([
             np.sin(dial_angle_rad),
