@@ -234,55 +234,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         return caging_and_gripping
 
     def compute_reward(self, action, obs):
-        # tcp = self.tcp_center
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        # target = self._target_pos
-        # _TARGET_RADIUS_GRASP = 0.03
-        # _TARGET_RADIUS = 0.07
-        # tcp_to_obj = np.linalg.norm(obj - tcp)
-
-        # tcp_obj_margin = (np.linalg.norm(self.obj_init_pos - self.init_tcp)
-        #     - _TARGET_RADIUS_GRASP)
-        # tcp_obj = reward_utils.tolerance(tcp_to_obj,
-        #                         bounds=(0, _TARGET_RADIUS_GRASP),
-        #                         margin=tcp_obj_margin,
-        #                         sigmoid='long_tail',
-        #                         value_at_margin=0.2)
-
-        # # rewards for closing the gripper
-        # tcp_opened_margin = 0.73  # computed using scripted policy manually
-        # tcp_close = reward_utils.tolerance(tcp_opened,
-        #                         bounds=(0, tcp_opened_margin),
-        #                         margin=1 - tcp_opened_margin,
-        #                         sigmoid='long_tail',)
-
-        # # based on Hamacher Product T-Norm
-        # hprod_tcp_obj_tcp_close = (tcp_obj * tcp_close) / (tcp_obj + tcp_close - (tcp_obj * tcp_close))
-        # grasp = (tcp_obj + hprod_tcp_obj_tcp_close) / 2
-        # if tcp_opened <= tcp_opened_margin and tcp_to_obj <= _TARGET_RADIUS_GRASP:
-        #     assert grasp >= 1.
-        # else:
-        #     assert grasp < 1.
-
-        # obj_to_target = np.linalg.norm(obj - target)
-       
-
-        # in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
-        # in_place = reward_utils.tolerance(obj_to_target,
-        #                             bounds=(0, _TARGET_RADIUS),
-        #                             margin=in_place_margin,
-        #                             sigmoid='long_tail',)
-        #                             #value_at_margin=0.2)
-        # # based on Hamacher Product T-Norm
-        # in_place_and_grasp = (in_place * grasp) / (in_place + grasp - (in_place * grasp))
-        # assert in_place_and_grasp <= 1.
-        # # here's a simple fix for most "hoving is equivalent to finishing" 
-        # # issues: add a small control cost to to the reward function
-        # c = 0.05
-        # reward = in_place_and_grasp - (c * np.linalg.norm(action[:3]))
-        # return [10 * reward, tcp_to_obj, tcp_opened, obj_to_target, grasp, in_place]
-
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -307,6 +258,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                 (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
             assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
             reward = in_place_and_object_grasped
-        reward *= 10
-        # reward = object_grasped
+        
+
+        if self.touching_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]):
+            reward += 1 + 5 * in_place
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
