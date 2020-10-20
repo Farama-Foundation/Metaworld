@@ -1,7 +1,7 @@
 <mujocoinclude>
     <body childclass="therm_base">
-      <joint type="slide" range="-0.2 0.2" axis="1 0 0" name="obj_slidex" damping="1" limited="true"/>
-      <joint type="slide" range="-0.2 0.2" axis="0 1 0" name="obj_slidey" damping="1" limited="true"/>
+      <joint type="slide" range="-0.2 0.2" axis="1 0 0" name="obj_slidex" damping="2" limited="true"/>
+      <joint type="slide" range="-0.2 0.2" axis="0 1 0" name="obj_slidey" damping="2" limited="true"/>
       <geom material="therm_metal" mesh="therm_base" pos="0 0 0.02"/>
       <geom material="therm_metal_green" mesh="therm_body" pos="0 0 0.14"/>
       <geom material="therm_metal" mesh="therm_cap" pos="0 0 0.285"/>

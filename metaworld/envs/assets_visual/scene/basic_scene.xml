@@ -1,5 +1,5 @@
 <mujocoinclude>
-  <option timestep='0.0025' iterations="50" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>
+  <option timestep='0.001' iterations="50" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>
 
   <asset>
     <!-- night sky -->
@@ -30,7 +30,7 @@
       <light directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3' pos='1 -1 1' dir='-1 1 -1'/>
       <light castshadow="false" directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3' pos='0 1 1' dir='0 -1 -1'/>
       <body name="tablelink" pos="0 .6 0">
-        <geom material="table_wood" group="1" type="box" size=".7 .4 .027" pos="0 0 -.027" conaffinity="0" contype="0"/>
+        <geom material="table_wood" group="1" type="box" size="1. .4 .027" pos="0 0 -.027" conaffinity="0" contype="0"/>
         <geom material="table_wood" group="1" mesh="tablebody" pos="0 0 -0.65" type="mesh" conaffinity="0" contype="0"/>
         <geom material="table_col" group="4" pos="0.0 0.0 -0.46" size="0.7 0.4 0.46" type="box" conaffinity="1" contype="0"/>
       </body>
