@@ -82,7 +82,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward
         }
 
         self.curr_path_length += 1
@@ -255,11 +256,12 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             reward = 0
         else:
             in_place_and_object_grasped = ((object_grasped * in_place_grasped) /
-                (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
+                (object_grasped + in_place_grasped - (object_grasped * in_place_grasped)))
             assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
             reward = in_place_and_object_grasped
         
 
-        if self.touching_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]):
+        if self.touching_object and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1 + 5 * in_place
+            
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
