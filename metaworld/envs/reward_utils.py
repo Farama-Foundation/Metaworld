@@ -1,5 +1,6 @@
 """A set of reward utilities written by the authors of dm_control"""
 
+from multiprocessing import Value
 import numpy as np
 
 # The value returned by tolerance() at `margin` distance from `bounds` interval.
@@ -119,3 +120,23 @@ def tolerance(x,
                                                    sigmoid))
 
     return float(value) if np.isscalar(x) else value
+
+def hamacher_product(a, b):
+    """The hamacher (t-norm) product of a and b.
+
+    computes (a * b) / ((a + b) - (a * b))
+
+    Args:
+        a (float): 1st term of hamacher product.
+        b (float): 2nd term of hamacher product.
+    Raises:
+        ValueError: a and b must range between 0 and 1
+    
+    Returns:
+        float: The hammacher product of a and b
+    """
+    if not ((0. <= a <= 1.) and (0. <= b <= 1.)):
+        raise ValueError("a and b must range between 0 and 1")
+    h_prod = ((a * b) / (a + b - (a * b)))
+    assert 0. <= h_prod <= 1.
+    return h_prod
