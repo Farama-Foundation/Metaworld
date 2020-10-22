@@ -1,6 +1,9 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -80,6 +83,13 @@ class SawyerReachEnvV2(SawyerXYZEnv):
     def _get_pos_objects(self):
         return self.get_body_com('obj')
 
+    def _get_pos_orientation_objects(self):
+        position = self.get_body_com('obj')
+        orientation = Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')).as_quat()
+        return position, orientation, np.array([]), np.array([])
+
+
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
         # aligned. If this is not done, the object could be initialized in an
@@ -131,22 +141,55 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        finger_center = (finger_right + finger_left) / 2
+        # finger_right, finger_left = (
+        #     self._get_site_pos('rightEndEffector'),
+        #     self._get_site_pos('leftEndEffector')
+        # )
+        # finger_center = (finger_right + finger_left) / 2
+        #
+        # goal = self._target_pos
+        # assert np.all(goal == self._get_site_pos('goal'))
+        #
+        # c1 = 1000
+        # c2 = 0.01
+        # c3 = 0.001
+        # reach_dist = np.linalg.norm(finger_center - goal)
+        # reach_rew = c1 * (self.maxReachDist - reach_dist) + \
+        #             c1 * (np.exp(-(reach_dist ** 2) / c2) +
+        #                   np.exp(-(reach_dist ** 2) / c3))
+        #
+        # reach_rew = max(reach_rew, 0)
+        # return [reach_rew, reach_dist]
 
-        goal = self._target_pos
-        assert np.all(goal == self._get_site_pos('goal'))
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        target = self._target_pos
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        reach_dist = np.linalg.norm(finger_center - goal)
-        reach_rew = c1 * (self.maxReachDist - reach_dist) + \
-                    c1 * (np.exp(-(reach_dist ** 2) / c2) +
-                          np.exp(-(reach_dist ** 2) / c3))
+        tcp_to_target = np.linalg.norm(tcp - target)
+        obj_to_target = np.linalg.norm(obj - target)
 
-        reach_rew = max(reach_rew, 0)
-        return [reach_rew, reach_dist]
+
+        in_place_margin = (np.linalg.norm(self.hand_init_pos - target))
+        in_place = reward_utils.tolerance(tcp_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
+        assert in_place >= 0 and in_place <= 1
+
+        # object_grasped = self._gripper_caging_reward(action, obj)
+        # assert object_grasped >= 0 and object_grasped <= 1
+        # in_place_grasped = in_place
+
+        # if not object_grasped and not in_place_grasped:
+        #     reward = 0
+        # else:
+        #     in_place_and_object_grasped = ((object_grasped * in_place_grasped) /
+        #         (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
+        #     assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
+        #     reward = in_place_and_object_grasped
+
+        reward = 10 * in_place
+
+        return [reward, tcp_to_target] #, tcp_opened, obj_to_target, 0, in_place

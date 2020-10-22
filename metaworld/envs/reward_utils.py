@@ -119,3 +119,15 @@ def tolerance(x,
                                                    sigmoid))
 
     return float(value) if np.isscalar(x) else value
+
+def hamacher_product(a, b):
+    '''
+    calculates the hamacher product of 2 values
+
+    Args:
+        a: float between 0 and 1
+        b: float between 0 and 1
+    Returns:
+        a float between 0 and 1
+    '''
+    return (a * b) / (a + b - (a * b))
