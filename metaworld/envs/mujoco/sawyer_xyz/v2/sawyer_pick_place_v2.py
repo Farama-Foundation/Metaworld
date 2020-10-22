@@ -247,19 +247,20 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
+
         assert in_place >= 0 and in_place <= 1
+
         object_grasped = self._gripper_caging_reward(action, obj, 0.015)
+
         assert object_grasped >= 0 and object_grasped <= 1
+
         in_place_grasped = in_place
         if not object_grasped and not in_place_grasped:
             reward = 0
         else:
             in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place_grasped)
-
-            # ((object_grasped * in_place_grasped) /
-            #     (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
             assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
             reward = in_place_and_object_grasped
+
         reward *= 10
-        # reward = object_grasped
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]

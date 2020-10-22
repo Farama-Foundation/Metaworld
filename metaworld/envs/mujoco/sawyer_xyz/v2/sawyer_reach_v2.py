@@ -80,8 +80,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
         return ob, reward, False, info
 
-    def _get_pos_objects(self):
-        return self.get_body_com('obj')
+    # def _get_pos_objects(self):
+    #     return self.get_body_com('obj')
 
     def _get_pos_orientation_objects(self):
         position = self.get_body_com('obj')
@@ -141,26 +141,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        # finger_right, finger_left = (
-        #     self._get_site_pos('rightEndEffector'),
-        #     self._get_site_pos('leftEndEffector')
-        # )
-        # finger_center = (finger_right + finger_left) / 2
-        #
-        # goal = self._target_pos
-        # assert np.all(goal == self._get_site_pos('goal'))
-        #
-        # c1 = 1000
-        # c2 = 0.01
-        # c3 = 0.001
-        # reach_dist = np.linalg.norm(finger_center - goal)
-        # reach_rew = c1 * (self.maxReachDist - reach_dist) + \
-        #             c1 * (np.exp(-(reach_dist ** 2) / c2) +
-        #                   np.exp(-(reach_dist ** 2) / c3))
-        #
-        # reach_rew = max(reach_rew, 0)
-        # return [reach_rew, reach_dist]
-
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -170,26 +150,15 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         tcp_to_target = np.linalg.norm(tcp - target)
         obj_to_target = np.linalg.norm(obj - target)
 
-
         in_place_margin = (np.linalg.norm(self.hand_init_pos - target))
         in_place = reward_utils.tolerance(tcp_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
+
         assert in_place >= 0 and in_place <= 1
 
-        # object_grasped = self._gripper_caging_reward(action, obj)
-        # assert object_grasped >= 0 and object_grasped <= 1
-        # in_place_grasped = in_place
+        return [10 * in_place, tcp_to_target]
 
-        # if not object_grasped and not in_place_grasped:
-        #     reward = 0
-        # else:
-        #     in_place_and_object_grasped = ((object_grasped * in_place_grasped) /
-        #         (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
-        #     assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
-        #     reward = in_place_and_object_grasped
-
-        reward = 10 * in_place
-
-        return [reward, tcp_to_target] #, tcp_opened, obj_to_target, 0, in_place
+        # I dont think the extra values are needed here, but if so they can be readded.
+        #, tcp_opened, obj_to_target, 0, in_place

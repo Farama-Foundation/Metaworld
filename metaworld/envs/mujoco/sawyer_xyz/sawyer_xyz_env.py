@@ -370,11 +370,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
-        # hamacher product
+
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
 
-        # ((right_caging * left_caging) / (right_caging + left_caging -
-        #     (right_caging * left_caging)))
         assert y_caging >= 0 and y_caging <= 1
 
         tcp_xz = tcp + np.array([0., -tcp[1], 0.])
@@ -394,8 +392,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         gripper_closed = min(max(0, action[-1]), 1)
         assert gripper_closed >= 0 and gripper_closed <= 1
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
-        # ((y_caging * x_z_caging) / (y_caging + x_z_caging -
-        #     (y_caging * x_z_caging)))
         assert caging >= 0 and caging <= 1
 
         if caging > 0.97:
@@ -405,8 +401,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         assert gripping >= 0 and gripping <= 1
         caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
-        # ((caging * gripping) / (caging + gripping -
-        #     (caging * gripping)))
 
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
