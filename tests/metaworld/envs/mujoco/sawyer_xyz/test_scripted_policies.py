@@ -8,25 +8,25 @@ from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 test_cases_old_nonoise = [
     # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
-    # ['bin-picking-v1', SawyerBinPickingV2Policy(), .0, .50],
-    # ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .0, .05],
-    # ['lever-pull-v1', SawyerLeverPullV2Policy(), .0, .0],
-    # ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .0, .0],
-    # ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1.],
-    # ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.85],
-    # ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37],
+    ['bin-picking-v1', SawyerBinPickingV2Policy(), .0, .50],
+    ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .0, .05],
+    ['lever-pull-v1', SawyerLeverPullV2Policy(), .0, .0],
+    ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .0, .0],
+    ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .0, 1.],
+    ['window-open-v1', SawyerWindowOpenV2Policy(), .0, 0.85],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .0, 0.37],
 ]
 
 test_cases_old_noisy = [
     # This should contain configs where a V2 policy is running in a V1 env.
     # name, policy, action noise pct, success rate
-    # ['bin-picking-v1', SawyerBinPickingV2Policy(), .1, .40],
-    # ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .1, .77],
-    # ['lever-pull-v1', SawyerLeverPullV2Policy(), .1, .0],
-    # ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .1, .0],
-    # ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30],
-    # ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81],
-    # ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37],
+    ['bin-picking-v1', SawyerBinPickingV2Policy(), .1, .40],
+    ['handle-press-side-v1', SawyerHandlePressSideV2Policy(), .1, .77],
+    ['lever-pull-v1', SawyerLeverPullV2Policy(), .1, .0],
+    ['peg-insert-side-v1', SawyerPegInsertionSideV2Policy(), .1, .0],
+    ['plate-slide-back-side-v1', SawyerPlateSlideBackSideV2Policy(), .1, 0.30],
+    ['window-open-v1', SawyerWindowOpenV2Policy(), .1, 0.81],
+    ['window-close-v1', SawyerWindowCloseV2Policy(), .1, 0.37],
 ]
 
 test_cases_latest_nonoise = [
@@ -83,8 +83,8 @@ test_cases_latest_nonoise = [
     ['handle-pull-v2', SawyerHandlePullV2Policy(), .0, 0.93],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .0, .92],
     ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .0, 1.],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .89],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .0, .94],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .0, .89],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .0, .99],
     ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .0, .99],
     ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .0, 1.],
@@ -174,8 +174,8 @@ test_cases_latest_noisy = [
     ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .65],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
     ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .51],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
     ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .1, .95],
     ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],

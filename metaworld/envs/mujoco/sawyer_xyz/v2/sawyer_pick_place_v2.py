@@ -82,7 +82,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward
         }
 
         self.curr_path_length += 1
@@ -248,19 +249,13 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        assert in_place >= 0 and in_place <= 1
-
         object_grasped = self._gripper_caging_reward(action, obj, 0.015)
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place)
+        reward = in_place_and_object_grasped
 
-        assert object_grasped >= 0 and object_grasped <= 1
-
-        in_place_grasped = in_place
-        if not object_grasped and not in_place_grasped:
-            reward = 0
-        else:
-            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place_grasped)
-            assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
-            reward = in_place_and_object_grasped
-
-        reward *= 10
+        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+            reward += 1. + 5. * in_place
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
