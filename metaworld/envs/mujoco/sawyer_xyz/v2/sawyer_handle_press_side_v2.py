@@ -17,7 +17,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         - (8/05/20) Updated to new XML
         - (6/30/20) Increased goal's Z coordinate by 0.01 in XML
     """
-    def __init__(self, random_init=True):
+    def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,8 +29,6 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
-        self.random_init = random_init
 
         self.init_config = {
             'obj_init_pos': np.array([-0.3, 0.7, 0.0]),

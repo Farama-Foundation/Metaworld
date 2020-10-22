@@ -67,7 +67,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     _HAND_SPACE = Box(
-        np.array([-0.525, .35, -.0525]),
+        np.array([-0.525, .349, -.0525]),
         np.array([+0.525, 1.025, .525])
     )
     max_path_length = 200
