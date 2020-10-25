@@ -183,7 +183,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
             object_grasped = self._gripper_caging_reward(action, obj, 0.02)
             in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                        in_place)
+                                                                        in_place_out_of_shelf)
             reward = in_place_and_object_grasped
 
             if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
