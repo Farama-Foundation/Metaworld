@@ -168,7 +168,8 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             obj_to_target = np.linalg.norm(obj - target)
             obj_to_out_of_shelf = np.linalg.norm(obj - target_out_of_shelf)
             tcp_to_obj = np.linalg.norm(obj - tcp)
-            in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+            in_place_oos_margin = (np.linalg.norm(self.obj_init_pos - target_out_of_shelf))
+            in_place_margin = (np.linalg.norm(target_out_of_shelf - target))
 
 
             in_place = reward_utils.tolerance(obj_to_target,
@@ -177,7 +178,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
                                         sigmoid='long_tail',)
             in_place_out_of_shelf = reward_utils.tolerance(obj_to_out_of_shelf,
                                         bounds=(0, _TARGET_RADIUS),
-                                        margin=target_out_of_shelf,
+                                        margin=in_place_oos_margin,
                                         sigmoid='long_tail',)
 
             object_grasped = self._gripper_caging_reward(action, obj, 0.02)
