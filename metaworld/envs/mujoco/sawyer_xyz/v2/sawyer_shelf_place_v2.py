@@ -177,7 +177,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
                                         sigmoid='long_tail',)
             in_place_out_of_shelf = reward_utils.tolerance(obj_to_out_of_shelf,
                                         bounds=(0, _TARGET_RADIUS),
-                                        margin=in_place_margin,
+                                        margin=target_out_of_shelf,
                                         sigmoid='long_tail',)
 
             object_grasped = self._gripper_caging_reward(action, obj, 0.02)
