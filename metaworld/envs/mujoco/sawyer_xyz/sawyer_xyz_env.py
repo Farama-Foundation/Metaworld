@@ -90,6 +90,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
         self.hand_high = np.array(hand_high)
+
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
+        self.init_tcp = self.tcp_center
+        
         if mocap_low is None:
             mocap_low = hand_low
         if mocap_high is None:

@@ -158,8 +158,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
             self.init_tcp = self.tcp_center
-            self.init_left_pad = self.get_body_com('leftpad')
-            self.init_right_pad = self.get_body_com('rightpad')
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(

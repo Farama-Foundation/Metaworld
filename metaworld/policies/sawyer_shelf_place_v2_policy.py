@@ -11,9 +11,11 @@ class SawyerShelfPlaceV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'block_pos': obs[3:6],
+            'unused_1': obs[3],
+            'block_pos': obs[4:7],
+            'unused_2':  obs[7:-3],
             'shelf_x': obs[-3],
-            'unused_info': obs[[6, 7, 8, 10, 11]],
+            'unused_3': obs[-2:],
         }
 
     def get_action(self, obs):

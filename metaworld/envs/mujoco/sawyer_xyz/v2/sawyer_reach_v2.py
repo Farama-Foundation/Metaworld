@@ -68,13 +68,14 @@ class SawyerReachEnvV2(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
 
-        reward, reach_dist = self.compute_reward(action, ob)
+        reward, reach_dist, in_place = self.compute_reward(action, ob)
         success = float(reach_dist <= 0.05)
 
         info = {
             'reachDist': reach_dist,
             'epRew': reward,
-            'success': success
+            'success': success,
+            'in_place_reward': in_place
         }
 
         self.curr_path_length += 1
@@ -158,7 +159,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
         assert in_place >= 0 and in_place <= 1
 
-        return [10 * in_place, tcp_to_target]
+        return [10 * in_place, tcp_to_target, in_place]
 
         # I dont think the extra values are needed here, but if so they can be readded.
         #, tcp_opened, obj_to_target, 0, in_place
