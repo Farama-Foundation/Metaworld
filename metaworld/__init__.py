@@ -78,7 +78,7 @@ def _encode_task(env_name, data):
     return Task(env_name=env_name, data=pickle.dumps(data))
 
 
-def _make_tasks(classes, args_kwargs, kwargs_override):
+def _make_tasks(classes, args_kwargs, kwargs_override, seed=0):
     tasks = []
     for (env_name, args) in args_kwargs.items():
         assert len(args['args']) == 0
@@ -90,8 +90,9 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
         kwargs = args['kwargs'].copy()
         del kwargs['task_id']
         env._set_task_inner(**kwargs)
-        for _ in range(_N_GOALS):
+        for rank in range(_N_GOALS):
             env.reset()
+            env.seed(rank)
             rand_vecs.append(env._last_rand_vec)
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert unique_task_rand_vecs.shape[0] == _N_GOALS
@@ -118,7 +119,7 @@ class ML1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
+    def __init__(self, env_name, seed=0):
         super().__init__()
         try:
             cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
@@ -131,16 +132,18 @@ class ML1(Benchmark):
         self._train_ = OrderedDict([(env_name, cls)])
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
-                                        _ML_OVERRIDE)
+                                        _ML_OVERRIDE,
+                                        seed)
         self._test_tasks = _make_tasks(self._test_classes,
                                         {env_name: args_kwargs},
-                                        _ML_OVERRIDE)
+                                        _ML_OVERRIDE,
+                                        seed + _N_GOALS)
         
 class MT1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
+    def __init__(self, env_name, seed=0):
         super().__init__()
         try:
             cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
@@ -153,57 +156,63 @@ class MT1(Benchmark):
         self._train_ = OrderedDict([(env_name, cls)])
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
-                                        _MT_OVERRIDE)
+                                        _MT_OVERRIDE,
+                                        seed)
         self._test_tasks = []
 
 
 class ML10(Benchmark):
 
-    def __init__(self):
+    def __init__(self, seed=0):
         super().__init__()
         self._train_classes = _env_dict.MEDIUM_MODE_CLS_DICT['train']
         self._test_classes = _env_dict.MEDIUM_MODE_CLS_DICT['test']
         train_kwargs = _env_dict.medium_mode_train_args_kwargs
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
-                                        _ML_OVERRIDE)
+                                        _ML_OVERRIDE,
+                                        seed)
         test_kwargs = _env_dict.medium_mode_test_args_kwargs
         self._test_tasks = _make_tasks(self._test_classes,
                                        test_kwargs,
-                                       _ML_OVERRIDE)
+                                       _ML_OVERRIDE,
+                                       seed + _N_GOALS)
 
 
 class ML45(Benchmark):
 
-    def __init__(self):
+    def __init__(self, seed=0):
         super().__init__()
         self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train']
         self._test_classes = _env_dict.HARD_MODE_CLS_DICT['test']
         train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train']
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
-                                        _ML_OVERRIDE)
+                                        _ML_OVERRIDE,
+                                        seed)
         self._test_tasks = _make_tasks(self._test_classes,
                                        _env_dict.HARD_MODE_ARGS_KWARGS['test'],
-                                       _ML_OVERRIDE)
+                                       _ML_OVERRIDE,
+                                       seed + _N_GOALS)
 
 
 class MT10(Benchmark):
 
-    def __init__(self):
+    def __init__(self, seed=0):
         super().__init__()
         self._train_classes = _env_dict.EASY_MODE_CLS_DICT
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
-                                        _MT_OVERRIDE)
+                                        _MT_OVERRIDE,
+                                        seed)
         self._test_tasks = []
 
 
 class MT50(Benchmark):
 
-    def __init__(self):
+    def __init__(self, seed=0):
         super().__init__()
         self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train'].copy()
         # We're going to modify it, so make a copy
@@ -217,5 +226,6 @@ class MT50(Benchmark):
         self._test_classes = OrderedDict()
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
-                                        _MT_OVERRIDE)
+                                        _MT_OVERRIDE,
+                                        seed)
         self._test_tasks = []

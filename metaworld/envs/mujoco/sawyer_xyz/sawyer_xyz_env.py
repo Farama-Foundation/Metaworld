@@ -299,7 +299,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             assert self._last_rand_vec is not None
             return self._last_rand_vec
         else:
-            rand_vec = np.random.uniform(
+            rand_vec = self.np_random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
                 size=self._random_reset_space.low.size)
