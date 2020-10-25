@@ -186,8 +186,8 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             reward = in_place_and_object_grasped
 
             if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
-                if (abs(target_out_of_shelf[0] - obj[0]) < _TARGET_RADIUS and \
-                        abs(target_out_of_shelf[2] - obj[2]) < _TARGET_RADIUS):
+                if (abs(target_out_of_shelf[0] - obj[0]) < 3 * _TARGET_RADIUS and \
+                        abs(target_out_of_shelf[2] - obj[2]) < 3 * _TARGET_RADIUS):
                     reward += 1. + 5. + 3. * in_place
                 else:
                     reward += 1 + 5. * in_place_out_of_shelf
