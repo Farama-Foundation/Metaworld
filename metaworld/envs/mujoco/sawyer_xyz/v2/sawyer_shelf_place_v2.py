@@ -187,6 +187,10 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             # print("OLD :: {} - NEW :: {}".format(in_place, in_place-bound_loss))
             in_place *= bound_loss
             assert 0 <= in_place <= 1
+        if (0.0 < obj[2] < 0.275 and
+                (target[0]-0.15 < obj[0] < target[0]+0.15) and
+                (obj[1] > target[1] - 2*_TARGET_RADIUS):
+            in_place = 0
 
 
         if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
