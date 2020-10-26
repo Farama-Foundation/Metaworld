@@ -90,9 +90,9 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=0):
         kwargs = args['kwargs'].copy()
         del kwargs['task_id']
         env._set_task_inner(**kwargs)
-        for rank in range(_N_GOALS):
+        env.seed(seed)
+        for _ in range(_N_GOALS):
             env.reset()
-            env.seed(rank)
             rand_vecs.append(env._last_rand_vec)
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert unique_task_rand_vecs.shape[0] == _N_GOALS
