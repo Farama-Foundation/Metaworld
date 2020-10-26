@@ -185,8 +185,8 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
             print("HERE :: {}".format(bound_loss))
             # print("OLD :: {} - NEW :: {}".format(in_place, in_place-bound_loss))
-            in_place -= bound_loss
-            assert 0 <= in_place <= 1
+            in_place -= np.clip(bound_loss, 0.0, 1.0)
+            assert 0 <= in_place <= 1, "in_place value is: {}".format(in_place)
         if ( (0.0 < obj[2] < 0.275) and
                 (target[0]-0.15 < obj[0] < target[0]+0.15) and
                 (obj[1] > target[1] - 2*_TARGET_RADIUS)):
