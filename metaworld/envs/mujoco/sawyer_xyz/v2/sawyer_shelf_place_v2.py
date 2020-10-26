@@ -163,13 +163,13 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             obj = obs[4:7]
             tcp_opened = obs[3]
             target = self._target_pos
-            target_out_of_shelf = target + np.array([0, -0.25, 0])
+            target_out_of_shelf = target + np.array([0, -0.15, 0])
 
             obj_to_target = np.linalg.norm(obj - target)
             obj_to_out_of_shelf = np.linalg.norm(obj - target_out_of_shelf)
             tcp_to_obj = np.linalg.norm(obj - tcp)
             in_place_oos_margin = (np.linalg.norm(self.obj_init_pos - target_out_of_shelf))
-            in_place_margin = (np.linalg.norm(target_out_of_shelf - target))
+            in_place_margin = (np.linalg.norm((target_out_of_shelf-np.array([0,0,-2*_TARGET_RADIUS])) - target))
 
 
             in_place = reward_utils.tolerance(obj_to_target,
