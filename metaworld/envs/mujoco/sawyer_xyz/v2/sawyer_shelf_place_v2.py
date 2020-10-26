@@ -176,20 +176,20 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(action, obj, 0.02)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        if (0.0 < obj[2] < 0.275 and
+        if (0.0 < obj[2] < 0.25 and
                 (target[0]-0.15 < obj[0] < target[0]+0.15) and
-                ( (target[1] - 6*_TARGET_RADIUS) < obj[1] < target[1] - 2*_TARGET_RADIUS) ):
-            z_scaling = (0.275 - obj[2])/0.275
-            y_scaling = (obj[1] - (target[1] - 6*_TARGET_RADIUS)) / (4*_TARGET_RADIUS)
+                ( (target[1] - 4*_TARGET_RADIUS) < obj[1] < target[1] - _TARGET_RADIUS) ):
+            z_scaling = (0.25 - obj[2])/0.25
+            y_scaling = (obj[1] - (target[1] - 4*_TARGET_RADIUS)) / (3*_TARGET_RADIUS)
             # bound_loss = min(1, 2*reward_utils.hamacher_product(y_scaling, z_scaling))
             bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
             print("HERE :: {}".format(bound_loss))
             # print("OLD :: {} - NEW :: {}".format(in_place, in_place-bound_loss))
             in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
             assert 0 <= in_place <= 1, "in_place value is: {}".format(in_place)
-        if ( (0.0 < obj[2] < 0.275) and
+        if ( (0.0 < obj[2] < 0.25) and
                 (target[0]-0.15 < obj[0] < target[0]+0.15) and
-                (obj[1] > target[1] - 2*_TARGET_RADIUS)):
+                (obj[1] > target[1] - _TARGET_RADIUS)):
             in_place = 0
 
 
