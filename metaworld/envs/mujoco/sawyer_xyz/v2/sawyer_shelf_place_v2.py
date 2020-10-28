@@ -178,19 +178,17 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         if (0.0 < obj[2] < 0.24 and
                 (target[0]-0.15 < obj[0] < target[0]+0.15) and
-                ( (target[1] - 5*_TARGET_RADIUS) < obj[1] < target[1]) ):
-            z_scaling = (0.25 - obj[2])/0.25
-            y_scaling = (obj[1] - (target[1] - 5*_TARGET_RADIUS)) / (5*_TARGET_RADIUS)
-            # bound_loss = min(1, 2*reward_utils.hamacher_product(y_scaling, z_scaling))
+                ( (target[1] - 3*_TARGET_RADIUS) < obj[1] < target[1]) ):
+            z_scaling = (0.24 - obj[2])/0.24
+            y_scaling = (obj[1] - (target[1] - 3*_TARGET_RADIUS)) / (3*_TARGET_RADIUS)
             bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
             print("HERE :: {}".format(bound_loss))
-            # print("OLD :: {} - NEW :: {}".format(in_place, in_place-bound_loss))
             in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
             assert 0 <= in_place <= 1, "in_place value is: {}".format(in_place)
         if ( (0.0 < obj[2] < 0.24) and
                 (target[0]-0.15 < obj[0] < target[0]+0.15) and
                 (obj[1] > target[1])):
-            in_place = 0
+            in_place = 0.0
 
 
         if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
