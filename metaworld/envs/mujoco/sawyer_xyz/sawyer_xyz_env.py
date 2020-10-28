@@ -25,6 +25,18 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     def get_endeff_pos(self):
         return self.data.get_body_xpos('hand').copy()
 
+    @property
+    def tcp_center(self):
+        """The COM of the gripper's 2 fingers
+
+        Returns:
+            (np.ndarray): 3-element position
+        """
+        right_finger_pos = self._get_site_pos('rightEndEffector')
+        left_finger_pos = self._get_site_pos('leftEndEffector')
+        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
+        return tcp_center
+
     def get_env_state(self):
         joint_state = self.sim.get_state()
         mocap_state = self.data.mocap_pos, self.data.mocap_quat
@@ -111,8 +123,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
-        self._pos_obj_max_len = 14
-        self._pos_obj_possible_lens = (7, 14)
+        self._obs_obj_max_len = 14
+        self._obs_obj_possible_lens = (7, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -120,18 +132,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
-        self.prev_obs = self._get_cur_obj_tcp_position_orientation()
+
+        # Note: It is unlikely that the positions and orientations stored
+        # in this initiation of prev_obs are correct. That being said, it
+        # doesn't seem to matter (it will only effect frame-stacking for the
+        # very first observation)
+        self.prev_obs = self._get_curr_obs_combined_no_goal()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         pass
-
-    @property
-    def tcp_center(self):
-        right_finger_pos = self._get_site_pos('rightEndEffector')
-        left_finger_pos = self._get_site_pos('leftEndEffector')
-        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
-        return tcp_center
 
     def set_task(self, task):
         self._set_task_called = True
@@ -220,12 +230,74 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         return [('goal', self._target_pos)]
 
+    @property
+    def touching_main_object(self):
+        """Calls `touching_object` for the ID of the env's main object
+
+        Returns:
+            (bool) whether the gripper is touching the object
+
+        """
+        return self.touching_object(self._get_id_main_object)
+
+    def touching_object(self, object_geom_id):
+        """Determines whether the gripper is touching the object with given id
+
+        Args:
+            object_geom_id (int): the ID of the object in question
+
+        Returns:
+            (bool): whether the gripper is touching the object
+
+        """
+        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
+        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+
+        leftpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (leftpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        rightpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (rightpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        leftpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in leftpad_object_contacts)
+
+        rightpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in rightpad_object_contacts)
+
+        return 0 < leftpad_object_contact_force and \
+               0 < rightpad_object_contact_force
+
+    @property
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('objGeom')
+
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars
 
         Returns:
             np.ndarray: Flat array (usually 3 elements) representing the
                 object(s)' position(s)
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
+
+    def _get_quat_objects(self):
+        """Retrieves object quaternion(s) from mujoco properties
+
+        Returns:
+            np.ndarray: Flat array (usually 4 elements) representing the
+                object(s)' quaternion(s)
+
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
@@ -241,12 +313,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert self._target_pos.ndim == 1
         return self._target_pos
 
-    def _get_cur_obj_tcp_position_orientation(self):
-        """Combines positions of the end effector, object(s) and goal into a
-        single flat observation
+    def _get_curr_obs_combined_no_goal(self):
+        """Combines the end effector's {pos, closed amount} and the object(s)'
+            {pos, quat} into a single flat observation. The goal's position is
+            *not* included in this.
 
         Returns:
             np.ndarray: The flat observation array (18 elements)
+
         """
         pos_hand = self.get_endeff_pos()
 
@@ -261,20 +335,29 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # are slightly more than 0.1m apart (~0.00045 m)
         # clipping removes the effects of this random extra distance
         # that is produced by mujoco
-        gripper_distance_apart = np.linalg.norm(finger_right-finger_left)
+        gripper_distance_apart = np.linalg.norm(finger_right - finger_left)
         gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
-        gripper_distance_apart = np.array([gripper_distance_apart])
 
-        pos_obj_padded = np.zeros(self._pos_obj_max_len)
-        pos_obj, ori_obj, pos_obj_2, ori_obj_2 = self._get_pos_orientation_objects()
-        position_orientation_objs = np.concatenate([pos_obj, ori_obj, pos_obj_2, ori_obj_2])
-        assert len(position_orientation_objs) in self._pos_obj_possible_lens
-        pos_obj_padded[:len(position_orientation_objs)] = position_orientation_objs
-        return np.hstack((pos_hand, gripper_distance_apart, pos_obj_padded))
+        obs_obj_padded = np.zeros(self._obs_obj_max_len)
+
+        obj_pos = self._get_pos_objects()
+        obj_quat = self._get_quat_objects()
+        assert len(obj_pos) % 3 == 0
+        assert len(obj_quat) % 4 == 0
+        obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
+        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+
+        obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
+            np.hstack((pos, quat))
+            for pos, quat in zip(obj_pos_split, obj_quat_split)
+        ])
+        assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
+
+        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
 
     def _get_obs(self):
-        """Combines positions of the end effector, object(s) and goal into a
-        single flat observation
+        """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the
+            goal position to form a single flat observation.
 
         Returns:
             np.ndarray: The flat observation array (39 elements)
@@ -283,10 +366,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-        cur_obj_tcp_position_orientation = self._get_cur_obj_tcp_position_orientation()
+        curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        obs = np.hstack((cur_obj_tcp_position_orientation, self.prev_obs, pos_goal))
-        self.prev_obs = cur_obj_tcp_position_orientation
+        obs = np.hstack((curr_obs, self.prev_obs, pos_goal))
+        self.prev_obs = curr_obs
         return obs
 
     def _get_obs_dict(self):
@@ -299,8 +382,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(self._pos_obj_max_len, -np.inf)
-        obj_high = np.full(self._pos_obj_max_len, +np.inf)
+        obj_low = np.full(self._obs_obj_max_len, -np.inf)
+        obj_high = np.full(self._obs_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
