@@ -223,8 +223,6 @@ for row in test_cases_latest_nonoise:
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
 
-
-
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 
 
@@ -254,13 +252,11 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             must be successful
         iters (int): How many times the policy should be tested
     """
-    expected_success_rate = 1.
     assert len(vars(policy)) == 0, \
         '{} has state variable(s)'.format(policy.__class__.__name__)
 
     successes = 0
     for _ in range(iters):
-        # print("-----------------------------New Episode-----------------------------")
         successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters

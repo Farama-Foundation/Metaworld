@@ -75,7 +75,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(self.touching_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             'success': success,
             'near_object': near_object,
@@ -90,41 +90,14 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         return obs, reward, False, info
 
     @property
-    def touching_object(self):
-        object_geom_id = self.unwrapped.model.geom_name2id('objGeom')
-        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
-        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('objGeom')
 
-        leftpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (leftpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
+    def _get_pos_objects(self):
+        return self.get_body_com('obj')
 
-        rightpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (rightpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
-
-        leftpad_object_contact_force = sum(
-            self.unwrapped.data.efc_force[x.efc_address]
-            for x in leftpad_object_contacts)
-
-        rightpad_object_contact_force = sum(
-            self.unwrapped.data.efc_force[x.efc_address]
-            for x in rightpad_object_contacts)
-
-        gripping = (0 < leftpad_object_contact_force
-                    and 0 < rightpad_object_contact_force)
-
-        return gripping
-
-    def _get_pos_orientation_objects(self):
-        position = self.get_body_com('obj')
-        orientation = Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')).as_quat()
-        return position, orientation, np.array([]), np.array([])
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(self.data.get_geom_xmat('objGeom')).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
