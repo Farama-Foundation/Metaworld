@@ -7,6 +7,7 @@ from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
+from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 
 
@@ -84,6 +85,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     )
     max_path_length = 200
 
+    PAD_SUCCESS_MARGIN = 0.05
+    X_Z_SUCCESS_MARGIN = 0.005
+    TARGET_RADIUS = 0.05
+
     def __init__(
             self,
             model_name,
@@ -117,6 +122,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goal_space = None
         self.discrete_goals = []
         self.active_discrete_goal = None
+
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -400,6 +408,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
 
+        print(self.compute_reward(action, self._get_obs()))
+
         for site in self._target_site_config:
             self._set_pos_site(*site)
 
@@ -410,6 +420,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return super().reset()
 
     def _reset_hand(self, steps=50):
+        self.init_tcp = self.tcp_center
         for _ in range(steps):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
@@ -426,3 +437,45 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 size=self._random_reset_space.low.size)
             self._last_rand_vec = rand_vec
             return rand_vec
+
+    def _gripper_caging_reward(self, action, pos_main_object, obj_radius):
+        # MARK: Left-right gripper information for caging reward
+        left_pad = self.get_body_com('leftpad')
+        right_pad = self.get_body_com('rightpad')
+
+        pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
+        pad_y_lr_init = np.hstack((self.init_left_pad[1], self.init_right_pad[1]))
+
+        obj_to_pad_lr = np.abs(pad_y_lr - pos_main_object[1])
+        obj_to_pad_lr_init = np.abs(pad_y_lr_init - pos_main_object[1])
+
+        caging_margin_lr = np.abs(obj_to_pad_lr_init - self.PAD_SUCCESS_MARGIN)
+        caging_lr = [reward_utils.tolerance(
+            obj_to_pad_lr[i],
+            bounds=(obj_radius, self.PAD_SUCCESS_MARGIN),
+            margin=caging_margin_lr[i],
+            sigmoid='long_tail',
+        ) for i in range(2)]
+        caging_y = reward_utils.hamacher_product(*caging_lr)
+
+        # MARK: X-Z gripper information for caging reward
+        tcp = self.tcp_center
+        xz = [0, 2]
+        xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
+        xz_margin -= self.X_Z_SUCCESS_MARGIN
+
+        caging_xz = reward_utils.tolerance(
+            np.linalg.norm(tcp[xz] - pos_main_object[xz]),
+            bounds=(0, self.X_Z_SUCCESS_MARGIN),
+            margin=xz_margin,
+            sigmoid='long_tail',
+        )
+
+        # MARK: Closed-extent gripper information for caging reward
+        gripper_closed = min(max(0, action[-1]), 1)
+
+        # MARK: Combine components
+        caging = reward_utils.hamacher_product(caging_y, caging_xz)
+        gripping = gripper_closed if caging > 0.97 else 0.
+
+        return reward_utils.hamacher_product(caging, gripping)
