@@ -1,6 +1,8 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -136,32 +138,64 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pickCompleted = False
 
-    def compute_reward(self, actions, obs):
-        pos_obj = obs[3:6]
+    # def compute_reward(self, actions, obs):
+    #     pos_obj = obs[3:6]
+    #
+    #     finger_right, finger_left = (
+    #         self._get_site_pos('rightEndEffector'),
+    #         self._get_site_pos('leftEndEffector')
+    #     )
+    #     finger_center = (finger_right + finger_left) / 2
+    #
+    #     goal = self._target_pos
+    #     assert np.all(goal == self._get_site_pos('goal'))
+    #
+    #     c1 = 1000
+    #     c2 = 0.01
+    #     c3 = 0.001
+    #     reach_dist = np.linalg.norm(finger_center - pos_obj)
+    #     reach_rew = -reach_dist
+    #
+    #     push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
+    #     if reach_dist < 0.05:
+    #         push_rew = c1 * (self.maxPushDist - push_dist) + \
+    #                    c1 * (np.exp(-(push_dist ** 2) / c2) +
+    #                          np.exp(-(push_dist ** 2) / c3))
+    #         push_rew = max(push_rew, 0)
+    #     else:
+    #         push_rew = 0
+    #
+    #     reward = reach_rew + push_rew
+    #     return [reward, reach_dist, push_dist]
 
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        finger_center = (finger_right + finger_left) / 2
+        def compute_reward(self, action, obs):
+            obj = obs[4:7]
 
-        goal = self._target_pos
-        assert np.all(goal == self._get_site_pos('goal'))
+            target_to_obj = np.linalg.norm(obj - self._target_pos)
+            target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        reach_dist = np.linalg.norm(finger_center - pos_obj)
-        reach_rew = -reach_dist
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=target_to_obj_init,
+                sigmoid='long_tail',
+            )
 
-        push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
-        if reach_dist < 0.05:
-            push_rew = c1 * (self.maxPushDist - push_dist) + \
-                       c1 * (np.exp(-(push_dist ** 2) / c2) +
-                             np.exp(-(push_dist ** 2) / c3))
-            push_rew = max(push_rew, 0)
-        else:
-            push_rew = 0
+            object_grasped = self._gripper_caging_reward(action, obj)
+            reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        reward = reach_rew + push_rew
-        return [reward, reach_dist, push_dist]
+            tcp_opened = obs[3]
+            tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
+
+            if tcp_to_obj < 0.02 and tcp_opened > 0:
+                reward += 1. + 5. * in_place
+            if target_to_obj < self.TARGET_RADIUS:
+                reward = 10.
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place
+            )
