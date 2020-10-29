@@ -21,7 +21,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    OBJ_RADIUS = 0.015
+    OBJ_RADIUS = 0.01
 
     def __init__(self):
         lift_thresh = 0.04
