@@ -21,7 +21,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    OBJ_RADIUS = 0.02
+    OBJ_RADIUS = 0.015
 
     def __init__(self):
         lift_thresh = 0.04
@@ -158,39 +158,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         )
         self.init_finger_center = (finger_right + finger_left) / 2
         self.pickCompleted = False
-
-
-
-
-    # def compute_reward(self, actions, obs):
-    #     pos_obj = obs[3:6]
-    #
-    #     finger_right, finger_left = (
-    #         self._get_site_pos('rightEndEffector'),
-    #         self._get_site_pos('leftEndEffector')
-    #     )
-    #     finger_center = (finger_right + finger_left) / 2
-    #
-    #     goal = self._target_pos
-    #     assert np.all(goal == self._get_site_pos('goal'))
-    #
-    #     c1 = 1000
-    #     c2 = 0.01
-    #     c3 = 0.001
-    #     reach_dist = np.linalg.norm(finger_center - pos_obj)
-    #     reach_rew = -reach_dist
-    #
-    #     push_dist = np.linalg.norm(pos_obj[:2] - goal[:2])
-    #     if reach_dist < 0.05:
-    #         push_rew = c1 * (self.maxPushDist - push_dist) + \
-    #                    c1 * (np.exp(-(push_dist ** 2) / c2) +
-    #                          np.exp(-(push_dist ** 2) / c3))
-    #         push_rew = max(push_rew, 0)
-    #     else:
-    #         push_rew = 0
-    #
-    #     reward = reach_rew + push_rew
-    #     return [reward, reach_dist, push_dist]
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
