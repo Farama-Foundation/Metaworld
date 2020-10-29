@@ -85,8 +85,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     )
     max_path_length = 200
 
-    PAD_SUCCESS_MARGIN = 0.05
-    X_Z_SUCCESS_MARGIN = 0.005
     TARGET_RADIUS = 0.05
 
     def __init__(
@@ -437,97 +435,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 size=self._random_reset_space.low.size)
             self._last_rand_vec = rand_vec
             return rand_vec
-
-    # def _gripper_caging_reward(self, action, pos_main_object, obj_radius):
-    #     # MARK: Left-right gripper information for caging reward
-    #     left_pad = self.get_body_com('leftpad')
-    #     right_pad = self.get_body_com('rightpad')
-    #
-    #     pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
-    #     pad_y_lr_init = np.hstack((self.init_left_pad[1], self.init_right_pad[1]))
-    #
-    #     obj_to_pad_lr = np.abs(pad_y_lr - pos_main_object[1])
-    #     obj_to_pad_lr_init = np.abs(pad_y_lr_init - pos_main_object[1])
-    #
-    #     caging_margin_lr = np.abs(obj_to_pad_lr_init - self.PAD_SUCCESS_MARGIN)
-    #     caging_lr = [reward_utils.tolerance(
-    #         obj_to_pad_lr[i],
-    #         bounds=(obj_radius, self.PAD_SUCCESS_MARGIN),
-    #         margin=caging_margin_lr[i],
-    #         sigmoid='long_tail',
-    #     ) for i in range(2)]
-    #     caging_y = reward_utils.hamacher_product(*caging_lr)
-    #
-    #     # MARK: X-Z gripper information for caging reward
-    #     tcp = self.tcp_center
-    #     xz = [0, 2]
-    #     xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
-    #     xz_margin -= self.X_Z_SUCCESS_MARGIN
-    #
-    #     caging_xz = reward_utils.tolerance(
-    #         np.linalg.norm(tcp[xz] - pos_main_object[xz]),
-    #         bounds=(0, self.X_Z_SUCCESS_MARGIN),
-    #         margin=xz_margin,
-    #         sigmoid='long_tail',
-    #     )
-    #
-    #     # MARK: Closed-extent gripper information for caging reward
-    #     gripper_closed = min(max(0, action[-1]), 1)
-    #
-    #     # MARK: Combine components
-    #     caging = reward_utils.hamacher_product(caging_y, caging_xz)
-    #     gripping = gripper_closed if caging > 0.97 else 0.
-    #
-    #     return reward_utils.hamacher_product(caging, gripping)
-
-        # def _gripper_caging_reward(self, action, obj_position):
-        #     pad_success_margin = 0.05
-        #     x_z_success_margin = 0.005
-        #     obj_radius = 0.015
-        #     tcp = self.tcp_center
-        #     left_pad = self.get_body_com('leftpad')
-        #     right_pad = self.get_body_com('rightpad')
-        #     delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        #     delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        #     right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1])
-        #         - pad_success_margin)
-        #     left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1])
-        #         - pad_success_margin)
-        #
-        #     right_caging = reward_utils.tolerance(delta_object_y_right_pad,
-        #                             bounds=(obj_radius, pad_success_margin),
-        #                             margin=right_caging_margin,
-        #                             sigmoid='long_tail',)
-        #     left_caging = reward_utils.tolerance(delta_object_y_left_pad,
-        #                             bounds=(obj_radius, pad_success_margin),
-        #                             margin=left_caging_margin,
-        #                             sigmoid='long_tail',)
-        #
-        #     y_caging = reward_utils.hamacher_product(left_caging,
-        #                                              right_caging)
-        #
-        #     # compute the tcp_obj distance in the x_z plane
-        #     tcp_xz = tcp + np.array([0., -tcp[1], 0.])
-        #     obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
-        #     tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
-        #
-        #     # used for computing the tcp to object object margin in the x_z plane
-        #     init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
-        #     init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-        #     tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        #
-        #     x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
-        #                             bounds=(0, x_z_success_margin),
-        #                             margin=tcp_obj_x_z_margin,
-        #                             sigmoid='long_tail',)
-        #
-        #     gripper_closed = min(max(0, action[-1]), 1)
-        #     caging = reward_utils.hamacher_product(y_caging, x_z_caging)
-        #
-        #     gripping = gripper_closed if caging > 0.97 else 0.
-        #     caging_and_gripping = reward_utils.hamacher_product(caging,
-        #                                                         gripping)
-        #     return caging_and_gripping
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
