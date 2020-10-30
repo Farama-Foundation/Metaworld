@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.01
+    OBJ_RADIUS = 0.015
 
     def __init__(self):
 
@@ -126,8 +126,8 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 5. * in_place
+        if tcp_to_obj < 0.02 and tcp_opened > 0 and np.linalg.norm(obj - self.obj_init_pos) > 0.01:
+            reward += 1. + 5. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (
