@@ -105,42 +105,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
-    # def compute_reward(self, actions, obs):
-    #     del actions
-    #
-    #     objPos = obs[3:6]
-    #
-    #     rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-    #     fingerCOM  =  (rightFinger + leftFinger)/2
-    #
-    #     pushGoal = self._target_pos
-    #
-    #     reachDist = np.linalg.norm(objPos - fingerCOM)
-    #     pushDistxy = np.linalg.norm(objPos[:-1] - pushGoal[:-1])
-    #     reachRew = -reachDist
-    #
-    #     self.reachCompleted = reachDist < 0.05
-    #
-    #     if objPos[-1] < self.obj_init_pos[-1] - 0.05:
-    #         reachRew = 0
-    #         pushDistxy = 0
-    #         reachDist = 0
-    #
-    #     def pushReward():
-    #         c1 = 1000
-    #         c2 = 0.01
-    #         c3 = 0.001
-    #         if self.reachCompleted:
-    #             pushRew = 1000*(self.maxPushDist - pushDistxy) + c1*(np.exp(-(pushDistxy**2)/c2) + np.exp(-(pushDistxy**2)/c3))
-    #             pushRew = max(pushRew,0)
-    #             return pushRew
-    #         else:
-    #             return 0
-    #
-    #     pushRew = pushReward()
-    #     reward = reachRew + pushRew
-    #
-    #     return [reward, reachDist, pushDistxy]
     def compute_reward(self, action, obs):
         obj = obs[4:7]
         tcp_opened = obs[3]
@@ -155,8 +119,9 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
+        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        # reward = reward_utils.hamacher_product(object_grasped, in_place)
+        reward = in_place
 
         if tcp_to_obj < 0.02:
             reward += 1. + 5. * in_place
@@ -167,6 +132,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             tcp_to_obj,
             tcp_opened,
             target_to_obj,
-            object_grasped,
+            0,
             in_place
         )
