@@ -84,7 +84,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        # self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('obj')[2]
 
         if self.random_init:
@@ -97,7 +97,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self.target_reward = 1000*self.maxPushDist + 1000*2
 
         ob = self._get_obs()
-        self.obj_init_pos = ob[4:7]
         return ob
 
     def _reset_hand(self):
@@ -120,8 +119,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             margin=target_to_obj_init,
             sigmoid='long_tail',
         )
-
-        print(in_place)
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
