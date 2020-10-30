@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.02
+    OBJ_RADIUS = 0.01
 
     def __init__(self):
 
@@ -84,7 +84,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        # self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('obj')[2]
 
         if self.random_init:
@@ -96,7 +96,9 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(self.get_body_com('obj')[:-1] - self._target_pos[:-1])
         self.target_reward = 1000*self.maxPushDist + 1000*2
 
-        return self._get_obs()
+        ob = self._get_obs()
+        self.obj_init_pos = ob[4:7]
+        return ob
 
     def _reset_hand(self):
         super()._reset_hand()
@@ -110,7 +112,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -119,13 +121,13 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
+        print(in_place)
+
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-
-
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 5. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (
