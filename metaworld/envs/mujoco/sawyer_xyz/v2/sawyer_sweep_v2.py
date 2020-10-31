@@ -52,19 +52,29 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pushDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        obs = super().step(action)
+        obj = obs[4:7]
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, obs)
 
         info = {
-            'reachDist': reachDist,
-            'goalDist': pushDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pushDist <= 0.05)
+            'success': float(target_to_obj <= 0.05),
+            'near_object': float(tcp_to_obj <= 0.03),
+            'grasp_reward': object_grasped,
+            'in_place_reward': in_place,
+            'obj_to_target': target_to_obj,
+            'unscaled_reward': reward,
         }
+        self.curr_path_length += 1
 
-        return ob, reward, False, info
+        return obs, reward, False, info
+
 
 
     def _get_quat_objects(self):
