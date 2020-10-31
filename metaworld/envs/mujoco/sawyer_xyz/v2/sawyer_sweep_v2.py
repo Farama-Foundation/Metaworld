@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.01
+    OBJ_RADIUS = 0.02
 
     def __init__(self):
 
@@ -63,10 +63,14 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             in_place
         ) = self.compute_reward(action, obs)
 
+        grasp_success = float(self.touching_main_object and (tcp_opened > 0))
+
+
         info = {
             'success': float(target_to_obj <= 0.05),
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_reward': object_grasped,
+            'grasp_success': grasp_success,
             'in_place_reward': in_place,
             'obj_to_target': target_to_obj,
             'unscaled_reward': reward,
@@ -158,8 +162,8 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
                                                                     in_place)
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 5. * in_place
+        if tcp_to_obj < 0.02 and (tcp_opened > 0):
+            reward += 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        return [10 * object_grasped, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]

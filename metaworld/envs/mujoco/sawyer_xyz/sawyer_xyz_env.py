@@ -437,8 +437,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return rand_vec
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
-        pad_success_margin = 0.05
-        x_z_success_margin = 0.005
+        pad_success_margin = 0.05 # obj_radius + 0.01
+        grip_success_margin = obj_radius + 0.01
+        x_z_success_margin = 0.01
 
         tcp = self.tcp_center
         left_pad = self.get_body_com('leftpad')
@@ -459,10 +460,23 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             sigmoid='long_tail',
         )
 
+        right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
+
+
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
+        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
 
         assert y_caging >= 0 and y_caging <= 1
 
@@ -485,11 +499,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
         assert caging >= 0 and caging <= 1
 
-        if caging > 0.97:
-            gripping = gripper_closed
+        if caging > 0.90:
+            gripping = y_gripping
         else:
             gripping = 0.
-
         assert gripping >= 0 and gripping <= 1
         # caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
         caging_and_gripping = (caging + gripping) / 2
