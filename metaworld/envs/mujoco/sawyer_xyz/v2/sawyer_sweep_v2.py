@@ -112,36 +112,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self.reachCompleted = False
 
     def compute_reward(self, action, obs):
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        # tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        # target_to_obj = np.linalg.norm(obj - self._target_pos)
-        # target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
-        #
-        # in_place = reward_utils.tolerance(
-        #     target_to_obj,
-        #     bounds=(0, self.TARGET_RADIUS),
-        #     margin=target_to_obj_init,
-        #     sigmoid='long_tail',
-        # )
-        #
-        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        # reward = reward_utils.hamacher_product(object_grasped, in_place)
-        #
-        #
-        #
-        # if tcp_to_obj < 0.02 and tcp_opened > 0:
-        #     reward += 1. + 5. * in_place
-        # if target_to_obj < self.TARGET_RADIUS:
-        #     reward = 10.
-        # return (
-        #     reward,
-        #     tcp_to_obj,
-        #     tcp_opened,
-        #     target_to_obj,
-        #     object_grasped,
-        #     in_place
-        # )
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -158,12 +128,13 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
-        reward = in_place_and_object_grasped
+        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+        #                                                             in_place)
+        # reward = in_place_and_object_grasped
+        reward = 2 * object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0):
+        if reward > 1.5:
             reward += 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
-        return [10 * object_grasped, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        return [object_grasped, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
