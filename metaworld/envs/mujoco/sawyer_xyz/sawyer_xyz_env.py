@@ -491,7 +491,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             gripping = 0.
 
         assert gripping >= 0 and gripping <= 1
-        caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
+        # caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
+        caging_and_gripping = (caging + gripping) / 2
 
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
