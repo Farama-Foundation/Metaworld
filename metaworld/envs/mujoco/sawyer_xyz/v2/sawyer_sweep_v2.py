@@ -133,7 +133,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         # reward = in_place_and_object_grasped
         reward = 2 * object_grasped
 
-        if reward > 1.5:
+        if tcp_to_obj < 0.02 and (tcp_opened > 0):
             reward += 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
