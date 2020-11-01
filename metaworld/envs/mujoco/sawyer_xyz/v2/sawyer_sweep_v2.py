@@ -128,13 +128,12 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-        #                                                             in_place)
-        # reward = in_place_and_object_grasped
-        reward = 2 * object_grasped
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place)
+        reward = in_place_and_object_grasped
 
         if tcp_to_obj < 0.02 and (tcp_opened > 0):
-            reward += 5. * in_place
+            reward += 1 + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
