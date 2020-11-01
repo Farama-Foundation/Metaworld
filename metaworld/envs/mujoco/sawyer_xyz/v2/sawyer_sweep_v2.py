@@ -120,7 +120,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
 
         obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
@@ -128,11 +128,11 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
-        reward = in_place_and_object_grasped
+        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+        #                                                             in_place)
+        reward = 2 * object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0):
+        if tcp_to_obj < 0.025 and (tcp_opened > 0) and np.linalg.norm(self.obj_init_pos - obj) > 0.02:
             reward += 1 + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
