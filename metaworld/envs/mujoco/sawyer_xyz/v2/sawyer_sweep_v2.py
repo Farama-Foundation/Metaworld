@@ -131,7 +131,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
 
-        reward = object_grasped + in_place_and_object_grasped + (5 * in_place)
+        reward = (2*object_grasped) + (6*in_place_and_object_grasped)
 
         # if tcp_to_obj < 0.025 and (tcp_opened > 0) and np.linalg.norm(self.obj_init_pos - obj) > 0.01:
         #     reward += 1 + 5. * in_place
