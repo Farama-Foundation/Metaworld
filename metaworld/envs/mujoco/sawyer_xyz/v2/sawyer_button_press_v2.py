@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -29,7 +30,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -44,24 +45,40 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, reachDist, pressDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            obj_to_target,
+            near_button,
+            button_pressed
+        ) = self.compute_reward(action, ob)
+
         info = {
-            'reachDist': reachDist,
-            'goalDist': pressDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pressDist <= 0.03)
+            'success': float(obj_to_target <= 0.02),
+            'near_object': float(tcp_to_obj <= 0.05),
+            'grasp_success': float(tcp_open > 0),
+            'grasp_reward': near_button,
+            'in_place_reward': button_pressed,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward,
         }
 
+        self.curr_path_length += 1
         return ob, reward, False, info
 
     @property
     def _target_site_config(self):
         return []
 
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('btnGeom')
+
     def _get_pos_objects(self):
         return self.get_body_com("button") + np.array([.0, -.193, .0])
+
+    def _get_quat_objects(self):
+        return self.sim.data.get_body_xquat('button')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -79,41 +96,55 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             self.obj_init_pos = goal_pos
 
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
+        self.sim.model.body_pos[
+            self.model.body_name2id('box')] = self.obj_init_pos
         self._set_obj_xyz(0)
         self._target_pos = self._get_site_pos('hole')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('buttonStart')][1] - self._target_pos[1])
-        self.target_reward = 1000*self.maxDist + 1000*2
+
+        self._obj_to_target_init = abs(
+            self._target_pos[1] - self._get_site_pos('buttonStart')[1]
+        )
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.pickCompleted = False
+    def compute_reward(self, action, obs):
+        del action
+        obj = obs[4:7]
+        tcp = self.tcp_center
 
-    def compute_reward(self, actions, obs):
-        del actions
-        objPos = obs[3:6]
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
+        obj_to_target = abs(self._target_pos[1] - obj[1])
 
-        leftFinger = self._get_site_pos('leftEndEffector')
-        fingerCOM  =  leftFinger
+        tcp_closed = 1 - obs[3]
+        near_button = reward_utils.tolerance(
+            tcp_to_obj,
+            bounds=(0, 0.01),
+            margin=tcp_to_obj_init,
+            sigmoid='long_tail',
+        )
+        button_pressed = reward_utils.tolerance(
+            obj_to_target,
+            bounds=(0, 0.005),
+            margin=self._obj_to_target_init,
+            sigmoid='long_tail',
+        )
 
-        pressGoal = self._target_pos[1]
+        reward = 5 * reward_utils.hamacher_product(tcp_closed, near_button)
+        if tcp_to_obj <= 0.03:
+            reward += 5 * button_pressed
 
-        pressDist = np.abs(objPos[1] - pressGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        if reachDist < 0.05:
-            pressRew = 1000*(self.maxDist - pressDist) + c1*(np.exp(-(pressDist**2)/c2) + np.exp(-(pressDist**2)/c3))
-        else:
-            pressRew = 0
-        pressRew = max(pressRew, 0)
-        reward = -reachDist + pressRew
-
-        return [reward, reachDist, pressDist]
+        return (
+            reward,
+            tcp_to_obj,
+            obs[3],
+            obj_to_target,
+            near_button,
+            button_pressed
+        )
