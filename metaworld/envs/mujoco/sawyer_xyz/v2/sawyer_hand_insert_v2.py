@@ -92,6 +92,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
+        self.prev_obs = self._get_curr_obs_combined_no_goal()
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
@@ -104,64 +105,19 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._target_pos[-1])
-
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
-        self.pickCompleted = False
         self.init_tcp = self.tcp_center
         self.init_left_pad = self.get_body_com('leftpad')
         self.init_right_pad = self.get_body_com('rightpad')
-
-    def _gripper_caging_reward(self, action, pos_main_object):
-        # MARK: Left-right gripper information for caging reward----------------
-        left_pad = self.get_body_com('leftpad')
-        right_pad = self.get_body_com('rightpad')
-
-        pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
-        pad_y_lr_init = np.hstack((self.init_left_pad[1], self.init_right_pad[1]))
-
-        obj_to_pad_lr = np.abs(pad_y_lr - pos_main_object[1])
-        obj_to_pad_lr_init = np.abs(pad_y_lr_init - pos_main_object[1])
-
-        caging_margin_lr = np.abs(obj_to_pad_lr_init - self.PAD_SUCCESS_MARGIN)
-        caging_lr = [reward_utils.tolerance(
-            obj_to_pad_lr[i],
-            bounds=(self.OBJ_RADIUS, self.PAD_SUCCESS_MARGIN),
-            margin=caging_margin_lr[i],
-            sigmoid='long_tail',
-        ) for i in range(2)]
-        caging_y = reward_utils.hamacher_product(*caging_lr)
-
-        # MARK: X-Z gripper information for caging reward-----------------------
-        tcp = self.tcp_center
-        xz = [0, 2]
-        xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
-        xz_margin -= self.X_Z_SUCCESS_MARGIN
-
-        caging_xz = reward_utils.tolerance(
-            np.linalg.norm(tcp[xz] - pos_main_object[xz]),
-            bounds=(0, self.X_Z_SUCCESS_MARGIN),
-            margin=xz_margin,
-            sigmoid='long_tail',
-        )
-
-        # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = min(max(0, action[-1]), 1)
-
-        # MARK: Combine components----------------------------------------------
-        caging = reward_utils.hamacher_product(caging_y, caging_xz)
-        gripping = gripper_closed if caging > 0.97 else 0.
-
-        return reward_utils.hamacher_product(caging, gripping)
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
 
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -170,7 +126,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj)
+        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]
