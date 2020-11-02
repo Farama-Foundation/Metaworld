@@ -122,10 +122,10 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
         obj_to_target = abs(self._target_pos[1] - obj[1])
 
-        tcp_closed = 1 - obs[3]
+        tcp_closed = max(obs[3], 0.0)
         near_button = reward_utils.tolerance(
             tcp_to_obj,
-            bounds=(0, 0.01),
+            bounds=(0, 0.05),
             margin=tcp_to_obj_init,
             sigmoid='long_tail',
         )
@@ -136,9 +136,9 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        reward = 5 * reward_utils.hamacher_product(tcp_closed, near_button)
-        if tcp_to_obj <= 0.03:
-            reward += 5 * button_pressed
+        reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
+        if tcp_to_obj <= 0.05:
+            reward += 8 * button_pressed
 
         return (
             reward,
