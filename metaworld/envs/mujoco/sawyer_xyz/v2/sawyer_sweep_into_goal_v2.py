@@ -1,11 +1,15 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
+
+    OBJ_RADIUS = 0.02
 
     def __init__(self):
 
@@ -46,19 +50,35 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pushDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        obs = super().step(action)
+        obj = obs[4:7]
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, obs)
+
+        grasp_success = float(self.touching_main_object and (tcp_opened > 0))
 
         info = {
-            'reachDist': reachDist,
-            'goalDist': pushDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pushDist <= 0.08)
+            'success': float(target_to_obj <= 0.05),
+            'near_object': float(tcp_to_obj <= 0.03),
+            'grasp_reward': object_grasped,
+            'grasp_success': grasp_success,
+            'in_place_reward': in_place,
+            'obj_to_target': target_to_obj,
+            'unscaled_reward': reward,
         }
+        self.curr_path_length += 1
+        return obs, reward, False, info
 
-        return ob, reward, False, info
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')
+        ).as_quat()
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
@@ -88,36 +108,28 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
-    def compute_reward(self, actions, obs):
-        del actions
+    def compute_reward(self, action, obs):
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        target = self._target_pos
 
-        objPos = obs[3:6]
+        obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        in_place = reward_utils.tolerance(obj_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
 
-        goal = self._target_pos
+        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place)
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        assert np.all(goal == self._get_site_pos('goal'))
-        reachDist = np.linalg.norm(fingerCOM - objPos)
-        pushDist = np.linalg.norm(objPos[:2] - goal[:2])
-        reachRew = -reachDist
+        reward = (2*object_grasped) + (6*in_place_and_object_grasped)
 
-        self.reachCompleted = reachDist < 0.05
-
-        if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0:
-            reachRew = 0
-            reachDist = 0
-            pushDist = 0
-
-        if self.reachCompleted:
-            pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
-            pushRew = max(pushRew, 0)
-        else:
-            pushRew = 0
-        reward = reachRew + pushRew
-
-        return [reward, reachDist, pushDist]
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
