@@ -10,5 +10,9 @@
       <geom class="peg_block_col" pos="0.095 0 0.1" size="0.005 0.1 0.1" type="box"/>
       <geom class="peg_block_col" pos="-0.095 0 0.1" size="0.005 0.1 0.1" type="box"/>
       <site name="hole" pos="0 -.096 0.13" size="0.005" rgba="0 0.8 0 1"/>
+      <site name="bottom_right_corner_collision_box_1" pos="0.1 -0.11 0.01" size="0.0001"/>
+      <site name="top_left_corner_collision_box_1" pos="-0.1 -.15 0.096" size="0.0001"/>
+      <site name="bottom_right_corner_collision_box_2" pos="0.1 -0.11 0.16" size="0.0001"/>
+      <site name="top_left_corner_collision_box_2" pos="-0.1 -.17 0.19" size="0.0001"/>
     </body>
 </mujocoinclude>
