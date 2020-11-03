@@ -438,8 +438,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05 # obj_radius + 0.01
-        grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
+        grip_success_margin = obj_radius + 0.005
+        x_z_success_margin = 0.01
 
         tcp = self.tcp_center
         left_pad = self.get_body_com('leftpad')
@@ -508,5 +508,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         caging_and_gripping = (caging + gripping) / 2
 
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+
+        print("DIST: {} ... REWARD: {}".format(np.linalg.norm(left_pad - right_pad), y_gripping))
 
         return caging_and_gripping
