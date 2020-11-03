@@ -113,7 +113,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
-        target = self._target_pos
+        target = np.array([self._target_pos[0], self._target_pos[1], obj[2]])
 
         obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
