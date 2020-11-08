@@ -230,7 +230,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         reward = (2*object_grasped) + (5*in_place_and_object_grasped)
 
         if (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward = 4 + (5*in_place_and_object_grasped)
+            reward = 4 + (5*in_place)
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
