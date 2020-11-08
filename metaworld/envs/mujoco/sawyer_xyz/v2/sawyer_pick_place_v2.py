@@ -164,7 +164,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         obj_to_target = np.linalg.norm(obj - self._target_pos)
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        in_place_margin = np.linalg.norm(self.obj_init_pos - self._target_pos)
+        in_place_margin = np.linalg.norm(self.obj_init_pos - self._target_pos) + 0.1
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         lift_bonus = 0
