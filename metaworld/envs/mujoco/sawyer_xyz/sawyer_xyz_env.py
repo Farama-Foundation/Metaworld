@@ -487,7 +487,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
 
 
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
                                 margin=tcp_obj_x_z_margin,
