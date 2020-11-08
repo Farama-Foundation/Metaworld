@@ -159,7 +159,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.pick_completed = False
 
     def compute_reward(self, action, obs):
-        # _TARGET_RADIUS = 0.05
+        _TARGET_RADIUS = 0.05
         obj = obs[4:7]
         tcp_opened = obs[3]
         obj_to_target = np.linalg.norm(obj - self._target_pos)
@@ -169,15 +169,17 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         lift_bonus = 0
         in_place = reward_utils.tolerance(obj_to_target,
-                                    bounds=(0, self.TARGET_RADIUS),
+                                    bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        in_control = reward_utils.hamacher_product(object_grasped, in_place)
-        reward = (2*object_grasped) + (5*in_control)
-
         if (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward = 4 + (5 * in_place)
-        if obj_to_target < self.TARGET_RADIUS:
+            object_grasped = 1
+            lift_bonus = 2
+
+        in_control = reward_utils.hamacher_product(object_grasped, in_place)
+        reward = (2*object_grasped) + (5*in_control) + lift_bonus
+
+        if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
