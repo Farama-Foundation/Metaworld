@@ -212,7 +212,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
-        target = np.array([self._target_pos[0], self._target_pos[1], obj[2]])
+        # target = np.array([self._target_pos[0], self._target_pos[1], obj[2]])
+        target = self._target_pos
 
         obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
