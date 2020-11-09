@@ -406,7 +406,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
 
-        print(self.compute_reward(action, self._get_obs()))
+        # print(self.compute_reward(action, self._get_obs()))
 
         for site in self._target_site_config:
             self._set_pos_site(*site)
@@ -438,7 +438,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05 # obj_radius + 0.01
-        grip_success_margin = obj_radius + 0.005
+        grip_success_margin_low = obj_radius - 0.005
+        grip_success_margin_high = obj_radius + 0.001
         x_z_success_margin = 0.01
 
         tcp = self.tcp_center
@@ -461,12 +462,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
 
         right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
-            bounds=(obj_radius, grip_success_margin),
+            bounds=(grip_success_margin_low, grip_success_margin_high),
             margin=right_caging_margin,
             sigmoid='long_tail',
         )
         left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
-            bounds=(obj_radius, grip_success_margin),
+            bounds=(grip_success_margin_low, grip_success_margin_high),
             margin=left_caging_margin,
             sigmoid='long_tail',
         )
@@ -509,6 +510,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
-        print("DIST: {} ... REWARD: {}".format(np.linalg.norm(left_pad - right_pad), y_gripping))
+        # print("DIST: {} ... REWARD: {}".format(np.linalg.norm(left_pad - right_pad), y_gripping))
 
         return caging_and_gripping
