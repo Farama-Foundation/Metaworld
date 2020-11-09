@@ -217,7 +217,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = np.linalg.norm(self.obj_init_pos - target) + 0.05
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
