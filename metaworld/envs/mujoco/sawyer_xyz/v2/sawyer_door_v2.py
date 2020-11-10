@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -48,21 +49,23 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
+        obs = super().step(action)
+        reward, obj_to_target, in_place = self.compute_reward(action, obs)
         self.curr_path_length += 1
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.08)
+            'reward': reward,
+            'obj_to_target': obj_to_target,
+            'in_place': in_place,
+            'success': float(obj_to_target <= 0.08)
         }
 
-        return ob, reward, False, info
+        return obs, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('handle').copy()
+
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(self.data.get_geom_xmat('handle')).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.copy()
