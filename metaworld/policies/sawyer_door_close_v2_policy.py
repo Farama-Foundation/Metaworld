@@ -9,11 +9,6 @@ class SawyerDoorCloseV2Policy(Policy):
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
-        # return {
-        #     'hand_pos': obs[:3],
-        #     'door_pos': obs[3:6],
-        #     'unused_info': obs[6:],
-        # }
         return {
             'hand_pos': obs[:3],
             'unused_1': obs[3],
