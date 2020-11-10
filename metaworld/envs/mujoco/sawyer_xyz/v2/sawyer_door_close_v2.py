@@ -101,7 +101,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
 
         grasping_and_moving = reward_utils.hamacher_product(in_place, grasp_in_place)
 
-        reward = 7 * in_place + 2 * grasping_and_moving
+        reward = 9 * grasping_and_moving
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
