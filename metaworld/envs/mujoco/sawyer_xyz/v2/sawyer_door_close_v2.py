@@ -84,15 +84,25 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         target = self._target_pos
 
         tcp_to_target = np.linalg.norm(tcp - target)
+        tcp_to_obj = np.linalg.norm(tcp - obj)
         obj_to_target = np.linalg.norm(obj - target)
 
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
-                                    sigmoid='long_tail',)
+                                    sigmoid='gaussian',)
 
-        reward = 10 * in_place
+        grasp_margin = np.linalg.norm(self.obj_init_pos - target)
+        grasp_in_place = reward_utils.tolerance(tcp_to_obj,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=grasp_margin,
+                                    sigmoid='gaussian',)
+
+        if (0 <= tcp[2] < (2*obj[2]) and tcp[0] > obj[1]):
+            grasp_in_place = 0
+
+        reward = 6 * in_place + 3 * grasp_in_place
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
