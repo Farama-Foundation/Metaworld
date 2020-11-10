@@ -47,37 +47,6 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
-        # del actions
-        # objPos = obs[3:6]
-        #
-        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        # fingerCOM  =  (rightFinger + leftFinger)/2
-        #
-        # pullGoal = self._target_pos
-        #
-        # pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        # reachDist = np.linalg.norm(objPos - fingerCOM)
-        # reachRew = -reachDist
-        #
-        # self.reachCompleted = reachDist < 0.05
-        #
-        # def pullReward():
-        #     c1 = 1000
-        #     c2 = 0.01
-        #     c3 = 0.001
-        #
-        #     if self.reachCompleted:
-        #         pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-        #         pullRew = max(pullRew,0)
-        #         return pullRew
-        #     else:
-        #         return 0
-        #
-        # pullRew = pullReward()
-        # reward = reachRew + pullRew
-        #
-        # return [reward, reachDist, pullDist]
-
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -98,8 +67,6 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
                                     bounds=(0, 0.25*_TARGET_RADIUS),
                                     margin=hand_margin,
                                     sigmoid='gaussian',)
-
-        # grasping_and_moving = reward_utils.hamacher_product(in_place, grasp_in_place)
 
         reward = 3 * hand_in_place + 6 * in_place
 
