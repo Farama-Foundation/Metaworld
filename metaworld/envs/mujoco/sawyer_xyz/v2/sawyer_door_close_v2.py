@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import SawyerDoorEnvV2
 
 
@@ -46,34 +47,54 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
-        del actions
-        objPos = obs[3:6]
+        # del actions
+        # objPos = obs[3:6]
+        #
+        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
+        # fingerCOM  =  (rightFinger + leftFinger)/2
+        #
+        # pullGoal = self._target_pos
+        #
+        # pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+        # reachDist = np.linalg.norm(objPos - fingerCOM)
+        # reachRew = -reachDist
+        #
+        # self.reachCompleted = reachDist < 0.05
+        #
+        # def pullReward():
+        #     c1 = 1000
+        #     c2 = 0.01
+        #     c3 = 0.001
+        #
+        #     if self.reachCompleted:
+        #         pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+        #         pullRew = max(pullRew,0)
+        #         return pullRew
+        #     else:
+        #         return 0
+        #
+        # pullRew = pullReward()
+        # reward = reachRew + pullRew
+        #
+        # return [reward, reachDist, pullDist]
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        target = self._target_pos
 
-        pullGoal = self._target_pos
+        tcp_to_target = np.linalg.norm(tcp - target)
+        obj_to_target = np.linalg.norm(obj - target)
 
-        pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
+        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        in_place = reward_utils.tolerance(obj_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
 
-        self.reachCompleted = reachDist < 0.05
+        reward = 10 * in_place
 
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10
 
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
-
+        return [reward, obj_to_target, in_place]
