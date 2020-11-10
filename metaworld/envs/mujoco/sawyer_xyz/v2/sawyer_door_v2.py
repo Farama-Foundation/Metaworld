@@ -55,7 +55,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         info = {
             'reward': reward,
             'obj_to_target': obj_to_target,
-            'in_place': in_place,
+            'in_place_reward': in_place,
             'success': float(obj_to_target <= 0.08)
         }
 
