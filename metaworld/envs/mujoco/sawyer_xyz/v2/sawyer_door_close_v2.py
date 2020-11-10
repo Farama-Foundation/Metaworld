@@ -91,13 +91,13 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
-                                    sigmoid='gaussian',)
+                                    sigmoid='long_tail',)
 
         grasp_margin = np.linalg.norm(self.obj_init_pos - target)
         grasp_in_place = reward_utils.tolerance(tcp_to_obj,
-                                    bounds=(0, 4*_TARGET_RADIUS),
+                                    bounds=(0, 0.25*_TARGET_RADIUS),
                                     margin=grasp_margin,
-                                    sigmoid='gaussian',)
+                                    sigmoid='long_tail',)
 
         reward = 7 * in_place + 2 * grasp_in_place
 
