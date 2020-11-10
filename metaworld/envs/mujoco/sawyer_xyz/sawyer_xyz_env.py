@@ -345,7 +345,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
 
         obs_obj_padded = np.zeros(self._obs_obj_max_len)
-<<<<<<< HEAD
 
         obj_pos = self._get_pos_objects()
         obj_quat = self._get_quat_objects()
@@ -362,24 +361,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
 
-=======
-
-        obj_pos = self._get_pos_objects()
-        obj_quat = self._get_quat_objects()
-        assert len(obj_pos) % 3 == 0
-        assert len(obj_quat) % 4 == 0
-        obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
-        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
-
-        obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
-            np.hstack((pos, quat))
-            for pos, quat in zip(obj_pos_split, obj_quat_split)
-        ])
-        assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
-
-        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
-
->>>>>>> 0699efd8def2483760516babdb2064ba9feea745
     def _get_obs(self):
         """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the
             goal position to form a single flat observation.
