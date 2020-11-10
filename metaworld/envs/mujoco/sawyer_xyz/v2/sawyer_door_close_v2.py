@@ -99,10 +99,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
                                     margin=grasp_margin,
                                     sigmoid='gaussian',)
 
-        if (0 <= tcp[2] < (2*obj[2]) and tcp[0] > obj[1]):
-            grasp_in_place = 0
-
-        reward = 6 * in_place + 3 * grasp_in_place
+        reward = 7 * in_place + 2 * grasp_in_place
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
