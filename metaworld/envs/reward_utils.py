@@ -132,7 +132,7 @@ def hamacher_product(a, b):
         b (float): 2nd term of hamacher product.
     Raises:
         ValueError: a and b must range between 0 and 1
-    
+
     Returns:
         float: The hammacher product of a and b
     """
