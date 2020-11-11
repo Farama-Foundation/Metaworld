@@ -2,11 +2,17 @@ import numpy as np
 from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
+
+
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
+
+    OBJ_RADIUS = 0.03
+
     def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -50,10 +56,19 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         obs = super().step(action)
-        reward, obj_to_target, in_place = self.compute_reward(action, obs)
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            obj_to_target,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, obs)
+
         self.curr_path_length += 1
         info = {
             'reward': reward,
+            'tcp_to_obj': tcp_to_obj,
             'obj_to_target': obj_to_target,
             'in_place_reward': in_place,
             'success': float(obj_to_target <= 0.08)
@@ -98,34 +113,59 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
-    def compute_reward(self, actions, obs):
-        del actions
-        objPos = obs[3:6]
+    def compute_reward(self, action, obs):
+        # del actions
+        # objPos = obs[3:6]
+        #
+        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
+        # fingerCOM  =  (rightFinger + leftFinger)/2
+        #
+        # pullGoal = self._target_pos
+        #
+        # pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+        # reachDist = np.linalg.norm(objPos - fingerCOM)
+        # reachRew = -reachDist
+        #
+        # self.reachCompleted = reachDist < 0.05
+        #
+        # def pullReward():
+        #     c1 = 1000
+        #     c2 = 0.01
+        #     c3 = 0.001
+        #
+        #     if self.reachCompleted:
+        #         pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
+        #         pullRew = max(pullRew,0)
+        #         return pullRew
+        #     else:
+        #         return 0
+        #
+        # pullRew = pullReward()
+        # reward = reachRew + pullRew
+        #
+        # return [reward, reachDist, pullDist]
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        target = self._target_pos
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
 
-        pullGoal = self._target_pos
+        in_place = reward_utils.tolerance(obj_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
 
-        pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
+        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place)
+        reward = in_place_and_object_grasped
 
-        self.reachCompleted = reachDist < 0.05
-
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
-
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
+        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+            reward += 1. + 5. * in_place
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]

@@ -449,12 +449,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
-            bounds=(obj_radius, pad_success_margin),
+            bounds=(obj_radius, obj_radius+pad_success_margin),
             margin=right_caging_margin,
             sigmoid='long_tail',
         )
         left_caging = reward_utils.tolerance(delta_object_y_left_pad,
-            bounds=(obj_radius, pad_success_margin),
+            bounds=(obj_radius, obj_radius+pad_success_margin),
             margin=left_caging_margin,
             sigmoid='long_tail',
         )
