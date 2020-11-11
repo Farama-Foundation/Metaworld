@@ -1,6 +1,8 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -17,6 +19,8 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
             This ensures that the target point is above the table.
     """
+    LEVER_RADIUS = 0.2
+
     def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
@@ -37,11 +41,12 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.goal = np.array([.12, 0.88, .05])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
+        self._lever_pos_init = None
 
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -56,21 +61,36 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+
+        (
+            reward,
+            shoulder_to_lever,
+            ready_to_lift,
+            lever_error,
+            lever_engagement
+        ) = self.compute_reward(action, ob)
 
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.05)
+            'success': float(lever_error <= np.pi / 24),
+            'near_object': float(shoulder_to_lever < 0.03),
+            'grasp_success': float(ready_to_lift > 0.9),
+            'grasp_reward': ready_to_lift,
+            'in_place_reward': lever_engagement,
+            'obj_to_target': shoulder_to_lever,
+            'unscaled_reward': reward,
         }
 
+        self.curr_path_length += 1
         return ob, reward, False, info
+
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('objGeom')
 
     def _get_pos_objects(self):
         return self._get_site_pos('leverStart')
+
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(self.data.get_geom_xmat('objGeom')).as_quat()
 
     def reset_model(self):
         self._reset_hand()
@@ -79,45 +99,69 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[
             self.model.body_name2id('lever')] = self.obj_init_pos
 
-        self._target_pos = self.obj_init_pos + np.array([.12, .0, .45])
-
-        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
-
+        self._lever_pos_init = self.obj_init_pos + np.array(
+            [.12, -self.LEVER_RADIUS, .25]
+        )
+        self._target_pos = self.obj_init_pos + np.array(
+            [.12, .0, .25 + self.LEVER_RADIUS]
+        )
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
-        self.reachCompleted = False
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
-    def compute_reward(self, actions, obs):
-        del actions
+    def compute_reward(self, action, obs):
+        gripper = obs[:3]
+        lever = obs[4:7]
 
-        objPos = obs[3:6]
+        # De-emphasize y error so that we get Sawyer's shoulder underneath the
+        # lever prior to bumping on against
+        scale = np.array([4., 1., 4.])
+        # Offset so that we get the Sawyer's shoulder underneath the lever,
+        # rather than its fingers
+        offset = np.array([.0, .055, .07])
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        shoulder_to_lever = (gripper + offset - lever) * scale
+        shoulder_to_lever_init = (
+            self.init_tcp + offset - self._lever_pos_init
+        ) * scale
 
-        pullGoal = self._target_pos
+        # This `ready_to_lift` reward should be a *hint* for the agent, not an
+        # end in itself. Make sure to devalue it compared to the value of
+        # actually lifting the lever
+        ready_to_lift = reward_utils.tolerance(
+            np.linalg.norm(shoulder_to_lever),
+            bounds=(0, 0.02),
+            margin=np.linalg.norm(shoulder_to_lever_init),
+            sigmoid='long_tail',
+        )
 
-        pullDist = np.linalg.norm(objPos - pullGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
+        # The skill of the agent should be measured by its ability to get the
+        # lever to point straight upward. This means we'll be measuring the
+        # current angle of the lever's joint, and comparing with 90deg.
+        lever_angle = -self.data.get_joint_qpos('LeverAxis')
+        lever_angle_desired = np.pi / 2.0
 
-        self.reachCompleted = reachDist < 0.05
+        lever_error = abs(lever_angle - lever_angle_desired)
 
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
+        # We'll set the margin to 15deg from horizontal. Angles below that will
+        # receive some reward to incentivize exploration, but we don't want to
+        # reward accidents too much. Past 15deg is probably intentional movement
+        lever_engagement = reward_utils.tolerance(
+            lever_error,
+            bounds=(0, np.pi / 48.0),
+            margin=(np.pi / 2.0) - (np.pi / 12.0),
+            sigmoid='long_tail'
+        )
 
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
+        reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
+        return (
+            reward,
+            np.linalg.norm(shoulder_to_lever),
+            ready_to_lift,
+            lever_error,
+            lever_engagement
+        )
