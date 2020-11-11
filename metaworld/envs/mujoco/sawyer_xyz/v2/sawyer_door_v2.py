@@ -56,23 +56,43 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         obs = super().step(action)
+        # (
+        #     reward,
+        #     tcp_to_obj,
+        #     tcp_opened,
+        #     obj_to_target,
+        #     object_grasped,
+        #     in_place
+        # ) = self.compute_reward(action, obs)
+
         (
             reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place
+            gripper_error,
+            gripped,
+            handle_error,
+            caging_reward,
+            opening_reward
         ) = self.compute_reward(action, obs)
 
-        self.curr_path_length += 1
         info = {
-            'reward': reward,
-            'tcp_to_obj': tcp_to_obj,
-            'obj_to_target': obj_to_target,
-            'in_place_reward': in_place,
-            'success': float(obj_to_target <= 0.08)
+            'success': float(handle_error <= 0.03),
+            'near_object': float(gripper_error <= 0.03),
+            'grasp_success': float(gripped > 0),
+            'grasp_reward': caging_reward,
+            'in_place_reward': opening_reward,
+            'obj_to_target': handle_error,
+            'unscaled_reward': reward,
         }
+
+
+        self.curr_path_length += 1
+        # info = {
+        #     'reward': reward,
+        #     'tcp_to_obj': tcp_to_obj,
+        #     'obj_to_target': obj_to_target,
+        #     'in_place_reward': in_place,
+        #     'success': float(obj_to_target <= 0.08)
+        # }
 
         return obs, reward, False, info
 
@@ -114,58 +134,74 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.reachCompleted = False
 
     def compute_reward(self, action, obs):
-        # del actions
-        # objPos = obs[3:6]
+        # _TARGET_RADIUS = 0.05
+        # tcp = self.tcp_center
+        # obj = obs[4:7]
+        # tcp_opened = obs[3]
+        # target = self._target_pos
         #
-        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        # fingerCOM  =  (rightFinger + leftFinger)/2
+        # obj_to_target = np.linalg.norm(obj - target)
+        # tcp_to_obj = np.linalg.norm(obj - tcp)
+        # in_place_margin = (np.linalg.norm(self.obj_init_pos - target)) + 0.2
         #
-        # pullGoal = self._target_pos
+        # in_place = reward_utils.tolerance(obj_to_target,
+        #                             bounds=(0, _TARGET_RADIUS),
+        #                             margin=in_place_margin,
+        #                             sigmoid='long_tail',)
         #
-        # pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        # reachDist = np.linalg.norm(objPos - fingerCOM)
-        # reachRew = -reachDist
+        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+        #                                                             in_place)
+        # reward = in_place_and_object_grasped
         #
-        # self.reachCompleted = reachDist < 0.05
-        #
-        # def pullReward():
-        #     c1 = 1000
-        #     c2 = 0.01
-        #     c3 = 0.001
-        #
-        #     if self.reachCompleted:
-        #         pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-        #         pullRew = max(pullRew,0)
-        #         return pullRew
-        #     else:
-        #         return 0
-        #
-        # pullRew = pullReward()
-        # reward = reachRew + pullRew
-        #
-        # return [reward, reachDist, pullDist]
-        _TARGET_RADIUS = 0.05
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened = obs[3]
-        target = self._target_pos
+        # if tcp_to_obj < 0.1:
+        #     reward += 1. + 5. * in_place
+        # if obj_to_target < _TARGET_RADIUS:
+        #     reward = 10.
+        # print("REWARD: {} -- TCP_TO_OBJ: {}".format(reward, tcp_to_obj))
+        # return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
-        obj_to_target = np.linalg.norm(obj - target)
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        gripper = obs[:3]
+        handle = obs[4:7]
+        handle_pos_init = self.obj_init_pos
 
-        in_place = reward_utils.tolerance(obj_to_target,
-                                    bounds=(0, _TARGET_RADIUS),
-                                    margin=in_place_margin,
-                                    sigmoid='long_tail',)
+        handle_error = np.linalg.norm(handle - self._target_pos)
+        handle_error_init = np.linalg.norm(handle_pos_init - self._target_pos)
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
-        reward = in_place_and_object_grasped
+        reward_for_opening = reward_utils.tolerance(
+            handle_error,
+            bounds=(0, 0.02),
+            margin=handle_error_init,
+            sigmoid='long_tail'
+        )
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 5. * in_place
-        if obj_to_target < _TARGET_RADIUS:
-            reward = 10.
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+        # Emphasize XY error so that gripper is able to drop down and cage
+        # handle without running into it. By doing this, we are assuming
+        # that the reward in the Z direction is small enough that the agent
+        # will be willing to explore raising a finger above the handle, hook it,
+        # and drop back down to re-gain Z reward
+        scale = np.array([3., 3., 1.])
+        gripper_error = (handle - gripper) * scale
+        gripper_error_init = (handle_pos_init - self.init_tcp) * scale
+
+        reward_for_caging = reward_utils.tolerance(
+            np.linalg.norm(gripper_error),
+            bounds=(0, 0.01),
+            margin=np.linalg.norm(gripper_error_init),
+            sigmoid='long_tail'
+        )
+
+        reward = reward_for_caging + reward_for_opening
+        reward *= 5.0
+
+        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, reward_for_caging, reward_for_opening))
+
+        return (
+            reward,
+            np.linalg.norm(handle - gripper),
+            obs[3],
+            handle_error,
+            reward_for_caging,
+            reward_for_opening
+        )
