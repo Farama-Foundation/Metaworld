@@ -188,7 +188,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         gripper_error = (handle - gripper) * scale
         gripper_error_init = (handle_pos_init - self.init_tcp) * scale
 
-        print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
+        # print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
 
 
         reward_for_caging = reward_utils.tolerance(
@@ -198,8 +198,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             sigmoid='long_tail'
         )
 
-        reward = reward_for_caging + reward_for_opening
-        reward *= 5.0
+        reward = reward_for_caging # + reward_for_opening
+        reward *= 9.0
 
         print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, reward_for_caging, reward_for_opening))
 
