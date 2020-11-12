@@ -31,7 +31,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': np.array([0.3, ]),
             'obj_init_pos': np.array([0.1, 0.95, 0.15]),
-            'hand_init_pos': np.array([0, 0.6, 0.2]),
+            'hand_init_pos': np.array([0, 0.6, 0.4]),
         }
 
         self.goal = np.array([-0.2, 0.7, 0.15])
@@ -135,37 +135,97 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
-    def compute_reward(self, action, obs):
-        # _TARGET_RADIUS = 0.05
-        # tcp = self.tcp_center
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        # target = self._target_pos
-        #
-        # obj_to_target = np.linalg.norm(obj - target)
-        # tcp_to_obj = np.linalg.norm(obj - tcp)
-        # in_place_margin = (np.linalg.norm(self.obj_init_pos - target)) + 0.2
-        #
-        # in_place = reward_utils.tolerance(obj_to_target,
-        #                             bounds=(0, _TARGET_RADIUS),
-        #                             margin=in_place_margin,
-        #                             sigmoid='long_tail',)
-        #
-        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-        #                                                             in_place)
-        # reward = in_place_and_object_grasped
-        #
-        # if tcp_to_obj < 0.1:
-        #     reward += 1. + 5. * in_place
-        # if obj_to_target < _TARGET_RADIUS:
-        #     reward = 10.
-        # print("REWARD: {} -- TCP_TO_OBJ: {}".format(reward, tcp_to_obj))
-        # return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+        pad_success_margin = 0.05 # obj_radius + 0.01
+        grip_success_margin_low = obj_radius - 0.005
+        grip_success_margin_high = obj_radius + 0.001
+        x_z_success_margin = 0.01
 
+        # scale = np.array([3. ,3. ,1.])
+
+        tcp = self.tcp_center
+        left_pad = self.get_body_com('leftpad')
+        right_pad = self.get_body_com('rightpad')
+        delta_object_y_left_pad = left_pad[1] - obj_position[1]
+        delta_object_y_right_pad = obj_position[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+
+        right_caging = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_caging = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
+
+        # right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
+        #     bounds=(grip_success_margin_low, grip_success_margin_high),
+        #     margin=right_caging_margin,
+        #     sigmoid='long_tail',
+        # )
+        # left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
+        #     bounds=(grip_success_margin_low, grip_success_margin_high),
+        #     margin=left_caging_margin,
+        #     sigmoid='long_tail',
+        # )
+
+
+        assert right_caging >= 0 and right_caging <= 1
+        assert left_caging >= 0 and left_caging <= 1
+
+        y_caging = reward_utils.hamacher_product(right_caging, left_caging)
+        # y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
+
+        assert y_caging >= 0 and y_caging <= 1
+
+        tcp_xz = tcp + np.array([0., -tcp[1], 0.])
+        obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
+        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
+        init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
+
+
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z) - x_z_success_margin
+        x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
+                                bounds=(0, x_z_success_margin),
+                                margin=tcp_obj_x_z_margin,
+                                sigmoid='long_tail',)
+
+        assert right_caging >= 0 and right_caging <= 1
+        gripper_closed = min(max(0, action[-1]), 1)
+        assert gripper_closed >= 0 and gripper_closed <= 1
+        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
+        assert caging >= 0 and caging <= 1
+
+        # if caging > 0.95:
+        #     gripping = y_gripping
+        # else:
+        #     gripping = 0.
+        # assert gripping >= 0 and gripping <= 1
+        # caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
+        # caging_and_gripping = (caging + gripping) / 2
+
+        # assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+
+
+        return caging
+
+
+    def compute_reward(self, action, obs):
+
+        _TARGET_RADIUS = 0.05
         gripper = obs[:3]
         handle = obs[4:7]
         handle_pos_init = self.obj_init_pos
+
+        under_handle = handle - np.array([0., 0., 0.01])
+        under_handle_pos_init = handle_pos_init - np.array([0., 0., 0.01])
+        gripping_reward = self._gripper_caging_reward(action, under_handle, 0.04)
+
 
         scale = np.array([1., 3., 1.])
         handle_error = (handle - self._target_pos) * scale
@@ -178,36 +238,64 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             sigmoid='long_tail'
         )
 
+        hand_to_goal_error = np.linalg.norm(gripper - self._target_pos)
+        htge_init = np.linalg.norm(self.init_tcp - self._target_pos)
+
+        reach_to_goal = reward_utils.tolerance(
+            hand_to_goal_error,
+            bounds=(0, _TARGET_RADIUS),
+            margin=htge_init,
+            sigmoid='long_tail'
+        )
+
 
         # Emphasize XY error so that gripper is able to drop down and cage
         # handle without running into it. By doing this, we are assuming
         # that the reward in the Z direction is small enough that the agent
         # will be willing to explore raising a finger above the handle, hook it,
         # and drop back down to re-gain Z reward
-        scale = np.array([3., 3., 1.])
-        gripper_error = (handle - gripper) * scale
-        gripper_error_init = (handle_pos_init - self.init_tcp) * scale
 
-        print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
+        # scale = np.array([3., 3., 1.])
+        # reach_error = np.linalg.norm((under_handle*scale) - (gripper*scale))
+        # reach_error_init = np.linalg.norm((under_handle_pos_init*scale) - (self.init_tcp*scale))
+        #
+        # reach_reward = reward_utils.tolerance(
+        #     reach_error,
+        #     bounds=(0, 0.01),
+        #     margin=reach_error_init,
+        #     sigmoid='long_tail'
+        # )
 
+        lever_angle = -self.data.get_joint_qpos('doorjoint')
+        lever_angle_desired = np.pi / 2.0
+        lever_error = abs(lever_angle - lever_angle_desired)
 
-        reward_for_caging = reward_utils.tolerance(
-            np.linalg.norm(gripper_error),
-            bounds=(0, 0.04),
-            margin=np.linalg.norm(gripper_error_init),
+        lever_engagement = reward_utils.tolerance(
+            lever_error,
+            bounds=(0, np.pi / 48.0),
+            margin=(np.pi / 2.0),
             sigmoid='long_tail'
         )
 
-        reward = reward_for_caging + reward_for_opening
-        reward *= 5.0
+        reward = 1 * gripping_reward
 
-        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, reward_for_caging, reward_for_opening))
+        z_range = abs((under_handle[2] - gripper[2])) < 0.02
+        xy_range = np.linalg.norm(under_handle[:2] - gripper[:2]) < 0.05
+        if(z_range and  xy_range):
+            print("--> HANDLE SECURED")
+            gripping_reward = 1
+            reward = 1 + (9 * reach_to_goal)
+
+        if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
+            reward = 10
+
+        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, gripping_reward, reward_for_opening))
 
         return (
             reward,
             np.linalg.norm(handle - gripper),
             obs[3],
-            np.linalg.norm(handle_error),
-            reward_for_caging,
-            reward_for_opening
+            np.linalg.norm(handle - self._target_pos),
+            gripping_reward,
+            lever_engagement
         )
