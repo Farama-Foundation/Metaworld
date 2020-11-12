@@ -165,14 +165,15 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         handle = obs[4:7]
         handle_pos_init = self.obj_init_pos
 
-        handle_error = np.linalg.norm(handle - self._target_pos)
-        handle_error_init = np.linalg.norm(handle_pos_init - self._target_pos)
+        scale = np.array([1., 3., 1.])
+        handle_error = np.linalg.norm(handle - self._target_pos) * scale
+        handle_error_init = np.linalg.norm(handle_pos_init - self._target_pos) * scale
 
         reward_for_opening = reward_utils.tolerance(
             handle_error,
-            bounds=(0, 0.02),
+            bounds=(0, 0.05),
             margin=handle_error_init,
-            sigmoid='long_tail'
+            sigmoid='gaussian'
         )
 
 
@@ -187,7 +188,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         reward_for_caging = reward_utils.tolerance(
             np.linalg.norm(gripper_error),
-            bounds=(0, 0.01),
+            bounds=(0, 0.04),
             margin=np.linalg.norm(gripper_error_init),
             sigmoid='long_tail'
         )
