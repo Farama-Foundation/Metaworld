@@ -423,6 +423,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
+        self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
