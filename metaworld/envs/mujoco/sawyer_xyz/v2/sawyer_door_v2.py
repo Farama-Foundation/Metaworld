@@ -74,8 +74,10 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             opening_reward
         ) = self.compute_reward(action, obs)
 
+        goal_dist = np.linalg.norm(obs[4:7] - self._target_pos)
+
         info = {
-            'success': float(handle_error <= 0.03),
+            'success': float(goal_dist <= 0.03),
             'near_object': float(gripper_error <= 0.03),
             'grasp_success': float(gripped > 0),
             'grasp_reward': caging_reward,
@@ -166,14 +168,14 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         handle_pos_init = self.obj_init_pos
 
         scale = np.array([1., 3., 1.])
-        handle_error = np.linalg.norm(handle - self._target_pos) * scale
-        handle_error_init = np.linalg.norm(handle_pos_init - self._target_pos) * scale
+        handle_error = (handle - self._target_pos) * scale
+        handle_error_init = (handle_pos_init - self._target_pos) * scale
 
         reward_for_opening = reward_utils.tolerance(
-            handle_error,
-            bounds=(0, 0.05),
-            margin=handle_error_init,
-            sigmoid='gaussian'
+            np.linalg.norm(handle_error),
+            bounds=(0, 0.02),
+            margin=np.linalg.norm(handle_error_init),
+            sigmoid='long_tail'
         )
 
 
@@ -185,6 +187,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         scale = np.array([3., 3., 1.])
         gripper_error = (handle - gripper) * scale
         gripper_error_init = (handle_pos_init - self.init_tcp) * scale
+
+        print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
+
 
         reward_for_caging = reward_utils.tolerance(
             np.linalg.norm(gripper_error),
@@ -202,7 +207,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward,
             np.linalg.norm(handle - gripper),
             obs[3],
-            handle_error,
+            np.linalg.norm(handle_error),
             reward_for_caging,
             reward_for_opening
         )
