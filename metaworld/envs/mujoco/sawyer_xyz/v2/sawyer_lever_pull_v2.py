@@ -157,7 +157,18 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             sigmoid='long_tail'
         )
 
-        reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
+        target = self._target_pos
+        obj_to_target = np.linalg.norm(lever - target)
+        in_place_margin = (np.linalg.norm(self._lever_pos_init - target))
+
+        in_place = reward_utils.tolerance(obj_to_target,
+                                    bounds=(0, 0.04),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
+
+        # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
+        reward = 10.0  * reward_utils.hamacher_product(ready_to_lift,
+                                                       in_place)
         return (
             reward,
             np.linalg.norm(shoulder_to_lever),
