@@ -199,7 +199,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             sigmoid='gaussian'
         )
 
-        gripping_reward = self._gripper_caging_reward(self, action, handle, 0.02):
+        gripping_reward = self._gripper_caging_reward(self, action, handle, 0.02)
 
         reward = 9 * gripping_reward # + reward_for_opening
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
