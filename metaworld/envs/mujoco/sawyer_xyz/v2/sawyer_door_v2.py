@@ -186,8 +186,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         # will be willing to explore raising a finger above the handle, hook it,
         # and drop back down to re-gain Z reward
         scale = np.array([3., 3., 1.])
-        gripper_error = np.linalg.norm(handle - gripper) * scale
-        gripper_error_init = np.linalg.norm(handle_pos_init - self.init_tcp) * scale
+        gripper_error = np.linalg.norm((handle - gripper) * scale)
+        gripper_error_init = np.linalg.norm((handle_pos_init - self.init_tcp) * scale)
 
         # print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
 
