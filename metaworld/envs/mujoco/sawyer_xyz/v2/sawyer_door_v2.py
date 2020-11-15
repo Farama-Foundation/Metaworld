@@ -31,7 +31,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': np.array([0.3, ]),
             'obj_init_pos': np.array([0.1, 0.95, 0.15]),
-            'hand_init_pos': np.array([0, 0.6, 0.2]),
+            'hand_init_pos': np.array([0, 0.6, 0.4]),
         }
 
         self.goal = np.array([-0.2, 0.7, 0.15])
@@ -194,7 +194,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         reach_reward = reward_utils.tolerance(
             gripper_error,
-            bounds=(0, 0.04),
+            bounds=(0, 0.02),
             margin=gripper_error_init,
             sigmoid='gaussian'
         )
