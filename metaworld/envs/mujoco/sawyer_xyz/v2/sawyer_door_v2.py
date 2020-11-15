@@ -163,6 +163,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         # print("REWARD: {} -- TCP_TO_OBJ: {}".format(reward, tcp_to_obj))
         # return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
+        _TARGET_RADIUS = 0.05
         gripper = obs[:3]
         handle = obs[4:7]
         handle_pos_init = self.obj_init_pos
@@ -184,30 +185,31 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         # that the reward in the Z direction is small enough that the agent
         # will be willing to explore raising a finger above the handle, hook it,
         # and drop back down to re-gain Z reward
-        scale = np.array([3., 3., 1.])
-        gripper_error = (handle - gripper) * scale
-        gripper_error_init = (handle_pos_init - self.init_tcp) * scale
+        # scale = np.array([3., 3., 1.])
+        gripper_error = np.linalg.norm(handle - gripper)
+        gripper_error_init = np.linalg.norm(handle_pos_init - self.init_tcp)
 
         # print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
 
 
-        reward_for_caging = reward_utils.tolerance(
-            np.linalg.norm(gripper_error),
+        reach_reward = reward_utils.tolerance(
+            gripper_error,
             bounds=(0, 0.04),
-            margin=np.linalg.norm(gripper_error_init),
+            margin=gripper_error_init,
             sigmoid='long_tail'
         )
 
-        reward = reward_for_caging # + reward_for_opening
-        reward *= 9.0
+        reward = 9 * reach_reward # + reward_for_opening
+        if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
+            reward = 10
 
-        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, reward_for_caging, reward_for_opening))
+        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, reach_reward, reward_for_opening))
 
         return (
             reward,
             np.linalg.norm(handle - gripper),
             obs[3],
             np.linalg.norm(handle_error),
-            reward_for_caging,
+            reach_reward,
             reward_for_opening
         )
