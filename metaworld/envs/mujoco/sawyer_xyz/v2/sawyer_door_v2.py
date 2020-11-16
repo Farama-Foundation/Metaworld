@@ -220,8 +220,12 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         _TARGET_RADIUS = 0.05
         gripper = obs[:3]
-        handle = obs[4:7] - np.array([0., 0., 0.02])
+        handle = obs[4:7]
         handle_pos_init = self.obj_init_pos
+
+        gripping_reward = self._gripper_caging_reward(action, handle, 0.02)
+
+        handle -= np.array([0., 0., 0.02])
 
         scale = np.array([1., 3., 1.])
         handle_error = (handle - self._target_pos) * scale
@@ -266,11 +270,11 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
         print("ANGLE: {} -- REWARD: {} -- DESIRED: {}".format(lever_angle, lever_engagement, lever_angle_desired))
 
-        gripping_reward = self._gripper_caging_reward(action, handle, 0.02)
+
 
         reward = (5 * gripping_reward)
 
-        if(reach_reward > 0.95):
+        if(reach_reward > 0.98):
             reward = (5 * reach_reward) + (5 * lever_engagement)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
