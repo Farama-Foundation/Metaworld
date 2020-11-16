@@ -1,3 +1,4 @@
+import ipdb
 import numpy as np
 from gym.spaces import Box
 
@@ -76,10 +77,11 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         obs = self._get_obs()
         obj = obs[4:7]
 
-        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
+        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward, collision_box_front, ip_orig= (
+            self.compute_reward(action, obs))
+        grasp_success = float(tcp_to_obj < 0.02 and (tcp_open > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]))
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(grasp_reward and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
 
         info = {
             'success': success,
@@ -87,7 +89,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target
+            'obj_to_target': obj_to_target,
+            'collision_box_front': collision_box_front,
+            'ip_orig': ip_orig
         }
 
         self.curr_path_length += 1
@@ -121,15 +125,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
         self._target_pos = pos_box + np.array([.03, .0, .13])
-
-        self.objHeight = self.obj_init_pos[2]
-        self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([
-            self.obj_init_pos[0],
-            self.obj_init_pos[1],
-            self.heightTarget
-        ]) - self._target_pos) + self.heightTarget
-        self.target_reward = 1000 * self.maxPlacingDist + 1000 * 2
+        
 
         return self._get_obs()
 
@@ -145,54 +141,51 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     def _gripper_caging_reward(self, action, obj_position):
         pad_success_margin = 0.05
+        x_z_success_margin = 0.005
+        obj_radius = 0.02
         tcp = self.tcp_center
         left_pad = self.get_body_com('leftpad')
         right_pad = self.get_body_com('rightpad')
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1])
+            - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1])
+            - pad_success_margin)
+
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
-                                bounds=(0.02, pad_success_margin),
+                                bounds=(obj_radius, pad_success_margin),
                                 margin=right_caging_margin,
                                 sigmoid='long_tail',)
         left_caging = reward_utils.tolerance(delta_object_y_left_pad,
-                                bounds=(0.02, pad_success_margin),
+                                bounds=(obj_radius, pad_success_margin),
                                 margin=left_caging_margin,
                                 sigmoid='long_tail',)
-        assert right_caging >= 0 and right_caging <= 1
-        assert left_caging >= 0 and left_caging <= 1
-        # hamacher product
-        y_caging = ((right_caging * left_caging) / (right_caging + left_caging -
-            (right_caging * left_caging)))
-        assert y_caging >= 0 and y_caging <= 1
+
+        y_caging = reward_utils.hamacher_product(left_caging,
+                                                 right_caging)
+
+        # compute the tcp_obj distance in the x_z plane
         tcp_xz = tcp + np.array([0., -tcp[1], 0.])
         obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+
+        # used for computing the tcp to object object margin in the x_z plane
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
-        x_z_success_margin = 0.005
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
                                 margin=tcp_obj_x_z_margin,
                                 sigmoid='long_tail',)
-        assert right_caging >= 0 and right_caging <= 1
+
         gripper_closed = min(max(0, action[-1]), 1)
-        assert gripper_closed >= 0 and gripper_closed <= 1
-        caging = ((y_caging * x_z_caging) / (y_caging + x_z_caging -
-            (y_caging * x_z_caging)))
-        assert caging >= 0 and caging <= 1
-        # gripping = caging * gripper_closed
-        if caging > 0.97:
-            gripping = gripper_closed
-        else:
-            gripping = 0.
-        assert gripping >= 0 and gripping <= 1
-        caging_and_gripping = ((caging * gripping) / (caging + gripping -
-            (caging * gripping)))
-        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
+
+        gripping = gripper_closed if caging > 0.97 else 0.
+        caging_and_gripping = reward_utils.hamacher_product(caging,
+                                                            gripping)
         return caging_and_gripping
 
     def compute_reward(self, action, obs):
@@ -202,26 +195,42 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         obj_head = self._get_site_pos('pegHead')
         tcp_opened = obs[3]
         target = self._target_pos
-
-        obj_to_target = np.linalg.norm(obj_head - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        scale = np.array([1., 2., 2.])
+        #  force agent to pick up object then insert
+        obj_to_target = np.linalg.norm((obj_head - target) * scale)
+
+        in_place_margin = np.linalg.norm((self.obj_init_pos- target) * scale)
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
-        assert in_place >= 0 and in_place <= 1
+        ip_orig = in_place
+        brc_col_box_1 = self._get_site_pos('bottom_right_corner_collision_box_1')
+        tlc_col_box_1 = self._get_site_pos('top_left_corner_collision_box_1')
+
+        brc_col_box_2 = self._get_site_pos('bottom_right_corner_collision_box_2')
+        tlc_col_box_2 = self._get_site_pos('top_left_corner_collision_box_2')
+        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(curr=obj_head,
+                                                                   one=tlc_col_box_1,
+                                                                   zero=brc_col_box_1)
+        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(curr=obj_head,
+                                                                   one=tlc_col_box_2,
+                                                                   zero=brc_col_box_2)
+        collision_boxes = reward_utils.hamacher_product(collision_box_bottom_2,
+                                                        collision_box_bottom_1)
+        in_place = reward_utils.hamacher_product(in_place,
+                                                 collision_boxes)
         object_grasped = self._gripper_caging_reward(action, obj)
-        assert object_grasped >= 0 and object_grasped <= 1
-        in_place_grasped = in_place
-        if not object_grasped and not in_place_grasped:
-            reward = 0
-        else:
-            in_place_and_object_grasped = ((object_grasped * in_place_grasped) /
-                (object_grasped + in_place_grasped -(object_grasped * in_place_grasped)))
-            assert in_place_and_object_grasped >= 0 and in_place_and_object_grasped <= 1
-            reward = in_place_and_object_grasped
-        reward *= 10
-        # reward = object_grasped
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+            object_grasped = 1.
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place)
+        reward = in_place_and_object_grasped
+
+        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+            reward += 1. + 100. * in_place
+        # if obj_to_target < _TARGET_RADIUS:
+        #     reward = 10.
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, collision_boxes, ip_orig]
 
