@@ -1,7 +1,6 @@
 """A set of reward utilities written by the authors of dm_control"""
 
 from multiprocessing import Value
-import ipdb
 import numpy as np
 
 # The value returned by tolerance() at `margin` distance from `bounds` interval.
@@ -257,5 +256,6 @@ def gripper_caging_reward(env, action, pos_main_object):
     # MARK: Combine components----------------------------------------------
     caging = hamacher_product(caging_y, caging_xz)
     gripping = gripper_closed if caging > 0.97 else 0.
+    caging_and_gripping = (hamacher_product(caging, gripping) + caging) / 2
 
-    return hamacher_product(caging, gripping)
+    return caging_and_gripping
