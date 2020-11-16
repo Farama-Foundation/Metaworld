@@ -251,7 +251,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             gripper_error,
             bounds=(0, 0.02),
             margin=gripper_error_init,
-            sigmoid='gaussian'
+            sigmoid='log_tail'
         )
 
         lever_angle = -self.data.get_joint_qpos('doorjoint')
@@ -268,7 +268,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         gripping_reward = self._gripper_caging_reward(action, handle, 0.02)
 
-        reward = (5 * gripping_reward) + (4 * lever_engagement)
+        reward = (5 * reach_reward)
 
         if(lever_angle > 0.05):
             reward = 5 + (5 * lever_engagement)
@@ -283,6 +283,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             np.linalg.norm(handle - gripper),
             obs[3],
             np.linalg.norm(handle_error),
-            gripping_reward,
+            reach_reward,
             reward_for_opening
         )
