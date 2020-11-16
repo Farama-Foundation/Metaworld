@@ -136,6 +136,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.reachCompleted = False
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
+        obj_position -= np.array([0., 0., 0.03])
         pad_success_margin = 0.05 # obj_radius + 0.01
         grip_success_margin_low = obj_radius - 0.005
         grip_success_margin_high = obj_radius + 0.001
@@ -261,7 +262,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         lever_engagement = reward_utils.tolerance(
             lever_error,
             bounds=(0, np.pi / 48.0),
-            margin=(np.pi / 2.0) - (np.pi / 12.0),
+            margin=(np.pi / 2.0),
             sigmoid='long_tail'
         )
         print("ANGLE: {} -- REWARD: {} -- DESIRED: {}".format(lever_angle, lever_engagement, lever_angle_desired))
