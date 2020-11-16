@@ -1,0 +1,31 @@
+<mujoco>
+    <include file="../scene/basic_scene.xml"/>
+    <include file="../objects/assets/plug_dependencies.xml"/>
+    <include file="../objects/assets/xyz_base_dependencies.xml"/>
+
+    <worldbody>
+      <include file="../objects/assets/xyz_base.xml"/>
+
+      <body name="plug1" pos="-.252 .6 .131">
+        <joint type="free"/>
+        <include file="../objects/assets/plug.xml"/>
+
+      </body>
+
+      <body name="box" pos="-.3 .6 0">
+        <include file="../objects/assets/plug_wall.xml"/>
+      </body>
+
+
+        <site name="goal" pos="0 0.6 0.05" size="0.01" rgba="0.8 0 0 1"/>
+
+    </worldbody>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+    </actuator>
+    <equality>
+        <weld body1="mocap" body2="hand" solref="0.02 1"></weld>
+    </equality>
+</mujoco>
