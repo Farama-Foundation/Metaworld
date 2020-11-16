@@ -67,7 +67,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         knob_center = self.get_body_com('faucetBase') + np.array([.0, .0, .125])
-        knob_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
+        knob_angle_rad = self.data.get_joint_qpos('faucetKnobJoint')
 
         offset = np.array([
             np.sin(knob_angle_rad),
