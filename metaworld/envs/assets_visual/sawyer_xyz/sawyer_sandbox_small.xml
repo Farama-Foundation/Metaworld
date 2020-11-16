@@ -1,0 +1,184 @@
+<mujoco>
+    <include file="../scene/basic_scene.xml"/>
+    <include file="../objects/assets/xyz_base_dependencies.xml"/>
+    <include file="../objects/assets/assembly_peg_dependencies.xml"/>
+    <include file="../objects/assets/basketball_dependencies.xml"/>
+    <include file="../objects/assets/bin_dependencies.xml"/>
+    <include file="../objects/assets/box_dependencies.xml"/>
+    <include file="../objects/assets/buttonbox_dependencies.xml"/>
+    <include file="../objects/assets/block_dependencies.xml"/>
+    <include file="../objects/assets/coffeemachine_dependencies.xml"/>
+    <include file="../objects/assets/dial_dependencies.xml"/>
+    <include file="../objects/assets/doorlock_dependencies.xml"/>
+    <include file="../objects/assets/drawer_dependencies.xml"/>
+    <include file="../objects/assets/faucet_dependencies.xml"/>
+    <include file="../objects/assets/hammer_dependencies.xml"/>
+    <include file="../objects/assets/handle_press_dependencies.xml"/>
+    <include file="../objects/assets/lever_dependencies.xml"/>
+    <include file="../objects/assets/peg_insert_dependencies.xml"/>
+    <include file="../objects/assets/plug_dependencies.xml"/>
+    <include file="../objects/assets/shelf_dependencies.xml"/>
+    <include file="../objects/assets/soccer_dependencies.xml"/>
+    <include file="../objects/assets/thermos_dependencies.xml"/>
+    <include file="../objects/assets/window_dependencies.xml"/>
+
+    <size njmax="8000" nconmax="4000"/>
+
+    <worldbody>
+        <include file="../objects/assets/xyz_base.xml"/>
+
+        <!--Shop: Assembly-->
+        <body name="ScrewEye" pos="0.2 0.7 0.02" quat="1 0 0 1">
+            <freejoint name="ScrewEyeJoint"/>
+            <include file="../objects/assets/assembly_peg.xml"/>
+        </body>
+
+        <body name="ScrewEyePeg" pos="-0.2 0.8 0.05">
+            <geom material="asmbly_metal" pos="0 0 0" rgba="1 0.3 0.3 1" size="0.02 0.05" type="cylinder" conaffinity="1" contype="1" group="1" friction="1 0.005 0.0001"/>
+            <site name="ScrewEyePegSiteTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 0"/>
+        </body>
+
+        <!--Sports: Basketball-->
+        <body name="Basketball" pos="0.45 0.4 0.03">
+            <freejoint name="BasketballJoint"/>
+            <include file="../objects/assets/basketball.xml"/>
+        </body>
+
+        <body name="BasketballHoop" pos="-0.4 0.9 0">
+            <include file="../objects/assets/basketballhoop.xml"/>
+        </body>
+
+        <!--Office: Bin-->
+        <body name="BinA" pos="0.85 0.4 0">
+            <include file="../objects/assets/binA.xml"/>
+        </body>
+
+        <body name="BinB" pos="0.85 0.6 0">
+            <include file="../objects/assets/binB.xml"/>
+        </body>
+
+        <!--Office: Box-->
+        <body name="BinLid" pos="0 0.25 0" quat="1 0 0 1">
+            <freejoint name="BinLidJoint"/>
+            <include file="../objects/assets/boxtop.xml"/>
+        </body>
+
+        <!--Shop: Button-->
+        <body name="ButtonBox" euler="-1.57 0 0" pos="-1.0 0.9 0.42">
+            <include file="../objects/assets/buttonbox.xml"/>
+<!--            <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1"/>-->
+        </body>
+
+        <!--Kitchen: Coffee-->
+        <body name="CoffeeMug" pos=".5 .7 .0">
+            <freejoint name="CoffeeMugJoint"/>
+            <include file="../objects/assets/mug.xml"/>
+        </body>
+
+        <body name="CoffeeMachine" pos=".6 .9 0">
+            <include file="../objects/assets/coffeemachine.xml"/>
+        </body>
+        <site name="CoffeeMugSiteGoal" pos="0 0.6 0.02" size="0.01" rgba="0 1 0 0"/>
+
+        <!--Kitchen: Dial-->
+        <body name="Dial" pos="0.2 0.5 0.">
+            <include file="../objects/assets/dial.xml"/>
+            <site name="dialStart" pos="0 -0.05 0.035" size="0.005" rgba="0 0 1 0"/>
+        </body>
+
+        <!--Office: Door-->
+        <body name="Door" pos="-1.0 0.9 0.15">
+            <include file="../objects/assets/doorlockB.xml"/>
+        </body>
+
+        <!--Office: Drawer-->
+        <body name="Drawer" pos="1.1 0.9 0">
+            <include file="../objects/assets/drawer.xml"/>
+        </body>
+
+        <!--Kitchen: Faucet-->
+        <body name="FaucetBase" pos="0 0.8 0">
+            <include file="../objects/assets/faucet.xml"/>
+            <site name="handleStartOpen" pos="-0.015 -0.175 0.125" size="0.005" rgba="1 1 1 0"/>
+            <site name="handleStartClose" pos="0.015 -0.175 0.125" size="0.005" rgba="0 0 0 0"/>
+        </body>
+
+        <!--Hammer-->
+        <body name="HammerBody" pos="-0.1 0.6 0.05">
+            <freejoint name="HammerBodyJoint"/>
+            <include file="../objects/assets/hammer.xml"/>
+        </body>
+
+        <body name="NailBox" pos="-0.6 1.0 0">
+            <include file="../objects/assets/hammerblock.xml"/>
+            <site name="nailHead" pos="0 -.215 .11" size="0.005" rgba="0.8 0 0 0"/>
+        </body>
+
+        <!--Kitchen: Handle Press-->
+        <body name="ToasterHandle" pos="0.6 0.9 0.37">
+            <include file="../objects/assets/handle_press.xml"/>
+
+            <site name="goalPress" pos="0 -0.216 0.075" size="0.005" rgba="1 1 1 1"/>
+            <site name="goalPull" pos="0 -0.216 0.172" size="0.005" rgba="0 0 0 1"/>
+        </body>
+
+        <!--Shop: Lever-->
+        <body name="Lever" pos="-0.6 0.5 0">
+            <include file="../objects/assets/lever.xml"/>
+        </body>
+
+        <!--Sports: Puck-->
+        <body name="Puck" pos="0.3 0.3 0.04">
+            <freejoint name="PuckJoint"/>
+            <include file="../objects/assets/block_cyl.xml"/>
+        </body>
+
+        Shop: Unplug Outlet
+        <body name="ElectricalPlug" pos="-.582 1.0 .351">
+            <freejoint name="ElectricalPlugJoint"/>
+            <include file="../objects/assets/plug.xml"/>
+        </body>
+
+        <body name="ElectricalOutlet" pos="-0.63 1.0 0.22">
+            <include file="../objects/assets/plug_wall.xml"/>
+        </body>
+
+        <!--Office: Shelf-->
+        <body name="Shelf" pos="1.1 0.9 0.17">
+            <include file="../objects/assets/shelf.xml"/>
+        </body>
+
+        <!--Sports: Soccer-->
+        <body name="SoccerGoal" pos="0.35 0.9 0">
+            <include file="../objects/assets/soccer_goal.xml"/>
+        </body>
+
+        <!--Sports: Thermos-->
+        <body name="Thermos" pos="0.5 0.3 0">
+            <include file="../objects/assets/thermos.xml"/>
+        </body>
+
+        <!--Office: Window-->
+        <body name="Window" pos="0. 1.0 0">
+            <include file="../objects/assets/window.xml"/>
+        </body>
+
+        <site name="BBoxA" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxB" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxC" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxD" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxE" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxF" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxG" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+        <site name="BBoxH" pos="10 10 10" size="0.01" rgba="0 0 0 1"/>
+
+    </worldbody>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+    </actuator>
+    <equality>
+        <weld body1="mocap" body2="hand" solref="0.02 1"/>
+    </equality>
+</mujoco>

@@ -2,10 +2,6 @@
     <include file="assets/coffeemachine_dependencies.xml"/>
     <include file="../scene/basic_scene.xml"/>
     <worldbody>
-      <body pos="0 .6 .2">
-        <freejoint/>
-        
-        <include file="assets/mug.xml"/>
-      </body>
+      <include file="assets/mug.xml"/>
     </worldbody>
 </mujoco>
