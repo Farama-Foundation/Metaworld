@@ -251,7 +251,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             gripper_error,
             bounds=(0, 0.02),
             margin=gripper_error_init,
-            sigmoid='log_tail'
+            sigmoid='long_tail'
         )
 
         lever_angle = -self.data.get_joint_qpos('doorjoint')
