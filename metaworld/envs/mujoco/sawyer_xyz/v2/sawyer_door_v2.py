@@ -254,7 +254,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         reach_reward = reward_utils.tolerance(
             reach_error,
-            bounds=(0, 0.005),
+            bounds=(0, 0.01),
             margin=reach_error_init,
             sigmoid='long_tail'
         )
@@ -273,10 +273,10 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
 
 
-        reward = (5 * gripping_reward)
+        reward = (5 * reach_reward)
 
-        if(gripping_reward > 0.7):
-            reward = (5 * reach_reward) + (5 * reward_for_opening)
+        if(reach_reward > 97):
+            reward = 5 + (5 * reward_for_opening)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
