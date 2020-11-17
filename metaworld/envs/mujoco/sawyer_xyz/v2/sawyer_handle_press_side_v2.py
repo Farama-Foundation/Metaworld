@@ -18,7 +18,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         - (8/05/20) Updated to new XML
         - (6/30/20) Increased goal's Z coordinate by 0.01 in XML
     """
-    TARGET_RADIUS = 0.04
+    TARGET_RADIUS = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
@@ -74,7 +74,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {
-            'success': float(target_to_obj <= 0.01),
+            'success': float(target_to_obj <= self.TARGET_RADIUS),
             'near_object': float(tcp_to_obj <= 0.05),
             'grasp_success': 1.,
             'grasp_reward': object_grasped,
