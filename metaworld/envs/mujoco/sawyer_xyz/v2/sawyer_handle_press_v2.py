@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandlePressEnvV2(SawyerXYZEnv):
-    TARGET_RADIUS=0.04
+    TARGET_RADIUS=0.02
 
     def __init__(self):
 
@@ -56,7 +56,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         in_place) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(target_to_obj <= 0.01),
+            'success': float(target_to_obj <= self.TARGET_RADIUS),
             'near_object': float(tcp_to_obj <= 0.05),
             'grasp_success': 1.,
             'grasp_reward': object_grasped,
