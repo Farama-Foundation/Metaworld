@@ -1,6 +1,8 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -65,13 +67,14 @@ class SawyerReachEnvV2(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
 
-        reward, reach_dist = self.compute_reward(action, ob)
+        reward, reach_dist, in_place = self.compute_reward(action, ob)
         success = float(reach_dist <= 0.05)
 
         info = {
             'reachDist': reach_dist,
             'epRew': reward,
-            'success': success
+            'success': success,
+            'in_place_reward': in_place
         }
 
         self.curr_path_length += 1
@@ -79,6 +82,11 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
+
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')
+        ).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -131,22 +139,19 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        finger_center = (finger_right + finger_left) / 2
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        target = self._target_pos
 
-        goal = self._target_pos
-        assert np.all(goal == self._get_site_pos('goal'))
+        tcp_to_target = np.linalg.norm(tcp - target)
+        obj_to_target = np.linalg.norm(obj - target)
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        reach_dist = np.linalg.norm(finger_center - goal)
-        reach_rew = c1 * (self.maxReachDist - reach_dist) + \
-                    c1 * (np.exp(-(reach_dist ** 2) / c2) +
-                          np.exp(-(reach_dist ** 2) / c3))
+        in_place_margin = (np.linalg.norm(self.hand_init_pos - target))
+        in_place = reward_utils.tolerance(tcp_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
 
-        reach_rew = max(reach_rew, 0)
-        return [reach_rew, reach_dist]
+        return [10 * in_place, tcp_to_target, in_place]
