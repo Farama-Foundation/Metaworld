@@ -56,7 +56,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         in_place) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(target_to_obj <= self.TARGET_RADIUS),
+            'success': float(target_to_obj <= 0.01),
             'near_object': float(tcp_to_obj <= 0.05),
             'grasp_success': 1.,
             'grasp_reward': object_grasped,
@@ -92,7 +92,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
                              else self.init_config['obj_init_pos'])
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
-        self._set_obj_xyz(-0.02)
+        self._set_obj_xyz(-0.001)
         self._target_pos = self._get_site_pos('goalPress')
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._target_pos[-1])
         self.target_reward = 1000*self.maxDist + 1000*2
@@ -108,9 +108,9 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         target = self._target_pos.copy()
         
-        target_to_obj = (obj[0] - target[0])
+        target_to_obj = (obj[2] - target[2])
         target_to_obj = np.linalg.norm(target_to_obj)
-        target_to_obj_init = (self._handle_init_pos[0] - target[0])
+        target_to_obj_init = (self._handle_init_pos[2] - target[2])
         target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
         in_place = reward_utils.tolerance(
