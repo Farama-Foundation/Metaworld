@@ -1,6 +1,7 @@
 from metaworld.policies.sawyer_assembly_v1_policy import SawyerAssemblyV1Policy
 from metaworld.policies.sawyer_assembly_v2_policy import SawyerAssemblyV2Policy
 from metaworld.policies.sawyer_basketball_v1_policy import SawyerBasketballV1Policy
+from metaworld.policies.sawyer_basketball_v2_policy import SawyerBasketballV2Policy
 from metaworld.policies.sawyer_bin_picking_v2_policy import SawyerBinPickingV2Policy
 from metaworld.policies.sawyer_box_close_v1_policy import SawyerBoxCloseV1Policy
 from metaworld.policies.sawyer_box_close_v2_policy import SawyerBoxCloseV2Policy
@@ -90,6 +91,7 @@ __all__ = [
     'SawyerAssemblyV1Policy',
     'SawyerAssemblyV2Policy',
     'SawyerBasketballV1Policy',
+    'SawyerBasketballV2Policy',
     'SawyerBinPickingV2Policy',
     'SawyerBoxCloseV1Policy',
     'SawyerBoxCloseV2Policy',
