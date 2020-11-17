@@ -245,9 +245,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         # that the reward in the Z direction is small enough that the agent
         # will be willing to explore raising a finger above the handle, hook it,
         # and drop back down to re-gain Z reward
-        scale = np.array([4., 4., 1.])
-        reach_error = np.linalg.norm((under_handle - gripper) * scale)
-        reach_error_init = np.linalg.norm((under_handle_pos_init - self.init_tcp) * scale)
+        scale = np.array([2., 2., 1.])
+        reach_error = np.linalg.norm((under_handle*scale) - (gripper*scale))
+        reach_error_init = np.linalg.norm((under_handle_pos_init*scale) - (self.init_tcp* scale))
 
         # print(np.linalg.norm(gripper_error), np.linalg.norm(gripper_error_init))
 
@@ -269,13 +269,11 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             margin=(np.pi / 2.0),
             sigmoid='long_tail'
         )
-        print("ANGLE: {} -- REWARD: {} -- DESIRED: {}".format(lever_angle, lever_engagement, lever_angle_desired))
+        # print("ANGLE: {} -- REWARD: {} -- DESIRED: {}".format(lever_angle, lever_engagement, lever_angle_desired))
 
+        reward = 5 * gripping_reward
 
-
-        reward = (5 * reach_reward)
-
-        if(reach_reward > 97):
+        if(gripping_reward > 0.7):
             reward = 5 + (5 * reward_for_opening)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
