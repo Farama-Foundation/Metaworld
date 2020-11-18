@@ -284,7 +284,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         reward = gripping_reward
 
         if(reach_reward > 0.7):
-            reward = 1 + (9 * reach_to_goal)
+            reward = 1 + (9 * lever_engagement)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
@@ -296,6 +296,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             np.linalg.norm(handle - gripper),
             obs[3],
             np.linalg.norm(handle_error),
-            reach_reward,
+            gripping_reward,
             reward_for_opening
         )
