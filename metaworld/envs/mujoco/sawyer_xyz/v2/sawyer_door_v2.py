@@ -225,7 +225,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         under_handle = handle - np.array([0., 0., 0.01])
         under_handle_pos_init = handle_pos_init - np.array([0., 0., 0.01])
         gripping_reward = self._gripper_caging_reward(action, under_handle, 0.04)
-        
+
 
         scale = np.array([1., 3., 1.])
         handle_error = (handle - self._target_pos) * scale
@@ -284,7 +284,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         if(z_range and  xy_range):
             print("--> HANDLE SECURED")
             gripping_reward = 1
-            reward = 2 + (8 * reward_for_opening)
+            reward = 2 + (8 * reach_to_goal)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
