@@ -224,19 +224,19 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         under_handle = handle - np.array([0., 0., 0.01])
         under_handle_pos_init = handle_pos_init - np.array([0., 0., 0.01])
-
         gripping_reward = self._gripper_caging_reward(action, under_handle, 0.04)
+        
 
-        # scale = np.array([1., 3., 1.])
-        # handle_error = (handle - self._target_pos) * scale
-        # handle_error_init = (handle_pos_init - self._target_pos) * scale
-        #
-        # reward_for_opening = reward_utils.tolerance(
-        #     np.linalg.norm(handle_error),
-        #     bounds=(0, 0.02),
-        #     margin=np.linalg.norm(handle_error_init),
-        #     sigmoid='long_tail'
-        # )
+        scale = np.array([1., 3., 1.])
+        handle_error = (handle - self._target_pos) * scale
+        handle_error_init = (handle_pos_init - self._target_pos) * scale
+
+        reward_for_opening = reward_utils.tolerance(
+            np.linalg.norm(handle_error),
+            bounds=(0, 0.02),
+            margin=np.linalg.norm(handle_error_init),
+            sigmoid='long_tail'
+        )
 
         hand_to_goal_error = np.linalg.norm(gripper - self._target_pos)
         htge_init = np.linalg.norm(self.init_tcp - self._target_pos)
@@ -279,14 +279,17 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         reward = 1.5 * gripping_reward
 
-        if(gripping_reward > 0.95):
+        z_range = abs((under_handle[2] - gripper[2])) < 0.02
+        xy_range = np.linalg.norm(under_handle[:2] - gripper[:2]) < 0.05
+        if(z_range and  xy_range):
+            print("--> HANDLE SECURED")
             gripping_reward = 1
-            reward = 2 + (8 * reach_to_goal)
+            reward = 2 + (8 * reward_for_opening)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
 
-        # print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, gripping_reward, reward_for_opening))
+        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, gripping_reward, reward_for_opening))
 
         return (
             reward,
