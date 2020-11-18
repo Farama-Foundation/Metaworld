@@ -10,7 +10,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
     X_Z_SUCCESS_MARGIN = 0.01
     OBJ_RADIUS=0.032
-    TARGET_RADIUS=0.03
+    TARGET_RADIUS=0.08
 
     def __init__(self):
 
@@ -107,6 +107,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         self._target_pos = self._get_site_pos('goalPull')
         self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._target_pos[-1])
         self.target_reward = 1000*self.maxDist + 1000*2
+        self.obj_init_pos = self._get_pos_objects()
 
         return self._get_obs()
 
@@ -137,6 +138,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
+        # reward = in_place
 
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)

@@ -11,7 +11,7 @@ class SawyerHandlePullSideV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'handle_pos': obs[3:6],
+            'handle_pos': obs[4:7],
             'unused_info': obs[6:],
         }
 
