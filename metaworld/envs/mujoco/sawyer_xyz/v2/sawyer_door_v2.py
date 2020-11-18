@@ -281,10 +281,10 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
         # print("ANGLE: {} -- REWARD: {} -- DESIRED: {}".format(lever_angle, lever_engagement, lever_angle_desired))
 
-        reward = gripping_reward
+        reward = 2 * gripping_reward
 
         if(reach_reward > 0.7):
-            reward = 1 + (9 * lever_engagement)
+            reward = 2 + (8 * lever_engagement)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
