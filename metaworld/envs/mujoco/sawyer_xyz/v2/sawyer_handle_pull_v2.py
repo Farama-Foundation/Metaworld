@@ -10,7 +10,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.05
     X_Z_SUCCESS_MARGIN = 0.01
     OBJ_RADIUS=0.022
-    TARGET_RADIUS=0.05
+    TARGET_RADIUS=0.06
     
     def __init__(self):
 
@@ -118,12 +118,8 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         # Force target to be slightly above basketball hoop
         target = self._target_pos.copy()
 
-        # Emphasize Z error
-        scale = np.array([1., 1., 1.])
-        target_to_obj = (obj - target) * scale
-        target_to_obj = np.linalg.norm(target_to_obj)
-        target_to_obj_init = (self.obj_init_pos - target) * scale
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
+        target_to_obj = abs(target[2] - obj[2])
+        target_to_obj_init = abs(target[2] - self.obj_init_pos[2])
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -134,7 +130,6 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
 
         object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
-        # reward = in_place
 
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
