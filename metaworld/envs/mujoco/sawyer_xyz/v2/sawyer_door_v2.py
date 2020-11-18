@@ -238,15 +238,15 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         #     sigmoid='long_tail'
         # )
 
-        # hand_to_goal_error = np.linalg.norm(gripper - self._target_pos)
-        # htge_init = np.linalg.norm(self.init_tcp - self._target_pos)
-        #
-        # reach_to_goal = reward_utils.tolerance(
-        #     hand_to_goal_error,
-        #     bounds=(0, _TARGET_RADIUS),
-        #     margin=htge_init,
-        #     sigmoid='long_tail'
-        # )
+        hand_to_goal_error = np.linalg.norm(gripper - self._target_pos)
+        htge_init = np.linalg.norm(self.init_tcp - self._target_pos)
+
+        reach_to_goal = reward_utils.tolerance(
+            hand_to_goal_error,
+            bounds=(0, _TARGET_RADIUS),
+            margin=htge_init,
+            sigmoid='long_tail'
+        )
 
 
         # Emphasize XY error so that gripper is able to drop down and cage
@@ -281,7 +281,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         if(gripping_reward > 0.95):
             gripping_reward = 1
-            reward = 2 + (8 * lever_engagement)
+            reward = 2 + (8 * reach_to_goal)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
