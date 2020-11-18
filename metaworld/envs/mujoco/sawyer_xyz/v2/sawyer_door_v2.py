@@ -286,7 +286,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
 
-        print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, gripping_reward, reward_for_opening))
+        # print("REWARD: {} -- CAGING: {} -- OPENNING: {}".format(reward, gripping_reward, reward_for_opening))
 
         return (
             reward,
