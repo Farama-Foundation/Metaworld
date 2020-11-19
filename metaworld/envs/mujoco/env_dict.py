@@ -100,8 +100,8 @@ from metaworld.envs.mujoco.sawyer_xyz.v2 import (
     SawyerWindowCloseEnvV2,
     SawyerWindowOpenEnvV2,
 )
-from metaworld.envs.mujoco.sawyer_xyz.visual import (
-    VisualSawyerSandboxEnv,
+from metaworld.envs.mujoco.sawyer_xyz.visual.tasks import (
+    VisualSawyerButtonPressEnv,
 )
 
 
@@ -215,7 +215,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
 ))
 
 ALL_VISUAL_ENVS = OrderedDict((
-    ('visual-sandbox-small', VisualSawyerSandboxEnv),
+    ('button-press', VisualSawyerButtonPressEnv),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)

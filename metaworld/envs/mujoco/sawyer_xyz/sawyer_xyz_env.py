@@ -175,36 +175,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
-    def discretize_goal_space(self, goals):
-        assert False
-        assert len(goals) >= 1
-        self.discrete_goals = goals
-        # update the goal_space to a Discrete space
-        self.discrete_goal_space = Discrete(len(self.discrete_goals))
-
-    # Belows are methods for using the new wrappers.
-    # `sample_goals` is implmented across the sawyer_xyz
-    # as sampling from the task lists. This will be done
-    # with the new `discrete_goals`. After all the algorithms
-    # conform to this API (i.e. using the new wrapper), we can
-    # just remove the underscore in all method signature.
-    def sample_goals_(self, batch_size):
-        assert False
-        if self.discrete_goal_space is not None:
-            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
-        else:
-            return [self.goal_space.sample() for _ in range(batch_size)]
-
-    def set_goal_(self, goal):
-        assert False
-        if self.discrete_goal_space is not None:
-            self.active_discrete_goal = goal
-            self.goal = self.discrete_goals[goal]
-            self._target_pos_idx = np.zeros(len(self.discrete_goals))
-            self._target_pos_idx[goal] = 1.
-        else:
-            self.goal = goal
-
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
@@ -418,11 +388,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return super().reset()
 
     def _reset_hand(self, steps=50):
-        self.init_tcp = self.tcp_center
         for _ in range(steps):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
+
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
