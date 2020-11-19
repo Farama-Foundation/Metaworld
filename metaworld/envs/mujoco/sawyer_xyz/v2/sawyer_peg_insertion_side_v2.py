@@ -101,10 +101,10 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         return self.unwrapped.model.body_name2id('peg')
 
     def _get_pos_objects(self):
-        return self.data.get_body_xpos('peg').copy()
+        return self._get_site_pos('pegGrasp')
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_body_xmat('peg')).as_quat()
+        return Rotation.from_matrix(self.data.get_site_xmat('pegGrasp')).as_quat()
 
     def reset_model(self):
         self._reset_hand()
