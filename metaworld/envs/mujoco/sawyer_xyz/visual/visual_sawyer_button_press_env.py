@@ -2,7 +2,8 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import _assert_task_is_set
+from .visual_sawyer_sandbox_env import VisualSawyerSandboxEnv
 from .heuristics import (
     AlongBackWall,
     Ceiling,
@@ -51,28 +52,42 @@ from .solver import Solver
 from .voxelspace import VoxelSpace
 
 
-class VisualSawyerSandboxEnv(SawyerXYZEnv):
+class VisualSawyerButtonPressEnv(VisualSawyerSandboxEnv):
 
     def __init__(self):
-        super().__init__(
-            self.model_name,
-            hand_low=(-0.5, 0.4, .05),
-            hand_high=(0.5, 1.0, 0.5),
+        obj_low = (-1, -1, -1)
+        obj_high = (1, 1, 1)
+        goal_low = (-1., -1., -1.)
+        goal_high = (1., 1., 1.)
+
+        super().__init__()
+
+        self.init_config = {
+            'hand_init_pos': self.hand_init_pos,
+        }
+        self._random_reset_space = Box(
+            np.hstack((obj_low, goal_low)),
+            np.hstack((obj_high, goal_high)),
         )
-        self.hand_init_pos = np.array((0, 0.6, 0.4), dtype=np.float32)
-        self.max_path_length = 500
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self._all_tool_names = list(self._body_names)
-        self._world = None
-        self._solver = None
-
-    @property
-    def model_name(self):
-        return full_visual_path_for('sawyer_xyz/sawyer_sandbox_empty_table.xml')
+    @_assert_task_is_set
+    def step(self, action):
+        ob = super().step(action)
+        self.curr_path_length += 1
+        info = {'success': float(False)}
+        return ob, 0, False, info
 
     @property
     def _target_site_config(self):
         return []
+
+    def _get_pos_objects(self):
+        '''
+        Note: At a later point it may be worth it to replace this with
+        self._get_obj_pos_dict
+        '''
+        return np.zeros(3)
 
     def reset_model(self):
         self._reset_hand()
@@ -179,62 +194,3 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def show_bbox_for(self, tool):
-        tool_pos = get_position_of(tool, self.sim)
-        for site, corner in zip(
-                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
-                tool.get_bbox_corners()
-        ):
-            self.sim.model.site_pos[
-                self.model.site_name2id(f'BBox{site}')
-            ] = tool_pos + np.array(corner)
-
-    def _make_everything_match_solver(self):
-        for tool in self._solver.tools:
-            if tool.name not in self._all_tool_names:
-                print(f'Skipping {tool.name} placement. You sure it\'s in XML?')
-                continue
-            if tool.name + 'Joint' in self.model.joint_names:
-                qpos_old = get_joint_pos_of(tool, self.sim)
-                qpos_new = qpos_old.copy()
-
-                print(tool.name)
-                print(self.model.body_dofadr[self.model.body_name2id(tool.name)])
-
-                qpos_new[:3] = tool.specified_pos
-                qpos_new[3:] = np.round(qpos_old[3:], decimals=1)
-
-                set_joint_pos_of(tool, self.sim, qpos_new)
-                set_joint_vel_of(tool, self.sim, np.zeros(6))
-            else:
-                set_position_of(tool, self.sim, self.model)
-
-    def _anneal_free_joints(self, steps=10):
-        for step in range(steps):
-            self.sim.step()
-
-            for tool in self._solver.tools:
-                if tool.name + 'Joint' in self.model.joint_names:
-                    qvel_old = get_joint_vel_of(tool, self.sim)
-
-                    qvel_new = qvel_old.copy()
-                    qvel_new[[0, 1, 3, 4, 5]] /= 2 ** step
-                    qvel_new[2] /= 1.05 ** step
-
-                    set_joint_vel_of(tool, self.sim, qvel_new)
-
-    @property
-    def _body_names(self):
-        return self.model.body_names
-
-    @property
-    def _joint_names(self):
-        return self.model.joint_names
-
-    @property
-    def _joint_pos(self):
-        return self.model.jnt_pos
-
-    @property
-    def _joint_type(self):
-        return self.model.jnt_type
