@@ -86,7 +86,7 @@ Usage:
             cone="elliptic"
     /> -->
 
-    <option timestep='0.0025' iterations="50" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>     
+    <option timestep='0.0025' iterations="100" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>     
 
     <!-- <default>
         <joint limited="true"

@@ -11,9 +11,10 @@ class SawyerHandInsertV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'obj_pos': obs[3:6],
-            'goal_pos': obs[9:],
-            'unused_info': obs[6:9],
+            'gripper': obs[3],
+            'obj_pos': obs[4:7],
+            'goal_pos': obs[-3:],
+            'unused_info': obs[7:-3],
         }
 
     def get_action(self, obs):
@@ -34,7 +35,7 @@ class SawyerHandInsertV2Policy(Policy):
         hand_pos = o_d['hand_pos']
         obj_pos = o_d['obj_pos']
         goal_pos = o_d['goal_pos']
-        #
+
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02:
             return obj_pos + np.array([0., 0., 0.1])
