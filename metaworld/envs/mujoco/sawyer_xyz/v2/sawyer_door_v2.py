@@ -277,14 +277,14 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             sigmoid='long_tail'
         )
 
-        reward = 1.5 * gripping_reward
+        reward = 1 * gripping_reward
 
         z_range = abs((under_handle[2] - gripper[2])) < 0.02
         xy_range = np.linalg.norm(under_handle[:2] - gripper[:2]) < 0.05
         if(z_range and  xy_range):
             print("--> HANDLE SECURED")
             gripping_reward = 1
-            reward = 2 + (8 * reach_to_goal)
+            reward = 1 + (9 * reach_to_goal)
 
         if np.linalg.norm(handle - self._target_pos) < _TARGET_RADIUS:
             reward = 10
