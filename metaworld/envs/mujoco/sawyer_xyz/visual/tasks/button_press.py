@@ -25,8 +25,8 @@ class ButtonPress(VisualSawyerSandboxEnv):
 
         self._target_pos = np.zeros(3)
         self._random_reset_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.zeros(2),
+            np.ones(2),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
@@ -44,8 +44,9 @@ class ButtonPress(VisualSawyerSandboxEnv):
         y = 0.0
         z = button.resting_pos_z
         if self.random_init:
-            x = world.size[0]/2.0 + 0.8 * (np.random.random() - 0.5)
-            y = world.size[1]/8.0 + 0.3 * (np.random.random() - 0.0)
+            vec = self._get_state_rand_vec()
+            x = world.size[0]/2.0 + 0.8 * (vec[0] - 0.5)
+            y = world.size[1]/8.0 + 0.3 * (vec[1] - 0.0)
         button.specified_pos = np.array([x, y, z])
         solver.did_manual_set(button)
 

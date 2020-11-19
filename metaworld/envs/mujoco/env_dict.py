@@ -102,6 +102,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2 import (
 )
 from metaworld.envs.mujoco.sawyer_xyz.visual.tasks import (
     VisualSawyerButtonPressEnv,
+    VisualSawyerPickPlaceEnv,
 )
 
 
@@ -216,6 +217,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict((
 
 ALL_VISUAL_ENVS = OrderedDict((
     ('button-press', VisualSawyerButtonPressEnv),
+    ('pick-place', VisualSawyerPickPlaceEnv),
 ))
 
 _NUM_METAWORLD_ENVS = len(ALL_V1_ENVIRONMENTS)
