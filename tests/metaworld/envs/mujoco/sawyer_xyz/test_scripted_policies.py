@@ -211,8 +211,6 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
-test_cases_latest_noisy = [['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],]
-
 # Combine test cases into a single array to pass to parameterized test function
 test_cases = []
 for row in test_cases_old_nonoise:
