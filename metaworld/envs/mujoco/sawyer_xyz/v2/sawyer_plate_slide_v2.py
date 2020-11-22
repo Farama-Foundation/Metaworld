@@ -146,7 +146,6 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         target = self._target_pos
 
         obj_to_target = np.linalg.norm(obj - target)
-        tcp_to_obj = np.linalg.norm(obj - tcp)
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(obj_to_target,
@@ -154,13 +153,21 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        tcp_to_obj = np.linalg.norm(tcp - obj)
+        obj_grasped_margin = np.linalg.norm(self.init_tcp - self.obj_init_pos)
+
+        object_grasped = reward_utils.tolerance(tcp_to_obj,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=obj_grasped_margin,
+                                    sigmoid='long_tail',)
+
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
-        reward = in_place_and_object_grasped
+        reward = 8 * in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 5. * in_place
+        # if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+        #     reward += 1. + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
