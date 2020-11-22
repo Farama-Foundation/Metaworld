@@ -211,6 +211,8 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
+test_cases_latest_noisy = [['faucet-close-v2', SawyerFaucetCloseV2Policy(), .1, .93],]
+
 
 # Combine test cases into a single array to pass to parameterized test function
 test_cases = []
@@ -257,6 +259,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
+        successes += float(trajectory_summary(env, policy, act_noise_pct, render=True)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
