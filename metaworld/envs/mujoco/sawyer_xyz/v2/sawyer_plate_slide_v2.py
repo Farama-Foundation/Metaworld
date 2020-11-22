@@ -52,17 +52,27 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            obj_to_target,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, ob)
+
+        success = float(obj_to_target <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
 
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.08)
+            'success': success,
+            'near_object': near_object,
+            'grasp_reward': object_grasped,
+            'in_place_reward': in_place,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward
         }
-
+        self.curr_path_length += 1
         return ob, reward, False, info
 
     def _get_pos_objects(self):
@@ -85,6 +95,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
         if self.random_init:
             rand_vec = self._get_state_rand_vec()
+            self.init_tcp = self.tcp_center
             self.obj_init_pos = rand_vec[:3]
             self._target_pos = rand_vec[3:]
 
@@ -136,7 +147,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
         obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
