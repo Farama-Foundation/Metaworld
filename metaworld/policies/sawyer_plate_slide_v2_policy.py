@@ -9,12 +9,6 @@ class SawyerPlateSlideV2Policy(Policy):
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
-        # return {
-        #     'hand_pos': obs[:3],
-        #     'puck_pos': obs[3:6],
-        #     'shelf_x': obs[-3],
-        #     'unused_info': obs[[6, 7, 8, 10, 11]],
-        # }
         return {
             'hand_pos': obs[:3],
             'unused_1': obs[3],
