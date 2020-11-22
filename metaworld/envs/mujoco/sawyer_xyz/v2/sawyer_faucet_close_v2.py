@@ -1,11 +1,14 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
+    TARGET_RADIUS=0.05
+
     def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
@@ -29,7 +32,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -45,18 +48,26 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
+        obs = super().step(action)
+        (reward,
+         tcp_to_obj,
+         _,
+         target_to_obj,
+         object_grasped,
+         in_place) = self.compute_reward(action, obs)
         self.curr_path_length += 1
+
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.05),
+            'success': float(target_to_obj <= self.TARGET_RADIUS),
+            'near_object': float(tcp_to_obj <= 0.01),
+            'grasp_success': 1.,
+            'grasp_reward': object_grasped,
+            'in_place_reward': in_place,
+            'obj_to_target': target_to_obj,
+            'unscaled_reward': reward,
         }
 
-        return ob, reward, False, info
+        return obs, reward, False, info
 
     @property
     def _target_site_config(self):
@@ -74,9 +85,13 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             -np.cos(knob_angle_rad),
             0
         ])
-        offset *= self.handle_length
+        handle_length = 0.175
+        offset *= handle_length
 
-        return knob_center + offset
+        return knob_center + offset + np.array([+.04, .0, .03])
+
+    def _get_quat_objects(self):
+        return self.sim.data.get_body_xquat('faucetBase')
 
     def reset_model(self):
         self._reset_hand()
@@ -89,44 +104,53 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             'faucetBase'
         )] = self.obj_init_pos
 
-        self._target_pos = self.obj_init_pos + np.array(
-            [-self.handle_length, .0, .125]
-        )
-
-        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
+        self._target_pos = self._get_site_pos('goal_close')
+        self.obj_init_pos = self.obj_init_pos + np.array([0.015, -0.175, 0.125])
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
-        self.reachCompleted = False
+        self.init_tcp = self.tcp_center
 
-    def compute_reward(self, actions, obs):
-        del actions
+    def compute_reward(self, action, obs):
+        obj = obs[4:7]
+        tcp = self.tcp_center
+        target = self._target_pos.copy()
 
-        objPos = obs[3:6]
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
-        pullGoal = self._target_pos
-        pullDist = np.linalg.norm(objPos - pullGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
+        target_to_obj = (obj - target)
+        target_to_obj = np.linalg.norm(target_to_obj)
+        target_to_obj_init = (self.obj_init_pos - target)
+        target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
-        self.reachCompleted = reachDist < 0.05
+        in_place = reward_utils.tolerance(
+            target_to_obj,
+            bounds=(0, self.TARGET_RADIUS),
+            margin=abs(target_to_obj_init - self.TARGET_RADIUS),
+            sigmoid='long_tail',
+        )
 
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
+        faucet_reach_radius = 0.005
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
+        reach = reward_utils.tolerance(
+            tcp_to_obj,
+            bounds=(0, faucet_reach_radius),
+            margin=abs(tcp_to_obj_init-faucet_reach_radius),
+            sigmoid='gaussian',
+        )
+        gripper_closed = min(max(0, action[-1]), 1)
 
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
+        # reach = reward_utils.hamacher_product(reach, gripper_closed)
+        tcp_opened = 0
+        object_grasped = reach
 
-        pullRew = pullReward()
-        reward = reachRew + pullRew
+        # reward = reward_utils.hamacher_product(reach, in_place)
+        reward = reach
 
-        return [reward, reachDist, pullDist]
+        return (reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place)
