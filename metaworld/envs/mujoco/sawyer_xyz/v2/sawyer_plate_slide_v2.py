@@ -10,7 +10,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.05
+    OBJ_RADIUS = 0.04
 
     def __init__(self):
 
