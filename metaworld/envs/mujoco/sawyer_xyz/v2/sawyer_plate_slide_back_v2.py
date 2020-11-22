@@ -48,19 +48,6 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        # ob = super().step(action)
-        # reward, reachDist, pullDist = self.compute_reward(action, ob)
-        # self.curr_path_length +=1
-        #
-        # info = {
-        #     'reachDist': reachDist,
-        #     'goalDist': pullDist,
-        #     'epRew': reward,
-        #     'pickRew': None,
-        #     'success': float(pullDist <= 0.07)
-        # }
-        #
-        # return ob, reward, False, info
         ob = super().step(action)
         (
             reward,
@@ -121,31 +108,6 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         super()._reset_hand()
 
     def compute_reward(self, actions, obs):
-        # del actions
-        #
-        # objPos = obs[3:6]
-        #
-        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        # fingerCOM  =  (rightFinger + leftFinger)/2
-        #
-        # pullGoal = self._target_pos
-        #
-        # reachDist = np.linalg.norm(objPos - fingerCOM)
-        #
-        # pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        #
-        # c1 = 1000
-        # c2 = 0.01
-        # c3 = 0.001
-        # if reachDist < 0.05:
-        #     pullRew = 1000*(self.maxDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-        #     pullRew = max(pullRew, 0)
-        # else:
-        #     pullRew = 0
-        #
-        # reward = -reachDist + pullRew
-        #
-        # return [reward, reachDist, pullDist]
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
@@ -154,15 +116,14 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         obj_to_target = np.linalg.norm(obj - target)
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
-
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        tcp_to_obj = np.linalg.norm(tcp - obj)
-        obj_grasped_margin = np.linalg.norm(self.init_tcp - self.obj_init_pos)
-
+        front_of_obj = obj + np.array([0., 0.03, 0.])
+        tcp_to_obj = np.linalg.norm(tcp - front_of_obj)
+        obj_grasped_margin = np.linalg.norm(self.init_tcp - (self.obj_init_pos + np.array([0., 0.03, 0.])))
         object_grasped = reward_utils.tolerance(tcp_to_obj,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=obj_grasped_margin,
