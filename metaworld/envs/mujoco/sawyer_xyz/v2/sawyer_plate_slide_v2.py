@@ -7,7 +7,10 @@ from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
+
 class SawyerPlateSlideEnvV2(SawyerXYZEnv):
+
+    OBJ_RADIUS = 0.05
 
     def __init__(self):
 
@@ -140,7 +143,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        object_grasped = self._gripper_caging_reward(action, obj)
+        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
         reward = in_place_and_object_grasped
