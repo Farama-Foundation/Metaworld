@@ -97,7 +97,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([0, 0.15]))
-        self.obj_init_pos = self._get_pos_objects()
+        # self.obj_init_pos = self._get_pos_objects()
 
         self.objHeight = self.data.get_geom_xpos('puck')[2]
         self.maxDist = np.linalg.norm(self.data.get_geom_xpos('puck')[:-1] - self._target_pos[:-1])
