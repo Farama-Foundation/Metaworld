@@ -119,21 +119,21 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=in_place_margin,
+                                    margin=in_place_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
         tcp_to_obj = np.linalg.norm(tcp - obj)
         obj_grasped_margin = np.linalg.norm(self.init_tcp - self.obj_init_pos)
         object_grasped = reward_utils.tolerance(tcp_to_obj,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=obj_grasped_margin,
+                                    margin=obj_grasped_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
         reward = 3 * in_place_and_object_grasped
 
-        if tcp[2] <= 0.03 and tcp_to_obj < 0.7:
+        if tcp[2] <= 0.03 and tcp_to_obj < 0.07:
             print("MOVING TO GOAL: {}".format(in_place_and_object_grasped))
             reward = 3 + (6 * in_place)
 
