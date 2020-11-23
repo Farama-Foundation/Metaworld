@@ -130,10 +130,10 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
-        reward = 8 * in_place_and_object_grasped\
+        reward = 2 * in_place_and_object_grasped
 
         if tcp[2] <= 0.0155 and tcp_to_obj < 0.06:
-            reward += 1
+            reward = 2 + 7 * in_place
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
