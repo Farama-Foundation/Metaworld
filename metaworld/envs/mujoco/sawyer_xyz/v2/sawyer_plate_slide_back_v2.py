@@ -97,7 +97,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([0, 0.15]))
-        self.obj_init_pos = self._get_pos_objects()
+        # self.obj_init_pos = self._get_pos_objects()
 
         self.objHeight = self.data.get_geom_xpos('puck')[2]
         self.maxDist = np.linalg.norm(self.data.get_geom_xpos('puck')[:-1] - self._target_pos[:-1])
@@ -119,14 +119,14 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=in_place_margin,
+                                    margin=in_place_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
         tcp_to_obj = np.linalg.norm(tcp - obj)
         obj_grasped_margin = np.linalg.norm(self.init_tcp - self.obj_init_pos)
         object_grasped = reward_utils.tolerance(tcp_to_obj,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=obj_grasped_margin,
+                                    margin=obj_grasped_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
