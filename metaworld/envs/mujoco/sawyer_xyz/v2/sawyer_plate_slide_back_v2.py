@@ -132,7 +132,8 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
                                                                     in_place)
         reward = 2 * in_place_and_object_grasped
 
-        if tcp[2] <= 0.0155 and tcp_to_obj < 0.06:
+        if tcp[2] <= 0.015 and tcp_to_obj < 0.10:
+            print("MOVING TO GOAL")
             reward = 2 + 7 * in_place
 
         if obj_to_target < _TARGET_RADIUS:
