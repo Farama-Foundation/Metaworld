@@ -32,6 +32,8 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
+        self._lock_length = 0.1
+
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -96,7 +98,6 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self.get_body_com('lock_link')
         self._target_pos = self.obj_init_pos + np.array([.0, -.04, -.1])
-        self.maxPullDist = 0.1
 
         return self._get_obs()
 
@@ -111,8 +112,10 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         obj = obs[4:7]
         tcp = self.get_body_com('leftpad')
 
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        tcp_to_obj_init = np.linalg.norm(obj - self.init_left_pad)
+        scale = np.array([0.25, 1., 0.5])
+        tcp_to_obj = np.linalg.norm((obj - tcp) * scale)
+        tcp_to_obj_init = np.linalg.norm((obj - self.init_left_pad) * scale)
+
         obj_to_target = abs(self._target_pos[2] - obj[2])
 
         tcp_opened = max(obs[3], 0.0)
@@ -125,7 +128,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         lock_pressed = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, 0.005),
-            margin=self.maxPullDist,
+            margin=self._lock_length,
             sigmoid='long_tail',
         )
 
