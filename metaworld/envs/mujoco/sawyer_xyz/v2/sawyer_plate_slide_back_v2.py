@@ -131,7 +131,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
-        reward = 2 * in_place_and_object_grasped
+        reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:
             print("MOVING TO GOAL: {}".format(in_place_and_object_grasped))
