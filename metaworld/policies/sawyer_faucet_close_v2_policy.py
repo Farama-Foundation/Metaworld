@@ -13,7 +13,8 @@ class SawyerFaucetCloseV2Policy(Policy):
             'hand_pos': obs[:3],
             'unused_grasp': obs[4],
             'faucet_pos': obs[4:7],
-            'unused_info': obs[7:],
+            'unused_info': obs[7:-3],
+            'goal': obs[-3:]
         }
 
     def get_action(self, obs):
@@ -32,12 +33,12 @@ class SawyerFaucetCloseV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        # pos_faucet = o_d['faucet_pos'] + np.array([+.04, .0, .03])
         pos_faucet = o_d['faucet_pos']
+        goal = o_d['goal']
 
         if np.linalg.norm(pos_curr[:2] - pos_faucet[:2]) > 0.04:
             return pos_faucet + np.array([.0, .0, .1])
         elif abs(pos_curr[2] - pos_faucet[2]) > 0.04:
             return pos_faucet
         else:
-            return pos_faucet + np.array([-.1, .05, .0])
+            return goal

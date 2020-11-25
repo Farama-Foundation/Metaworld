@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
-    TARGET_RADIUS=0.05
+    TARGET_RADIUS=0.07
 
     def __init__(self):
 
@@ -40,7 +40,6 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self.handle_length = 0.175
 
     @property
     def model_name(self):
@@ -58,7 +57,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
 
         info = {
-            'success': float(target_to_obj <= self.TARGET_RADIUS),
+            'success': float(target_to_obj <= self.TARGET_RADIUS + 0.04),
             'near_object': float(tcp_to_obj <= 0.01),
             'grasp_success': 1.,
             'grasp_reward': object_grasped,
@@ -77,18 +76,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         ]
 
     def _get_pos_objects(self):
-        knob_center = self.get_body_com('faucetBase') + np.array([.0, .0, .125])
-        knob_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
-
-        offset = np.array([
-            np.sin(knob_angle_rad),
-            -np.cos(knob_angle_rad),
-            0
-        ])
-        handle_length = 0.175
-        offset *= handle_length
-
-        return knob_center + offset + np.array([+.04, .0, .03])
+        return self._get_site_pos('handleStartClose') + np.array([0., 0., -0.01])
 
     def _get_quat_objects(self):
         return self.sim.data.get_body_xquat('faucetBase')
@@ -105,7 +93,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         )] = self.obj_init_pos
 
         self._target_pos = self._get_site_pos('goal_close')
-        self.obj_init_pos = self.obj_init_pos + np.array([0.015, -0.175, 0.125])
+        self.obj_init_pos = self._get_pos_objects()
 
         return self._get_obs()
 
@@ -130,7 +118,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        faucet_reach_radius = 0.005
+        faucet_reach_radius = 0.01
         tcp_to_obj = np.linalg.norm(obj - tcp)
         tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
         reach = reward_utils.tolerance(
@@ -139,14 +127,13 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             margin=abs(tcp_to_obj_init-faucet_reach_radius),
             sigmoid='gaussian',
         )
-        gripper_closed = min(max(0, action[-1]), 1)
 
-        # reach = reward_utils.hamacher_product(reach, gripper_closed)
         tcp_opened = 0
         object_grasped = reach
 
-        # reward = reward_utils.hamacher_product(reach, in_place)
-        reward = reach
+        reward = 2 * reach + 3 * in_place
+        reward *= 2
+        reward = 10 if target_to_obj <= self.TARGET_RADIUS else reward
 
         return (reward,
                 tcp_to_obj,
