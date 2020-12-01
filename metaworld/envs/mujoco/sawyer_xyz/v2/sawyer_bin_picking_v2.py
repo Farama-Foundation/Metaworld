@@ -127,6 +127,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def compute_reward(self, action, obs):
+        hand = obs[:3]
         obj = obs[4:7]
 
         target_to_obj = np.linalg.norm(obj - self._target_pos)
@@ -137,6 +138,27 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             target_to_obj,
             bounds=(0, self.TARGET_RADIUS),
             margin=self._target_to_obj_init,
+            sigmoid='long_tail',
+        )
+
+        threshold = 0.1
+        radii = [
+            np.linalg.norm(hand[:2] - self.obj_init_pos[:2]),
+            np.linalg.norm(hand[:2] - self._target_pos[:2])
+        ]
+        # floor is a *pair* of 3D funnels centered on (1) the object's initial
+        # position and (2) the desired final position
+        floor = min([
+            0.01 * np.log(radius - threshold) + 0.1
+            if radius > threshold else 0.0
+            for radius in radii
+        ])
+        # prevent the hand from running into the edge of the bins by keeping
+        # it above the "floor"
+        above_floor = 1.0 if hand[2] >= floor else reward_utils.tolerance(
+            floor - hand[2],
+            bounds=(0.0, 0.01),
+            margin=floor / 2.0,
             sigmoid='long_tail',
         )
 
@@ -155,7 +177,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 1. + 3. * above_floor + 4. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
 
