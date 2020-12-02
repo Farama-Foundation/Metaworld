@@ -50,16 +50,21 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward = self.compute_reward(action, ob)
+        (
+            reward,
+            reward_grab,
+            reward_ready,
+            reward_success,
+        ) = self.compute_reward(action, ob)
 
-        success = float(abs(ob[4] - self._target_pos[0]) <+ 0.08)
+        success = float(abs(ob[4] - self._target_pos[0]) <= 0.08)
 
         info = {
             'success': success,
-            'near_object': 0,
-            'grasp_success': 0,
-            'grasp_reward': 0,
-            'in_place_reward': 0,
+            'near_object': reward_ready,
+            'grasp_success': reward_grab >= 0.5,
+            'grasp_reward': reward_grab,
+            'in_place_reward': reward_success,
             'obj_to_target': 0,
             'unscaled_reward': reward,
         }
@@ -150,8 +155,14 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         reward_steps = SawyerDoorEnvV2._reward_pos(obs, self._target_pos)
 
         step_weights = [1, 2]
-        reward_steps = sum([
+        reward = sum([
             w * r for w, r in zip(step_weights, reward_steps)
         ]) / sum(step_weights)
 
-        return 10.0 * reward_utils.hamacher_product(reward_grab, reward_steps)
+        reward = 10.0 * reward_utils.hamacher_product(reward, reward_grab)
+
+        return (
+            reward,
+            reward_grab,
+            *reward_steps,
+        )
