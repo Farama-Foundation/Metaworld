@@ -2,6 +2,7 @@ import numpy as np
 from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -33,7 +34,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
+        self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -41,25 +43,29 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
-
     @property
     def model_name(self):
         return full_v2_path_for('sawyer_xyz/sawyer_door_pull.xml')
 
     @_assert_task_is_set
     def step(self, action):
-        obs = super().step(action)
-        reward, obj_to_target, in_place = self.compute_reward(action, obs)
-        self.curr_path_length += 1
+        ob = super().step(action)
+        reward = self.compute_reward(action, ob)
+
+        success = float(abs(ob[4] - self._target_pos[0]) <+ 0.08)
+
         info = {
-            'reward': reward,
-            'obj_to_target': obj_to_target,
-            'in_place_reward': in_place,
-            'success': float(obj_to_target <= 0.08)
+            'success': success,
+            'near_object': 0,
+            'grasp_success': 0,
+            'grasp_reward': 0,
+            'in_place_reward': 0,
+            'obj_to_target': 0,
+            'unscaled_reward': reward,
         }
 
-        return obs, reward, False, info
+        self.curr_path_length += 1
+        return ob, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('handle').copy()
@@ -93,39 +99,59 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
     def _reset_hand(self):
         super()._reset_hand()
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
+    @staticmethod
+    def _reward_grab_effort(actions):
+        return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
+
+    @staticmethod
+    def _reward_pos(obs, target_pos):
+        hand = obs[:3]
+        door = obs[4:7] + np.array([-0.05, 0, 0])
+
+        # floor is a 3D funnel centered on the door handle
+        radius = np.linalg.norm(hand[:2] - door[:2])
+        if radius <= 0.12:
+            floor = 0.0
+        else:
+            floor = 0.04 * np.log(radius - 0.12) + 0.4
+        # prevent the hand from running into the handle prematurely by keeping
+        # it above the floor
+        above_floor = 1.0 if hand[2] >= floor else reward_utils.tolerance(
+            floor - hand[2],
+            bounds=(0.0, 0.01),
+            margin=floor / 2.0,
+            sigmoid='long_tail',
+        )
+        # move the hand to a position between the handle and the main door body
+        in_place = reward_utils.tolerance(
+            np.linalg.norm(hand - door - np.array([0.06, 0.02, 0.2])),
+            bounds=(0, 0.12),
+            margin=0.5,
+            sigmoid='long_tail',
+        )
+        ready_to_open = reward_utils.hamacher_product(above_floor, in_place)
+
+        # now actually open the door
+        opened = reward_utils.tolerance(
+            abs(door[0] - target_pos[0]),
+            bounds=(0, 0.06),
+            margin=0.3,
+            sigmoid='long_tail',
+        )
+
+        return ready_to_open, opened
 
     def compute_reward(self, actions, obs):
-        del actions
-        objPos = obs[3:6]
+        reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
+        reward_steps = SawyerDoorEnvV2._reward_pos(obs, self._target_pos)
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        step_weights = [1, 2]
+        reward_steps = sum([
+            w * r for w, r in zip(step_weights, reward_steps)
+        ]) / sum(step_weights)
 
-        pullGoal = self._target_pos
-
-        pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
-
-        self.reachCompleted = reachDist < 0.05
-
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
-
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
+        return 10.0 * reward_utils.hamacher_product(reward_grab, reward_steps)
