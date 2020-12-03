@@ -165,6 +165,10 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             8.0 * reward_steps[1],
         ))
 
+        # Override reward on success flag
+        if abs(obs[4] - self._target_pos[0]) <= 0.08:
+            reward = 10.0
+
         return (
             reward,
             reward_grab,
