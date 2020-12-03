@@ -109,7 +109,7 @@ def tolerance(x,
     if lower > upper:
         raise ValueError('Lower bound must be <= upper bound.')
     if margin < 0:
-        raise ValueError('`margin` must be non-negative.')
+        raise ValueError('`margin` must be non-negative. Current value: {}'.format(margin))
 
     in_bounds = np.logical_and(lower <= x, x <= upper)
     if margin == 0:
@@ -166,7 +166,7 @@ def rect_prism_tolerance(curr, zero, one):
 
     The 3d points curr and zero specify 2 diagonal corners of a rectangular
     prism that represents the decreasing region.
-    
+
     one represents the corner of the prism that has a reward of 1.
     zero represents the diagonal opposite corner of the prism that has a reward
         of 0.
@@ -215,47 +215,3 @@ def hamacher_product(a, b):
     h_prod = ((a * b) / (a + b - (a * b)))
     assert 0. <= h_prod <= 1.
     return h_prod
-
-
-def gripper_caging_reward(env, action, pos_main_object):
-    # MARK: Left-right gripper information for caging reward----------------
-    left_pad = env.get_body_com('leftpad')
-    right_pad = env.get_body_com('rightpad')
-
-    pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
-    pad_y_lr_init = np.hstack((env.init_left_pad[1], env.init_right_pad[1]))
-
-    obj_to_pad_lr = np.abs(pad_y_lr - pos_main_object[1])
-    obj_to_pad_lr_init = np.abs(pad_y_lr_init - pos_main_object[1])
-
-    caging_margin_lr = np.abs(obj_to_pad_lr_init - env.PAD_SUCCESS_MARGIN)
-    caging_lr = [tolerance(
-        obj_to_pad_lr[i],
-        bounds=(env.OBJ_RADIUS, env.PAD_SUCCESS_MARGIN),
-        margin=caging_margin_lr[i],
-        sigmoid='long_tail',
-    ) for i in range(2)]
-    caging_y = hamacher_product(*caging_lr)
-
-    # MARK: X-Z gripper information for caging reward-----------------------
-    tcp = env.tcp_center
-    xz = [0, 2]
-    xz_margin = np.linalg.norm(env.obj_init_pos[xz] - env.init_tcp[xz])
-    xz_margin -= env.X_Z_SUCCESS_MARGIN
-
-    caging_xz = tolerance(
-        np.linalg.norm(tcp[xz] - pos_main_object[xz]),
-        bounds=(0, env.X_Z_SUCCESS_MARGIN),
-        margin=xz_margin,
-        sigmoid='long_tail',
-    )
-
-    # MARK: Closed-extent gripper information for caging reward-------------
-    gripper_closed = min(max(0, action[-1]), 1)
-
-    # MARK: Combine components----------------------------------------------
-    caging = hamacher_product(caging_y, caging_xz)
-    gripping = gripper_closed if caging > 0.97 else 0.
-    caging_and_gripping = (hamacher_product(caging, gripping) + caging) / 2
-
-    return caging_and_gripping
