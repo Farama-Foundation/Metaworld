@@ -113,7 +113,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
 
     @staticmethod
-    def _reward_pos(obs, target_pos):
+    def _reward_pos(obs, theta):
         hand = obs[:3]
         door = obs[4:7] + np.array([-0.05, 0, 0])
 
@@ -142,23 +142,23 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         ready_to_open = reward_utils.hamacher_product(above_floor, in_place)
 
         # now actually open the door
-        opened = reward_utils.tolerance(
-            abs(door[1] - target_pos[1]),
-            bounds=(0, 0.03),
-            margin=0.45 / 2.0,
+        door_angle = -theta
+        a = 0.2  # Relative importance of just *trying* to open the door at all
+        b = 0.8  # Relative importance of fully opening the door
+        opened = a * float(theta < -np.pi/90.) + b * reward_utils.tolerance(
+            np.pi/2. + np.pi/6 - door_angle,
+            bounds=(0, 0.5),
+            margin=np.pi/3.,
             sigmoid='long_tail',
         )
 
         return ready_to_open, opened
 
     def compute_reward(self, actions, obs):
-        reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
-        reward_steps = SawyerDoorEnvV2._reward_pos(obs, self._target_pos)
+        theta = self.data.get_joint_qpos('doorjoint')
 
-        # step_weights = [1.0, 4.0]
-        # reward = sum([
-        #     w * r for w, r in zip(step_weights, reward_steps)
-        # ]) / sum(step_weights)
+        reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
+        reward_steps = SawyerDoorEnvV2._reward_pos(obs, theta)
 
         reward = sum((
             2.0 * reward_utils.hamacher_product(reward_steps[0], reward_grab),
