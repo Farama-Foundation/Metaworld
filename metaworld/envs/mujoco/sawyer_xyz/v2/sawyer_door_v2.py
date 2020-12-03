@@ -134,8 +134,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
         # move the hand to a position between the handle and the main door body
         in_place = reward_utils.tolerance(
-            np.linalg.norm(hand - door - np.array([0.06, 0.03, 0.0])),
-            bounds=(0, threshold),
+            np.linalg.norm(hand - door - np.array([0.05, 0.03, -0.01])),
+            bounds=(0, threshold / 2.0),
             margin=0.5,
             sigmoid='long_tail',
         )
@@ -145,7 +145,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         opened = reward_utils.tolerance(
             abs(door[1] - target_pos[1]),
             bounds=(0, 0.03),
-            margin=0.45,
+            margin=0.45 / 2.0,
             sigmoid='long_tail',
         )
 
