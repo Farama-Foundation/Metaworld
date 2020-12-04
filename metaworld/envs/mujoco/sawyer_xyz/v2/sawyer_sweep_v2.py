@@ -179,9 +179,8 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         else:
             gripping = 0.
         assert gripping >= 0 and gripping <= 1
-        # caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
-        caging_and_gripping = (caging + gripping) / 2
 
+        caging_and_gripping = (caging + gripping) / 2
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
         return caging_and_gripping
@@ -208,8 +207,6 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
 
         reward = (2*object_grasped) + (6*in_place_and_object_grasped)
 
-        # if tcp_to_obj < 0.025 and (tcp_opened > 0) and np.linalg.norm(self.obj_init_pos - obj) > 0.01:
-        #     reward += 1 + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
