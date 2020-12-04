@@ -76,10 +76,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
         self.curr_path_length += 1
-
         return obs, reward, False, info
-
-
 
     def _get_quat_objects(self):
         return self.data.get_body_xquat('obj')
