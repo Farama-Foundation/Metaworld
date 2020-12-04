@@ -21,8 +21,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    OBJ_RADIUS = 0.01
-
     def __init__(self):
         lift_thresh = 0.04
 
@@ -173,7 +171,15 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        obj_radius = 0.01
+        object_reach_radius=0.01
+        pad_success_margin = 0.05
+
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=object_reach_radius,
+                                                     obj_radius=obj_radius,
+                                                     pad_success_margin=pad_success_margin)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
 

@@ -239,6 +239,7 @@ EASY_MODE_ARGS_KWARGS['push-v1']['kwargs']['task_type'] = 'push'
 EASY_MODE_ARGS_KWARGS['pick-place-v1']['kwargs']['task_type'] = 'pick_place'
 
 
+
 MEDIUM_MODE_CLS_DICT = OrderedDict((
     ('train',
         OrderedDict((
@@ -366,3 +367,24 @@ for key, env_cls in HARD_MODE_CLS_DICT['train'].items():
     HARD_MODE_ARGS_KWARGS['train'][key] = _hard_mode_args_kwargs(env_cls, key)
 for key, env_cls in HARD_MODE_CLS_DICT['test'].items():
     HARD_MODE_ARGS_KWARGS['test'][key] = _hard_mode_args_kwargs(env_cls, key)
+
+
+MT10_V2 = OrderedDict((
+    ('reach-v2', SawyerReachEnvV2),
+    ('push-v2', SawyerPushEnvV2),
+    ('pick-place-v2', SawyerPickPlaceEnvV2),
+    ('door-open-v2', SawyerDoorEnvV2),
+    ('drawer-open-v2', SawyerDrawerOpenEnvV2),
+    ('drawer-close-v2', SawyerDrawerCloseEnvV2),
+    ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
+    ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
+    ('window-open-v2', SawyerWindowOpenEnvV2),
+    ('window-close-v2', SawyerWindowCloseEnvV2)),)
+
+MT10_V2_ARGS_KWARGS = {
+    key: dict(args=[],
+              kwargs={
+                  'task_id': list(ALL_V2_ENVIRONMENTS.keys()).index(key)
+              })
+    for key, _ in MT10_V2.items()
+}
