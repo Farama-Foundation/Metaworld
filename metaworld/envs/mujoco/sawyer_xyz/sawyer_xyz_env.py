@@ -406,8 +406,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
 
-        print(self.compute_reward(action, self._get_obs()))
-
         for site in self._target_site_config:
             self._set_pos_site(*site)
 
@@ -437,8 +435,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return rand_vec
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
-        pad_success_margin = 0.05 # obj_radius + 0.01
-        grip_success_margin = obj_radius + 0.005
+        pad_success_margin = 0.05
         x_z_success_margin = 0.01
 
         tcp = self.tcp_center
@@ -460,23 +457,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             sigmoid='long_tail',
         )
 
-        right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
-            bounds=(obj_radius, grip_success_margin),
-            margin=right_caging_margin,
-            sigmoid='long_tail',
-        )
-        left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
-            bounds=(obj_radius, grip_success_margin),
-            margin=left_caging_margin,
-            sigmoid='long_tail',
-        )
-
-
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
-        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
 
         assert y_caging >= 0 and y_caging <= 1
 
@@ -486,8 +470,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
 
-
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        tcp_obj_x_z_margin = max(0, np.linalg.norm(init_obj_x_z - init_tcp_x_z) - x_z_success_margin)
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
                                 margin=tcp_obj_x_z_margin,
@@ -499,16 +482,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
         assert caging >= 0 and caging <= 1
 
-        if caging > 0.95:
-            gripping = y_gripping
+        if caging > 0.97:
+            gripping = gripper_closed
         else:
             gripping = 0.
+
         assert gripping >= 0 and gripping <= 1
-        # caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
-        caging_and_gripping = (caging + gripping) / 2
+        caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
 
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
-
-        print("DIST: {} ... REWARD: {}".format(np.linalg.norm(left_pad - right_pad), y_gripping))
 
         return caging_and_gripping
