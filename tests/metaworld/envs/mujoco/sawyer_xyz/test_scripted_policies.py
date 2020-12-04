@@ -34,7 +34,7 @@ test_cases_latest_nonoise = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['assembly-v2', SawyerAssemblyV2Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
-    ['basketball-v2', SawyerBasketballV1Policy(), .0, .98],
+    ['basketball-v2', SawyerBasketballV2Policy(), .0, .98],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .0, .90],
@@ -125,7 +125,7 @@ test_cases_latest_noisy = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
     ['assembly-v2', SawyerAssemblyV2Policy(), .1, .70],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
-    ['basketball-v2', SawyerBasketballV1Policy(), .1, .96],
+    ['basketball-v2', SawyerBasketballV2Policy(), .1, .96],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .96],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .84],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .1, .82],
@@ -180,7 +180,7 @@ test_cases_latest_noisy = [
     ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .1, .95],
     ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],
     ['pick-out-of-hole-v2', SawyerPickOutOfHoleV2Policy(), .1, .89],
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .86],
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .83],
     ['plate-slide-back-side-v2', SawyerPlateSlideBackSideV2Policy(), .1, .95],
     ['plate-slide-back-v1', SawyerPlateSlideBackV1Policy(), .1, .95],
@@ -210,7 +210,6 @@ test_cases_latest_noisy = [
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
-
 
 # Combine test cases into a single array to pass to parameterized test function
 test_cases = []
