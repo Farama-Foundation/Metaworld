@@ -8,8 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerBasketballEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
-    X_Z_SUCCESS_MARGIN = 0.01
-    OBJ_RADIUS = 0.025
     TARGET_RADIUS = 0.08
 
     def __init__(self):
@@ -69,7 +67,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         ) = self.compute_reward(action, ob)
 
         info = {
-            'success': float(obj_to_target <= 0.08),
+            'success': float(obj_to_target <= self.TARGET_RADIUS),
             'near_object': float(tcp_to_obj <= 0.05),
             'grasp_success': float(
                 (tcp_open > 0) and
@@ -143,7 +141,18 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+        obj_radius = 0.025
+        object_reach_radius=0.01
+        pad_success_margin = 0.06
+        x_z_margin = 0.005
+
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=object_reach_radius,
+                                                     obj_radius=obj_radius,
+                                                     pad_success_margin=pad_success_margin,
+                                                     x_z_margin=x_z_margin)
+        reward = reward_utils.hamacher_product(object_grasped, in_place)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]

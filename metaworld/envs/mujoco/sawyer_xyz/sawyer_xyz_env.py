@@ -505,6 +505,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
         gripping = gripper_closed if caging > 0.97 else 0.
-        caging_and_gripping = (reward_utils.hamacher_product(caging, gripping) + reach) / 2
+        caging_and_gripping = (reward_utils.hamacher_product(caging, gripping) + reach + caging) / 3
 
         return caging_and_gripping

@@ -7,9 +7,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandInsertEnvV2(SawyerXYZEnv):
-    PAD_SUCCESS_MARGIN = 0.05
-    X_Z_SUCCESS_MARGIN = 0.005
-    OBJ_RADIUS = 0.015
     TARGET_RADIUS = 0.05
 
     def __init__(self):
@@ -126,14 +123,24 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+        pad_success_margin = 0.05
+        object_reach_radius=0.01
+        x_z_margin = 0.005
+        obj_radius = 0.015
+
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=object_reach_radius,
+                                                     obj_radius=obj_radius,
+                                                     pad_success_margin=pad_success_margin,
+                                                     x_z_margin=x_z_margin)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 1. + 7. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (

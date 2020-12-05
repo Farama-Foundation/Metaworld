@@ -20,6 +20,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+    TARGET_RADIUS=0.05
 
     def __init__(self):
         lift_thresh = 0.04
@@ -83,7 +84,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(target_to_obj <= 0.05),
+            'success': float(target_to_obj <= self.TARGET_RADIUS),
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_success': float(
                 self.touching_main_object and
@@ -162,7 +163,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos) 
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -171,18 +172,18 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        obj_radius = 0.01
+        obj_radius = 0.015
         object_reach_radius=0.01
         pad_success_margin = 0.05
+        x_z_margin = 0.005
 
         object_grasped = self._gripper_caging_reward(action,
                                                      obj,
                                                      object_reach_radius=object_reach_radius,
                                                      obj_radius=obj_radius,
-                                                     pad_success_margin=pad_success_margin)
+                                                     pad_success_margin=pad_success_margin,
+                                                     x_z_margin=x_z_margin)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
-
-
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
             reward += 1. + 5. * in_place
