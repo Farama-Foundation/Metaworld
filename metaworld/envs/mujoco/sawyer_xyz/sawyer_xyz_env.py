@@ -455,7 +455,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 object_reach_radius(float): successful distance of gripper center
                     to the object.
                 x_z_margin(float): successful distance of gripper in x_z axis to the
-                    object. Y axis not included since the caging function handles 
+                    object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
         # MARK: Left-right gripper information for caging reward----------------
