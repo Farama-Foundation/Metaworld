@@ -438,11 +438,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def _gripper_caging_reward(self,
                                action,
-                               obj_pos, 
-                               obj_radius, 
-                               pad_success_margin, 
+                               obj_pos,
+                               obj_radius,
+                               pad_success_margin,
                                object_reach_radius,
-                               x_z_margin):
+                               x_z_margin,
+                               high_density=False):
         """Reward for agent grasping obj
             Args:
                 action(np.ndarray): (4,) array representing the action
@@ -505,6 +506,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
         gripping = gripper_closed if caging > 0.97 else 0.
-        caging_and_gripping = (reward_utils.hamacher_product(caging, gripping) + reach) / 2
+        caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
+
+        if high_density:
+            caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping
