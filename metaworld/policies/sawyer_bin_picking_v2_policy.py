@@ -11,9 +11,8 @@ class SawyerBinPickingV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'gripper': obs[3],
-            'cube_pos': obs[4:7],
-            'extra_info': obs[7:]
+            'cube_pos': obs[3:6],
+            'extra_info': obs[6:]
         }
 
     def get_action(self, obs):
@@ -33,7 +32,7 @@ class SawyerBinPickingV2Policy(Policy):
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
-        pos_bin = np.array([.12, .7, .0])
+        pos_bin = np.array([.12, .7, .02])
 
         # This forces the scripted policy to pretend like the cube is located
         # more centrally in the bin (in Y direction). When the fingers close,
@@ -45,9 +44,9 @@ class SawyerBinPickingV2Policy(Policy):
             return pos_cube + np.array([.0, .0, .15])
         elif abs(pos_curr[2] - pos_cube[2]) > .01:
             return pos_cube
+        elif pos_curr[2] < 0.15:
+            return pos_curr + np.array([.0, .0, .1])
         elif np.linalg.norm(pos_curr[:2] - pos_bin[:2]) > .02:
-            if pos_curr[2] < 0.15:
-                return pos_curr + np.array([.0, .0, .1])
             return np.array([*pos_bin[:2], .18])
         else:
             return pos_bin

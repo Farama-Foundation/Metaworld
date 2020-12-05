@@ -8,11 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
-    PAD_SUCCESS_MARGIN = 0.04
-    X_Z_SUCCESS_MARGIN = 0.001
-    OBJ_RADIUS = 0.02
-    TARGET_RADIUS = 0.05
-
     def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -120,6 +115,14 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
 
     @staticmethod
+    def _reward_quat(obs):
+        # Ideal upright lid has quat [.707, 0, 0, .707]
+        # Rather than deal with an angle between quaternions, just approximate:
+        ideal = np.array([0.707, 0, 0, 0.707])
+        error = np.linalg.norm(obs[7:11] - ideal)
+        return max(1.0 - error/0.2, 0.0)
+
+    @staticmethod
     def _reward_pos(obs, target_pos):
         hand = obs[:3]
         lid = obs[4:7] + np.array([.0, .0, .02])
@@ -164,6 +167,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
         reward_grab = SawyerBoxCloseEnvV2._reward_grab_effort(actions)
+        reward_quat = SawyerBoxCloseEnvV2._reward_quat(obs)
         reward_steps = SawyerBoxCloseEnvV2._reward_pos(obs, self._target_pos)
 
         reward = sum((
@@ -175,6 +179,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         success = np.linalg.norm(obs[4:7] - self._target_pos) < 0.08
         if success:
             reward = 10.0
+
+        # STRONG emphasis on proper lid orientation to prevent reward hacking
+        # (otherwise agent learns to kick-flip the lid onto the box)
+        reward *= reward_quat
 
         return (
             reward,
