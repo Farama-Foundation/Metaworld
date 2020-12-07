@@ -80,7 +80,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     _HAND_SPACE = Box(
-        np.array([-0.525, .349, -.0525]),
+        np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .525])
     )
     max_path_length = 200
@@ -394,8 +394,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
-        gripper_low = 0.
-        gripper_high = 1.
+        gripper_low = -1.
+        gripper_high = +1.
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
