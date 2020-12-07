@@ -192,9 +192,9 @@ class MT10(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.EASY_MODE_CLS_DICT
+        self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
+        train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
