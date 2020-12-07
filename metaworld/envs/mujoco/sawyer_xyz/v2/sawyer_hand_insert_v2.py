@@ -133,7 +133,8 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
                                                      object_reach_radius=object_reach_radius,
                                                      obj_radius=obj_radius,
                                                      pad_success_margin=pad_success_margin,
-                                                     x_z_margin=x_z_margin)
+                                                     x_z_margin=x_z_margin,
+                                                     high_density=True)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]
