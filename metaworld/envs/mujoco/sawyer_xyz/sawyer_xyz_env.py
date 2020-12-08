@@ -507,6 +507,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
 
         if high_density:
-            caging_and_gripping = (caging_and_gripping + reach) / 2
+            caging_and_gripping = (caging_and_gripping + caging) / 2
 
         return caging_and_gripping

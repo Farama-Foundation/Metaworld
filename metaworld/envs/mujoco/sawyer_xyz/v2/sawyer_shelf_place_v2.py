@@ -1,6 +1,8 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -34,7 +36,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
+        self.max_path_length = 500
         self.num_resets = 0
 
         self._random_reset_space = Box(
@@ -47,24 +49,68 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
     def model_name(self):
         return full_v2_path_for('sawyer_xyz/sawyer_shelf_placing.xml')
 
+    @property
+    def touching_object(self):
+        object_geom_id = self.unwrapped.model.geom_name2id('objGeom')
+        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
+        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+
+        leftpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (leftpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        rightpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (rightpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        leftpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in leftpad_object_contacts)
+
+        rightpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in rightpad_object_contacts)
+
+        gripping = (0 < leftpad_object_contact_force
+                    and 0 < rightpad_object_contact_force)
+
+        return gripping
+
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        obs = super().step(action)
+        obj = obs[4:7]
+        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
+        success = float(obj_to_target <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
+        grasp_success = float(self.touching_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
 
         info = {
-            'reachDist': reachDist,
-            'pickRew': pickRew,
-            'epRew': reward,
-            'goalDist': placingDist,
-            'success': float(placingDist <= 0.08)
-        }
+            'success': success,
+            'near_object': near_object,
+            'grasp_success': grasp_success,
+            'grasp_reward': grasp_reward,
+            'in_place_reward': in_place,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward,
 
-        return ob, reward, False, info
+        }
+        self.curr_path_length += 1
+
+
+        return obs, reward, False, info
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
+
+    def _get_quat_objects(self):
+        orientation = Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')).as_quat()
+        return orientation
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -103,78 +149,53 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def _reset_hand(self):
         super()._reset_hand()
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.pickCompleted = False
+    def compute_reward(self, action, obs):
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        target = self._target_pos
 
-    def compute_reward(self, actions, obs):
+        obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
-        objPos = obs[3:6]
+        in_place = reward_utils.tolerance(obj_to_target,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=in_place_margin,
+                                    sigmoid='long_tail',)
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        obj_radius = 0.02
+        object_reach_radius=0.01
+        pad_success_margin = 0.05
+        x_z_margin = 0.005
 
-        heightTarget = self.heightTarget
-        placingGoal = self._target_pos
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=object_reach_radius,
+                                                     obj_radius=obj_radius,
+                                                     pad_success_margin=pad_success_margin,
+                                                     x_z_margin=x_z_margin,
+                                                     high_density=False)
+        reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-
-        placingDist = np.linalg.norm(objPos - placingGoal)
-
-
-        def reachReward():
-            reachRew = -reachDist
-            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-            zRew = np.linalg.norm(fingerCOM[-1] - self.init_fingerCOM[-1])
-
-            if reachDistxy < 0.05:
-                reachRew = -reachDist
-            else:
-                reachRew =  -reachDistxy - 2*zRew
-
-            # incentive to close fingers when reachDist is small
-            if reachDist < 0.05:
-                reachRew = -reachDist + max(actions[-1],0)/50
-            return reachRew , reachDist
-
-        def pickCompletionCriteria():
-            tolerance = 0.01
-            return objPos[2] >= (heightTarget- tolerance)
-
-        self.pickCompleted = pickCompletionCriteria()
-
-
-        def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02)
-            # Object on the ground, far away from the goal, and from the gripper
-            # Can tweak the margin limits
-
-        def orig_pickReward():
-            hScale = 100
-            if self.pickCompleted and not(objDropped()):
-                return hScale*heightTarget
-            elif (reachDist < 0.1) and (objPos[2]> (self.objHeight + 0.005)):
-                return hScale* min(heightTarget, objPos[2])
-            else:
-                return 0
-
-        def placeReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
-            cond = self.pickCompleted and (reachDist < 0.1) and not(objDropped())
-            if cond:
-                placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-                placeRew = max(placeRew,0)
-                return [placeRew , placingDist]
-            else:
-                return [0 , placingDist]
-
-        reachRew, reachDist = reachReward()
-        pickRew = orig_pickReward()
-        placeRew , placingDist = placeReward()
-        assert ((placeRew >=0) and (pickRew>=0))
-        reward = reachRew + pickRew + placeRew
-
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist]
+        if (0.0 < obj[2] < 0.24 and
+                (target[0]-0.15 < obj[0] < target[0]+0.15) and
+                ( (target[1] - 3*_TARGET_RADIUS) < obj[1] < target[1]) ):
+            z_scaling = (0.24 - obj[2])/0.24
+            y_scaling = (obj[1] - (target[1] - 3*_TARGET_RADIUS)) / (3*_TARGET_RADIUS)
+            bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
+            in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
+        if ( (0.0 < obj[2] < 0.24) and
+                (target[0]-0.15 < obj[0] < target[0]+0.15) and
+                (obj[1] > target[1])):
+            in_place = 0.0
+        if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+                reward += 1. + 5. * in_place
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
