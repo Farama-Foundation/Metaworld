@@ -142,7 +142,13 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        object_grasped = self._gripper_caging_reward(action, obj, 0.02)
+        object_grasped = self._gripper_caging_reward(action=action,
+                                                    obj_pos=obj,
+                                                    obj_radius=0.02,
+                                                    pad_success_margin=0.05,
+                                                    object_reach_radius=0.01,
+                                                    x_z_margin=0.01,
+                                                    high_density=False)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         if (0.0 < obj[2] < 0.24 and \
