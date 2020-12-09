@@ -224,7 +224,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
         reward = in_place_and_object_grasped
-        
+
         if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1. + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:
