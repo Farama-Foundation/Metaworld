@@ -11,6 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.01
+    TARGET_RADIUS=0.05
 
     def __init__(self):
 
@@ -51,21 +52,32 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pushDist = self.compute_reward(action, ob)
+        obs = super().step(action)
+        obj = obs[4:7]
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, obs)
         self.curr_path_length += 1
 
+        success = float(target_to_obj <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
+        grasp_success = float(self.touching_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
-            'reachDist': reachDist,
-            'goalDist': pushDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pushDist <= 0.07)
+            'success': success,
+            'near_object': near_object,
+            'grasp_success': grasp_success,
+            'grasp_reward': object_grasped,
+            'in_place_reward': in_place,
+            'obj_to_target': target_to_obj,
+            'unscaled_reward': reward,
         }
 
-        print(info['success'], pushDist)
-
-        return ob, reward, False, info
+        return obs, reward, False, info
 
     def _get_pos_objects(self):
         return self.get_body_com('soccer_ball')
@@ -100,35 +112,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self.reachCompleted = False
 
     def compute_reward(self, action, obs):
-        # del actions
-        #
-        # objPos = obs[3:6]
-        #
-        # rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        # fingerCOM = (rightFinger + leftFinger) / 2
-        #
-        # goal = self._target_pos
-        #
-        # c1 = 1000
-        # c2 = 0.01
-        # c3 = 0.001
-        # assert np.all(goal == self._get_site_pos('goal'))
-        # reachDist = np.linalg.norm(fingerCOM - objPos)
-        # pushDist = np.linalg.norm(objPos[:2] - goal[:2])
-        # reachRew = -reachDist
-        #
-        # def reachCompleted():
-        #     return reachDist < 0.05
-        #
-        # self.reachCompleted = reachCompleted()
-        # if self.reachCompleted:
-        #     pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
-        #     pushRew = max(pushRew, 0)
-        # else:
-        #     pushRew = 0
-        # reward = reachRew + pushRew
-        #
-        # return [reward, reachDist, pushDist]
         obj = obs[4:7]
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
@@ -142,11 +125,17 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=0.01,
+                                                     obj_radius=self.OBJ_RADIUS,
+                                                     pad_success_margin=0.06,
+                                                     x_z_margin=0.005,
+                                                     high_density=False)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
 
-        if tcp_to_obj < 0.02 and tcp_opened > 0:
+        if tcp_to_obj < 0.01 and tcp_opened > 0 and object_grasped > 0.9:
             reward += 1. + 8. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
