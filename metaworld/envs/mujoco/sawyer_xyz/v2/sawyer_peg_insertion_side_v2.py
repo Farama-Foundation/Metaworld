@@ -8,9 +8,6 @@ from scipy.spatial.transform import Rotation
 
 
 class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
-    PAD_SUCCESS_MARGIN = 0.03
-    X_Z_SUCCESS_MARGIN = 0.01
-    OBJ_RADIUS = 0.0075
     TARGET_RADIUS = 0.07
     """
     Motivation for V2:
@@ -164,7 +161,18 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
                                                         collision_box_bottom_1)
         in_place = reward_utils.hamacher_product(in_place,
                                                  collision_boxes)
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+
+        pad_success_margin = 0.03
+        object_reach_radius=0.01
+        x_z_margin = 0.005
+        obj_radius = 0.0075
+
+        object_grasped = self._gripper_caging_reward(action,
+                                                     obj,
+                                                     object_reach_radius=object_reach_radius,
+                                                     obj_radius=obj_radius,
+                                                     pad_success_margin=pad_success_margin,
+                                                     x_z_margin=x_z_margin)
         if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             object_grasped = 1.
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,

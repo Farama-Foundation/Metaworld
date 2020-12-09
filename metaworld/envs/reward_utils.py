@@ -212,6 +212,9 @@ def hamacher_product(a, b):
     """
     if not ((0. <= a <= 1.) and (0. <= b <= 1.)):
         raise ValueError("a and b must range between 0 and 1")
-    h_prod = ((a * b) / (a + b - (a * b)))
+
+    denominator = a + b - (a * b)
+    h_prod = ((a * b) / denominator) if denominator > 0 else 0
+
     assert 0. <= h_prod <= 1.
     return h_prod
