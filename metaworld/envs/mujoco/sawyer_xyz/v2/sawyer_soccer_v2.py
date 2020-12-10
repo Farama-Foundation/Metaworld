@@ -188,9 +188,10 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
     def compute_reward(self, action, obs):
         obj = obs[4:7]
         tcp_opened = obs[3]
+        x_scaling = np.array([3., 1., 1.])
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj = np.linalg.norm((obj - self._target_pos) * x_scaling)
+        target_to_obj_init = np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -211,7 +212,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
 
-        reward = (2*object_grasped) + (7*in_place_and_object_grasped)
+        reward = (1.5*object_grasped) + (8*in_place_and_object_grasped)
 
         # if tcp_to_obj < 0.01 and tcp_opened > 0 and object_grasped > 0.5:
         #     reward = max(1.5, 2*object_grasped) + 8. * in_place
