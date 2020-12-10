@@ -130,10 +130,10 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
                                                      object_reach_radius=0.01,
                                                      obj_radius=self.OBJ_RADIUS,
                                                      pad_success_margin=0.06,
-                                                     x_z_margin=0.005,
+                                                     x_z_margin=0.01,
                                                      high_density=False)
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
-
+        # reward = reward_utils.hamacher_product(object_grasped, in_place)
+        reward = object_grasped
 
         if object_grasped > 0.8:
             reward += 1. + 8. * in_place
