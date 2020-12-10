@@ -10,7 +10,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerSoccerEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.01
+    OBJ_RADIUS = 0.013
     TARGET_RADIUS=0.05
 
     def __init__(self):
@@ -132,11 +132,11 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
                                                      pad_success_margin=0.06,
                                                      x_z_margin=0.01,
                                                      high_density=False)
-        # reward = reward_utils.hamacher_product(object_grasped, in_place)
-        reward = object_grasped
 
-        if object_grasped > 0.8:
-            reward += 1. + 8. * in_place
+        reward = 2 * reward_utils.hamacher_product(object_grasped, in_place)
+
+        if tcp_to_obj < 0.01 and tcp_opened > 0 and object_grasped > 0.5:
+            reward = max(1.5, 2*object_grasped) + 8. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (
