@@ -10,10 +10,6 @@ class SawyerSoccerV2Policy(Policy):
     @assert_fully_parsed
     def _parse_obs(obs):
         return {
-            # 'hand_pos': obs[:3],
-            # 'ball_pos': obs[3:6],
-            # 'goal_pos': obs[9:],
-            # 'unused_info': obs[6:9],
             'hand_pos': obs[:3],
             'unused_1': obs[3],
             'ball_pos': obs[4:7],

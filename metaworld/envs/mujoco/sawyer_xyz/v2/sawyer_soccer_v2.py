@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.013
-    TARGET_RADIUS=0.05
+    TARGET_RADIUS=0.07
 
     def __init__(self):
 
@@ -200,6 +200,10 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
+        goal_line = (self._target_pos[1] - 0.1)
+        if obj[1] >  goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
+            in_place = np.clip(in_place - ((obj[1] - goal_line)/(1-goal_line)), 0., 1.)
+
         # object_grasped = self._gripper_caging_reward(action,
         #                                              obj,
         #                                              object_reach_radius=0.01,
@@ -214,15 +218,15 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         reward = (1.5*object_grasped) + (8*in_place_and_object_grasped)
 
-        # if tcp_to_obj < 0.01 and tcp_opened > 0 and object_grasped > 0.5:
-        #     reward = max(1.5, 2*object_grasped) + 8. * in_place
+
+
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (
             reward,
             tcp_to_obj,
             tcp_opened,
-            target_to_obj,
+            np.linalg.norm(obj - self._target_pos),
             object_grasped,
             in_place
         )
