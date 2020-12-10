@@ -38,7 +38,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -135,7 +135,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
 
-        if tcp_to_obj < 0.01 and tcp_opened > 0 and object_grasped > 0.9:
+        if object_grasped > 0.8:
             reward += 1. + 8. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
