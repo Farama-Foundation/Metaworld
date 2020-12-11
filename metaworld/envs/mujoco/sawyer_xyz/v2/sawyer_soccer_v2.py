@@ -213,10 +213,10 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         #                                              high_density=False)
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
+        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+        #                                                             in_place)
 
-        reward = (1.5*object_grasped) + (8*in_place_and_object_grasped)
+        reward = (1.5*object_grasped) + (8*in_place)
 
 
 
