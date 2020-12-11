@@ -11,8 +11,9 @@ class SawyerDrawerCloseV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'drwr_pos': obs[3:6],
-            'unused_info': obs[6:],
+            'unused_grasp_info': obs[3],
+            'drwr_pos': obs[4:7],
+            'unused_info': obs[7:],
         }
 
     def get_action(self, obs):
