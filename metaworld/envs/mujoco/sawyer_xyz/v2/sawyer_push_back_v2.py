@@ -226,8 +226,12 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         )
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        move_bonus = 0
+        if (target_to_obj_init - target_to_obj) > 0.01:
+            object_grasped = 1
+            move_bonus = 1
 
-        reward = (3*object_grasped) + (6.5*in_place)
+        reward = (1.5*object_grasped) + (7*in_place) + move_bonus
 
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
