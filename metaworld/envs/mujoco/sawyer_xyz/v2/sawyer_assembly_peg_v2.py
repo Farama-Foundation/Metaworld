@@ -166,12 +166,11 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         # STEP 2: Placing the wrench -------------------------------------------
         pos_error_2 = target_pos - wrench_center
         pos_error_2[2] = wrench_center[2]
-        error_scale = np.array([1., 1., 1.])
         a = 0.2  # Relative importance of just *trying* to lift the wrench
         b = 0.8  # Relative importance of placing the wrench on the peg
         lifted = wrench[2] > 0.04 or np.linalg.norm(pos_error_2[:2]) < 0.02
         in_place_2 = a * float(lifted) + b * reward_utils.tolerance(
-            np.linalg.norm(pos_error_2 * error_scale),
+            np.linalg.norm(pos_error_2),
             bounds=(0, 0.02),
             margin=0.25,
             sigmoid='long_tail',
