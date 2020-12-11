@@ -7,7 +7,10 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
-    WRENCH_HANDLE_LENGTH = 0.03
+    WRENCH_HANDLE_LENGTH = 0.05
+    PAD_SUCCESS_MARGIN = 0.025
+    X_Z_SUCCESS_MARGIN = 0.005
+    OBJ_RADIUS = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
@@ -117,10 +120,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self.init_right_pad = self.get_body_com('rightpad')
 
     @staticmethod
-    def _reward_grab_effort(actions):
-        return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
-
-    @staticmethod
     def _reward_quat(obs):
         # Ideal laid-down wrench has quat [.707, 0, 0, .707]
         # Rather than deal with an angle between quaternions, just approximate:
@@ -129,103 +128,76 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return max(1.0 - error/0.2, 0.0)
 
     @staticmethod
-    def _reward_pos(obs, wrench_center, target_pos):
-        hand = obs[:3]
-        wrench = obs[4:7]
-
-        # STEP 1: Preparing to lift the wrench ---------------------------------
-        threshold = 0.02
-        # floor is a 3D valley stretching across the wrench's handle
-        radius_1 = abs(hand[1] - wrench[1])
-        floor_1 = 0.0
-        if radius_1 > threshold:
-            floor_1 = 0.01 * np.log(radius_1 - threshold) + 0.1
-        # prevent the hand from running into the handle prematurely by keeping
-        # it above the "floor"
-        above_floor_1 = 1.0 if hand[2] >= floor_1 else reward_utils.tolerance(
-            floor_1 - hand[2],
-            bounds=(0.0, 0.01),
-            margin=floor_1 / 2.0,
-            sigmoid='long_tail',
-        )
-        # line up with handle to grab it
-        # grabbing anywhere along the handle is acceptable, subject to the
-        # constraint that it remains level upon lifting (encouraged by the
-        # reward_quat() function)
-        pos_error_1 = hand - wrench
-        if abs(pos_error_1[0]) <= SawyerNutAssemblyEnvV2.WRENCH_HANDLE_LENGTH / 2.0:
-            pos_error_1[0] = 0.0
-        in_place_1 = reward_utils.tolerance(
-            np.linalg.norm(pos_error_1),
-            bounds=(0, 0.02),
-            margin=0.5,
-            sigmoid='long_tail',
-        )
-        ready_to_lift = reward_utils.hamacher_product(above_floor_1, in_place_1)
-
-        # STEP 2: Placing the wrench -------------------------------------------
-        pos_error_2 = target_pos - wrench_center
-        pos_error_2[2] = wrench_center[2]
+    def _reward_pos(wrench_center, target_pos):
+        pos_error = target_pos - wrench_center
+        pos_error[2] = wrench_center[2]
         a = 0.2  # Relative importance of just *trying* to lift the wrench
         b = 0.8  # Relative importance of placing the wrench on the peg
-        lifted = wrench[2] > 0.04 or np.linalg.norm(pos_error_2[:2]) < 0.02
-        in_place_2 = a * float(lifted) + b * reward_utils.tolerance(
-            np.linalg.norm(pos_error_2),
+        lifted = wrench_center[2] > 0.04 or np.linalg.norm(pos_error[:2]) < 0.02
+        in_place = a * float(lifted) + b * reward_utils.tolerance(
+            np.linalg.norm(pos_error),
             bounds=(0, 0.02),
-            margin=0.25,
+            margin=0.1,
             sigmoid='long_tail',
         )
         # prevent the wrench from running into the side of the peg by creating
         # a protective torus around it
-        radius = np.linalg.norm(pos_error_2[:2])
+        radius = np.linalg.norm(pos_error[:2])
         torus_radius = target_pos[2] / 2.0  # Height of the peg / 2
         torus_center = target_pos.copy()
         torus_center[2] = 0.0
         center_to_torus_center = torus_radius + 0.01
 
-        floor_2 = 2.0 * np.sqrt(
+        floor = target_pos[2] + np.sqrt(
             torus_radius ** 2 - (center_to_torus_center - radius) ** 2
         )
-        if np.isnan(floor_2):
-            floor_2 = 0.0
-        above_floor_2 = 1.0 if wrench_center[2] >= floor_2 else \
+        if np.isnan(floor):
+            floor = 0.0
+        above_floor = 1.0 if wrench_center[2] >= floor else \
             reward_utils.tolerance(
-                floor_2 - wrench_center[2],
+                floor - wrench_center[2],
                 bounds=(0.0, 0.01),
-                margin=floor_2 / 2.0,
+                margin=floor / 2.0,
                 sigmoid='long_tail',
             )
 
-        on_peg = reward_utils.hamacher_product(above_floor_2, in_place_2)
-        return ready_to_lift, on_peg
+        return reward_utils.hamacher_product(above_floor, in_place)
 
     def compute_reward(self, actions, obs):
+        hand = obs[:3]
+        wrench = obs[4:7]
         wrench_center = self._get_site_pos('RoundNut')
+        # `self._gripper_caging_reward` assumes that the target object can be
+        # approximated as a sphere. This is not true for the wrench handle, so
+        # to avoid re-writing the `self._gripper_caging_reward` we pass in a
+        # modified wrench position.
+        # This modified position's X value will perfect match the hand's X value
+        # as long as it's within a certain threshold
+        wrench_threshed = wrench.copy()
+        threshold = SawyerNutAssemblyEnvV2.WRENCH_HANDLE_LENGTH / 2.0
+        if abs(wrench[0] - hand[0]) < threshold:
+            wrench_threshed[0] = hand[0]
 
-        reward_grab = SawyerNutAssemblyEnvV2._reward_grab_effort(actions)
         reward_quat = SawyerNutAssemblyEnvV2._reward_quat(obs)
-        reward_steps = SawyerNutAssemblyEnvV2._reward_pos(
-            obs,
+        reward_grab = self._gripper_caging_reward(
+            actions, wrench_threshed,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_margin=0.05,
+            x_z_margin=0.005,
+            high_density=False,
+        )
+        reward_in_place = SawyerNutAssemblyEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        # If first step is nearly complete...
-        if abs(obs[2] - obs[6]) < 0.01:
-            # Begin incentivizing grabbing without obliterating existing reward
-            # (min possible after conditional is 1.0, which was the max before)
-            reward_grab = 2.0 - reward_grab
-        # Rescale to [0,1]
-        reward_grab /= 2.0
-
-        reward = sum((
-            2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
-            8.0 * reward_steps[1],
-        ))
+        reward = 2.0 * reward_grab + 8.0 * reward_in_place
 
         # Override reward on success
-        success = np.linalg.norm(wrench_center[:2] - self._target_pos[:2]) < 0.02 and \
-            obs[6] < self._target_pos[2]
+        aligned = np.linalg.norm(wrench_center[:2] - self._target_pos[:2]) < .02
+        hooked = obs[6] < self._target_pos[2]
+        success = aligned and hooked
         if success:
             reward = 10.0
 
@@ -235,6 +207,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return (
             reward,
             reward_grab,
-            *reward_steps,
+            reward_quat,
+            reward_in_place,
             success,
         )
