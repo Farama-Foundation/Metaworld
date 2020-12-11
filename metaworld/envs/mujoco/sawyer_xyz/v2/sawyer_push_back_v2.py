@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerPushBackEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.015
+    OBJ_RADIUS = 0.009
     TARGET_RADIUS = 0.05
 
     def __init__(self):
@@ -139,7 +139,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
         grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
+        x_z_success_margin = 0.01
 
         tcp = self.tcp_center
         left_pad = self.get_body_com('leftpad')
