@@ -1,11 +1,17 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerPushBackEnvV2(SawyerXYZEnv):
+
+    OBJ_RADIUS = 0.015
+    TARGET_RADIUS = 0.05
+
     def __init__(self):
 
         goal_low = (-0.1, 0.6, 0.0199)
@@ -45,22 +51,54 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pushDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+        # ob = super().step(action)
+        # reward, reachDist, pushDist = self.compute_reward(action, ob)
+        # self.curr_path_length += 1
+        #
+        # info = {
+        #     'reachDist': reachDist,
+        #     'goalDist': pushDist,
+        #     'epRew': reward,
+        #     'pickRew': None,
+        #     'success': float(pushDist <= 0.07)
+        # }
+        #
+        # return ob, reward, False, info
+        obs = super().step(action)
+        obj = obs[4:7]
+        (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        ) = self.compute_reward(action, obs)
 
+        success = float(target_to_obj <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
+        grasp_success = float(self.touching_object and (tcp_opened > 0) and \
+                        (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
-            'reachDist': reachDist,
-            'goalDist': pushDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pushDist <= 0.07)
+            'success': success,
+            'near_object': near_object,
+            'grasp_success': grasp_success,
+            'grasp_reward': object_grasped,
+            'in_place_reward': in_place,
+            'obj_to_target': target_to_obj,
+            'unscaled_reward': reward,
         }
+        self.curr_path_length += 1
+        return obs, reward, False, info
 
-        return ob, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
+
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')
+        ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -98,42 +136,106 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.init_fingerCOM  =  (rightFinger + leftFinger)/2
         self.reachCompleted = False
 
-    def compute_reward(self, actions, obs):
+    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+        pad_success_margin = 0.05
+        grip_success_margin = obj_radius + 0.01
+        x_z_success_margin = 0.005
 
-        objPos = obs[3:6]
+        tcp = self.tcp_center
+        left_pad = self.get_body_com('leftpad')
+        right_pad = self.get_body_com('rightpad')
+        delta_object_y_left_pad = left_pad[1] - obj_position[1]
+        delta_object_y_right_pad = obj_position[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        right_caging = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_caging = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
 
-        goal = self._target_pos
+        right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        assert np.all(goal == self._get_site_pos('goal'))
-        reachDist = np.linalg.norm(fingerCOM - objPos)
-        pushDist = np.linalg.norm(objPos[:2] - goal[:2])
-        reachRew = -reachDist
-        reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
-        zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
 
-        if reachDistxy < 0.05:
-            reachRew = -reachDist
+        assert right_caging >= 0 and right_caging <= 1
+        assert left_caging >= 0 and left_caging <= 1
+
+        y_caging = reward_utils.hamacher_product(right_caging, left_caging)
+        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
+
+        assert y_caging >= 0 and y_caging <= 1
+
+        tcp_xz = tcp + np.array([0., -tcp[1], 0.])
+        obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
+        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
+        init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
+
+
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
+                                bounds=(0, x_z_success_margin),
+                                margin=tcp_obj_x_z_margin,
+                                sigmoid='long_tail',)
+
+        assert right_caging >= 0 and right_caging <= 1
+        gripper_closed = min(max(0, action[-1]), 1)
+        assert gripper_closed >= 0 and gripper_closed <= 1
+        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
+        assert caging >= 0 and caging <= 1
+
+        if caging > 0.95:
+            gripping = y_gripping
         else:
-            reachRew =  -reachDistxy - 2*zRew
+            gripping = 0.
+        assert gripping >= 0 and gripping <= 1
 
-        # incentive to close fingers when reachDist is small
-        if reachDist < 0.05:
-            reachRew = -reachDist + max(actions[-1],0)/50
+        caging_and_gripping = (caging + gripping) / 2
+        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
-        self.reachCompleted = reachDist < 0.05
+        return caging_and_gripping
 
-        if self.reachCompleted:
-            pushRew = 1000*(self.maxPushDist - pushDist) + c1*(np.exp(-(pushDist**2)/c2) + np.exp(-(pushDist**2)/c3))
-            pushRew = max(pushRew, 0)
-        else:
-            pushRew = 0
 
-        reward = reachRew + pushRew
+    def compute_reward(self, action, obs):
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
+        target_to_obj = np.linalg.norm(obj - self._target_pos)
+        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
 
-        return [reward, reachDist, pushDist]
+        in_place = reward_utils.tolerance(
+            target_to_obj,
+            bounds=(0, self.TARGET_RADIUS),
+            margin=target_to_obj_init,
+            sigmoid='long_tail',
+        )
+
+        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+
+        reward = (3*object_grasped) + (6.5*in_place)
+
+        if target_to_obj < self.TARGET_RADIUS:
+            reward = 10.
+        return (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        )
