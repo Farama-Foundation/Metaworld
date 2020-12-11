@@ -7,10 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
-    WRENCH_HANDLE_LENGTH = 0.05
-    PAD_SUCCESS_MARGIN = 0.025
-    X_Z_SUCCESS_MARGIN = 0.005
-    OBJ_RADIUS = 0.02
+    WRENCH_HANDLE_LENGTH = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
@@ -130,14 +127,13 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     @staticmethod
     def _reward_pos(wrench_center, target_pos):
         pos_error = target_pos - wrench_center
-        pos_error[2] = wrench_center[2]
-        a = 0.2  # Relative importance of just *trying* to lift the wrench
-        b = 0.8  # Relative importance of placing the wrench on the peg
-        lifted = wrench_center[2] > 0.04 or np.linalg.norm(pos_error[:2]) < 0.02
+        a = 0.1  # Relative importance of just *trying* to lift the wrench
+        b = 0.9  # Relative importance of placing the wrench on the peg
+        lifted = wrench_center[2] > 0.02 or np.linalg.norm(pos_error[:2]) < 0.02
         in_place = a * float(lifted) + b * reward_utils.tolerance(
             np.linalg.norm(pos_error),
-            bounds=(0, 0.02),
-            margin=0.1,
+            bounds=(0, 0.05),
+            margin=0.2,
             sigmoid='long_tail',
         )
         # prevent the wrench from running into the side of the peg by creating
@@ -184,15 +180,15 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             object_reach_radius=0.01,
             obj_radius=0.015,
             pad_success_margin=0.05,
-            x_z_margin=0.005,
-            high_density=False,
+            x_z_margin=0.01,
+            high_density=True,
         )
         reward_in_place = SawyerNutAssemblyEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        reward = 2.0 * reward_grab + 8.0 * reward_in_place
+        reward = 2.0 * reward_grab + 8.0 * reward_in_place * reward_quat
 
         # Override reward on success
         aligned = np.linalg.norm(wrench_center[:2] - self._target_pos[:2]) < .02
@@ -200,9 +196,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         success = aligned and hooked
         if success:
             reward = 10.0
-
-        # STRONG emphasis on proper wrench orientation
-        reward *= reward_quat
 
         return (
             reward,
