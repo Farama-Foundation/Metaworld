@@ -83,7 +83,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .525])
     )
-    max_path_length = 200
+    max_path_length = 500
 
     TARGET_RADIUS = 0.05
 

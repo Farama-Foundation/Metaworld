@@ -49,7 +49,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 500
+        
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),

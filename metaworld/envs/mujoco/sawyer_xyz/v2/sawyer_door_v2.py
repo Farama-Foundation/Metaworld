@@ -35,7 +35,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
-        self.max_path_length = 500
+        
 
         self._random_reset_space = Box(
             np.array(obj_low),

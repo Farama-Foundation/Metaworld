@@ -36,7 +36,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 500
+        
         self.num_resets = 0
 
         self._random_reset_space = Box(

@@ -36,7 +36,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 500
+        
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
