@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
-    WRENCH_HANDLE_WIDTH = 0.04
+    WRENCH_HANDLE_LENGTH = 0.03
 
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
@@ -148,12 +148,12 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             margin=floor_1 / 2.0,
             sigmoid='long_tail',
         )
-        # grab the wrench's handle
+        # line up with handle to grab it
         # grabbing anywhere along the handle is acceptable, subject to the
         # constraint that it remains level upon lifting (encouraged by the
         # reward_quat() function)
         pos_error_1 = hand - wrench
-        if pos_error_1[0] <= SawyerNutAssemblyEnvV2.WRENCH_HANDLE_WIDTH / 2.0:
+        if abs(pos_error_1[0]) <= SawyerNutAssemblyEnvV2.WRENCH_HANDLE_LENGTH / 2.0:
             pos_error_1[0] = 0.0
         in_place_1 = reward_utils.tolerance(
             np.linalg.norm(pos_error_1),
@@ -178,12 +178,12 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         # prevent the wrench from running into the side of the peg by creating
         # a protective torus around it
         radius = np.linalg.norm(pos_error_2[:2])
-        torus_radius = target_pos[2]  # Height of the peg
+        torus_radius = target_pos[2] / 2.0  # Height of the peg / 2
         torus_center = target_pos.copy()
         torus_center[2] = 0.0
         center_to_torus_center = torus_radius + 0.01
 
-        floor_2 = np.sqrt(
+        floor_2 = 2.0 * np.sqrt(
             torus_radius ** 2 - (center_to_torus_center - radius) ** 2
         )
         if np.isnan(floor_2):
@@ -211,7 +211,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         )
 
         # If first step is nearly complete...
-        if reward_steps[0] > 0.9:
+        if abs(obs[2] - obs[6]) < 0.01:
             # Begin incentivizing grabbing without obliterating existing reward
             # (min possible after conditional is 1.0, which was the max before)
             reward_grab = 2.0 - reward_grab
