@@ -211,6 +211,26 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
+test_cases_latest_noisy = [
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
+    ['reach-v2', SawyerReachV2Policy(), .1, .98],
+    ['push-v2', SawyerPushV2Policy(), .1, .88],
+    ['door-open-v2', SawyerDoorOpenV2Policy(), .1, .92],
+    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .97],
+    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .93],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
+    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
+    ['drawer-close-v2', SawyerDrawerCloseV2Policy(), .1, .99],
+    ['drawer-open-v2', SawyerDrawerOpenV2Policy(), .1, .97],
+    ['sweep-into-v2',  SawyerSweepIntoV2Policy(), .1, 0.98],
+    ['dial-turn-v2', SawyerDialTurnV2Policy(), .1, 0.84],
+    ['basketball-v2', SawyerBasketballV2Policy(), .1, .96],
+    ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, .89],
+    ['sweep-v2', SawyerSweepV2Policy(), .1, 0.99],
+    ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
+]
+
 # Combine test cases into a single array to pass to parameterized test function
 test_cases = []
 for row in test_cases_old_nonoise:

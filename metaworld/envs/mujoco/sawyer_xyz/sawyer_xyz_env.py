@@ -83,7 +83,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .525])
     )
-    max_path_length = 200
+    max_path_length = 500
 
     TARGET_RADIUS = 0.05
 
@@ -441,7 +441,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                                pad_success_margin,
                                object_reach_radius,
                                x_z_margin,
-                               high_density=False):
+                               high_density=False,
+                               medium_density=False):
         """Reward for agent grasping obj
             Args:
                 action(np.ndarray): (4,) array representing the action
@@ -456,6 +457,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                     object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
+        if high_density and medium_density:
+            raise ValueError("Can only be either high_density or medium_density")
         # MARK: Left-right gripper information for caging reward----------------
         left_pad = self.get_body_com('leftpad')
         right_pad = self.get_body_com('rightpad')
@@ -507,6 +510,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
 
         if high_density:
+            caging_and_gripping = (caging_and_gripping + caging) / 2
+        if medium_density:
             caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping
