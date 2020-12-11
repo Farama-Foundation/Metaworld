@@ -202,24 +202,11 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         goal_line = (self._target_pos[1] - 0.1)
         if obj[1] >  goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
-            print("reducing reward")
             in_place = np.clip(in_place - 2*((obj[1] - goal_line)/(1-goal_line)), 0., 1.)
 
-        # object_grasped = self._gripper_caging_reward(action,
-        #                                              obj,
-        #                                              object_reach_radius=0.01,
-        #                                              obj_radius=self.OBJ_RADIUS,
-        #                                              pad_success_margin=0.06,
-        #                                              x_z_margin=0.01,
-        #                                              high_density=False)
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
-        # in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-        #                                                             in_place)
-
         reward = (3*object_grasped) + (6.5*in_place)
-
-
 
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
