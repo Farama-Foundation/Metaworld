@@ -37,7 +37,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 200
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -203,7 +203,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
