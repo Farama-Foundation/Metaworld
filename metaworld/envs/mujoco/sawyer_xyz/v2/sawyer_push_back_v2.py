@@ -254,7 +254,8 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
                                                      pad_success_margin=pad_success_margin,
                                                      x_z_margin=x_z_margin,
                                                      high_density=True)
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
+        # reward = reward_utils.hamacher_product(object_grasped, in_place)
+        reward = object_grasped
 
         if (tcp_to_obj < 0.01) and (0 < tcp_opened < 2*self.OBJ_RADIUS+0.005) and \
                 (target_to_obj_init - target_to_obj > 0.01):
