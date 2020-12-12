@@ -21,7 +21,13 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
 
     for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
         rewards.append(r)
-
+        assert set(info.keys()) == {'success',
+                                    'near_object',
+                                    'grasp_success',
+                                    'grasp_reward',
+                                    'in_place_reward',
+                                    'obj_to_target',
+                                    'unscaled_reward'}
         success |= bool(info['success'])
         if not success:
             first_success = t

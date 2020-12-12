@@ -49,7 +49,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = lift_thresh
-        self.max_path_length = 150
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -71,10 +70,13 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         success = float(reach_dist <= 0.05)
 
         info = {
-            'reachDist': reach_dist,
-            'epRew': reward,
             'success': success,
-            'in_place_reward': in_place
+            'near_object': reach_dist,
+            'grasp_success': 1.,
+            'grasp_reward': reach_dist,
+            'in_place_reward': in_place,
+            'obj_to_target': reach_dist,
+            'unscaled_reward': reward,
         }
 
         self.curr_path_length += 1

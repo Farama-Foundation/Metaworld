@@ -90,8 +90,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
             'obj_to_target': obj_to_target,
-            'collision_box_front': collision_box_front,
-            'ip_orig': ip_orig
+            'unscaled_reward': reward,
         }
 
         self.curr_path_length += 1
