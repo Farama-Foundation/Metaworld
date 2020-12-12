@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerPushBackEnvV2(SawyerXYZEnv):
 
-    OBJ_RADIUS = 0.01
+    OBJ_RADIUS = 0.007
     TARGET_RADIUS = 0.05
 
     def __init__(self):
