@@ -127,22 +127,22 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     @staticmethod
     def _reward_pos(wrench_center, target_pos):
         pos_error = target_pos - wrench_center
+        scale = np.array([3., 3., 1.])
         a = 0.1  # Relative importance of just *trying* to lift the wrench
         b = 0.9  # Relative importance of placing the wrench on the peg
         lifted = wrench_center[2] > 0.02 or np.linalg.norm(pos_error[:2]) < 0.02
         in_place = a * float(lifted) + b * reward_utils.tolerance(
-            np.linalg.norm(pos_error),
+            np.linalg.norm(pos_error * scale),
             bounds=(0, 0.05),
             margin=0.2,
             sigmoid='long_tail',
         )
         # prevent the wrench from running into the side of the peg by creating
-        # a protective torus around it
-        radius = np.linalg.norm(pos_error[:2])
-        torus_radius = target_pos[2] / 2.0  # Height of the peg / 2
-        torus_center = target_pos.copy()
-        torus_center[2] = 0.0
-        center_to_torus_center = torus_radius + 0.01
+        # a protective torus around it. modify input to torus function by sqrt()
+        # in order to stretch the torus out
+        radius = np.linalg.norm(pos_error[:2]) ** 0.5
+        torus_radius = target_pos[2] * 1.2  # torus is slightly taller than peg
+        center_to_torus_center = (torus_radius + 0.02) ** 0.5
 
         floor = target_pos[2] + np.sqrt(
             torus_radius ** 2 - (center_to_torus_center - radius) ** 2
@@ -156,7 +156,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
                 margin=floor / 2.0,
                 sigmoid='long_tail',
             )
-
         return reward_utils.hamacher_product(above_floor, in_place)
 
     def compute_reward(self, actions, obs):
