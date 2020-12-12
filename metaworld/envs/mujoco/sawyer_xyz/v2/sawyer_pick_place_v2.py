@@ -202,6 +202,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         gripping = gripper_closed if caging > 0.97 else 0.
         caging_and_gripping = reward_utils.hamacher_product(caging,
                                                             gripping)
+        caging_and_gripping = (caging_and_gripping + caging) / 2
         return caging_and_gripping
 
     def compute_reward(self, action, obs):
