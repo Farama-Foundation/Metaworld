@@ -29,7 +29,6 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
 
         self._random_reset_space = Box(
             np.array(obj_low),

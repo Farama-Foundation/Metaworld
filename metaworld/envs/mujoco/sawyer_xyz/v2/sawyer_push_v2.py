@@ -51,7 +51,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = lift_thresh
-        self.max_path_length = 200
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
