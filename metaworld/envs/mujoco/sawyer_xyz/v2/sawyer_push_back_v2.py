@@ -37,7 +37,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 200
+        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -51,19 +51,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        # ob = super().step(action)
-        # reward, reachDist, pushDist = self.compute_reward(action, ob)
-        # self.curr_path_length += 1
-        #
-        # info = {
-        #     'reachDist': reachDist,
-        #     'goalDist': pushDist,
-        #     'epRew': reward,
-        #     'pickRew': None,
-        #     'success': float(pushDist <= 0.07)
-        # }
-        #
-        # return ob, reward, False, info
         obs = super().step(action)
         obj = obs[4:7]
         (
@@ -138,7 +125,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
-        grip_success_margin = obj_radius + 0.01
+        grip_success_margin = obj_radius
         x_z_success_margin = 0.01
 
         tcp = self.tcp_center
