@@ -199,40 +199,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
 
     def compute_reward(self, action, obs):
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        # tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        # target_to_obj = np.linalg.norm(obj - self._target_pos)
-        # target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
-        #
-        # in_place = reward_utils.tolerance(
-        #     target_to_obj,
-        #     bounds=(0, self.TARGET_RADIUS),
-        #     margin=target_to_obj_init,
-        #     sigmoid='long_tail',
-        # )
-        #
-        # object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        # # move_bonus = 0
-        # # if (0 < tcp_opened < 0.55) and \
-        # #         (target_to_obj_init - target_to_obj) > 0.01:
-        # #     object_grasped = 1
-        # #     move_bonus = 1
-        #
-        # reward = (2*object_grasped) + (7*in_place)
-        #
-        # print("REWARD: {}, object_grasped: {}, in_place: {}".format(reward, object_grasped, in_place))
-        #
-        # if target_to_obj < self.TARGET_RADIUS:
-        #     reward = 10.
-        # return (
-        #     reward,
-        #     tcp_to_obj,
-        #     tcp_opened,
-        #     target_to_obj,
-        #     object_grasped,
-        #     in_place
-        # )
         obj = obs[4:7]
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
@@ -245,18 +211,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             margin=target_to_obj_init,
             sigmoid='long_tail',
         )
-
-        object_reach_radius=0.01
-        pad_success_margin = 0.05
-        x_z_margin = 0.005
-
-        # object_grasped = self._gripper_caging_reward(action,
-        #                                              obj,
-        #                                              object_reach_radius=object_reach_radius,
-        #                                              obj_radius=self.OBJ_RADIUS,
-        #                                              pad_success_margin=pad_success_margin,
-        #                                              x_z_margin=x_z_margin,
-        #                                              high_density=True)
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
         reward = reward_utils.hamacher_product(object_grasped, in_place)
