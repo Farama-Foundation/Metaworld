@@ -19,7 +19,7 @@ class SawyerPickPlaceV2Policy(Policy):
             'prev_obs':obs[18:36]
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, p_scale=1.0):
         o_d = self._parse_obs(obs)
 
         action = Action({
@@ -27,7 +27,7 @@ class SawyerPickPlaceV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10. * p_scale)
         action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array

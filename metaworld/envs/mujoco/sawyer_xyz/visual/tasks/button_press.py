@@ -18,8 +18,6 @@ class ButtonPress(VisualSawyerSandboxEnv):
             'hand_init_pos': self.hand_init_pos,
         }
 
-        obj_low = (-1, -1, -1)
-        obj_high = (1, 1, 1)
         goal_low = (-1., -1., -1.)
         goal_high = (1., 1., 1.)
 

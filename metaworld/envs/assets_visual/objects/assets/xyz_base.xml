@@ -13,8 +13,8 @@
   </mujoco>
   -->
 
-      <camera pos="0 0.5 1.5" name="topview" />
-      <camera name="corner" mode="fixed" pos="-1.1 -0.4 0.6" xyaxes="-1 1 0 -0.2 -0.2 -1"/>
+      <camera pos="0 0.5 2.5" name="topview" />
+      <camera name="corner" mode="fixed" pos="-2 -1 1.5" xyaxes="-1 1 0 -0.2 -0.2 -1"/>
 
       <!--<geom name="floor" type="plane" pos="0 0 -.9" size="10 10 10"-->
             <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->

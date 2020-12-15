@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from .heuristics import (
     AlongBackWall,
     Ceiling,
@@ -100,12 +100,14 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         # and end up being [window open/close and door open/close], there will
         # only be 2 additional objects in the scene despite there being 4 tasks
         selected = random.choices(list(extra_toolsets.values()), k=n_tasks - 1)
-        self._toolset_extra = functools.reduce(lambda a,b: a.union(b), selected)
+        self._toolset_extra = functools.reduce(
+            lambda a, b: set(a).union(b), selected
+        )
 
     def _reset_required_tools(self, world, solver):
         """
         Allows implementations to customize how the required tools are placed,
-        as those placements may drastically impact task solvability, and
+        as those placements may drastically impact task solvability, making
         automatic placement may be undesirable
         """
         pass
