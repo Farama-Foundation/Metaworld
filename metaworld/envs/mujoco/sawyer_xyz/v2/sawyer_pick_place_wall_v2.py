@@ -181,17 +181,17 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
                                                     pad_success_margin=0.05,
                                                     object_reach_radius=0.01,
                                                     x_z_margin=0.01,
-                                                    high_density=False)
+                                                    high_density=True)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
 
-        if ((0.0 < obj[2] < 0.25) and (-0.10 < obj[0] < 0.3)
-                and (0.6 < obj[1] < 0.8)):
-            z_scaling = (0.25 - obj[2])/0.25
-            y_scaling = (obj[1] - 0.6) / (0.8 - 0.6)
-            bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
-            in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
+        # if ((0.0 < obj[2] < 0.25) and (-0.10 < obj[0] < 0.3)
+        #         and (0.6 < obj[1] < 0.8)):
+        #     z_scaling = (0.25 - obj[2])/0.25
+        #     y_scaling = (obj[1] - 0.6) / (0.8 - 0.6)
+        #     bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
+        #     in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
         reward = in_place_and_object_grasped
 
