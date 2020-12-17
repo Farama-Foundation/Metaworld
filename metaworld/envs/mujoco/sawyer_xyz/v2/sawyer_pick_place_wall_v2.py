@@ -166,13 +166,14 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         target = self._target_pos
 
-        obj_to_target = np.linalg.norm(obj - target)
+        z_scaling = np.array([1., 1., 3.])
+        obj_to_target = np.linalg.norm((obj - target) * z_scaling)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
+        obj_to_target_init = np.linalg.norm((self.obj_init_pos - target) * z_scaling)
 
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=in_place_margin,
+                                    margin=obj_to_target_init,
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action=action,
@@ -203,7 +204,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             reward,
             tcp_to_obj,
             tcp_opened,
-            obj_to_target,
+            np.linalg.norm(obj - target),
             object_grasped,
             in_place
         ]
