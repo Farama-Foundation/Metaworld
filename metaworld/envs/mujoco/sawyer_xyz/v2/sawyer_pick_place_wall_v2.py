@@ -166,10 +166,10 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         target = self._target_pos
 
-        z_scaling = np.array([1., 1., 3.])
-        obj_to_target = np.linalg.norm((obj - target) * z_scaling)
+        in_place_scaling = np.array([1., 1., 3.])
+        obj_to_target = np.linalg.norm((obj - target) * in_place_scaling)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        obj_to_target_init = np.linalg.norm((self.obj_init_pos - target) * z_scaling)
+        obj_to_target_init = np.linalg.norm((self.obj_init_pos - target) * in_place_scaling)
 
         in_place = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
