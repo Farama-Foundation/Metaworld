@@ -177,7 +177,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
         object_grasped = self._gripper_caging_reward(action=action,
                                                     obj_pos=obj,
-                                                    obj_radius=0.015,
+                                                    obj_radius=0.02,
                                                     pad_success_margin=0.05,
                                                     object_reach_radius=0.01,
                                                     x_z_margin=0.01,
