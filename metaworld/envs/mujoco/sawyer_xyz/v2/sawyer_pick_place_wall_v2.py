@@ -164,14 +164,24 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
+        midpoint = np.array([self._target_pos[0], 0.82, 0.25])
         target = self._target_pos
 
-        in_place_scaling = np.array([1., 1., 3.])
-        obj_to_target = np.linalg.norm((obj - target) * in_place_scaling)
         tcp_to_obj = np.linalg.norm(obj - tcp)
+
+        in_place_scaling = np.array([1., 1., 3.])
+        obj_to_midpoint = np.linalg.norm((obj - midpoint) * in_place_scaling)
+        obj_to_midpoint_init = np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
+
+        obj_to_target = np.linalg.norm((obj - target) * in_place_scaling)
         obj_to_target_init = np.linalg.norm((self.obj_init_pos - target) * in_place_scaling)
 
-        in_place = reward_utils.tolerance(obj_to_target,
+        in_place_part1 = reward_utils.tolerance(obj_to_midpoint,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=obj_to_midpoint_init,
+                                    sigmoid='long_tail',)
+
+        in_place_part2 = reward_utils.tolerance(obj_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=obj_to_target_init,
                                     sigmoid='long_tail',)
@@ -185,7 +195,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
                                                     high_density=True)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
+                                                                    in_place_part1)
 
         # if ((0.0 < obj[2] < 0.25) and (-0.10 < obj[0] < 0.3)
         #         and (0.7 < obj[1] < 0.8)):
@@ -197,14 +207,18 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         reward = in_place_and_object_grasped
 
         if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 5. * in_place
+            reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
+            if obj[2] > 0.22 and obj[1] > 0.78 and (obj[0] - midpoint[0]) < _TARGET_RADIUS:
+                reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
+
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
+
         return [
             reward,
             tcp_to_obj,
             tcp_opened,
             np.linalg.norm(obj - target),
             object_grasped,
-            in_place
+            in_place_part2
         ]
