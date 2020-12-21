@@ -191,8 +191,8 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
                                                     obj_radius=0.02,
                                                     pad_success_margin=0.05,
                                                     object_reach_radius=0.01,
-                                                    x_z_margin=0.01,
-                                                    high_density=True)
+                                                    x_z_margin=0.005,
+                                                    high_density=False)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place_part1)
