@@ -161,13 +161,13 @@ class ML10(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.MEDIUM_MODE_CLS_DICT['train']
-        self._test_classes = _env_dict.MEDIUM_MODE_CLS_DICT['test']
-        train_kwargs = _env_dict.medium_mode_train_args_kwargs
+        self._train_classes = _env_dict.ML10_V2['train']
+        self._test_classes = _env_dict.ML10_V2['test']
+        train_kwargs = _env_dict.ml10_train_args_kwargs
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _ML_OVERRIDE)
-        test_kwargs = _env_dict.medium_mode_test_args_kwargs
+        test_kwargs = _env_dict.ml10_test_args_kwargs
         self._test_tasks = _make_tasks(self._test_classes,
                                        test_kwargs,
                                        _ML_OVERRIDE)
@@ -192,9 +192,9 @@ class MT10(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.EASY_MODE_CLS_DICT
+        self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
+        train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)

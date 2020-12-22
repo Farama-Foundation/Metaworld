@@ -11,8 +11,9 @@ class SawyerDialTurnV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'dial_pos': obs[3:6],
-            'extra_info': obs[6:],
+            'unused_gripper_open': obs[3],
+            'dial_pos': obs[4:7],
+            'extra_info': obs[7:],
         }
 
     def get_action(self, obs):

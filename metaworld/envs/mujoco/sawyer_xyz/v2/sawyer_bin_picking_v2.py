@@ -45,7 +45,6 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         goal_high = np.array([0.1201, 0.701, +0.001])
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
 
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
