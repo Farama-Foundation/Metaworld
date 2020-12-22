@@ -33,9 +33,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = 0.1
-        self.max_path_length = 500
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -93,7 +90,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.objHeight = self.data.site_xpos[self.model.site_name2id('RoundNut-8')][2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -106,7 +102,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
 
@@ -122,41 +117,41 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([0.707, 0, 0, 0.707])
         error = np.linalg.norm(obs[7:11] - ideal)
-        return max(1.0 - error/0.2, 0.0)
+        return max(1.0 - error/0.4, 0.0)
 
     @staticmethod
     def _reward_pos(wrench_center, target_pos):
         pos_error = target_pos - wrench_center
-        scale = np.array([3., 3., 1.])
+
+        radius = np.linalg.norm(pos_error[:2])
+
+        aligned = radius < 0.02
+        hooked = pos_error[2] > 0.0
+        success = aligned and hooked
+
+        # Target height is a 3D funnel centered on the peg.
+        # use the success flag to widen the bottleneck once the agent
+        # learns to place the wrench on the peg -- no reason to encourage
+        # tons of alignment accuracy if task is already solved
+        threshold = 0.02 if success else 0.01
+        target_height = 0.0
+        if radius > threshold:
+            target_height = 0.02 * np.log(radius - threshold) + 0.2
+
+        pos_error[2] = target_height - wrench_center[2]
+
+        scale = np.array([1., 1., 3.])
         a = 0.1  # Relative importance of just *trying* to lift the wrench
         b = 0.9  # Relative importance of placing the wrench on the peg
-        lifted = wrench_center[2] > 0.02 or np.linalg.norm(pos_error[:2]) < 0.02
+        lifted = wrench_center[2] > 0.02 or radius < threshold
         in_place = a * float(lifted) + b * reward_utils.tolerance(
             np.linalg.norm(pos_error * scale),
-            bounds=(0, 0.05),
-            margin=0.2,
+            bounds=(0, 0.02),
+            margin=0.4,
             sigmoid='long_tail',
         )
-        # prevent the wrench from running into the side of the peg by creating
-        # a protective torus around it. modify input to torus function by sqrt()
-        # in order to stretch the torus out
-        radius = np.linalg.norm(pos_error[:2]) ** 0.5
-        torus_radius = target_pos[2] * 1.2  # torus is slightly taller than peg
-        center_to_torus_center = (torus_radius + 0.02) ** 0.5
 
-        floor = target_pos[2] + np.sqrt(
-            torus_radius ** 2 - (center_to_torus_center - radius) ** 2
-        )
-        if np.isnan(floor):
-            floor = 0.0
-        above_floor = 1.0 if wrench_center[2] >= floor else \
-            reward_utils.tolerance(
-                floor - wrench_center[2],
-                bounds=(0.0, 0.01),
-                margin=floor / 2.0,
-                sigmoid='long_tail',
-            )
-        return reward_utils.hamacher_product(above_floor, in_place)
+        return in_place, success
 
     def compute_reward(self, actions, obs):
         hand = obs[:3]
@@ -182,17 +177,13 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             x_z_margin=0.01,
             high_density=True,
         )
-        reward_in_place = SawyerNutAssemblyEnvV2._reward_pos(
+        reward_in_place, success = SawyerNutAssemblyEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        reward = 2.0 * reward_grab + 8.0 * reward_in_place * reward_quat
-
+        reward = 2.0 * reward_grab + 6.0 * reward_in_place * reward_quat
         # Override reward on success
-        aligned = np.linalg.norm(wrench_center[:2] - self._target_pos[:2]) < .02
-        hooked = obs[6] < self._target_pos[2]
-        success = aligned and hooked
         if success:
             reward = 10.0
 

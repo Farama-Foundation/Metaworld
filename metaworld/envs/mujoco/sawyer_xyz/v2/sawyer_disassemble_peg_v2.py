@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
-    WRENCH_HANDLE_WIDTH = 0.04
+    WRENCH_HANDLE_LENGTH = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
@@ -32,9 +32,6 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = 0.05
-        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -110,9 +107,6 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = peg_top_pos
         self._set_obj_xyz(self.obj_init_pos)
-        self.objHeight = self._get_site_pos('RoundNut-8')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
 
         return self._get_obs()
 
@@ -132,91 +126,61 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([0.707, 0, 0, 0.707])
         error = np.linalg.norm(obs[7:11] - ideal)
-        return max(1.0 - error / 0.2, 0.0)
+        return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
-    def _reward_pos(obs, wrench_center, target_pos):
-        hand = obs[:3]
-        wrench = obs[4:7]
+    def _reward_pos(wrench_center, target_pos):
+        pos_error = target_pos + np.array([.0, .0, .1]) - wrench_center
 
-        # STEP 1: Preparing to lift the wrench ---------------------------------
-        threshold = 0.02
-        # floor is a 3D valley stretching across the wrench's handle
-        radius_1 = abs(hand[1] - wrench[1])
-        floor_1 = 0.0
-        if radius_1 > threshold:
-            floor_1 = 0.01 * np.log(radius_1 - threshold) + 0.1
-        # prevent the hand from running into the handle prematurely by keeping
-        # it above the "floor"
-        above_floor_1 = 1.0 if hand[2] >= floor_1 else reward_utils.tolerance(
-            floor_1 - hand[2],
-            bounds=(0.0, 0.01),
-            margin=floor_1 / 2.0,
-            sigmoid='long_tail',
-        )
-        # grab the wrench's handle
-        # grabbing anywhere along the handle is acceptable, subject to the
-        # constraint that it remains level upon lifting (encouraged by the
-        # reward_quat() function)
-        pos_error_1 = hand - wrench
-        if pos_error_1[0] <= SawyerNutDisassembleEnvV2.WRENCH_HANDLE_WIDTH / 2.0:
-            pos_error_1[0] = 0.0
-        in_place_1 = reward_utils.tolerance(
-            np.linalg.norm(pos_error_1),
+        a = 0.1  # Relative importance of just *trying* to lift the wrench
+        b = 0.9  # Relative importance of placing the wrench on the peg
+        lifted = wrench_center[2] > 0.02
+        in_place = a * float(lifted) + b * reward_utils.tolerance(
+            np.linalg.norm(pos_error),
             bounds=(0, 0.02),
-            margin=0.5,
-            sigmoid='long_tail',
-        )
-        ready_to_lift = reward_utils.hamacher_product(above_floor_1, in_place_1)
-
-        # STEP 2: Placing the wrench -------------------------------------------
-        pos_error_2 = target_pos + np.array([.0, .0, .05]) - wrench_center
-        a = 0.2  # Relative importance of just *trying* to lift the wrench
-        b = 0.8  # Relative importance of lifting past the top of the peg
-        lifted = a * float(wrench[2] > 0.04) + b * reward_utils.tolerance(
-            max(0.0, pos_error_2[2]),
-            bounds=(0, 0.02),
-            margin=0.1,
+            margin=0.2,
             sigmoid='long_tail',
         )
 
-        return ready_to_lift, lifted
+        return in_place
 
     def compute_reward(self, actions, obs):
+        hand = obs[:3]
+        wrench = obs[4:7]
         wrench_center = self._get_site_pos('RoundNut')
+        # `self._gripper_caging_reward` assumes that the target object can be
+        # approximated as a sphere. This is not true for the wrench handle, so
+        # to avoid re-writing the `self._gripper_caging_reward` we pass in a
+        # modified wrench position.
+        # This modified position's X value will perfect match the hand's X value
+        # as long as it's within a certain threshold
+        wrench_threshed = wrench.copy()
+        threshold = SawyerNutDisassembleEnvV2.WRENCH_HANDLE_LENGTH / 2.0
+        if abs(wrench[0] - hand[0]) < threshold:
+            wrench_threshed[0] = hand[0]
 
-        reward_grab = SawyerNutDisassembleEnvV2._reward_grab_effort(actions)
         reward_quat = SawyerNutDisassembleEnvV2._reward_quat(obs)
-        reward_steps = SawyerNutDisassembleEnvV2._reward_pos(
-            obs,
+        reward_grab = self._gripper_caging_reward(
+            actions, wrench_threshed,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_margin=0.05,
+            x_z_margin=0.01,
+            medium_density=True,
+        )
+        reward_in_place = SawyerNutDisassembleEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        # If first step is nearly complete...
-        if reward_steps[0] > 0.9:
-            # Begin incentivizing grabbing without obliterating existing reward
-            # (min possible after conditional is 1.0, which was the max before)
-            reward_grab = 2.0 - reward_grab
-        # Rescale to [0,1]
-        reward_grab /= 2.0
-
-        reward = sum((
-            2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
-            8.0 * reward_steps[1],
-        ))
-
+        reward = 2.0 * reward_grab + 8.0 * reward_in_place * reward_quat
         # Override reward on success
-        success = wrench_center[2] > self._target_pos[2]
-        if success:
-            reward = 10.0
-
-        # STRONG emphasis on proper wrench orientation
-        reward *= reward_quat
+        success = obs[6] > self._target_pos[2]
 
         return (
             reward,
             reward_grab,
-            *reward_steps,
+            reward_quat,
+            reward_in_place,
             success,
         )
