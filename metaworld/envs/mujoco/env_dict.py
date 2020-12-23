@@ -429,3 +429,15 @@ ML10_ARGS_KWARGS = dict(
     train=ml10_train_args_kwargs,
     test=ml10_test_args_kwargs,
 )
+
+ML1_V2 = OrderedDict((
+    ('train', ALL_V2_ENVIRONMENTS),
+    ('test', ALL_V2_ENVIRONMENTS)
+))
+
+ML1_args_kwargs = {
+    key: dict(args=[], kwargs={
+        'task_id' : list(ALL_V2_ENVIRONMENTS.keys()).index(key),
+    })
+    for key, _ in ML1_V2['train'].items()
+}

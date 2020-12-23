@@ -87,8 +87,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     TARGET_RADIUS = 0.05
 
-    TARGET_RADIUS = 0.05
-
     def __init__(
             self,
             model_name,
@@ -407,8 +405,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
-
-        self.compute_reward(action, self._get_obs())
 
         for site in self._target_site_config:
             self._set_pos_site(*site)
