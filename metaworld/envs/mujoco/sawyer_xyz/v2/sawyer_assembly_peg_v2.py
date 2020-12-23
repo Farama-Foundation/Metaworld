@@ -175,14 +175,14 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             obj_radius=0.015,
             pad_success_margin=0.05,
             x_z_margin=0.01,
-            high_density=True,
+            medium_density=True,
         )
         reward_in_place, success = SawyerNutAssemblyEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        reward = 2.0 * reward_grab + 6.0 * reward_in_place * reward_quat
+        reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success
         if success:
             reward = 10.0

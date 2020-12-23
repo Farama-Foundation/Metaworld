@@ -117,10 +117,6 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.init_right_pad = self.get_body_com('rightpad')
 
     @staticmethod
-    def _reward_grab_effort(actions):
-        return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
-
-    @staticmethod
     def _reward_quat(obs):
         # Ideal laid-down wrench has quat [.707, 0, 0, .707]
         # Rather than deal with an angle between quaternions, just approximate:
@@ -173,7 +169,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             self._target_pos
         )
 
-        reward = 2.0 * reward_grab + 8.0 * reward_in_place * reward_quat
+        reward = (4.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success
         success = obs[6] > self._target_pos[2]
 
