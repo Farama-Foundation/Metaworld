@@ -209,7 +209,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]):
+        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.015 > self.obj_init_pos[2]):
             reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
             if obj[1] > 0.75:
                 reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
