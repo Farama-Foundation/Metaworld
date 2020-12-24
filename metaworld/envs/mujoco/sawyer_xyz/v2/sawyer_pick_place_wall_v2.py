@@ -164,7 +164,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
-        midpoint = np.array([self._target_pos[0], 0.85, 0.25])
+        midpoint = np.array([self._target_pos[0], 0.77, 0.25])
         target = self._target_pos
 
         tcp_to_obj = np.linalg.norm(obj - tcp)
@@ -173,26 +173,29 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         obj_to_midpoint = np.linalg.norm((obj - midpoint) * in_place_scaling)
         obj_to_midpoint_init = np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
 
-        obj_to_target = np.linalg.norm((obj - target) * in_place_scaling)
-        obj_to_target_init = np.linalg.norm((self.obj_init_pos - target) * in_place_scaling)
+        obj_to_target = np.linalg.norm(obj - target)
+        obj_to_target_init = np.linalg.norm(self.obj_init_pos - target)
 
         in_place_part1 = reward_utils.tolerance(obj_to_midpoint,
-                                    bounds=(0, _TARGET_RADIUS),
-                                    margin=obj_to_midpoint_init,
-                                    sigmoid='long_tail',)
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_midpoint_init,
+            sigmoid='long_tail',
+        )
 
         in_place_part2 = reward_utils.tolerance(obj_to_target,
-                                    bounds=(0, _TARGET_RADIUS),
-                                    margin=obj_to_target_init,
-                                    sigmoid='long_tail',)
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_target_init,
+            sigmoid='long_tail'
+        )
 
         object_grasped = self._gripper_caging_reward(action=action,
-                                                    obj_pos=obj,
-                                                    obj_radius=0.015,
-                                                    pad_success_margin=0.05,
-                                                    object_reach_radius=0.01,
-                                                    x_z_margin=0.005,
-                                                    high_density=False)
+            obj_pos=obj,
+            obj_radius=0.015,
+            pad_success_margin=0.05,
+            object_reach_radius=0.01,
+            x_z_margin=0.005,
+            high_density=False
+        )
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place_part1)
@@ -208,7 +211,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
         if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]):
             reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
-            if obj[1] > 0.80 and (obj[0] - midpoint[0]) < _TARGET_RADIUS and (obj[2] - 0.01 > self.obj_init_pos[2]):
+            if obj[1] > 0.75:
                 reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
 
         if obj_to_target < _TARGET_RADIUS:
