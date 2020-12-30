@@ -139,15 +139,14 @@ class MT1(Benchmark):
 
     def __init__(self, env_name):
         super().__init__()
-        try:
-            cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
-        except KeyError:
-            cls = _env_dict.HARD_MODE_CLS_DICT['test'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test'][env_name]
+        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V2 environment")
+        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
-        self._test_classes = OrderedDict()
+        self._test_classes = self._train_classes
         self._train_ = OrderedDict([(env_name, cls)])
+        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
+
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
                                         _MT_OVERRIDE)
