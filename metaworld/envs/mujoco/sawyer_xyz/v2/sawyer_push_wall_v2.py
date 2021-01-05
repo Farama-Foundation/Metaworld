@@ -254,7 +254,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
                                                                     in_place_part1)
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and tcp_opened > 0:
+        if tcp_to_obj < 0.02 and tcp_opened > 0 and object_grasped > 0.5:
             reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
             if obj[1] > 0.75:
                 reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
