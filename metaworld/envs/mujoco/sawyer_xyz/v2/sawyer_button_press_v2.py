@@ -75,7 +75,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         return self.unwrapped.model.geom_name2id('btnGeom')
 
     def _get_pos_objects(self):
-        return self.get_body_com("button") + np.array([.0, -.193, .0])
+        return self.get_body_com('button') + np.array([.0, -.193, .0])
 
     def _get_quat_objects(self):
         return self.sim.data.get_body_xquat('button')
