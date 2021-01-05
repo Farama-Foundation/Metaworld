@@ -65,11 +65,8 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-
-        obs = self._get_obs()
+        obs = super().step(action)
         obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
@@ -199,14 +196,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place_part1)
-
-        # if ((0.0 < obj[2] < 0.25) and (-0.10 < obj[0] < 0.3)
-        #         and (0.7 < obj[1] < 0.8)):
-        #     z_scaling = (0.25 - obj[2])/0.25
-        #     y_scaling = (obj[1] - 0.6) / (0.8 - 0.6)
-        #     bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
-        #     in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
-
         reward = in_place_and_object_grasped
 
         if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.015 > self.obj_init_pos[2]):
