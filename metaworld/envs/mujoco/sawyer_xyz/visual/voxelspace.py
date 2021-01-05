@@ -10,7 +10,7 @@ class VoxelSpace(abc.ABC):
     def __init__(self, size, resolution):
         """
         Args:
-            size (tuple of float): (Length, Width, Height) of the space
+            size (tuple of float): (Width, Length, Height) of the space
             resolution (int): Number of voxels per unit of size
         """
         self.size = size

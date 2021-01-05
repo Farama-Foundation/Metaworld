@@ -66,7 +66,8 @@
         <!--Shop: Button-->
         <body name="ButtonBox" euler="-1.57 0 0" pos="-1.0 0.9 0.42">
             <include file="../objects/assets/buttonbox.xml"/>
-<!--            <site name="buttonStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 1"/>-->
+            <site name="ButtonBoxStart" pos="0 -0.1935 0" size="0.005" rgba="0 0.8 0 0"/>
+            <site name="ButtonBoxEnd" pos="0 -0.1 0" size="0.005" rgba="0 0.8 0 0"/>
         </body>
 
         <!--Kitchen: Coffee-->
@@ -78,7 +79,6 @@
         <body name="CoffeeMachine" pos=".6 .9 0">
             <include file="../objects/assets/coffeemachine.xml"/>
         </body>
-        <site name="CoffeeMugSiteGoal" pos="0 0.6 0.02" size="0.01" rgba="0 1 0 0"/>
 
         <!--Kitchen: Dial-->
         <body name="Dial" pos="0.2 0.5 0.">
@@ -133,7 +133,7 @@
             <include file="../objects/assets/block_cyl.xml"/>
         </body>
 
-        Shop: Unplug Outlet
+        <!--Shop: Unplug Outlet-->
         <body name="ElectricalPlug" pos="-.582 1.0 .351">
             <freejoint name="ElectricalPlugJoint"/>
             <include file="../objects/assets/plug.xml"/>

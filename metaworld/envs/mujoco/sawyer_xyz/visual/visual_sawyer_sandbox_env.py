@@ -1,8 +1,10 @@
+import functools
+import random
+
 import numpy as np
-from gym.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_visual_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from .heuristics import (
     AlongBackWall,
     Ceiling,
@@ -49,138 +51,159 @@ from .tools.tool import (
 )
 from .solver import Solver
 from .voxelspace import VoxelSpace
+from .tasks.library import TOOLSETS
 
 
 class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     def __init__(self):
-
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
-        obj_low = (-1, -1, -1)
-        obj_high = (1, 1, 1)
-        goal_low = (-1., -1., -1.)
-        goal_high = (1., 1., 1.)
-
         super().__init__(
             self.model_name,
-            hand_low=hand_low,
-            hand_high=hand_high,
+            hand_low=(-0.5, 0.4, .05),
+            hand_high=(0.5, 1.0, 0.5),
         )
-
-        self.init_config = {
-            'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0.6, 0.4), dtype=np.float32),
-        }
-        self.goal = np.array([-0.2, 0.8, 0.05], dtype=np.float32)
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self._all_tool_names = list(self.model.body_names)
+        self.hand_init_pos = np.array((0, 0.6, 0.4), dtype=np.float32)
         self.max_path_length = 500
 
-        goal_low = np.array(goal_low)
-        goal_high = np.array(goal_high)
-        self._random_reset_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
-        )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
+        self._all_tool_names = list(self._body_names)
         self._world = None
         self._solver = None
 
+        # toolset_required should contain the names of tools that are necessary
+        # to solve the current task
+        self._toolset_required = set()
+        # toolset_extra should contain the named of additional tools that will
+        # be placed on the table to make task identification non-trivial
+        self._toolset_extra = set()
+
     @property
     def model_name(self):
-        return full_visual_path_for('sawyer_xyz/sawyer_sandbox_small.xml')
-
-    @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        self.curr_path_length += 1
-        info = {'success': float(False)}
-        return ob, 0, False, info
+        return full_visual_path_for('sawyer_xyz/sawyer_sandbox_empty_table.xml')
 
     @property
     def _target_site_config(self):
         return []
 
-    def _get_pos_objects(self):
-        '''
-        Note: At a later point it may be worth it to replace this with
-        self._get_obj_pos_dict
-        '''
-        return np.zeros(3)
+    def _get_id_main_object(self):
+        return None
 
-    def reset_model(self):
+    def randomize_extra_toolset(self, n_tasks, seed=None):
+        extra_toolsets = {**TOOLSETS}
+        del extra_toolsets[type(self).__name__]
+
+        if seed is not None:
+            random.seed(seed)
+
+        # This will select n - 1 additional tasks from which to pull
+        # objects. We enforce no guarantee that those additional tasks will
+        # have unique objects. For example, if 4 additional tasks are selected
+        # and end up being [window open/close and door open/close], there will
+        # only be 2 additional objects in the scene despite there being 4 tasks
+        selected = random.choices(list(extra_toolsets.values()), k=n_tasks - 1)
+        self._toolset_extra = functools.reduce(
+            lambda a, b: set(a).union(b), selected
+        )
+
+    def _reset_required_tools(self, world, solver):
+        """
+        Allows implementations to customize how the required tools are placed,
+        as those placements may drastically impact task solvability, making
+        automatic placement may be undesirable
+        """
+        pass
+
+    def reset_model(self, solve_required_tools=False):
         self._reset_hand()
-        self._target_pos = self.goal.copy()
-
-        basketball = Basketball()
-        hoop = BasketballHoop()
-        bin_a = BinA()
-        bin_b = BinB()
-        bin_lid = BinLid()
-        button = ButtonBox()
-        coffee_machine = CoffeeMachine()
-        coffee_mug = CoffeeMug()
-        dial = Dial()
-        door = Door()
-        drawer = Drawer()
-        plug = ElectricalPlug()
-        outlet = ElectricalOutlet()
-        faucet = FaucetBase()
-        hammer = HammerBody()
-        lever = Lever()
-        nail = NailBox()
-        puck = Puck()
-        screw_eye = ScrewEye()
-        screw_eye_peg = ScrewEyePeg()
-        shelf = Shelf()
-        soccer_goal = SoccerGoal()
-        thermos = Thermos()
-        toaster = ToasterHandle()
-        window = Window()
 
         world = VoxelSpace((1.75, 0.7, 0.5), 100)
         solver = Solver(world)
 
-        # Place large artifacts along the back of the table
-        solver.apply(AlongBackWall(0.95 * world.size[1]), [
-            door, nail, hoop, window, coffee_machine, drawer
-        ], tries=2)
+        toolset = self._toolset_extra
+        if solve_required_tools:
+            toolset = toolset.union(self._toolset_required)
+        else:
+            self._reset_required_tools(world, solver)
 
+        def construct(cls):
+            return cls(enabled=cls.__name__ in toolset)
+
+        basketball = construct(Basketball)
+        hoop = construct(BasketballHoop)
+        bin_a = construct(BinA)
+        bin_b = construct(BinB)
+        bin_lid = construct(BinLid)
+        button = construct(ButtonBox)
+        coffee_machine = construct(CoffeeMachine)
+        coffee_mug = construct(CoffeeMug)
+        dial = construct(Dial)
+        door = construct(Door)
+        drawer = construct(Drawer)
+        plug = construct(ElectricalPlug)
+        outlet = construct(ElectricalOutlet)
+        faucet = construct(FaucetBase)
+        hammer = construct(HammerBody)
+        lever = construct(Lever)
+        nail = construct(NailBox)
+        puck = construct(Puck)
+        screw_eye = construct(ScrewEye)
+        screw_eye_peg = construct(ScrewEyePeg)
+        shelf = construct(Shelf)
+        soccer_goal = construct(SoccerGoal)
+        thermos = construct(Thermos)
+        toaster = construct(ToasterHandle)
+        window = construct(Window)
+
+        # Place large artifacts along the back of the table
+        back_lineup = [door, nail, hoop, window, coffee_machine, drawer]
         # Place certain artifacts on top of one another to save space
-        solver.apply(OnTopOf(coffee_machine),   [toaster])
-        solver.apply(OnTopOf(drawer),           [shelf])
-        solver.apply(OnTopOf(nail),             [outlet])
-        solver.apply(OnTopOf(door),             [button])
+        stacked = (
+            (coffee_machine,    toaster),
+            (drawer,            shelf),
+            (nail,              outlet),
+            (door,              button),
+        )
+        # If the lowermost item in the stack is disabled, place the upper item
+        # along the back of the table instead
+        back_lineup += [upper for lower, upper in stacked if not lower.enabled]
+
+        solver.apply(AlongBackWall(0.95 * world.size[1]), back_lineup, tries=2)
+        for lower, upper in stacked:
+            if lower.enabled:
+                solver.apply(OnTopOf(lower), [upper])
 
         # Put the faucet under the basketball hoop
-        faucet.specified_pos = hoop.specified_pos + np.array([.0, -.1, .0])
-        faucet.specified_pos[2] = faucet.resting_pos_z * world.resolution
-        solver.did_manual_set(faucet)
-
-        # Place certain artifacts in front of one another to simplify config
-        solver.apply(InFrontOf(window),         [soccer_goal])
-        solver.apply(InFrontOf(nail),           [bin_a])
-        solver.apply(InFrontOf(bin_a),          [bin_b])
+        if faucet.enabled and hoop.enabled:
+            faucet.specified_pos = hoop.specified_pos + np.array([.0, -.1, .0])
+            faucet.specified_pos[2] = faucet.resting_pos_z * world.resolution
+            solver.did_manual_set(faucet)
 
         # The ceiling means that taller objects get placed along the edges
         # of the table. We place them first (note that `shuffle=False` so list
         # order matters) so that the shorter objects don't take up space along
         # the edges until tall objects have had a chance to fill that area.
-
         def ceiling(i, j):
             # A bowl-shaped ceiling, centered at the Sawyer
             i -= world.mat.shape[0] // 2
             return (0.02 * i * i) + (0.005 * j * j) + 20
 
-        solver.apply(Ceiling(ceiling), [
-            thermos, lever, screw_eye_peg, dial
-        ], tries=20, shuffle=False)
+        # Place certain objects under a ceiling
+        under_ceiling = [thermos, lever, screw_eye_peg, dial]
+        # Place certain artifacts in front of one another to simplify config
+        layered = (
+            (window, soccer_goal),
+            (nail, bin_a),
+            (bin_a, bin_b),
+        )
+        # If rearmost item is disabled, place other item under ceiling instead
+        under_ceiling += [fore for aft, fore in layered if not aft.enabled]
+        # If faucet wasn't placed earlier, put it under the ceiling as well
+        if faucet.enabled and not hoop.enabled:
+            under_ceiling.append(faucet)
+
+        solver.apply(Ceiling(ceiling), under_ceiling, tries=20, shuffle=False)
+        for aft, fore in layered:
+            if aft.enabled:
+                solver.apply(InFrontOf(aft), [fore])
 
         # At this point we only have a few objects left to place. They're all
         # tools (not artifacts) which means they can move around freely. As
@@ -189,11 +212,13 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         # `bounding` and `clearance` boxes so that freejointed tools can
         # automatically ignore clearance boxes). For now, to ignore the
         # existing bounding boxes, we manually reset their voxels:
-        world.fill_tool(door, value=False)
-        world.fill_tool(drawer, value=False)
+        if door.enabled:
+            world.fill_tool(door, value=False)
+        if drawer.enabled:
+            world.fill_tool(drawer, value=False)
 
         edge_buffer = (world.size[0] - 1.0) / 2.0
-        created_overlaps = solver.apply([
+        free_of_overlaps = solver.apply([
             # Must have this Y constraint to avoid placing inside the door
             # and drawer whose voxels got erased
             LessThanYValue(0.6 * world.size[1]),
@@ -203,7 +228,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             hammer, bin_lid, screw_eye, coffee_mug, puck, basketball, plug
         ], tries=100, shuffle=False)
 
-        if created_overlaps:
+        if not free_of_overlaps:
             print('Reconfiguring to avoid overlaps')
             self.reset_model()
 
@@ -216,11 +241,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
         self._make_everything_match_solver()
         self._anneal_free_joints(steps=50)
-
-        # print(self.model.joint_names)
-        # print(self.model.body_names)
-        # print(self.model.jnt_pos)
-        # print(self.model.jnt_type)
 
         return self._get_obs()
 
@@ -236,6 +256,8 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     def _make_everything_match_solver(self):
         for tool in self._solver.tools:
+            if not tool.enabled:
+                continue
             if tool.name not in self._all_tool_names:
                 print(f'Skipping {tool.name} placement. You sure it\'s in XML?')
                 continue
@@ -267,3 +289,19 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
                     qvel_new[2] /= 1.05 ** step
 
                     set_joint_vel_of(tool, self.sim, qvel_new)
+
+    @property
+    def _body_names(self):
+        return self.model.body_names
+
+    @property
+    def _joint_names(self):
+        return self.model.joint_names
+
+    @property
+    def _joint_pos(self):
+        return self.model.jnt_pos
+
+    @property
+    def _joint_type(self):
+        return self.model.jnt_type

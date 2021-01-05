@@ -7,6 +7,7 @@ from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
+from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 
 
@@ -24,6 +25,18 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
     def get_endeff_pos(self):
         return self.data.get_body_xpos('hand').copy()
+
+    @property
+    def tcp_center(self):
+        """The COM of the gripper's 2 fingers
+
+        Returns:
+            (np.ndarray): 3-element position
+        """
+        right_finger_pos = self._get_site_pos('rightEndEffector')
+        left_finger_pos = self._get_site_pos('leftEndEffector')
+        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
+        return tcp_center
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
@@ -72,6 +85,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     )
     max_path_length = 200
 
+    TARGET_RADIUS = 0.05
+
     def __init__(
             self,
             model_name,
@@ -106,13 +121,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
+
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
         )
 
-        self._pos_obj_max_len = 6
-        self._pos_obj_possible_lens = (3, 6)
+        self._obs_obj_max_len = 14
+        self._obs_obj_possible_lens = (7, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -120,6 +138,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
+
+        # Note: It is unlikely that the positions and orientations stored
+        # in this initiation of prev_obs are correct. That being said, it
+        # doesn't seem to matter (it will only effect frame-stacking for the
+        # very first observation)
+        self.prev_obs = self._get_curr_obs_combined_no_goal()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -150,36 +174,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-
-    def discretize_goal_space(self, goals):
-        assert False
-        assert len(goals) >= 1
-        self.discrete_goals = goals
-        # update the goal_space to a Discrete space
-        self.discrete_goal_space = Discrete(len(self.discrete_goals))
-
-    # Belows are methods for using the new wrappers.
-    # `sample_goals` is implmented across the sawyer_xyz
-    # as sampling from the task lists. This will be done
-    # with the new `discrete_goals`. After all the algorithms
-    # conform to this API (i.e. using the new wrapper), we can
-    # just remove the underscore in all method signature.
-    def sample_goals_(self, batch_size):
-        assert False
-        if self.discrete_goal_space is not None:
-            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
-        else:
-            return [self.goal_space.sample() for _ in range(batch_size)]
-
-    def set_goal_(self, goal):
-        assert False
-        if self.discrete_goal_space is not None:
-            self.active_discrete_goal = goal
-            self.goal = self.discrete_goals[goal]
-            self._target_pos_idx = np.zeros(len(self.discrete_goals))
-            self._target_pos_idx[goal] = 1.
-        else:
-            self.goal = goal
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -212,12 +206,74 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         return [('goal', self._target_pos)]
 
+    @property
+    def touching_main_object(self):
+        """Calls `touching_object` for the ID of the env's main object
+
+        Returns:
+            (bool) whether the gripper is touching the object
+
+        """
+        return self.touching_object(self._get_id_main_object)
+
+    def touching_object(self, object_geom_id):
+        """Determines whether the gripper is touching the object with given id
+
+        Args:
+            object_geom_id (int): the ID of the object in question
+
+        Returns:
+            (bool): whether the gripper is touching the object
+
+        """
+        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
+        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+
+        leftpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (leftpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        rightpad_object_contacts = [
+            x for x in self.unwrapped.data.contact
+            if (rightpad_geom_id in (x.geom1, x.geom2)
+                and object_geom_id in (x.geom1, x.geom2))
+        ]
+
+        leftpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in leftpad_object_contacts)
+
+        rightpad_object_contact_force = sum(
+            self.unwrapped.data.efc_force[x.efc_address]
+            for x in rightpad_object_contacts)
+
+        return 0 < leftpad_object_contact_force and \
+               0 < rightpad_object_contact_force
+
+    @property
+    def _get_id_main_object(self):
+        return self.unwrapped.model.geom_name2id('objGeom')
+
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars
 
         Returns:
             np.ndarray: Flat array (usually 3 elements) representing the
                 object(s)' position(s)
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
+
+    def _get_quat_objects(self):
+        """Retrieves object quaternion(s) from mujoco properties
+
+        Returns:
+            np.ndarray: Flat array (usually 4 elements) representing the
+                object(s)' quaternion(s)
+
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
@@ -233,25 +289,64 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert self._target_pos.ndim == 1
         return self._target_pos
 
-    def _get_obs(self):
-        """Combines positions of the end effector, object(s) and goal into a
-        single flat observation
+    def _get_curr_obs_combined_no_goal(self):
+        """Combines the end effector's {pos, closed amount} and the object(s)'
+            {pos, quat} into a single flat observation. The goal's position is
+            *not* included in this.
 
         Returns:
-            np.ndarray: The flat observation array (12 elements)
+            np.ndarray: The flat observation array (18 elements)
+
         """
         pos_hand = self.get_endeff_pos()
 
-        pos_obj_padded = np.zeros(self._pos_obj_max_len)
-        pos_obj = self._get_pos_objects()
-        assert len(pos_obj) in self._pos_obj_possible_lens
-        pos_obj_padded[:len(pos_obj)] = pos_obj
+        finger_right, finger_left = (
+            self._get_site_pos('rightEndEffector'),
+            self._get_site_pos('leftEndEffector')
+        )
 
+        # the gripper can be at maximum about ~0.1 m apart.
+        # dividing by 0.1 normalized the gripper distance between
+        # 0 and 1. Further, we clip because sometimes the grippers
+        # are slightly more than 0.1m apart (~0.00045 m)
+        # clipping removes the effects of this random extra distance
+        # that is produced by mujoco
+        gripper_distance_apart = np.linalg.norm(finger_right - finger_left)
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
+
+        obs_obj_padded = np.zeros(self._obs_obj_max_len)
+
+        obj_pos = self._get_pos_objects()
+        obj_quat = self._get_quat_objects()
+        assert len(obj_pos) % 3 == 0
+        assert len(obj_quat) % 4 == 0
+        obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
+        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+
+        obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
+            np.hstack((pos, quat))
+            for pos, quat in zip(obj_pos_split, obj_quat_split)
+        ])
+        assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
+
+        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
+
+    def _get_obs(self):
+        """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the
+            goal position to form a single flat observation.
+
+        Returns:
+            np.ndarray: The flat observation array (39 elements)
+        """
+        # do frame stacking
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-
-        return np.hstack((pos_hand, pos_obj_padded, pos_goal))
+        curr_obs = self._get_curr_obs_combined_no_goal()
+        # do frame stacking
+        obs = np.hstack((curr_obs, self.prev_obs, pos_goal))
+        self.prev_obs = curr_obs
+        return obs
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -263,21 +358,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(6, -np.inf)
-        obj_high = np.full(6, +np.inf)
+        obj_low = np.full(self._obs_obj_max_len, -np.inf)
+        obj_high = np.full(self._obs_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
+        gripper_low = 0.
+        gripper_high = 1.
         return Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
+
+        self.compute_reward(action, self._get_obs())
 
         for site in self._target_site_config:
             self._set_pos_site(*site)
@@ -294,6 +393,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
 
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
+
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
@@ -305,3 +408,64 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 size=self._random_reset_space.low.size)
             self._last_rand_vec = rand_vec
             return rand_vec
+
+    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+        pad_success_margin = 0.05
+        x_z_success_margin = 0.005
+
+        tcp = self.tcp_center
+        left_pad = self.get_body_com('leftpad')
+        right_pad = self.get_body_com('rightpad')
+        delta_object_y_left_pad = left_pad[1] - obj_position[1]
+        delta_object_y_right_pad = obj_position[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+
+        right_caging = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_caging = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
+
+        assert right_caging >= 0 and right_caging <= 1
+        assert left_caging >= 0 and left_caging <= 1
+
+        y_caging = reward_utils.hamacher_product(right_caging, left_caging)
+
+        assert y_caging >= 0 and y_caging <= 1
+
+        tcp_xz = tcp + np.array([0., -tcp[1], 0.])
+        obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
+        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
+        init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
+
+
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
+                                bounds=(0, x_z_success_margin),
+                                margin=tcp_obj_x_z_margin,
+                                sigmoid='long_tail',)
+
+        assert right_caging >= 0 and right_caging <= 1
+        gripper_closed = min(max(0, action[-1]), 1)
+        assert gripper_closed >= 0 and gripper_closed <= 1
+        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
+        assert caging >= 0 and caging <= 1
+
+        if caging > 0.97:
+            gripping = gripper_closed
+        else:
+            gripping = 0.
+
+        assert gripping >= 0 and gripping <= 1
+        caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
+
+        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+
+        return caging_and_gripping

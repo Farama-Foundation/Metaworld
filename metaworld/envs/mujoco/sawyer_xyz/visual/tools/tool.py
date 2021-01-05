@@ -50,9 +50,10 @@ def set_vel_of(tool, mjsim, mjmodel):
 
 
 class Tool(abc.ABC):
-    def __init__(self):
+    def __init__(self, enabled=True):
         self.specified_pos = None
         self.specified_quat = None
+        self.enabled = enabled
 
     @property
     def name(self):

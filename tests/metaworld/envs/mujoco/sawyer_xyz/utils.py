@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=True):
+def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=True, p_scale=1.0):
     """Tests whether a given policy solves an environment
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -11,6 +11,7 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
             the noise as a % of action space
         render (bool): Whether to render the env in a GUI
         end_on_success (bool): Whether to stop stepping after first success
+        p_scale (float): How to scale the P-controller constant
     Returns:
         (bool, np.ndarray, np.ndarray, int): Success flag, Rewards, Returns,
             Index of first success
@@ -19,7 +20,7 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
     first_success = 0
     rewards = []
 
-    for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
+    for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render, p_scale)):
         rewards.append(r)
 
         success |= bool(info['success'])
@@ -34,7 +35,7 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
     return success, rewards, returns, first_success
 
 
-def trajectory_generator(env, policy, act_noise_pct, render=False):
+def trajectory_generator(env, policy, act_noise_pct, render=False, p_scale=1.0):
     """Tests whether a given policy solves an environment
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -43,6 +44,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         act_noise_pct (np.ndarray): Decimal value(s) indicating std deviation of
             the noise as a % of action space
         render (bool): Whether to render the env in a GUI
+        p_scale (float): How to scale the P-controller constant
     Yields:
         (float, bool, dict): Reward, Done flag, Info dictionary
     """
@@ -55,11 +57,11 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     assert env.observation_space.contains(o), obs_space_error_text(env, o)
 
     for _ in range(env.max_path_length):
-        a = policy.get_action(o)
+        a = policy.get_action(o, p_scale=p_scale)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
         o, r, done, info = env.step(a)
-        assert env.observation_space.contains(o), obs_space_error_text(env, o)
+        assert env.observation_space.contains(o)
         if render:
             env.render()
 

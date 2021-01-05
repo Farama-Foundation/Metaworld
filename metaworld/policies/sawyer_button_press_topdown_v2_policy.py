@@ -11,11 +11,12 @@ class SawyerButtonPressTopdownV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'button_pos': obs[3:6],
-            'unused_info': obs[6:],
+            'hand_closed': obs[3],
+            'button_pos': obs[4:7],
+            'unused_info': obs[7:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, p_scale=1.0):
         o_d = self._parse_obs(obs)
 
         action = Action({
@@ -23,7 +24,7 @@ class SawyerButtonPressTopdownV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25. * p_scale)
         action['grab_effort'] = 1.
 
         return action.array

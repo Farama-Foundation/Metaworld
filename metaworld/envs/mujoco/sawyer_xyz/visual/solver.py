@@ -27,6 +27,9 @@ class Solver:
         if shuffle:
             random.shuffle(tools)
         for tool in tools:
+            if not tool.enabled:
+                continue
+
             masks = []
             ks = []
             for heuristic in heuristics:
@@ -45,7 +48,6 @@ class Solver:
             has_no_overlap &= perfect
             self._voxel_space.fill(bbox)
             tool.specified_pos = ijk / self._voxel_space.resolution
-
             self._tools.append(tool)
 
         return has_no_overlap

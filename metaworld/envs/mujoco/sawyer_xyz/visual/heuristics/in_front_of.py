@@ -8,10 +8,8 @@ class InFrontOf(Heuristic):
         self._base_tool = base_tool
 
     def apply_to(self, tool, voxel_space):
-        assert(
-            self._base_tool.specified_pos is not None,
-            f'Can\'t apply InFrontOf heuristic until {self._base_tool.name}\'s pos is specified'
-        )
+        assert self._base_tool.specified_pos is not None, f'Can\'t apply InFrontOf heuristic until {self._base_tool.name}\'s pos is specified'
+
         res = voxel_space.resolution
         base_ijk = self._base_tool.specified_pos * res
         base_bbox = self._base_tool.bbox * res
