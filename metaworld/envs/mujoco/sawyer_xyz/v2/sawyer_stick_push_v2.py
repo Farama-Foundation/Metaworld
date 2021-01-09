@@ -53,7 +53,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         obs = super().step(action)
         stick = obs[4:7]
         container = obs[11:14]
-        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
+        reward, tcp_to_obj, tcp_open, container_to_target, grasp_reward, stick_in_place = self.compute_reward(action, obs)
         success = float(np.linalg.norm(container - self._target_pos) <= 0.12)
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
@@ -61,12 +61,12 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         # print(np.linalg.norm(container - self._target_pos), success)
 
         info = {
-            'success': float(obj_to_target <= 0.07),
+            'success': float(container_to_target <= 0.07 and np.linalg(stick-container) <= 0.04),
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
-            'in_place_reward': in_place,
-            'obj_to_target': obj_to_target,
+            'in_place_reward': stick_in_place,
+            'obj_to_target': container_to_target,
             'unscaled_reward': reward,
 
         }
@@ -142,13 +142,20 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         target = self._target_pos
 
-        obj_to_target = np.linalg.norm(stick - target)
-        tcp_to_obj = np.linalg.norm(stick - tcp)
-        in_place_margin = (np.linalg.norm(self.obj_init_pos - target))
-
-        in_place = reward_utils.tolerance(obj_to_target,
+        tcp_to_stick = np.linalg.norm(stick - tcp)
+        stick_to_container = np.linalg.norm(stick - container)
+        stick_in_place_margin = (np.linalg.norm(self.stick_init_pos - self.obj_init_pos))
+        stick_in_place = reward_utils.tolerance(stick_to_container,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=in_place_margin,
+                                    margin=stick_in_place_margin,
+                                    sigmoid='long_tail',)
+
+
+        container_to_target = np.linalg.norm(container - target)
+        container_in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+        container_in_place = reward_utils.tolerance(stick_to_container,
+                                    bounds=(0, _TARGET_RADIUS),
+                                    margin=stick_in_place_margin,
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action=action,
@@ -160,11 +167,15 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                                                      high_density=True)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
+                                                                    stick_in_place)
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 5. * in_place
-        if obj_to_target < _TARGET_RADIUS:
+        if tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
+            reward += 1. + 4. * stick_in_place
+            if stick_to_container < 0.04:
+                reward = 1 + 4. * stick_in_place + 4. * container_in_place
+
+        if stick_to_container < 0.04 and container_to_target < _TARGET_RADIUS:
             reward = 10.
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+        return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
