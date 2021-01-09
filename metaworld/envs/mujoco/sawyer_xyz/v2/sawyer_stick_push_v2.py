@@ -171,8 +171,10 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         reward = in_place_and_object_grasped
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
-            reward += 1. + 4. * stick_in_place + 4. * container_in_place
-            if container_to_target < _TARGET_RADIUS:
+            reward = 1. + in_place_and_object_grasped + 4. * stick_in_place
+            if stick_to_container < 0.04:
+                    reward += 4. * container_in_place
+            if container_to_target < 0.07:
                 reward = 10.
 
         return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
