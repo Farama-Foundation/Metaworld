@@ -160,7 +160,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         object_grasped = self._gripper_caging_reward(action=action,
                                                      obj_pos=stick,
-                                                     obj_radius=0.015,
+                                                     obj_radius=0.014,
                                                      pad_success_margin=0.05,
                                                      object_reach_radius=0.01,
                                                      x_z_margin=0.01,
@@ -170,9 +170,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                                                                     stick_in_place)
         reward = in_place_and_object_grasped
 
-        if tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
+        if tcp_to_stick < 0.015 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 4. * stick_in_place
-            if stick_to_container < 0.04:
+            if stick_to_container < 0.06:
                     reward += 4. * container_in_place
             if container_to_target < 0.07:
                 reward = 10.
