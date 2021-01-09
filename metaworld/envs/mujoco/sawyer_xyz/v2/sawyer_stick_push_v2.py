@@ -61,7 +61,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         # print(np.linalg.norm(container - self._target_pos), success)
 
         info = {
-            'success': float(container_to_target <= 0.07),
+            'success': float(reward == 10.),
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
@@ -172,8 +172,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1. + 4. * stick_in_place + 4. * container_in_place
-
-        if container_to_target < _TARGET_RADIUS:
-            reward = 10.
+            if container_to_target < _TARGET_RADIUS:
+                reward = 10.
 
         return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
