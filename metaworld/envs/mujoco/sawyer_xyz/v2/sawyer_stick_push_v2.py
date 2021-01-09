@@ -61,7 +61,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         # print(np.linalg.norm(container - self._target_pos), success)
 
         info = {
-            'success': success,
+            'success': float(obj_to_target <= 0.07),
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
@@ -157,7 +157,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                                                      pad_success_margin=0.05,
                                                      object_reach_radius=0.01,
                                                      x_z_margin=0.01,
-                                                     high_density=False)
+                                                     high_density=True)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
