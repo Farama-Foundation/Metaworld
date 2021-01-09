@@ -58,7 +58,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
 
-        print(np.linalg.norm(container - self._target_pos), success)
+        # print(np.linalg.norm(container - self._target_pos), success)
 
         info = {
             'success': success,
@@ -153,7 +153,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         object_grasped = self._gripper_caging_reward(action=action,
                                                      obj_pos=stick,
-                                                     obj_radius=0.01,
+                                                     obj_radius=0.015,
                                                      pad_success_margin=0.05,
                                                      object_reach_radius=0.01,
                                                      x_z_margin=0.01,
