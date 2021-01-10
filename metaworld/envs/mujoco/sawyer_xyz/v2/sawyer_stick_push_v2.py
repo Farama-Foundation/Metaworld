@@ -153,9 +153,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         container_to_target = np.linalg.norm(container - target)
         container_in_place_margin = np.linalg.norm(self.obj_init_pos - target)
-        container_in_place = reward_utils.tolerance(stick_to_container,
+        container_in_place = reward_utils.tolerance(container_to_target,
                                     bounds=(0, _TARGET_RADIUS),
-                                    margin=stick_in_place_margin,
+                                    margin=container_in_place_margin,
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action=action,
