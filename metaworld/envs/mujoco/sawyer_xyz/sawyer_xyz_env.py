@@ -441,6 +441,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                                pad_success_margin,
                                object_reach_radius,
                                x_z_margin,
+                               desired_gripper_effort=1.0,
                                high_density=False,
                                medium_density=False):
         """Reward for agent grasping obj
@@ -479,20 +480,18 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         obj_to_pad_lr = np.abs(pad_y_lr - obj_pos[1])
         obj_to_pad_lr_init = np.abs(pad_y_lr_init - self.obj_init_pos[1])
 
-        caging_margin_lr = np.abs(obj_to_pad_lr_init - pad_success_margin)
+        caging_margin_lr = np.abs(obj_to_pad_lr_init)
         caging_lr = [reward_utils.tolerance(
             obj_to_pad_lr[i],
-            bounds=(obj_radius, pad_success_margin),
+            bounds=(0, pad_success_margin),
             margin=caging_margin_lr[i],
             sigmoid='long_tail',
         ) for i in range(2)]
         caging_y = reward_utils.hamacher_product(*caging_lr)
 
         # MARK: X-Z gripper information for caging reward-----------------------
-        tcp = self.tcp_center
         xz = [0, 2]
         xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
-        xz_margin -= x_z_margin
 
         caging_xz = reward_utils.tolerance(
             np.linalg.norm(tcp[xz] - obj_pos[xz]),
@@ -502,11 +501,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
 
         # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = min(max(0, action[-1]), 1)
+        gripper_closed = min(max(0, action[-1]), desired_gripper_effort) \
+                         / desired_gripper_effort
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
-        gripping = gripper_closed if caging > 0.97 else 0.
+        gripping = gripper_closed
         caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
 
         if high_density:
