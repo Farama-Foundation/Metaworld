@@ -8,13 +8,13 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
-    _TARGET_RADIUS = 0.05
+    _TARGET_RADIUS = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0, 0.75, 0.0)
-        obj_high = (0, 0.75, 0.0)
+        obj_low = (0, 0.75, 0.02)
+        obj_high = (0, 0.75, 0.02)
         goal_low = (-0.1, 0.5, 0.15)
         goal_high = (0.1, 0.6, 0.3)
 
@@ -30,7 +30,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             'hand_init_pos': np.array([0., .6, .2]),
         }
         self.goal = np.array([0., 0.6, 0.2])
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_pos = None
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
@@ -80,6 +80,13 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return obs, reward, False, info
 
     @property
+    def _target_site_config(self):
+        l = [('goal', self.init_right_pad)]
+        if self.obj_init_pos is not None:
+            l[0] = ('goal', self.obj_init_pos)
+        return l
+
+    @property
     def _get_id_main_object(self):
         return self.unwrapped.model.geom_name2id('objGeom')
 
@@ -87,8 +94,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')).as_quat()
+        return self.sim.data.get_body_xquat('obj')
 
     def reset_model(self):
         self._reset_hand()
@@ -103,7 +109,6 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)
-
         self._target_pos = pos_goal
 
         return self._get_obs()
@@ -111,18 +116,18 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand()
         self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
+        self.init_left_pad = self.get_body_com('leftpad').copy()
+        self.init_right_pad = self.get_body_com('rightpad').copy()
 
     def compute_reward(self, action, obs):
-        obj = obs[4:7] + np.array([.0, .0, .05])
+        obj = obs[4:7] + np.array([.0, .0, .02])
         gripper = self.tcp_center
 
         obj_to_target = np.linalg.norm(obj - self._target_pos)
         tcp_to_obj = np.linalg.norm(obj - gripper)
         in_place_margin = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
-        threshold = 0.06
+        threshold = 0.12
         # floor is a 3D funnel centered on the object
         radius = np.linalg.norm(gripper[:2] - obj[:2])
         if radius <= threshold:
@@ -136,30 +141,33 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             margin=0.05,
             sigmoid='long_tail',
         )
-
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_margin=0.02,
+            x_z_margin=0.01,
+            desired_gripper_effort=0.1,
+            medium_density=True
+        )
         in_place = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, SawyerPickOutOfHoleEnvV2._TARGET_RADIUS),
             margin=in_place_margin,
             sigmoid='long_tail'
         )
-
-        object_grasped = self._gripper_caging_reward(
-            action, obj,
-            obj_radius=0.015,
-            pad_success_margin=0.05,
-            object_reach_radius=SawyerPickOutOfHoleEnvV2._TARGET_RADIUS,
-            x_z_margin=0.005,
-            medium_density=True
+        reward = reward_utils.hamacher_product(
+            object_grasped,
+            (in_place + above_floor) / 2.0
         )
-        reward = reward_utils.hamacher_product(object_grasped, above_floor)
 
         near_object = tcp_to_obj < 0.02
         closed = obs[3] > 0.
         lifted = obj[2] - 0.01 > self.obj_init_pos[2]
         # Increase reward when properly grabbed obj
         if near_object and closed and lifted:
-            reward += 1. + 5. * in_place
+            reward += 3. + 5. * in_place
         # Maximize reward on success
         if obj_to_target < SawyerPickOutOfHoleEnvV2._TARGET_RADIUS:
             reward = 10.
