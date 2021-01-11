@@ -175,11 +175,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             print(stick_to_container)
             if stick_to_container < 0.02:
                 print("CONTACTING THE THERMOS")
-<<<<<<< HEAD
                 reward = 1. + in_place_and_object_grasped + 3. + 5. * container_in_place
-=======
-                reward = 1. + in_place_and_object_grasped + 3. * stick_in_place + 5. * container_in_place
->>>>>>> 4514f79bf70d1246aac24f92a288e643349b38b6
             if container_to_target < 0.07:
                 reward = 10.
 
