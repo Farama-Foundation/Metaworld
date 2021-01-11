@@ -144,8 +144,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         tcp_to_stick = np.linalg.norm(stick - tcp)
         stick_to_container = np.linalg.norm(stick - container)
-        stick_in_place_margin = (np.linalg.norm(self.stick_init_pos - self.obj_init_pos))
-        stick_in_place = reward_utils.tolerance(stick_to_container,
+        stick_to_target = np.linalg.norm(stick - target)
+        stick_in_place_margin = (np.linalg.norm(self.stick_init_pos - target))
+        stick_in_place = reward_utils.tolerance(stick_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=stick_in_place_margin,
                                     sigmoid='long_tail',)
@@ -172,7 +173,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         if tcp_to_stick < 0.015 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
-            print(stick_to_container)
+            print(target)
             if stick_to_container < 0.15:
                 print("CONTACTING THE THERMOS")
                 reward = 1. + in_place_and_object_grasped + 3. * stick_in_place + 5. * container_in_place
