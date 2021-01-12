@@ -131,8 +131,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
             self.init_tcp = self.tcp_center
-            self.init_left_pad = self.get_body_com('leftpad')
-            self.init_right_pad = self.get_body_com('rightpad')
+            self.init_left_pad = self.get_body_com('leftpad').copy()
+            self.init_right_pad = self.get_body_com('rightpad').copy()
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPlacingDist = np.linalg.norm(
@@ -199,9 +199,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         gripper_closed = min(max(0, action[-1]), 1)
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
 
-        gripping = gripper_closed if caging > 0.97 else 0.
-        caging_and_gripping = reward_utils.hamacher_product(caging,
-                                                            gripping)
+        gripping = gripper_closed
+        caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
         caging_and_gripping = (caging_and_gripping + caging) / 2
         return caging_and_gripping
 
