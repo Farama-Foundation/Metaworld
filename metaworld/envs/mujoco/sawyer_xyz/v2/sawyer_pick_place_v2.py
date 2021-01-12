@@ -164,8 +164,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         right_pad = self.get_body_com('rightpad')
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(obj_position[1] - self.init_right_pad[1])
-        left_caging_margin = abs(obj_position[1] - self.init_left_pad[1])
+        right_caging_margin = abs(self.obj_init_pos[1] - self.init_right_pad[1])
+        left_caging_margin = abs(self.obj_init_pos[1] - self.init_left_pad[1])
 
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
                                 bounds=(obj_radius, pad_success_margin),
