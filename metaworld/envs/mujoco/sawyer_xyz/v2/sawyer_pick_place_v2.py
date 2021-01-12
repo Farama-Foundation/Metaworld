@@ -73,11 +73,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
 
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
-        success = float(obj_to_target <= 0.02)
+        success = float(obj_to_target <= 0.05)
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
-            'success': grasp_success,
+            'success': success,
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
@@ -175,7 +175,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             action,
             obj,
             obj_radius=0.015,
-            pad_success_margin=0.02,
+            pad_success_margin=0.05,
             object_reach_radius=0.01,
             x_z_margin=0.005,
             high_density=True
