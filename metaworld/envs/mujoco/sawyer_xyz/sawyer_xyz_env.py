@@ -469,7 +469,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, object_reach_radius),
-            margin=abs(tcp_to_obj_init-object_reach_radius),
+            margin=abs(tcp_to_obj_init),
             sigmoid='long_tail',
         )
 
@@ -479,11 +479,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         obj_to_pad_lr = np.abs(pad_y_lr - obj_pos[1])
         obj_to_pad_lr_init = np.abs(pad_y_lr_init - self.obj_init_pos[1])
 
-        caging_margin_lr = np.abs(obj_to_pad_lr_init - pad_success_margin)
         caging_lr = [reward_utils.tolerance(
             obj_to_pad_lr[i],
             bounds=(obj_radius, pad_success_margin),
-            margin=caging_margin_lr[i],
+            margin=obj_to_pad_lr_init[i],
             sigmoid='long_tail',
         ) for i in range(2)]
         caging_y = reward_utils.hamacher_product(*caging_lr)
@@ -492,7 +491,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         tcp = self.tcp_center
         xz = [0, 2]
         xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
-        xz_margin -= x_z_margin
 
         caging_xz = reward_utils.tolerance(
             np.linalg.norm(tcp[xz] - obj_pos[xz]),
