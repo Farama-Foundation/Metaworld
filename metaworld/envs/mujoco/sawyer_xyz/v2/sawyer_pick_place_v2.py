@@ -164,10 +164,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         right_pad = self.get_body_com('rightpad')
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1])
-            - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1])
-            - pad_success_margin)
+        right_caging_margin = abs(obj_position[1] - self.init_right_pad[1])
+        left_caging_margin = abs(obj_position[1] - self.init_left_pad[1])
 
         right_caging = reward_utils.tolerance(delta_object_y_right_pad,
                                 bounds=(obj_radius, pad_success_margin),
@@ -178,8 +176,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
                                 margin=left_caging_margin,
                                 sigmoid='long_tail',)
 
-        y_caging = reward_utils.hamacher_product(left_caging,
-                                                 right_caging)
+        y_caging = reward_utils.hamacher_product(left_caging, right_caging)
 
         # compute the tcp_obj distance in the x_z plane
         tcp_xz = tcp + np.array([0., -tcp[1], 0.])
@@ -189,7 +186,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         # used for computing the tcp to object object margin in the x_z plane
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2)
 
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
                                 bounds=(0, x_z_success_margin),
