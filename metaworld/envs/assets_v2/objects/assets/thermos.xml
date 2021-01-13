@@ -15,7 +15,5 @@
       <geom class="therm_col" pos="0 -0.09 0.195" size="0.01 0.04 0.005" type="box"/>
       <geom class="therm_col" pos="0 -0.09 0.069" size="0.01 0.04 0.005" type="box"/>
       <site name="insertion" pos="0 -0.09 .132" size="0.005" rgba="1 0 0 1"/>
-      <site name="OBJRAD" pos="0 0 0.132" size="0.06"
-            rgba="0 0.8 0 1"/>
     </body>
 </mujocoinclude>

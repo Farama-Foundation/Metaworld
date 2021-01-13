@@ -58,8 +58,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
 
-        print("REWARD: {}".format(reward))
-
         info = {
             'success': grasp_success and success,
             'near_object': near_object,
@@ -176,7 +174,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                 (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
             if stick_to_container < 0.065:
-                print("CONTACTING THE THERMOS")
                 reward = 1. + in_place_and_object_grasped + 3. * stick_in_place \
                          + 5. * container_in_place
 
