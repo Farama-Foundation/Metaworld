@@ -58,10 +58,10 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
 
-        # print(np.linalg.norm(container - self._target_pos), success)
+        print("REWARD: {}".format(reward))
 
         info = {
-            'success': float(reward == 10.),
+            'success': grasp_success and success,
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
@@ -137,20 +137,20 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
-        stick = obs[4:7]
+        stick = obs[4:7] + np.array([.015, .0, .0])
+        end_of_stick = self._get_site_pos('stick_end')
         container = obs[11:14]
         tcp_opened = obs[3]
         target = self._target_pos
 
         tcp_to_stick = np.linalg.norm(stick - tcp)
-        stick_to_container = np.linalg.norm(stick - container)
+        stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
         stick_to_target = np.linalg.norm(stick - target)
         stick_in_place_margin = (np.linalg.norm(self.stick_init_pos - target))
         stick_in_place = reward_utils.tolerance(stick_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=stick_in_place_margin,
                                     sigmoid='long_tail',)
-
 
         container_to_target = np.linalg.norm(container - target)
         container_in_place_margin = np.linalg.norm(self.obj_init_pos - target)
@@ -171,13 +171,16 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                                                                     stick_in_place)
         reward = in_place_and_object_grasped
 
-        if tcp_to_stick < 0.015 and (tcp_opened > 0) and (stick[2] - 0.01 > self.obj_init_pos[2]):
+
+        if tcp_to_stick < 0.02 and (tcp_opened > 0) and \
+                (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
-            print(target)
-            if stick_to_container < 0.15:
+            if stick_to_container < 0.065:
                 print("CONTACTING THE THERMOS")
-                reward = 1. + in_place_and_object_grasped + 3. * stick_in_place + 5. * container_in_place
-            if container_to_target < 0.07:
+                reward = 1. + in_place_and_object_grasped + 3. * stick_in_place \
+                         + 5. * container_in_place
+
+            if container_to_target <= 0.12:
                 reward = 10.
 
         return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
