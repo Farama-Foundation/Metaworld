@@ -115,7 +115,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     def reset_model(self, solve_required_tools=False):
         self._reset_hand()
 
-        world = VoxelSpace((1.75, 0.7, 0.5), 100)
+        world = VoxelSpace((1.75, 0.6, 0.5), 100)
         solver = Solver(world)
 
         toolset = self._toolset_extra

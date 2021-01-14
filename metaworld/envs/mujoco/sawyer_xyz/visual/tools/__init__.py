@@ -46,6 +46,7 @@ __all__ = [
     'Puck',
     'ScrewEye',
     'ScrewEyePeg',
+    'Shelf',
     'SoccerGoal',
     'Thermos',
     'ToasterHandle',
