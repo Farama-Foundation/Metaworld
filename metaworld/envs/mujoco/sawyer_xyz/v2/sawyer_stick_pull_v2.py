@@ -4,7 +4,10 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set
+)
 
 
 class SawyerStickPullEnvV2(SawyerXYZEnv):
@@ -53,16 +56,32 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
     def step(self, action):
         obs = super().step(action)
         stick = obs[4:7]
-        container = obs[11:14]
-        reward, tcp_to_obj, tcp_open, container_to_target, grasp_reward, stick_in_place = self.compute_reward(action, obs)
-        success = float(np.linalg.norm(container - self._target_pos) <= 0.12)
+        handle = obs[11:14]
+        end_of_stick = self._get_site_pos('stick_end')
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            container_to_target,
+            grasp_reward,
+            stick_in_place
+        ) = self.compute_reward(action, obs)
+
+        success = float(
+            (np.linalg.norm(handle - self._target_pos) <= 0.12)
+            and self._stick_is_inserted(handle, end_of_stick)
+        )
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(self.touching_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_object
+            and (tcp_open > 0)
+            and (stick[2] - 0.02 > self.obj_init_pos[2])
+        )
 
         print("REWARD: {}".format(reward))
 
         info = {
-            'success': grasp_success and success,
+            'success': success,
             'near_object': near_object,
             'grasp_success': grasp_success,
             'grasp_reward': grasp_reward,
@@ -119,20 +138,35 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = self._get_state_rand_vec()
-            self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
+            self.stick_init_pos = np.concatenate(
+                (goal_pos[:2], [self.stick_init_pos[-1]])
+            )
+            self._target_pos = np.concatenate(
+                (goal_pos[-3:-1], [self.stick_init_pos[-1]])
+            )
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
-        self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:-1])
-        self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
+        self.maxPullDist = np.linalg.norm(
+            self.obj_init_pos[:2] - self._target_pos[:-1]
+        )
+        self.maxPlaceDist = np.linalg.norm(np.array([
+            self.obj_init_pos[0],
+            self.obj_init_pos[1],
+            self.heightTarget
+        ]) - np.array(self.stick_init_pos)) + self.heightTarget
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
         self.pickCompleted = False
+
+    def _stick_is_inserted(self, handle, end_of_stick):
+        return (end_of_stick[0] > handle[0]) \
+               and (np.abs(end_of_stick[1] - handle[1]) < 0.05) \
+               and (np.abs(end_of_stick[2] - handle[2]) < 0.07)
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
@@ -141,11 +175,11 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         end_of_stick = self._get_site_pos('stick_end')
         container = obs[11:14] + np.array([0.1, 0., 0.])
         container_init_pos = self.obj_init_pos + np.array([0.1, 0., 0.])
-        handle_center = obs[11:14]
+        handle = obs[11:14]
         tcp_opened = obs[3]
         target = self._target_pos
         tcp_to_stick = np.linalg.norm(stick - tcp)
-        handle_to_target = np.linalg.norm(handle_center - target)
+        handle_to_target = np.linalg.norm(handle - target)
 
         # stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
         yz_scaling = np.array([1., 2., 2.])
@@ -185,22 +219,32 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             high_density=True
         )
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    stick_in_place)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped,
+            stick_in_place
+        )
         reward = in_place_and_object_grasped
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and \
                 (stick[2] - 0.01 > self.obj_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 2. * stick_in_place
-            print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle_center[1:])))
+            print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
-            if end_of_stick[0] > handle_center[0] and \
-                    np.linalg.norm(end_of_stick[1:] - handle_center[1:]) < 0.035:
+            # if end_of_stick[0] > handle[0] and \
+            #         np.linalg.norm(end_of_stick[1:] - handle[1:]) < 0.04:
+            if self._stick_is_inserted(handle, end_of_stick):
                 print("------> INSERTED")
                 reward = 1. + in_place_and_object_grasped + 2. + \
                          3. * stick_in_place_2 + 5. * container_in_place
 
-            if handle_to_target <= 0.12:
-                reward = 10.
+                if handle_to_target <= 0.12:
+                    reward = 10.
 
-        return [reward, tcp_to_stick, tcp_opened, handle_to_target, object_grasped, stick_in_place]
+        return [
+            reward,
+            tcp_to_stick,
+            tcp_opened,
+            handle_to_target,
+            object_grasped,
+            stick_in_place
+        ]
