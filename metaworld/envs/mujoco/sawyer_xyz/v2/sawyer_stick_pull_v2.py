@@ -182,10 +182,10 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         handle_to_target = np.linalg.norm(handle - target)
 
         # stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
-        yz_scaling = np.array([1., 2., 2.])
-        stick_to_container = np.linalg.norm((stick - container) * yz_scaling)
+        # yz_scaling = np.array([1., 2., 2.])
+        stick_to_container = np.linalg.norm(stick - container)
         stick_in_place_margin = (np.linalg.norm(
-            (self.stick_init_pos - container_init_pos) * yz_scaling
+            self.stick_init_pos - container_init_pos
         ))
         stick_in_place = reward_utils.tolerance(stick_to_container,
             bounds=(0, 0.01),
@@ -194,7 +194,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         )
 
         stick_to_target = np.linalg.norm(stick - target)
-        stick_in_place_margin_2 = (np.linalg.norm(self.stick_init_pos - target))
+        stick_in_place_margin_2 = np.linalg.norm(self.stick_init_pos - target)
         stick_in_place_2 = reward_utils.tolerance(stick_to_target,
             bounds=(0, _TARGET_RADIUS),
             margin=stick_in_place_margin_2,
