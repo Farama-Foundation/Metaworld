@@ -55,8 +55,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         obs = super().step(action)
-        stick = obs[4:7]
-        handle = obs[11:14]
+        stick = obs[4:7] + np.array([-.015, .0, .03])
+        handle = obs[11:14] + np.array([-.015, .0, .03])
         end_of_stick = self._get_site_pos('stick_end')
         (
             reward,
@@ -171,11 +171,11 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
-        stick = obs[4:7]
+        stick = obs[4:7] + np.array([-.015, .0, .03])
         end_of_stick = self._get_site_pos('stick_end')
-        container = obs[11:14]
-        container_init_pos = self.obj_init_pos + np.array([0.05, 0., 0.])
-        handle = obs[11:14]
+        container = obs[11:14] + np.array([-.015, .0, .03])
+        container_init_pos = self.obj_init_pos
+        handle = obs[11:14] + np.array([-.015, .0, .03])
         tcp_opened = obs[3]
         target = self._target_pos
         tcp_to_stick = np.linalg.norm(stick - tcp)
@@ -212,7 +212,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(
             action=action,
             obj_pos=stick,
-            obj_radius=0.013,
+            obj_radius=0.014,
             pad_success_margin=0.05,
             object_reach_radius=0.01,
             x_z_margin=0.01,
