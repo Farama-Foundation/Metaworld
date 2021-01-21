@@ -188,7 +188,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             self.stick_init_pos - container_init_pos
         ))
         stick_in_place = reward_utils.tolerance(stick_to_container,
-            bounds=(0, 0.01),
+            bounds=(0, _TARGET_RADIUS),
             margin=stick_in_place_margin,
             sigmoid='long_tail',
         )
