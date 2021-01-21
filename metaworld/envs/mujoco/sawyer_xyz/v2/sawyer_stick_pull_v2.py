@@ -173,8 +173,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         stick = obs[4:7]
         end_of_stick = self._get_site_pos('stick_end')
-        container = obs[11:14] + np.array([0.1, 0., 0.])
-        container_init_pos = self.obj_init_pos + np.array([0.1, 0., 0.])
+        container = obs[11:14]
+        container_init_pos = self.obj_init_pos + np.array([0.05, 0., 0.])
         handle = obs[11:14]
         tcp_opened = obs[3]
         target = self._target_pos
@@ -182,10 +182,10 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         handle_to_target = np.linalg.norm(handle - target)
 
         # stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
-        # yz_scaling = np.array([1., 2., 2.])
-        stick_to_container = np.linalg.norm(stick - container)
+        yz_scaling = np.array([1., 1., 3.])
+        stick_to_container = np.linalg.norm((stick - container) * yz_scaling)
         stick_in_place_margin = (np.linalg.norm(
-            self.stick_init_pos - container_init_pos
+            (self.stick_init_pos - container_init_pos) * yz_scaling
         ))
         stick_in_place = reward_utils.tolerance(stick_to_container,
             bounds=(0, _TARGET_RADIUS),
@@ -212,7 +212,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(
             action=action,
             obj_pos=stick,
-            obj_radius=0.014,
+            obj_radius=0.013,
             pad_success_margin=0.05,
             object_reach_radius=0.01,
             x_z_margin=0.01,
@@ -227,18 +227,18 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and \
                 (stick[2] - 0.01 > self.obj_init_pos[2]):
-            reward = 1. + 4. * stick_in_place
+            reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
             print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
             # if end_of_stick[0] > handle[0] and \
             #         np.linalg.norm(end_of_stick[1:] - handle[1:]) < 0.04:
-            if self._stick_is_inserted(handle, end_of_stick):
-                print("------> INSERTED")
-                reward = 1. + 4. + 3. * stick_in_place_2 \
-                         + 2. * container_in_place
-
-                if handle_to_target <= 0.12:
-                    reward = 10.
+            # if self._stick_is_inserted(handle, end_of_stick):
+            #     print("------> INSERTED")
+            #     reward = 1. + in_place_and_object_grasped + 3. + 3. * stick_in_place_2 \
+            #              + 2. * container_in_place
+            #
+            #     if handle_to_target <= 0.12:
+            #         reward = 10.
 
         return [
             reward,
