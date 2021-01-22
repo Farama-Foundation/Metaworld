@@ -120,7 +120,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
-        obj = obs[4:7] + np.array([-.005, .0, .05])
+        obj = obs[4:7]
         target = self._target_pos.copy()
 
         # Emphasize X and Y errors
@@ -142,10 +142,10 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(
             action,
             obj,
-            object_reach_radius=0.01,
-            obj_radius=0.028,
+            object_reach_radius=0.04,
+            obj_radius=0.02,
             pad_success_margin=0.05,
-            x_z_margin=0.04,
+            x_z_margin=0.05,
             desired_gripper_effort=0.7,
             medium_density=True
         )
@@ -160,7 +160,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             reward,
             tcp_to_obj,
             tcp_opened,
-            target_to_obj,
+            np.linalg.norm(obj - target),  # recompute to avoid `scale` above
             object_grasped,
             in_place
         )
