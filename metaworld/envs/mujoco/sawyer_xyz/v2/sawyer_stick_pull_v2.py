@@ -226,7 +226,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         reward = in_place_and_object_grasped
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and \
-                (stick[2] - 0.01 > self.obj_init_pos[2]):
+                (stick[2] - 0.01 > self.stick_init_pos[2]):
             reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
             print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
