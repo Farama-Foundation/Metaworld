@@ -188,7 +188,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             (self.stick_init_pos - container_init_pos) * yz_scaling
         ))
         stick_in_place = reward_utils.tolerance(stick_to_container,
-            bounds=(0, _TARGET_RADIUS),
+            bounds=(0, 0.01),
             margin=stick_in_place_margin,
             sigmoid='long_tail',
         )
@@ -230,15 +230,13 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
             print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
-            # if end_of_stick[0] > handle[0] and \
-            #         np.linalg.norm(end_of_stick[1:] - handle[1:]) < 0.04:
-            # if self._stick_is_inserted(handle, end_of_stick):
-            #     print("------> INSERTED")
-            #     reward = 1. + in_place_and_object_grasped + 3. + 3. * stick_in_place_2 \
-            #              + 2. * container_in_place
-            #
-            #     if handle_to_target <= 0.12:
-            #         reward = 10.
+            if self._stick_is_inserted(handle, end_of_stick):
+                print("------> INSERTED")
+                reward = 1. + in_place_and_object_grasped + 3. + 3. * stick_in_place_2 \
+                         + 2. * container_in_place
+
+                if handle_to_target <= 0.12:
+                    reward = 10.
 
         return [
             reward,
