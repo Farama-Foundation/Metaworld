@@ -441,6 +441,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                                pad_success_margin,
                                object_reach_radius,
                                x_z_margin,
+                               desired_gripper_effort=1.0,
                                high_density=False,
                                medium_density=False):
         """Reward for agent grasping obj
@@ -502,7 +503,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
 
         # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = min(max(0, action[-1]), 1)
+        gripper_closed = min(max(0, action[-1]), desired_gripper_effort) \
+                         / desired_gripper_effort
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
