@@ -164,9 +164,9 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self.pickCompleted = False
 
     def _stick_is_inserted(self, handle, end_of_stick):
-        return (end_of_stick[0] > handle[0]) \
-               and (np.abs(end_of_stick[1] - handle[1]) < 0.05) \
-               and (np.abs(end_of_stick[2] - handle[2]) < 0.07)
+        return (end_of_stick[0] >= handle[0]) \
+               and (np.abs(end_of_stick[1] - handle[1]) <= 0.025) \
+               and (np.abs(end_of_stick[2] - handle[2]) <= 0.035)
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
@@ -182,7 +182,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         handle_to_target = np.linalg.norm(handle - target)
 
         # stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
-        yz_scaling = np.array([1., 1., 2.])
+        yz_scaling = np.array([1., 1., 3.])
         stick_to_container = np.linalg.norm((stick - container) * yz_scaling)
         stick_in_place_margin = (np.linalg.norm(
             (self.stick_init_pos - container_init_pos) * yz_scaling
