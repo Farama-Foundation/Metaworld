@@ -69,5 +69,4 @@ jobs:
             -e "MJKEY=$MJKEY" \
             --memory 7500m \
             --memory-swap 7500m \
-            --name metaworld-ci
-            rlworkgroup/metaworld-ci "pytest -n 0 -v -m 'not large and not skip_on_ci'"
+            --name metaworld-ci rlworkgroup/metaworld-ci pytest -n 0 -v -m 'not large and not skip_on_ci'
