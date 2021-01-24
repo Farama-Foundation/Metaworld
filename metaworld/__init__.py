@@ -81,11 +81,10 @@ def _encode_task(env_name, data):
 
 def _make_tasks(classes, args_kwargs, kwargs_override):
     tasks = []
-    #for every environment in args_kwargs
     for (env_name, args) in args_kwargs.items():
         assert len(args['args']) == 0
-        env_cls = classes[env_name] #dict {env_name : env_class}
-        env = env_cls() #initializing environment (env is now a class)
+        env_cls = classes[env_name]
+        env = env_cls()
         env._freeze_rand_vec = False
         env._set_task_called = True
         rand_vecs = []
@@ -105,8 +104,7 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
             kwargs.update(dict(rand_vec=rand_vec, env_cls=env_cls))
             kwargs.update(kwargs_override)
             tasks.append(_encode_task(env_name, kwargs))
-    return tasks #return a list of Task objects
-                 # len(tasks) = _N_GOALS = 50 (defined globally above)
+    return tasks
 
 
 def _ml1_env_names():
