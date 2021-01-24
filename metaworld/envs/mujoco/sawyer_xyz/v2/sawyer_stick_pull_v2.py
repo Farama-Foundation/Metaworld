@@ -165,8 +165,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
     def _stick_is_inserted(self, handle, end_of_stick):
         return (end_of_stick[0] >= handle[0]) \
-               and (np.abs(end_of_stick[1] - handle[1]) <= 0.030) \
-               and (np.abs(end_of_stick[2] - handle[2]) <= 0.050)
+               and (np.abs(end_of_stick[1] - handle[1]) <= 0.040) \
+               and (np.abs(end_of_stick[2] - handle[2]) <= 0.060)
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
