@@ -249,3 +249,12 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
         state_goals = np.array(state_goals)
         unique_target_poss = np.unique(state_goals, axis=0)
         assert unique_target_poss.shape[0] == metaworld._N_GOALS == len(rand_vecs)
+
+def test_identical_environments():
+    mt10_1 = metaworld.MT10(seed=10)
+    mt10_2 = metaworld.MT10(seed=10)
+    num_elems = len(mt10_1.train_tasks)
+    for i in range(num_elems):
+        rand_vec_1 = pickle.loads(mt10_1.train_tasks[i].data)['rand_vec']
+        rand_vec_2 = pickle.loads(mt10_2.train_tasks[i].data)['rand_vec']
+        np.testing.assert_equal(rand_vec_1, rand_vec_2)
