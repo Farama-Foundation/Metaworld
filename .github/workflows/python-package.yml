@@ -15,37 +15,6 @@ env:
   MJKEY: ${{ secrets.MJKEY }}
 
 jobs:
-#  test:
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Set up Python 3.5
-#      uses: actions/setup-python@v2
-#      with:
-#        python-version: 3.6
-#
-#    - name: Install mujoco
-#      run: |
-#        sudo apt-get install libosmesa6-dev libgl1-mesa-glx libglfw3
-#        sudo ln -s /usr/lib/x86_64-linux-gnu/libGL.so.1 /usr/lib/x86_64-linux-gnu/libGL.so
-#        curl -O https://www.roboti.us/download/mujoco200_linux.zip
-#        unzip -q mujoco200_linux.zip
-#        mkdir ~/.mujoco && mv mujoco200_linux ~/.mujoco/mujoco200
-#        echo $MJKEY > ~/.mujoco/mjkey.txt
-#
-#    - name: Install setup.py dependencies
-#      run: |
-#        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mujoco200/bin
-#        python -m pip install --upgrade pip
-#        pip install ".[dev]"
-#
-#    - name: Test with pytest
-#      run: |
-#        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.mujoco/mujoco200/bin
-#        pytest -n 0 -v -m 'not large and not skip_on_ci'
-
   test-docker:
 
     runs-on: ubuntu-latest
@@ -67,6 +36,6 @@ jobs:
             -t \
             --rm \
             -e "MJKEY=$MJKEY" \
-            --memory 7500m \
-            --memory-swap 7500m \
+            --memory 7000m \
+            --memory-swap 7000m \
             --name metaworld-ci rlworkgroup/metaworld-ci pytest -n 0 -v -m 'not large and not skip_on_ci'
