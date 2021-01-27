@@ -160,9 +160,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(action=action,
                                                      obj_pos=stick,
                                                      obj_radius=0.014,
-                                                     pad_success_margin=0.05,
+                                                     pad_success_thresh=0.05,
                                                      object_reach_radius=0.01,
-                                                     x_z_margin=0.01,
+                                                     xz_thresh=0.01,
                                                      high_density=True)
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,

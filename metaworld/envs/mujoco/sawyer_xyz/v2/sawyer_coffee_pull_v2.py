@@ -144,8 +144,8 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             obj,
             object_reach_radius=0.04,
             obj_radius=0.02,
-            pad_success_margin=0.05,
-            x_z_margin=0.05,
+            pad_success_thresh=0.05,
+            xz_thresh=0.05,
             desired_gripper_effort=0.7,
             medium_density=True
         )
