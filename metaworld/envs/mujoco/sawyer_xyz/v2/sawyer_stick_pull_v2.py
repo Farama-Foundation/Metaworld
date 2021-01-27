@@ -161,7 +161,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         tcp_to_stick = np.linalg.norm(stick - tcp)
         handle_to_target = np.linalg.norm(handle - target)
 
-        # stick_to_container = np.linalg.norm(end_of_stick[:2] - container[:2])
         yz_scaling = np.array([1., 1., 2.])
         stick_to_container = np.linalg.norm((stick - container) * yz_scaling)
         stick_in_place_margin = (np.linalg.norm(
@@ -191,13 +190,16 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action=action,
-                                                     obj_pos=stick,
-                                                     obj_radius=0.014,
-                                                     pad_success_margin=0.05,
-                                                     object_reach_radius=0.01,
-                                                     x_z_margin=0.01,
-                                                     high_density=True)
+        object_grasped = self._gripper_caging_reward(
+            action=action,
+            obj_pos=stick,
+            obj_radius=0.014,
+            pad_success_margin=0.05,
+            object_reach_radius=0.01,
+            x_z_margin=0.01,
+            high_density=True
+        )
+
         grasp_success = (tcp_to_stick < 0.02 and (tcp_opened > 0)
                          and (stick[2] - 0.01 > self.stick_init_pos[2]))
         object_grasped = 1 if grasp_success else object_grasped
@@ -208,13 +210,13 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         if grasp_success:
             reward = 1. + in_place_and_object_grasped + 5. * stick_in_place
-            # print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
+            print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
             if self._stick_is_inserted(handle, end_of_stick):
-                # print("------> INSERTED :{}, {}".format(
-                # np.abs(end_of_stick[1] - handle[1]),
-                # np.abs(end_of_stick[2] - handle[2])
-                # ))
+                print("------> INSERTED :{}, {}".format(
+                np.abs(end_of_stick[1] - handle[1]),
+                np.abs(end_of_stick[2] - handle[2])
+                ))
                 reward = 1. + in_place_and_object_grasped + 5. + \
                          1. * stick_in_place_2 + 2. * container_in_place
 
