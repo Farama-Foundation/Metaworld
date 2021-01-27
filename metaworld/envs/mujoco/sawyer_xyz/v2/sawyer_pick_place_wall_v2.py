@@ -186,13 +186,13 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         )
 
         object_grasped = self._gripper_caging_reward(action=action,
-            obj_pos=obj,
-            obj_radius=0.015,
-            pad_success_margin=0.05,
-            object_reach_radius=0.01,
-            x_z_margin=0.005,
-            high_density=False
-        )
+                                                     obj_pos=obj,
+                                                     obj_radius=0.015,
+                                                     pad_success_thresh=0.05,
+                                                     object_reach_radius=0.01,
+                                                     xz_thresh=0.005,
+                                                     high_density=False
+                                                     )
 
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place_part1)
