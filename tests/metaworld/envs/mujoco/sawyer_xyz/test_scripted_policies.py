@@ -173,7 +173,7 @@ test_cases_latest_noisy = [
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
     ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .65],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
-    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .51],
+    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .92],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
