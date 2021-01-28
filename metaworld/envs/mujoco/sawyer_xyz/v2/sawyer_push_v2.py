@@ -51,7 +51,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = lift_thresh
-        self.max_path_length = 200
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -181,8 +180,8 @@ class SawyerPushEnvV2(SawyerXYZEnv):
                                                      obj,
                                                      object_reach_radius=object_reach_radius,
                                                      obj_radius=obj_radius,
-                                                     pad_success_margin=pad_success_margin,
-                                                     x_z_margin=x_z_margin,
+                                                     pad_success_thresh=pad_success_margin,
+                                                     xz_thresh=x_z_margin,
                                                      high_density=True)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
