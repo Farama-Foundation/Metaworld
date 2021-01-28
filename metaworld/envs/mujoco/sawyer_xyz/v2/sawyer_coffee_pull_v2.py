@@ -46,7 +46,6 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         obs = super().step(action)
-        obj = obs[4:7]
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -108,16 +107,11 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         )] = pos_machine
 
         self._target_pos = pos_mug_goal
-
-        self.maxPullDist = np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2])
-
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
         self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]

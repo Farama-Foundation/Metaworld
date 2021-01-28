@@ -11,9 +11,11 @@ class SawyerCoffeePushV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'mug_pos': obs[3:6],
-            'goal_xy': obs[9:11],
-            'unused_info': obs[[6, 7, 8, 11]],
+            'gripper': obs[3],
+            'mug_pos': obs[4:7],
+            'goal_xy': obs[-3:-1],
+            'unused_info_1': obs[7:-3],
+            'unused_info_2': obs[-1],
         }
 
     def get_action(self, obs):
