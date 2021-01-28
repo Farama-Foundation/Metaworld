@@ -2,6 +2,9 @@
 
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
+
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -22,6 +25,8 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
+    OBJ_RADIUS = 0.02
 
     def __init__(self):
         liftThresh = 0.04
@@ -52,7 +57,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 200
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -68,30 +72,44 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def step(self, action):
-        ob = super().step(action)
-        reward, reach_dist, push_dist = self.compute_reward(action, ob)
-        success = float(push_dist <= 0.07)
+        obs = super().step(action)
+        obj = obs[4:7]
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            obj_to_target,
+            grasp_reward,
+            in_place_reward,
+        ) = self.compute_reward(action, obs)
 
+        success = float(obj_to_target <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
+        grasp_success = float(self.touching_main_object and (tcp_open > 0)
+                              and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
-            'reach_dist': reach_dist,
-            'epRew': reward,
-            'goalDist': push_dist,
-            'success': success
+            'success': success,
+            'near_object': near_object,
+            'grasp_success': grasp_success,
+            'grasp_reward': grasp_reward,
+            'in_place_reward': in_place_reward,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward
         }
         self.curr_path_length += 1
-        return ob, reward, False, info
+        return obs, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
 
+    def _get_quat_objects(self):
+        return Rotation.from_matrix(
+            self.data.get_geom_xmat('objGeom')
+        ).as_quat()
+
     def adjust_initObjPos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not aligned
-        # If this is not done, the object could be initialized in an extreme position
         diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
         adjustedPos = orig_init_pos[:2] + diff
-
-        # The convention we follow is that body_com[2] is always 0,
-        # and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
 
     def reset_model(self):
@@ -127,32 +145,128 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.init_fingerCOM = (rightFinger + leftFinger)/2
         self.pickCompleted = False
 
-    def compute_reward(self, actions, obs):
-        obj_pos = obs[3:6]
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
+    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+        pad_success_margin = 0.05
+        grip_success_margin = obj_radius + 0.01
+        x_z_success_margin = 0.005
+
+        tcp = self.tcp_center
+        left_pad = self.get_body_com('leftpad')
+        right_pad = self.get_body_com('rightpad')
+        delta_object_y_left_pad = left_pad[1] - obj_position[1]
+        delta_object_y_right_pad = obj_position[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+
+        right_caging = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
         )
-        fingerCOM = (rightFinger + leftFinger) / 2
+        left_caging = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, pad_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
 
-        goal = self._target_pos
-        assert np.all(goal == self._get_site_pos('goal'))
+        right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=right_caging_margin,
+            sigmoid='long_tail',
+        )
+        left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
+            bounds=(obj_radius, grip_success_margin),
+            margin=left_caging_margin,
+            sigmoid='long_tail',
+        )
 
-        reach_dist = np.linalg.norm(fingerCOM - obj_pos)
-        reach_rew = -reach_dist
-        push_dist = np.linalg.norm(obj_pos[:2] - goal[:2])
 
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
+        assert right_caging >= 0 and right_caging <= 1
+        assert left_caging >= 0 and left_caging <= 1
 
-        if reach_dist < 0.05:
-            push_rew = c1*(self.maxpush_dist - push_dist) + \
-                       c1*(np.exp(-(push_dist**2)/c2) +
-                           np.exp(-(push_dist**2)/c3))
-            push_rew = max(push_rew, 0)
+        y_caging = reward_utils.hamacher_product(right_caging, left_caging)
+        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
+
+        assert y_caging >= 0 and y_caging <= 1
+
+        tcp_xz = tcp + np.array([0., -tcp[1], 0.])
+        obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
+        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
+        init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
+
+
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
+                                bounds=(0, x_z_success_margin),
+                                margin=tcp_obj_x_z_margin,
+                                sigmoid='long_tail',)
+
+        assert right_caging >= 0 and right_caging <= 1
+        gripper_closed = min(max(0, action[-1]), 1)
+        assert gripper_closed >= 0 and gripper_closed <= 1
+        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
+        assert caging >= 0 and caging <= 1
+
+        if caging > 0.95:
+            gripping = y_gripping
         else:
-            push_rew = 0
+            gripping = 0.
+        assert gripping >= 0 and gripping <= 1
 
-        reward = reach_rew + push_rew
-        return [reward, reach_dist, push_dist]
+        caging_and_gripping = (caging + gripping) / 2
+        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
+
+        return caging_and_gripping
+
+    def compute_reward(self, action, obs):
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
+        midpoint = np.array([-0.05, 0.77, obj[2]])
+        target = self._target_pos
+
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+
+        in_place_scaling = np.array([3., 1., 1.])
+        obj_to_midpoint = np.linalg.norm((obj - midpoint) * in_place_scaling)
+        obj_to_midpoint_init = np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
+
+        obj_to_target = np.linalg.norm(obj - target)
+        obj_to_target_init = np.linalg.norm(self.obj_init_pos - target)
+
+        in_place_part1 = reward_utils.tolerance(obj_to_midpoint,
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_midpoint_init,
+            sigmoid='long_tail',
+        )
+
+        in_place_part2 = reward_utils.tolerance(obj_to_target,
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_target_init,
+            sigmoid='long_tail'
+        )
+
+        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
+                                                                    in_place_part1)
+        reward = in_place_and_object_grasped
+
+        if tcp_to_obj < 0.02 and tcp_opened > 0 and object_grasped > 0.5:
+            reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
+            if obj[1] > 0.75:
+                reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
+
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.
+
+        return [
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            np.linalg.norm(obj - target),
+            object_grasped,
+            in_place_part2
+        ]
