@@ -251,10 +251,39 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
         assert unique_target_poss.shape[0] == metaworld._N_GOALS == len(rand_vecs)
 
 def test_identical_environments():
+    def helper(env, env_2):
+        for i in range(len(env.train_tasks)):
+            rand_vec_1 = pickle.loads(env.train_tasks[i].data)['rand_vec']
+            rand_vec_2 = pickle.loads(env_2.train_tasks[i].data)['rand_vec']
+            np.testing.assert_equal(rand_vec_1, rand_vec_2)
+
+    #testing MT1
+    mt1_1 = metaworld.MT1('sweep-into-v1', seed=10)
+    mt1_2 = metaworld.MT1('sweep-into-v1', seed=10)
+    helper(mt1_1, mt1_2)
+
+    #testing ML1
+    ml1_1 = metaworld.ML1('sweep-into-v1', seed=10)
+    ml1_2 = metaworld.ML1('sweep-into-v1', seed=10)
+    helper(ml1_1, ml1_2)
+
+    #testing MT10
     mt10_1 = metaworld.MT10(seed=10)
     mt10_2 = metaworld.MT10(seed=10)
-    num_elems = len(mt10_1.train_tasks)
-    for i in range(num_elems):
-        rand_vec_1 = pickle.loads(mt10_1.train_tasks[i].data)['rand_vec']
-        rand_vec_2 = pickle.loads(mt10_2.train_tasks[i].data)['rand_vec']
-        np.testing.assert_equal(rand_vec_1, rand_vec_2)
+    helper(mt10_1, mt10_2)
+
+    # testing ML10
+    ml10_1 = metaworld.ML10(seed=10)
+    ml10_2 = metaworld.ML10(seed=10)
+    helper(ml10_1, ml10_2)
+
+    #testing ML45
+    ml45_1 = metaworld.ML45(seed=10)
+    ml45_2 = metaworld.ML45(seed=10)
+    helper(ml45_1, ml45_2)
+
+    #testing MT50
+    mt50_1 = metaworld.MT50(seed=10)
+    mt50_2 = metaworld.MT50(seed=10)
+    helper(mt50_1, mt50_2)
+

@@ -44,8 +44,8 @@ class Benchmark(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __init__(self):
-        pass
+    def __init__(self, seed):
+        np.random.seed(seed)
 
     @property
     def train_classes(self) -> 'OrderedDict[EnvName, Type]':
@@ -75,7 +75,6 @@ _N_GOALS = 50
 
 
 def _encode_task(env_name, data):
-    #pickle.dumps() is serializing kwargs data
     return Task(env_name=env_name, data=pickle.dumps(data))
 
 
@@ -119,8 +118,8 @@ class ML1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
-        super().__init__()
+    def __init__(self, env_name, seed=None):
+        super().__init__(seed)
         try:
             cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
             args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
@@ -141,8 +140,8 @@ class MT1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
-        super().__init__()
+    def __init__(self, env_name, seed=None):
+        super().__init__(seed)
         try:
             cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
             args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
@@ -160,8 +159,8 @@ class MT1(Benchmark):
 
 class ML10(Benchmark):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed=None):
+        super().__init__(seed)
         self._train_classes = _env_dict.MEDIUM_MODE_CLS_DICT['train']
         self._test_classes = _env_dict.MEDIUM_MODE_CLS_DICT['test']
         train_kwargs = _env_dict.medium_mode_train_args_kwargs
@@ -176,8 +175,8 @@ class ML10(Benchmark):
 
 class ML45(Benchmark):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed=None):
+        super().__init__(seed)
         self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train']
         self._test_classes = _env_dict.HARD_MODE_CLS_DICT['test']
         train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train']
@@ -192,11 +191,10 @@ class ML45(Benchmark):
 class MT10(Benchmark):
 
     def __init__(self, seed=None):
-        super().__init__()
+        super().__init__(seed)
         self._train_classes = _env_dict.EASY_MODE_CLS_DICT
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
-        np.random.seed(seed)
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
@@ -205,8 +203,8 @@ class MT10(Benchmark):
 
 class MT50(Benchmark):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed=None):
+        super().__init__(seed)
         self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train'].copy()
         # We're going to modify it, so make a copy
         train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'].copy()
