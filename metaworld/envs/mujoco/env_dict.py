@@ -396,7 +396,7 @@ ML10_V2 = OrderedDict((
             ('push-v2', SawyerPushEnvV2),
             ('pick-place-v2', SawyerPickPlaceEnvV2),
             ('door-open-v2', SawyerDoorEnvV2),
-            ('drawer-close-v2', SawyerDoorCloseEnvV2),
+            ('drawer-close-v2', SawyerDrawerCloseEnvV2),
             ('button-press-topdown-v2', SawyerButtonPressEnvV2),
             ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
             ('window-open-v2', SawyerWindowOpenEnvV2),
@@ -429,3 +429,15 @@ ML10_ARGS_KWARGS = dict(
     train=ml10_train_args_kwargs,
     test=ml10_test_args_kwargs,
 )
+
+ML1_V2 = OrderedDict((
+    ('train', ALL_V2_ENVIRONMENTS),
+    ('test', ALL_V2_ENVIRONMENTS)
+))
+
+ML1_args_kwargs = {
+    key: dict(args=[], kwargs={
+        'task_id' : list(ALL_V2_ENVIRONMENTS.keys()).index(key),
+    })
+    for key, _ in ML1_V2['train'].items()
+}

@@ -51,10 +51,13 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         reward, obj_to_target, in_place = self.compute_reward(action, obs)
         self.curr_path_length += 1
         info = {
-            'reward': reward,
             'obj_to_target': obj_to_target,
             'in_place_reward': in_place,
-            'success': float(obj_to_target <= 0.08)
+            'success': float(obj_to_target <= 0.08),
+            'near_object': 0.,
+            'grasp_success': 1.,
+            'grasp_reward': 1.,
+            'unscaled_reward': reward,
         }
         return obs, reward, False, info
 

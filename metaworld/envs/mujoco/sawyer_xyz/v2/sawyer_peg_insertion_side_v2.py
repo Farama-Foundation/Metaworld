@@ -90,8 +90,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
             'obj_to_target': obj_to_target,
-            'collision_box_front': collision_box_front,
-            'ip_orig': ip_orig
+            'unscaled_reward': reward,
         }
 
         self.curr_path_length += 1
@@ -171,8 +170,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
                                                      obj,
                                                      object_reach_radius=object_reach_radius,
                                                      obj_radius=obj_radius,
-                                                     pad_success_margin=pad_success_margin,
-                                                     x_z_margin=x_z_margin)
+                                                     pad_success_thresh=pad_success_margin,
+                                                     xz_thresh=x_z_margin,
+                                                     high_density=True)
         if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             object_grasped = 1.
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
@@ -181,6 +181,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1. + 5 * in_place
+
+        if obj_to_target <= 0.07:
+            reward = 10.
 
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, collision_boxes, ip_orig]
 

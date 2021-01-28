@@ -11,8 +11,10 @@ class SawyerCoffeePullV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'mug_pos': obs[3:6],
-            'unused_info': obs[6:],
+            'gripper': obs[3],
+            'mug_pos': obs[4:7],
+            'unused_info': obs[7:-3],
+            'target_pos': obs[-3:]
         }
 
     def get_action(self, obs):
@@ -37,10 +39,8 @@ class SawyerCoffeePullV2Policy(Policy):
             return pos_mug + np.array([.0, .0, .15])
         elif abs(pos_curr[2] - pos_mug[2]) > 0.02:
             return pos_mug
-        elif pos_curr[1] > .65:
-            return np.array([.5, .6, .1])
         else:
-            return np.array([pos_curr[0] - .1, .6, .1])
+            return o_d['target_pos']
 
     @staticmethod
     def _grab_effort(o_d):
