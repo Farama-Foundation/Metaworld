@@ -173,8 +173,8 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             actions, wrench_threshed,
             object_reach_radius=0.01,
             obj_radius=0.015,
-            pad_success_margin=0.02,
-            x_z_margin=0.01,
+            pad_success_thresh=0.02,
+            xz_thresh=0.01,
             medium_density=True,
         )
         reward_in_place, success = SawyerNutAssemblyEnvV2._reward_pos(

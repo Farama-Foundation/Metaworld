@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -29,6 +30,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
+        self._lock_length = 0.1
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -43,16 +45,26 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length +=1
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            obj_to_target,
+            near_button,
+            button_pressed
+        ) = self.compute_reward(action, ob)
+
         info = {
-            'reachDist': reachDist,
-            'goalDist': pullDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pullDist <= 0.05)
+            'success': float(obj_to_target <= 0.02),
+            'near_object': float(tcp_to_obj <= 0.05),
+            'grasp_success': float(tcp_open > 0),
+            'grasp_reward': near_button,
+            'in_place_reward': button_pressed,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward,
         }
 
+        self.curr_path_length += 1
         return ob, reward, False, info
 
     @property
@@ -62,8 +74,14 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             ('goal_lock', np.array([10., 10., 10.]))
         ]
 
+    def _get_id_main_object(self):
+        return None
+
     def _get_pos_objects(self):
         return self._get_site_pos('lockStartUnlock')
+
+    def _get_quat_objects(self):
+        return self.sim.data.get_body_xquat('door_link')
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -84,46 +102,54 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self.get_body_com('lock_link')
         self._target_pos = self.obj_init_pos + np.array([.1, -.04, .0])
-        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand()
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
+    def compute_reward(self, action, obs):
+        del action
+        gripper = obs[:3]
+        lock = obs[4:7]
 
-    def compute_reward(self, actions, obs):
-        del actions
+        # Add offset to track gripper's shoulder, rather than fingers
+        offset = np.array([.0, .055, .07])
 
-        objPos = obs[3:6]
+        scale = np.array([0.25, 1., 0.5])
+        shoulder_to_lock = (gripper + offset - lock) * scale
+        shoulder_to_lock_init = (
+            self.init_tcp + offset - self.obj_init_pos
+        ) * scale
 
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        fingerCOM  =  (rightFinger + leftFinger)/2
+        # This `ready_to_push` reward should be a *hint* for the agent, not an
+        # end in itself. Make sure to devalue it compared to the value of
+        # actually unlocking the lock
+        ready_to_push = reward_utils.tolerance(
+            np.linalg.norm(shoulder_to_lock),
+            bounds=(0, 0.02),
+            margin=np.linalg.norm(shoulder_to_lock_init),
+            sigmoid='long_tail',
+        )
 
-        pullGoal = self._target_pos
+        obj_to_target = abs(self._target_pos[0] - lock[0])
+        pushed = reward_utils.tolerance(
+            obj_to_target,
+            bounds=(0, 0.005),
+            margin=self._lock_length,
+            sigmoid='long_tail',
+        )
 
-        pullDist = np.linalg.norm(objPos - pullGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-        reachRew = -reachDist
+        reward = 2 * ready_to_push + 8 * pushed
 
-        self.reachCompleted = reachDist < 0.05
-
-        def pullReward():
-            c1 = 1000
-            c2 = 0.01
-            c3 = 0.001
-
-            if self.reachCompleted:
-                pullRew = 1000*(self.maxPullDist - pullDist) + c1*(np.exp(-(pullDist**2)/c2) + np.exp(-(pullDist**2)/c3))
-                pullRew = max(pullRew,0)
-                return pullRew
-            else:
-                return 0
-
-        pullRew = pullReward()
-        reward = reachRew + pullRew
-
-        return [reward, reachDist, pullDist]
+        return (
+            reward,
+            np.linalg.norm(shoulder_to_lock),
+            obs[3],
+            obj_to_target,
+            ready_to_push,
+            pushed
+        )

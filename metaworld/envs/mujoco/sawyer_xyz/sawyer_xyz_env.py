@@ -438,9 +438,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                                action,
                                obj_pos,
                                obj_radius,
-                               pad_success_margin,
+                               pad_success_thresh,
                                object_reach_radius,
-                               x_z_margin,
+                               xz_thresh,
                                desired_gripper_effort=1.0,
                                high_density=False,
                                medium_density=False):
@@ -450,11 +450,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                     delta(x), delta(y), delta(z), gripper_effort
                 obj_pos(np.ndarray): (3,) array representing the obj x,y,z
                 obj_radius(float):radius of object's bounding sphere
-                pad_success_margin(float): successful distance of gripper_pad
+                pad_success_thresh(float): successful distance of gripper_pad
                     to object
                 object_reach_radius(float): successful distance of gripper center
                     to the object.
-                x_z_margin(float): successful distance of gripper in x_z axis to the
+                xz_thresh(float): successful distance of gripper in x_z axis to the
                     object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
@@ -464,39 +464,66 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         left_pad = self.get_body_com('leftpad')
         right_pad = self.get_body_com('rightpad')
 
-        tcp = self.tcp_center
-        tcp_to_obj = np.linalg.norm(obj_pos - tcp)
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
-        reach = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, object_reach_radius),
-            margin=abs(tcp_to_obj_init-object_reach_radius),
-            sigmoid='long_tail',
-        )
-
+        # get current positions of left and right pads (Y axis)
         pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
-        pad_y_lr_init = np.hstack((self.init_left_pad[1], self.init_right_pad[1]))
+        # compare *current* pad positions with *current* obj position (Y axis)
+        pad_to_obj_lr = np.abs(pad_y_lr - obj_pos[1])
+        # compare *current* pad positions with *initial* obj position (Y axis)
+        pad_to_objinit_lr = np.abs(pad_y_lr - self.obj_init_pos[1])
 
-        obj_to_pad_lr = np.abs(pad_y_lr - obj_pos[1])
-        obj_to_pad_lr_init = np.abs(pad_y_lr_init - self.obj_init_pos[1])
-
-        caging_margin_lr = np.abs(obj_to_pad_lr_init)
+        # Compute the left/right caging rewards. This is crucial for success,
+        # yet counterintuitive mathematically because we invented it
+        # accidentally.
+        #
+        # Before touching the object, `pad_to_obj_lr` ("x") is always separated
+        # from `caging_lr_margin` ("the margin") by some small number,
+        # `pad_success_thresh`.
+        #
+        # When far away from the object:
+        #       x = margin + pad_success_thresh
+        #       --> Thus x is outside the margin, yielding very small reward.
+        #           Here, any variation in the reward is due to the fact that
+        #           the margin itself is shifting.
+        # When near the object (within pad_success_thresh):
+        #       x = pad_success_thresh - margin
+        #       --> Thus x is well within the margin. As long as x > obj_radius,
+        #           it will also be within the bounds, yielding maximum reward.
+        #           Here, any variation in the reward is due to the gripper
+        #           moving *too close* to the object (i.e, blowing past the
+        #           obj_radius bound).
+        #
+        # Therefore, before touching the object, this is very nearly a binary
+        # reward -- if the gripper is between obj_radius and pad_success_thresh,
+        # it gets maximum reward. Otherwise, the reward very quickly falls off.
+        #
+        # After grasping the object and moving it away from initial position,
+        # x remains (mostly) constant while the margin grows considerably. This
+        # penalizes the agent if it moves *back* toward `obj_init_pos`, but
+        # offers no encouragement for leaving that position in the first place.
+        # That part is left to the reward functions of individual environments.
+        caging_lr_margin = np.abs(pad_to_objinit_lr - pad_success_thresh)
         caging_lr = [reward_utils.tolerance(
-            obj_to_pad_lr[i],
-            bounds=(0, pad_success_margin),
-            margin=caging_margin_lr[i],
+            pad_to_obj_lr[i],  # "x" in the description above
+            bounds=(obj_radius, pad_success_thresh),
+            margin=caging_lr_margin[i],  # "margin" in the description above
             sigmoid='long_tail',
         ) for i in range(2)]
         caging_y = reward_utils.hamacher_product(*caging_lr)
 
         # MARK: X-Z gripper information for caging reward-----------------------
+        tcp = self.tcp_center
         xz = [0, 2]
-        xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
 
+        # Compared to the caging_y reward, caging_xz is simple. The margin is
+        # constant (something in the 0.3 to 0.5 range) and x shrinks as the
+        # gripper moves towards the object. After picking up the object, the
+        # reward is maximized and changes very little
+        caging_xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
+        caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
-            np.linalg.norm(tcp[xz] - obj_pos[xz]),
-            bounds=(0, x_z_margin),
-            margin=xz_margin,
+            np.linalg.norm(tcp[xz] - obj_pos[xz]),  # "x" in the description above
+            bounds=(0, xz_thresh),
+            margin=caging_xz_margin,  # "margin" in the description above
             sigmoid='long_tail',
         )
 
@@ -506,12 +533,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
-        gripping = gripper_closed
+        gripping = gripper_closed if caging > 0.97 else 0.
         caging_and_gripping = reward_utils.hamacher_product(caging, gripping)
 
         if high_density:
             caging_and_gripping = (caging_and_gripping + caging) / 2
         if medium_density:
+            tcp = self.tcp_center
+            tcp_to_obj = np.linalg.norm(obj_pos - tcp)
+            tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
+            # Compute reach reward
+            # - We subtract `object_reach_radius` from the margin so that the
+            #   reward always starts with a value of 0.1
+            reach_margin = abs(tcp_to_obj_init - object_reach_radius)
+            reach = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, object_reach_radius),
+                margin=reach_margin,
+                sigmoid='long_tail',
+            )
             caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping

@@ -156,8 +156,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             actions, hammer_threshed,
             object_reach_radius=0.01,
             obj_radius=0.02,
-            pad_success_margin=0.05,
-            x_z_margin=0.01,
+            pad_success_thresh=0.05,
+            xz_thresh=0.01,
             medium_density=True,
         )
         reward_in_place = SawyerHammerEnvV2._reward_pos(

@@ -34,7 +34,6 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self._target_to_obj_init = None
-        self.max_path_length = 500
 
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
         self._random_reset_space = Box(
