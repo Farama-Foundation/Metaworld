@@ -49,7 +49,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.liftThresh = liftThresh
-        self.max_path_length = 500
+        
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -202,6 +202,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         gripping = gripper_closed if caging > 0.97 else 0.
         caging_and_gripping = reward_utils.hamacher_product(caging,
                                                             gripping)
+        caging_and_gripping = (caging_and_gripping + caging) / 2
         return caging_and_gripping
 
     def compute_reward(self, action, obs):
@@ -224,7 +225,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     in_place)
         reward = in_place_and_object_grasped
-        
+
         if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1. + 5. * in_place
         if obj_to_target < _TARGET_RADIUS:

@@ -29,7 +29,6 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
 
         self._random_reset_space = Box(
             np.array(obj_low),
