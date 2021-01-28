@@ -7,10 +7,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
-    PAD_SUCCESS_MARGIN = 0.06
-    X_Z_SUCCESS_MARGIN = 0.01
-    OBJ_RADIUS=0.032
-    TARGET_RADIUS=0.08
 
     def __init__(self):
 
@@ -35,8 +31,6 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         goal_low = self.hand_low
         goal_high = self.hand_high
-
-        self.max_path_length = 500
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -136,7 +130,15 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+        object_grasped = self._gripper_caging_reward(
+            self,
+            action,
+            obj,
+            pad_success_thresh=0.06,
+            object_reach_radius=0.032,
+            xz_thresh=0.01,
+            high_density=True,
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
         # reward = in_place
 

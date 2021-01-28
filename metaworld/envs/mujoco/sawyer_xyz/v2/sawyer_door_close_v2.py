@@ -3,6 +3,7 @@ from gym.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import SawyerDoorEnvV2
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
@@ -41,10 +42,25 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
 
         # keep the door open after resetting initial positions
         self._set_obj_xyz(-1.5708)
-        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos('handle')[:-1] - self._target_pos[:-1])
-        self.target_reward = 1000*self.maxPullDist + 1000*2
 
         return self._get_obs()
+
+    @_assert_task_is_set
+    def step(self, action):
+        obs = SawyerXYZEnv.step(self, action)
+        reward, obj_to_target, in_place = self.compute_reward(action, obs)
+        self.curr_path_length += 1
+        info = {
+            'obj_to_target': obj_to_target,
+            'in_place_reward': in_place,
+            'success': float(obj_to_target <= 0.08),
+            'near_object': 0.,
+            'grasp_success': 1.,
+            'grasp_reward': 1.,
+            'unscaled_reward': reward,
+        }
+        return obs, reward, False, info
+
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05

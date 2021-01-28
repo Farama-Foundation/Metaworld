@@ -21,7 +21,13 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
 
     for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
         rewards.append(r)
-
+        assert set(info.keys()) == {'success',
+                                    'near_object',
+                                    'grasp_success',
+                                    'grasp_reward',
+                                    'in_place_reward',
+                                    'obj_to_target',
+                                    'unscaled_reward'}
         success |= bool(info['success'])
         if not success:
             first_success = t
@@ -59,7 +65,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
         o, r, done, info = env.step(a)
-        assert env.observation_space.contains(o)
+        assert env.observation_space.contains(o), obs_space_error_text(env, o)
         if render:
             env.render()
 
