@@ -76,7 +76,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.curr_path_length += 1
         return obs, reward, False, info
 
-
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
 
@@ -99,7 +98,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -110,16 +108,8 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
@@ -155,7 +145,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             margin=left_caging_margin,
             sigmoid='long_tail',
         )
-
 
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
@@ -194,7 +183,6 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
         return caging_and_gripping
-
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]

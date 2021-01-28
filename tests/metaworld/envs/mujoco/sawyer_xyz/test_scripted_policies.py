@@ -211,7 +211,7 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
-test_cases_latest_noisy = [
+test_cases_latest_ml10 = [
     ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
     ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['push-v2', SawyerPushV2Policy(), .1, .88],
@@ -241,6 +241,8 @@ for row in test_cases_latest_nonoise:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+for row in test_cases_latest_ml10:
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 

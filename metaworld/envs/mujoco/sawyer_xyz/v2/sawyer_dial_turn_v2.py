@@ -32,8 +32,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -101,10 +99,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
 
     def compute_reward(self, action, obs):
         obj = self._get_pos_objects()

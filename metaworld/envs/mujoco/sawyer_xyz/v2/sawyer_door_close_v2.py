@@ -61,7 +61,6 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         }
         return obs, reward, False, info
 
-
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center

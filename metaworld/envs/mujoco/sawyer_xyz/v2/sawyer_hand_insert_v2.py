@@ -34,8 +34,6 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -104,12 +102,6 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
-
     def compute_reward(self, action, obs):
         obj = obs[4:7]
 
@@ -123,18 +115,15 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        pad_success_margin = 0.05
-        object_reach_radius=0.01
-        x_z_margin = 0.005
-        obj_radius = 0.015
-
-        object_grasped = self._gripper_caging_reward(action,
-                                                     obj,
-                                                     object_reach_radius=object_reach_radius,
-                                                     obj_radius=obj_radius,
-                                                     pad_success_thresh=pad_success_margin,
-                                                     xz_thresh=x_z_margin,
-                                                     high_density=True)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            xz_thresh=0.005,
+            high_density=True
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]

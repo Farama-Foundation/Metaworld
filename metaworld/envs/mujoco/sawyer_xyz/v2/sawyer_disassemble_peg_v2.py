@@ -110,12 +110,6 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad').copy()
-        self.init_right_pad = self.get_body_com('rightpad').copy()
-
     @staticmethod
     def _reward_quat(obs):
         # Ideal laid-down wrench has quat [.707, 0, 0, .707]

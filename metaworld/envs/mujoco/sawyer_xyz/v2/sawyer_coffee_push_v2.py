@@ -111,10 +111,6 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         self._target_pos = pos_mug_goal
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-
     def compute_reward(self, action, obs):
         obj = obs[4:7]
         target = self._target_pos.copy()

@@ -89,7 +89,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('soccer_ball')[2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -104,10 +103,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.reachCompleted = False
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
@@ -144,7 +139,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
@@ -158,7 +152,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,

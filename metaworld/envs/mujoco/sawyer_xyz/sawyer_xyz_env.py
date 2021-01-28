@@ -129,6 +129,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
+        self.isV2 = "V2" in type(self).__name__
+        # Technically these observation lengths are different between v1 and v2,
+        # but we handle that elsewhere and just stick with v2 numbers here
         self._obs_obj_max_len = 14
         self._obs_obj_possible_lens = (7, 14)
 
@@ -307,7 +310,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
-        raise NotImplementedError
+        if self.isV2:
+            raise NotImplementedError
+        else:
+            return np.zeros(4)
 
     def _get_pos_goal(self):
         """Retrieves goal position from mujoco properties or instance vars
@@ -376,7 +382,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # do frame stacking
         obs = np.hstack((curr_obs, self.prev_obs, pos_goal))
         self.prev_obs = curr_obs
-        return obs
+        return obs if self.isV2 else np.hstack((obs[:3], obs[4:10], obs[-3:]))
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -388,17 +394,23 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(self._obs_obj_max_len, -np.inf)
-        obj_high = np.full(self._obs_obj_max_len, +np.inf)
+        obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
+
+        obj_low = np.full(obs_obj_max_len, -np.inf)
+        obj_high = np.full(obs_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
         gripper_low = -1.
         gripper_high = +1.
+
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
+        ) if self.isV2 else Box(
+            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
@@ -416,11 +428,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return super().reset()
 
     def _reset_hand(self, steps=50):
-        self.init_tcp = self.tcp_center
         for _ in range(steps):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
+        self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:

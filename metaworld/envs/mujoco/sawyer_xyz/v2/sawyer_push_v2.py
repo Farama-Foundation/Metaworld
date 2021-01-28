@@ -23,8 +23,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     TARGET_RADIUS=0.05
 
     def __init__(self):
-        lift_thresh = 0.04
-
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -49,8 +47,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = lift_thresh
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -127,8 +123,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -140,22 +134,9 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
-        self.target_reward = 1000*self.maxPushDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_finger_center = (finger_right + finger_left) / 2
-        self.pickCompleted = False
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
@@ -171,18 +152,15 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        obj_radius = 0.015
-        object_reach_radius=0.01
-        pad_success_margin = 0.05
-        x_z_margin = 0.005
-
-        object_grasped = self._gripper_caging_reward(action,
-                                                     obj,
-                                                     object_reach_radius=object_reach_radius,
-                                                     obj_radius=obj_radius,
-                                                     pad_success_thresh=pad_success_margin,
-                                                     xz_thresh=x_z_margin,
-                                                     high_density=True)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            xz_thresh=0.005,
+            high_density=True
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:

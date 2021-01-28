@@ -109,12 +109,6 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
-
     def compute_reward(self, action, obs):
         del action
         obj = obs[4:7]

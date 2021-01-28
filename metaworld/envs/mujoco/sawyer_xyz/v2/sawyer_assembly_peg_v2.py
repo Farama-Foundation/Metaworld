@@ -89,7 +89,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.objHeight = self.data.site_xpos[self.model.site_name2id('RoundNut-8')][2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -104,12 +103,6 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad').copy()
-        self.init_right_pad = self.get_body_com('rightpad').copy()
 
     @staticmethod
     def _reward_quat(obs):

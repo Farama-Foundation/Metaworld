@@ -9,8 +9,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
     def __init__(self):
-
-        liftThresh = 0.04
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.000)
@@ -31,8 +29,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         self.goal = self.init_config['stick_init_pos']
         self.stick_init_pos = self.init_config['stick_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         # For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.0])
@@ -69,7 +65,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         }
         self.curr_path_length += 1
-
 
         return obs, reward, False, info
 
@@ -128,10 +123,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.pickCompleted = False
-
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
@@ -168,7 +159,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
                                                                     stick_in_place)
         reward = in_place_and_object_grasped
-
 
         if tcp_to_stick < 0.02 and (tcp_opened > 0) and \
                 (stick[2] - 0.01 > self.obj_init_pos[2]):

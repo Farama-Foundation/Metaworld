@@ -21,8 +21,6 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
     """
     def __init__(self):
-
-        liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -44,12 +42,9 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
         self.goal = np.array([-0.05, 0.8, 0.2])
 
-
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -95,8 +90,6 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -108,23 +101,9 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxReachDist = np.linalg.norm(
-            self.init_fingerCOM - np.array(self._target_pos)
-        )
-        self.target_reward = 1000*self.maxReachDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand(10)
-
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_fingerCOM = (rightFinger + leftFinger) / 2
-        self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05

@@ -8,8 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
     def __init__(self):
-
-        liftThresh = 0.04
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -30,8 +28,6 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.goal = np.array([-0.225, 0.6, 0.0])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -88,10 +84,6 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
         objPos = obs[3:6]

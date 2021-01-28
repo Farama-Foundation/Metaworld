@@ -43,8 +43,6 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -103,10 +101,6 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         self.data.set_joint_qpos('window_slide', 0.0)
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
 
     def compute_reward(self, actions, obs):
         del actions

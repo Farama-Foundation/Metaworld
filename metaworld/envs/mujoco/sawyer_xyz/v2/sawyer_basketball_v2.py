@@ -12,7 +12,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
     def __init__(self):
 
-        liftThresh = 0.3
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.03)
@@ -35,9 +34,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -99,9 +95,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
         self._target_pos = self.data.site_xpos[self.model.site_name2id('goal')]
 
-        self.objHeight = self.get_body_com('bsktball')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
-
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
             basket_pos = goal_pos[3:]
@@ -114,12 +107,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
@@ -142,19 +129,16 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         )
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        obj_radius = 0.025
-        object_reach_radius=0.01
-        pad_success_margin = 0.06
-        x_z_margin = 0.005
 
-
-        object_grasped = self._gripper_caging_reward(action,
-                                                     obj,
-                                                     object_reach_radius=object_reach_radius,
-                                                     obj_radius=obj_radius,
-                                                     pad_success_thresh=pad_success_margin,
-                                                     xz_thresh=x_z_margin,
-                                                     high_density=False)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.025,
+            pad_success_thresh=0.06,
+            xz_thresh=0.005,
+            high_density=True
+        )
         if tcp_to_obj < 0.035 and tcp_opened > 0 and \
                 obj[2] - 0.01 > self.obj_init_pos[2]:
             object_grasped = 1
