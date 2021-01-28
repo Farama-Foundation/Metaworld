@@ -41,7 +41,6 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 150
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
