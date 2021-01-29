@@ -142,11 +142,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
 
+        self._last_stable_obs = None
         # Note: It is unlikely that the positions and orientations stored
-        # in this initiation of prev_obs are correct. That being said, it
+        # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
-        self.prev_obs = self._get_curr_obs_combined_no_goal()
+        self._prev_obs = self._get_curr_obs_combined_no_goal()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -184,29 +185,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = goals
         # update the goal_space to a Discrete space
         self.discrete_goal_space = Discrete(len(self.discrete_goals))
-
-    # Belows are methods for using the new wrappers.
-    # `sample_goals` is implmented across the sawyer_xyz
-    # as sampling from the task lists. This will be done
-    # with the new `discrete_goals`. After all the algorithms
-    # conform to this API (i.e. using the new wrapper), we can
-    # just remove the underscore in all method signature.
-    def sample_goals_(self, batch_size):
-        assert False
-        if self.discrete_goal_space is not None:
-            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
-        else:
-            return [self.goal_space.sample() for _ in range(batch_size)]
-
-    def set_goal_(self, goal):
-        assert False
-        if self.discrete_goal_space is not None:
-            self.active_discrete_goal = goal
-            self.goal = self.discrete_goals[goal]
-            self._target_pos_idx = np.zeros(len(self.discrete_goals))
-            self._target_pos_idx[goal] = 1.
-        else:
-            self.goal = goal
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -380,8 +358,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             pos_goal = np.zeros_like(pos_goal)
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        obs = np.hstack((curr_obs, self.prev_obs, pos_goal))
-        self.prev_obs = curr_obs
+        obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+        self._prev_obs = curr_obs
         return obs if self.isV2 else np.hstack((obs[:3], obs[4:10], obs[-3:]))
 
     def _get_obs_dict(self):
@@ -417,11 +395,54 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
+        self.curr_path_length += 1
 
+        # Running the simulator can sometimes mess up site positions, so
+        # re-position them here to make sure they're accurate
         for site in self._target_site_config:
             self._set_pos_site(*site)
 
-        return self._get_obs()
+        if self._did_see_sim_exception:
+            return (
+                self._last_stable_obs,  # observation just before going unstable
+                0.0,  # reward (penalize for causing instability)
+                False,  # termination flag always False
+                {  # info
+                    'success': False,
+                    'near_object': 0.0,
+                    'grasp_success': False,
+                    'grasp_reward': 0.0,
+                    'in_place_reward': 0.0,
+                    'obj_to_target': 0.0,
+                    'unscaled_reward': 0.0,
+                }
+            )
+
+        self._last_stable_obs = self._get_obs()
+        if not self.isV2:
+            # v1 environments expect this superclass step() to return only the
+            # most recent observation. they override the rest of the
+            # functionality and end up returning the same sort of tuple that
+            # this does
+            return self._last_stable_obs
+
+        reward, info = self.evaluate_state(self._last_stable_obs, action)
+        return self._last_stable_obs, reward, False, info
+
+    def evaluate_state(self, obs, action):
+        """Does the heavy-lifting for `step()` -- namely, calculating reward
+        and populating the `info` dict with training metrics
+
+        Returns:
+            float: Reward between 0 and 10
+            dict: Dictionary which contains useful metrics (success,
+                near_object, grasp_success, grasp_reward, in_place_reward,
+                obj_to_target, unscaled_reward)
+
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
 
     def reset(self):
         self.curr_path_length = 0

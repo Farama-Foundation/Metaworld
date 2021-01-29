@@ -46,10 +46,8 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_pick_out_of_hole.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pickRew, placingDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, reachDist, pickRew, placingDist = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -59,7 +57,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             'success': float(placingDist <= 0.08)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')

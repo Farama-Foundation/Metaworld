@@ -65,8 +65,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_push_v2.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
         (
@@ -92,8 +91,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(

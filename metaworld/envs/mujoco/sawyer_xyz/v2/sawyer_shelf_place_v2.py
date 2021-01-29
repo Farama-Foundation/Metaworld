@@ -46,8 +46,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_shelf_placing.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
@@ -64,9 +63,8 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
 
         }
-        self.curr_path_length += 1
 
-        return obs, reward, False, info
+        return reward, info
 
 
     def _get_pos_objects(self):
@@ -92,8 +90,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self._target_pos = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -105,8 +101,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             self._target_pos = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
-        self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()

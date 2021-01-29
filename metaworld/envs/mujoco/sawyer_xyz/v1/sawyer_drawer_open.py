@@ -44,7 +44,6 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
         reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
         info = {
             'reachDist': reachDist,
             'goalDist': pullDist,

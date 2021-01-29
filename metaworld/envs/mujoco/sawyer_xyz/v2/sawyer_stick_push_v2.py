@@ -45,8 +45,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         stick = obs[4:7]
         container = obs[11:14]
         reward, tcp_to_obj, tcp_open, container_to_target, grasp_reward, stick_in_place = self.compute_reward(action, obs)
@@ -64,9 +63,8 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
 
         }
-        self.curr_path_length += 1
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return np.hstack((
@@ -105,8 +103,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self.stick_init_pos = self.init_config['stick_init_pos']
         self._target_pos = np.array([0.4, 0.6, self.stick_init_pos[-1]])
-        self.stickHeight = self.get_body_com('stick').copy()[2]
-        self.heightTarget = self.stickHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -118,8 +114,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
-        self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:2])
 
         return self._get_obs()
 

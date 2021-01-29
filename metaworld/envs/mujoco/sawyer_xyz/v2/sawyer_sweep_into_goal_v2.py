@@ -47,8 +47,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_table_with_hole.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         (
             reward,
@@ -70,8 +69,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             'obj_to_target': target_to_obj,
             'unscaled_reward': reward,
         }
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
