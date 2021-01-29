@@ -209,7 +209,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         reward = in_place_and_object_grasped
 
         if grasp_success:
-            reward = 1. + in_place_and_object_grasped + 3. * stick_in_place
+            reward = 1. + in_place_and_object_grasped + 5. * stick_in_place
             print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
             if self._stick_is_inserted(handle, end_of_stick):
@@ -217,8 +217,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
                 np.abs(end_of_stick[1] - handle[1]),
                 np.abs(end_of_stick[2] - handle[2])
                 ))
-                reward = 1. + in_place_and_object_grasped + 3. + \
-                         3. * stick_in_place_2 + 2. * container_in_place
+                reward = 1. + in_place_and_object_grasped + 5. + \
+                         6. * stick_in_place_2 + 4. * container_in_place
 
                 if handle_to_target <= 0.12:
                     reward = 10.
