@@ -26,7 +26,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             the hole's position, as opposed to hand_low and hand_high
     """
     def __init__(self):
-        liftThresh = 0.11
         hand_init_pos = (0, 0.6, 0.2)
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -51,9 +50,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
-        
 
         self.hand_init_pos = np.array(hand_init_pos)
 
@@ -118,15 +114,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
         self._target_pos = pos_box + np.array([.03, .0, .13])
-        
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         tcp = self.tcp_center

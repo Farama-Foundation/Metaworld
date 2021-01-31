@@ -6,6 +6,7 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
+
 class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
     def __init__(self):
@@ -108,10 +109,6 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
         self._target_pos = pos_mug_goal
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]

@@ -21,8 +21,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
-        liftThresh = 0.04
-
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -48,9 +46,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-        
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -67,12 +62,9 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def step(self, action):
         ob = super().step(action)
+        obj = ob[4:7]
 
-        obs = self._get_obs()
-        obj = obs[4:7]
-
-
-        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
+        reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, ob)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
@@ -87,7 +79,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         }
 
         self.curr_path_length += 1
-        return obs, reward, False, info
+        return ob, reward, False, info
 
     @property
     def _get_id_main_object(self):
@@ -144,16 +136,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_finger_center = (finger_right + finger_left) / 2
-        self.pick_completed = False
 
     def _gripper_caging_reward(self, action, obj_position):
         pad_success_margin = 0.05

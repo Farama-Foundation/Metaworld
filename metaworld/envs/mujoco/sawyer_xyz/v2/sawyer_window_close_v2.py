@@ -105,7 +105,6 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             + np.array([0.2, 0., 0.]))
         self.data.set_joint_qpos('window_slide', 0.2)
 
-
         return self._get_obs()
 
     def _reset_hand(self):
@@ -129,7 +128,6 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             margin=abs(target_to_obj_init - self.TARGET_RADIUS),
             sigmoid='long_tail',
         )
-
 
         handle_radius = 0.02
         tcp_to_obj = np.linalg.norm(obj - tcp)

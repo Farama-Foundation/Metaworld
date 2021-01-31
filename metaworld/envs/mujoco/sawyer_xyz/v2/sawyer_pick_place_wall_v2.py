@@ -22,8 +22,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
           reach-push-pick-place-wall.
     """
     def __init__(self):
-
-        liftThresh = 0.04
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -48,8 +46,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -101,7 +97,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             self.data.get_geom_xmat('objGeom')
         ).as_quat()
 
-
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
@@ -145,16 +140,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_finger_center  =  (rightFinger + leftFinger) / 2
-        self.pick_completed = False
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05

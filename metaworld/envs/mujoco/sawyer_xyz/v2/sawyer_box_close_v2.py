@@ -88,8 +88,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('top_link')[2]
-        self.boxheight = self.get_body_com('boxbody')[2]
+        box_height = self.get_body_com('boxbody')[2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -98,16 +97,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [self.boxheight]))
+        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     @staticmethod
     def _reward_grab_effort(actions):

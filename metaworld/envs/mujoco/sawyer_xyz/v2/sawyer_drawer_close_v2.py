@@ -33,8 +33,6 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),

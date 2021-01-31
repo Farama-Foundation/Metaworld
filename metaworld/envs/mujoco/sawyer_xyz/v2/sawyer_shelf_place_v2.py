@@ -10,8 +10,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def __init__(self):
-
-        liftThresh = 0.04
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -34,8 +32,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
         
         self.num_resets = 0
 
@@ -69,7 +65,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         }
         self.curr_path_length += 1
-
 
         return obs, reward, False, info
 
@@ -115,16 +110,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.num_resets += 1
 
         return self._get_obs()
-
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_fingerCOM = (rightFinger + leftFinger) / 2
-        self.pickCompleted = False
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05

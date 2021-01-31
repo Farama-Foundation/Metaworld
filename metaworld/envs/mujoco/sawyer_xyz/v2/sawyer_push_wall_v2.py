@@ -29,8 +29,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
 
     def __init__(self):
-        liftThresh = 0.04
-
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
@@ -55,8 +53,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -117,8 +113,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -130,20 +124,8 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxpush_dist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
-        self.target_reward = 1000*self.maxpush_dist + 1000*2
         self.num_resets += 1
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand(50)
-
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_fingerCOM = (rightFinger + leftFinger)/2
-        self.pickCompleted = False
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
@@ -180,7 +162,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
@@ -194,7 +175,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,

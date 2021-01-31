@@ -46,8 +46,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -107,12 +105,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         )
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
-
     def compute_reward(self, action, obs):
         gripper = obs[:3]
         lever = obs[4:7]
@@ -167,8 +159,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
-        reward = 10.0  * reward_utils.hamacher_product(ready_to_lift,
-                                                       in_place)
+        reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
         return (
             reward,
             np.linalg.norm(shoulder_to_lever),

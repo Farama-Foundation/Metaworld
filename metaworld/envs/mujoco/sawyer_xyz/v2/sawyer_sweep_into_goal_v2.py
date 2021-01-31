@@ -99,13 +99,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand(10)
-
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
-
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
         grip_success_margin = obj_radius + 0.005
@@ -141,7 +134,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
@@ -155,7 +147,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
@@ -179,7 +170,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
         return caging_and_gripping
-
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
