@@ -49,8 +49,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_soccer.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         (
             reward,
@@ -60,7 +59,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         ) = self.compute_reward(action, obs)
-        self.curr_path_length += 1
 
         success = float(target_to_obj <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -75,7 +73,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.get_body_com('soccer_ball')

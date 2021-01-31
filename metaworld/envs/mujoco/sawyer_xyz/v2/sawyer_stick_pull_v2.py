@@ -44,10 +44,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, _, reachDist, pickRew, _, pullDist, _ = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, _, reachDist, pickRew, _, pullDist, _ = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -57,7 +55,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             'success': float(pullDist <= 0.08 and reachDist <= 0.05)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return np.hstack((

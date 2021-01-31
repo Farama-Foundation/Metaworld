@@ -1,4 +1,5 @@
 import abc
+import warnings
 
 import glfw
 from gym import error
@@ -56,6 +57,8 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
 
+        self._did_see_sim_exception = False
+
         self.seed()
 
     def seed(self, seed=None):
@@ -80,6 +83,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     @_assert_task_is_set
     def reset(self):
+        self._did_see_sim_exception = False
         self.sim.reset()
         ob = self.reset_model()
         if self.viewer is not None:
@@ -101,11 +105,19 @@ class MujocoEnv(gym.Env, abc.ABC):
     def do_simulation(self, ctrl, n_frames=None):
         if getattr(self, 'curr_path_length', 0) > self.max_path_length:
             raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
+        if self._did_see_sim_exception:
+            return
+
         if n_frames is None:
             n_frames = self.frame_skip
         self.sim.data.ctrl[:] = ctrl
+
         for _ in range(n_frames):
-            self.sim.step()
+            try:
+                self.sim.step()
+            except mujoco_py.MujocoException as err:
+                warnings.warn(str(err), category=RuntimeWarning)
+                self._did_see_sim_exception = True
 
     def render(self, mode='human'):
         if mode == 'human':

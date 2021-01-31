@@ -3,7 +3,7 @@ from gym.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
 
 class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
@@ -53,18 +53,14 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
     def model_name(self):
         return full_v2_path_for('sawyer_xyz/sawyer_handle_press_sideways.xml')
 
-    def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
-        # The marker seems to get reset every time you do a simulation
-        obs = self._get_obs()
+    @_assert_task_is_set
+    def evaluate_state(self, obs, action):
         (reward,
         tcp_to_obj,
         _,
         target_to_obj,
         object_grasped,
         in_place) = self.compute_reward(action, obs)
-        self.curr_path_length += 1
 
         info = {
             'success': float(target_to_obj <= self.TARGET_RADIUS),
@@ -76,7 +72,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self._get_site_pos('handleStart')

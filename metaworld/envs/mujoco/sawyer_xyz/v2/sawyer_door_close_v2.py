@@ -46,10 +46,8 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         return self._get_obs()
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = SawyerXYZEnv.step(self, action)
+    def evaluate_state(self, obs, action):
         reward, obj_to_target, in_place = self.compute_reward(action, obs)
-        self.curr_path_length += 1
         info = {
             'obj_to_target': obj_to_target,
             'in_place_reward': in_place,
@@ -59,7 +57,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
             'grasp_reward': 1.,
             'unscaled_reward': reward,
         }
-        return obs, reward, False, info
+        return reward, info
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05

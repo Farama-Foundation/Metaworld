@@ -67,10 +67,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_peg_insertion_side.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-
-        obs = self._get_obs()
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward, collision_box_front, ip_orig= (
@@ -89,8 +86,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self._get_site_pos('pegGrasp')

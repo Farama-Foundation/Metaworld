@@ -55,10 +55,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, reachDist, pullDist = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -68,7 +66,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             'success': float(pullDist <= 0.07)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')

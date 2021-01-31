@@ -60,8 +60,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_pick_place_wall_v2.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         (
             reward,
@@ -86,8 +85,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward
         }
 
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('objGeom')
@@ -116,8 +114,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -129,14 +125,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxplacing_dist = np.linalg.norm(
-            np.array([
-                self.obj_init_pos[0],
-                self.obj_init_pos[1],
-                self.heightTarget
-            ]) - np.array(self._target_pos)
-        ) + self.heightTarget
-        self.target_reward = 1000 * self.maxplacing_dist + 1000 * 2
         self.num_resets += 1
 
         return self._get_obs()

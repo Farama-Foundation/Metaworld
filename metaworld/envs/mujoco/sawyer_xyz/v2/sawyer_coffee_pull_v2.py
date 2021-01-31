@@ -45,8 +45,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -62,9 +61,8 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
 
         }
-        self.curr_path_length += 1
 
-        return obs, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
