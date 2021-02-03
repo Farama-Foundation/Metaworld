@@ -165,10 +165,11 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         object_grasped = self._gripper_caging_reward(
             action,
             obj,
-            obj_radius=0.015,
+            obj_radius=0.02,
             pad_success_thresh=0.05,
             object_reach_radius=0.01,
             xz_thresh=0.005,
+            desired_gripper_effort=0.6,
             high_density=True,
         )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
