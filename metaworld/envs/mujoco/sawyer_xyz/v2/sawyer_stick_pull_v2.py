@@ -218,10 +218,10 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
                 np.abs(end_of_stick[2] - handle[2])
                 ))
                 reward = 1. + in_place_and_object_grasped + 5. + \
-                         6. * stick_in_place_2 + 4. * container_in_place
+                         2. * stick_in_place_2 + 1. * container_in_place
 
                 if handle_to_target <= 0.12:
-                    reward = 17.
+                    reward = 10.
 
         return [
             reward, tcp_to_stick, tcp_opened, handle_to_target, object_grasped,
