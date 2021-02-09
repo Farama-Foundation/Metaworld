@@ -50,7 +50,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def step(self, action):
+    def evaluate_state(self, action):
         obs = super().step(action)
         stick = obs[4:7]
         handle = obs[11:14]
@@ -63,8 +63,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(self.touching_object and (tcp_open > 0)
                               and (stick[2] - 0.02 > self.obj_init_pos[2]))
-
-        # print("REWARD: {}".format(reward))
 
         info = {
             'success': success,
@@ -210,13 +208,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         if grasp_success:
             reward = 1. + in_place_and_object_grasped + 5. * stick_in_place
-            print("> PICKED UP = {}".format(np.linalg.norm(end_of_stick[1:] - handle[1:])))
 
             if self._stick_is_inserted(handle, end_of_stick):
-                print("------> INSERTED :{}, {}".format(
-                np.abs(end_of_stick[1] - handle[1]),
-                np.abs(end_of_stick[2] - handle[2])
-                ))
                 reward = 1. + in_place_and_object_grasped + 5. + \
                          2. * stick_in_place_2 + 1. * container_in_place
 
