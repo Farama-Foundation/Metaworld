@@ -61,15 +61,13 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_window_horizontal.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         (reward,
         tcp_to_obj,
         _,
         target_to_obj,
         object_grasped,
         in_place) = self.compute_reward(action, obs)
-        self.curr_path_length += 1
 
         info = {
             'success': float(target_to_obj <= self.TARGET_RADIUS),
@@ -81,7 +79,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self._get_site_pos('handleCloseStart')
@@ -104,7 +102,6 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.window_handle_pos_init = (self._get_pos_objects()
             + np.array([0.2, 0., 0.]))
         self.data.set_joint_qpos('window_slide', 0.2)
-
 
         return self._get_obs()
 
@@ -129,7 +126,6 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             margin=abs(target_to_obj_init - self.TARGET_RADIUS),
             sigmoid='long_tail',
         )
-
 
         handle_radius = 0.02
         tcp_to_obj = np.linalg.norm(obj - tcp)

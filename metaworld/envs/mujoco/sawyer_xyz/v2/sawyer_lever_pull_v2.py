@@ -46,8 +46,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -59,8 +57,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_lever_pull.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
+    def evaluate_state(self, obs, action):
 
         (
             reward,
@@ -68,7 +65,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             ready_to_lift,
             lever_error,
             lever_engagement
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
             'success': float(lever_error <= np.pi / 24),
@@ -80,8 +77,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_id_main_object(self):
         return self.unwrapped.model.geom_name2id('objGeom')
@@ -106,12 +102,6 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             [.12, .0, .25 + self.LEVER_RADIUS]
         )
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         gripper = obs[:3]
@@ -167,8 +157,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
-        reward = 10.0  * reward_utils.hamacher_product(ready_to_lift,
-                                                       in_place)
+        reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
         return (
             reward,
             np.linalg.norm(shoulder_to_lever),

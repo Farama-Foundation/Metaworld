@@ -8,8 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
     def __init__(self):
-
-        liftThresh = 0.04
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -31,8 +29,6 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -44,10 +40,8 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_peg_unplug_side.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -57,7 +51,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             'success': float(placingDist <= 0.07)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self._get_site_pos('pegEnd')
@@ -88,10 +82,6 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.target_reward = 1000*self.maxPlacingDist + 1000*2
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.reachCompleted = False
 
     def compute_reward(self, actions, obs):
         objPos = obs[3:6]

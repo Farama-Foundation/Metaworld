@@ -43,10 +43,8 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_faucet.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, reachDist, pullDist = self.compute_reward(action, obs)
         info = {
             'reachDist': reachDist,
             'goalDist': pullDist,
@@ -55,7 +53,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             'success': float(pullDist <= 0.05),
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
