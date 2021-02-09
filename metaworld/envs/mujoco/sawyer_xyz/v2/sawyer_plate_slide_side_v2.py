@@ -34,7 +34,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
+
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -65,6 +65,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             'success': success,
             'near_object': near_object,
             'grasp_reward': object_grasped,
+            'grasp_success': 0.,
             'in_place_reward': in_place,
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward
@@ -133,7 +134,6 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:
-            print("MOVING TO GOAL: {}".format(in_place_and_object_grasped))
             reward = 2 + (7 * in_place)
 
         if obj_to_target < _TARGET_RADIUS:
