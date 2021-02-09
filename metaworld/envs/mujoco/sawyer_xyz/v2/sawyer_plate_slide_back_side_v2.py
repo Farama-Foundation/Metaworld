@@ -57,7 +57,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def step(self, action):
+    def evaluate_state(self, action):
         ob = super().step(action)
         obj = ob[4:7]
         (
