@@ -10,8 +10,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerStickPullEnvV2(SawyerXYZEnv):
     def __init__(self):
-
-        liftThresh = 0.04
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.55, 0.000)
@@ -32,8 +30,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self.goal = self.init_config['stick_init_pos']
         self.stick_init_pos = self.init_config['stick_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
 
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.0])

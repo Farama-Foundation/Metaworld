@@ -32,8 +32,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -45,15 +43,13 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_dial.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         (reward,
          tcp_to_obj,
          _,
          target_to_obj,
          object_grasped,
          in_place) = self.compute_reward(action, obs)
-        self.curr_path_length += 1
 
         info = {
             'success': float(target_to_obj <= self.TARGET_RADIUS),
@@ -65,7 +61,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         dial_center = self.get_body_com('dial').copy()
@@ -101,10 +97,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
 
     def compute_reward(self, action, obs):
         obj = self._get_pos_objects()

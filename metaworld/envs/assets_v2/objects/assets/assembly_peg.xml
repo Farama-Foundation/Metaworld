@@ -1,7 +1,7 @@
 <mujocoinclude>
     <body childclass="asmbly_base" name="asmbly_peg">
         <geom material="asmbly_metal" mesh="assembly_peg_ring"/>
-        <geom material="asmbly_green" mesh="assembly_peg_handle" pos="0 -0.13 0"/>
+        <geom material="asmbly_green" mesh="assembly_peg_handle" pos="0 -0.13 0" name="WrenchHandle"/>
         <geom material="asmbly_metal" euler="1.57 0 0" pos="0 -0.1 0" size="0.012 0.05" type="cylinder"/>
         <geom class="asmbly_col" euler="1.57 0 0" pos="0.048 0 0" size="0.019 0.015" type="capsule" mass=".02"/>
         <geom class="asmbly_col" euler="0 1.57 0" pos="0 0.048 0" size="0.019 0.015" type="capsule" mass=".02"/>

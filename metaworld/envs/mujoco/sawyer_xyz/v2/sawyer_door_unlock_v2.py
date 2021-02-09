@@ -43,8 +43,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_door_lock.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
+    def evaluate_state(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -52,7 +51,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             obj_to_target,
             near_button,
             button_pressed
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
             'success': float(obj_to_target <= 0.02),
@@ -64,8 +63,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
@@ -104,12 +102,6 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         self._target_pos = self.obj_init_pos + np.array([.1, -.04, .0])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         del action
