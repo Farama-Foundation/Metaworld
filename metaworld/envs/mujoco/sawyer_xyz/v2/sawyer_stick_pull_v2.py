@@ -48,7 +48,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def evaluate_state(self, action):
+    def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, pickRew, _, pullDist, _ = self.compute_reward(action, ob)
         self.curr_path_length += 1
