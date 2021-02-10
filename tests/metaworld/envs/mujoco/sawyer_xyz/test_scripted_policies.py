@@ -171,9 +171,9 @@ test_cases_latest_noisy = [
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
     ['handle-press-v2', SawyerHandlePressV2Policy(), .1, 1.],
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
-    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .65],
+    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .50],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
-    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .51],
+    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .92],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
@@ -211,7 +211,7 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
-test_cases_latest_noisy = [
+test_cases_latest_ml10 = [
     ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
     ['reach-v2', SawyerReachV2Policy(), .1, .98],
     ['push-v2', SawyerPushV2Policy(), .1, .88],
@@ -241,6 +241,8 @@ for row in test_cases_latest_nonoise:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+for row in test_cases_latest_ml10:
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 

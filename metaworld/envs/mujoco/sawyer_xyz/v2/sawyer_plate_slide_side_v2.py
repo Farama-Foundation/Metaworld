@@ -34,8 +34,6 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -47,8 +45,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
+    def evaluate_state(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -56,7 +53,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             obj_to_target,
             object_grasped,
             in_place
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -69,8 +66,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward
         }
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')
@@ -98,14 +94,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self._target_pos
         self._set_obj_xyz(np.zeros(2))
 
-        self.objHeight = self.data.get_geom_xpos('puck')[2]
-        self.maxDist = np.linalg.norm(self.obj_init_pos[:-1] - self._target_pos[:-1])
-        self.target_reward = 1000*self.maxDist + 1000*2
-
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05

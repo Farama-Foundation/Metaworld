@@ -21,8 +21,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
-        liftThresh = 0.04
-
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -48,8 +46,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -64,12 +60,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_pick_place_v2.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-
-        obs = self._get_obs()
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
 
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
@@ -85,8 +77,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward
         }
 
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     @property
     def _get_id_main_object(self):
@@ -118,8 +109,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -134,25 +123,9 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self.init_right_pad = self.get_body_com('rightpad')
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(
-            np.array([self.obj_init_pos[0],
-                      self.obj_init_pos[1],
-                      self.heightTarget]) -
-            np.array(self._target_pos)) + self.heightTarget
-        self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_finger_center = (finger_right + finger_left) / 2
-        self.pick_completed = False
 
     def _gripper_caging_reward(self, action, obj_position):
         pad_success_margin = 0.05

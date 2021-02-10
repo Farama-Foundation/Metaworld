@@ -16,7 +16,7 @@ class SawyerPickPlaceV2Policy(Policy):
             'puck_rot': obs[7:11],
             'goal_pos': obs[-3:],
             'unused_info_curr_obs': obs[11:18],
-            'prev_obs':obs[18:36]
+            '_prev_obs':obs[18:36]
         }
 
     def get_action(self, obs):

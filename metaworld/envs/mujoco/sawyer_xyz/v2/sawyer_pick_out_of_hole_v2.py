@@ -45,8 +45,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_pick_out_of_hole.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
         (
@@ -77,7 +76,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         }
 
         self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
@@ -113,12 +112,6 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad').copy()
-        self.init_right_pad = self.get_body_com('rightpad').copy()
-
     def compute_reward(self, action, obs):
         obj = obs[4:7] + np.array([.0, .0, .02])
         gripper = self.tcp_center
@@ -146,10 +139,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             obj,
             object_reach_radius=0.01,
             obj_radius=0.015,
-            pad_success_margin=0.02,
-            x_z_margin=0.01,
+            pad_success_thresh=0.02,
+            xz_thresh=0.01,
             desired_gripper_effort=0.1,
-            medium_density=True
+            high_density=True
         )
         in_place = reward_utils.tolerance(
             obj_to_target,

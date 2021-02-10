@@ -46,16 +46,14 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_box.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-
+    def evaluate_state(self, obs, action):
         (
             reward,
             reward_grab,
             reward_ready,
             reward_success,
             success
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
             'success': float(success),
@@ -67,8 +65,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
@@ -88,8 +85,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('top_link')[2]
-        self.boxheight = self.get_body_com('boxbody')[2]
+        box_height = self.get_body_com('boxbody')[2]
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -98,16 +94,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [self.boxheight]))
+        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     @staticmethod
     def _reward_grab_effort(actions):

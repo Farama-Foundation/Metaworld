@@ -55,10 +55,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pullDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, reachDist, pullDist = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -68,7 +66,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             'success': float(pullDist <= 0.07)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')
@@ -100,14 +98,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.]))
 
-        self.objHeight = self.data.get_geom_xpos('puck')[2]
-        self.maxDist = np.linalg.norm(self.data.get_geom_xpos('puck')[:-1] - self._target_pos[:-1])
-        self.target_reward = 1000*self.maxDist + 1000*2
-
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
 
     def compute_reward(self, actions, obs):
         del actions
