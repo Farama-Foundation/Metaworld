@@ -34,7 +34,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        
+
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -47,8 +47,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
+    def step(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -56,7 +55,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
             obj_to_target,
             object_grasped,
             in_place
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -70,7 +69,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward
         }
         self.curr_path_length += 1
-        return ob, reward, False, info
+        return obs, reward, False, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')
