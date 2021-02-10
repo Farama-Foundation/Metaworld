@@ -11,9 +11,10 @@ class SawyerPickOutOfHoleV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'puck_pos': obs[3:6],
-            'goal_pos': obs[9:],
-            'unused_info': obs[6:9],
+            'gripper': obs[3],
+            'puck_pos': obs[4:7],
+            'goal_pos': obs[-3:],
+            'unused_info': obs[7:-3],
         }
 
     def get_action(self, obs):
