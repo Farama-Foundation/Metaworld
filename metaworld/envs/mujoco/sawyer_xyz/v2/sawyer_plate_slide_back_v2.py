@@ -61,6 +61,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         info = {
             'success': success,
             'near_object': near_object,
+            'grasp_success': 0.0,
             'grasp_reward': object_grasped,
             'in_place_reward': in_place,
             'obj_to_target': obj_to_target,
@@ -117,8 +118,6 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
                                     margin=obj_grasped_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
         reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:

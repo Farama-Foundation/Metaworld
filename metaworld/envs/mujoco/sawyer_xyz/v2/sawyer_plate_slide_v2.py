@@ -65,6 +65,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             'success': success,
             'near_object': near_object,
             'grasp_reward': object_grasped,
+            'grasp_success': 0.0,
             'in_place_reward': in_place,
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward
@@ -98,11 +99,6 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         self.sim.model.body_pos[
             self.model.body_name2id('puck_goal')] = self._target_pos
         self._set_obj_xyz(np.zeros(2))
-
-        self.objHeight = self.data.get_geom_xpos('puck')[2]
-        self.maxDist = np.linalg.norm(
-            self.obj_init_pos[:-1] - self._target_pos[:-1])
-        self.target_reward = 1000 * self.maxDist + 1000 * 2
 
         return self._get_obs()
 
