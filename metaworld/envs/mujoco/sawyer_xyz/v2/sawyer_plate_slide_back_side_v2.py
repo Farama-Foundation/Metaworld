@@ -57,9 +57,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def evaluate_state(self, action):
-        ob = super().step(action)
-        obj = ob[4:7]
+    def evaluate_state(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -67,7 +65,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             obj_to_target,
             object_grasped,
             in_place
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -83,7 +81,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         }
 
         self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')
