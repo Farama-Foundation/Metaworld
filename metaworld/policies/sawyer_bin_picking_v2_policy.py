@@ -33,7 +33,7 @@ class SawyerBinPickingV2Policy(Policy):
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
-        pos_bin = np.array([.12, .7, .0])
+        pos_bin = np.array([.12, .7, .02])
 
         # This forces the scripted policy to pretend like the cube is located
         # more centrally in the bin (in Y direction). When the fingers close,

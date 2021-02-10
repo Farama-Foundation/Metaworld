@@ -84,7 +84,6 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             'success': float(obj_to_target <= 0.05),
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_success': float(
-                self.touching_main_object and
                 (tcp_open > 0) and
                 (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
@@ -178,7 +177,9 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 3. * above_floor + 4. * in_place
+            reward += 1. + 5. * reward_utils.hamacher_product(
+                above_floor, in_place
+            )
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
 
