@@ -140,7 +140,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        threshold = 0.1
+        threshold = 0.03
         radii = [
             np.linalg.norm(hand[:2] - self.obj_init_pos[:2]),
             np.linalg.norm(hand[:2] - self._target_pos[:2])
@@ -148,36 +148,36 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         # floor is a *pair* of 3D funnels centered on (1) the object's initial
         # position and (2) the desired final position
         floor = min([
-            0.01 * np.log(radius - threshold) + 0.1
+            0.02 * np.log(radius - threshold) + 0.2
             if radius > threshold else 0.0
             for radius in radii
         ])
         # prevent the hand from running into the edge of the bins by keeping
         # it above the "floor"
         above_floor = 1.0 if hand[2] >= floor else reward_utils.tolerance(
-            floor - hand[2],
+            max(floor - hand[2], 0.0),
             bounds=(0.0, 0.01),
-            margin=floor / 2.0,
+            margin=0.02,
             sigmoid='long_tail',
         )
 
         object_grasped = self._gripper_caging_reward(
             action,
             obj,
-            obj_radius=0.02,
+            obj_radius=0.015,
             pad_success_thresh=0.05,
             object_reach_radius=0.01,
-            xz_thresh=0.005,
-            desired_gripper_effort=0.6,
+            xz_thresh=0.01,
+            desired_gripper_effort=0.7,
             high_density=True,
         )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]
-        tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
+        tcp_to_obj = np.linalg.norm(obj - hand)
 
-        if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * reward_utils.hamacher_product(
+        if tcp_to_obj < 0.05 and tcp_opened > 0.43:
+            reward += 1 + 5. * reward_utils.hamacher_product(
                 above_floor, in_place
             )
         if target_to_obj < self.TARGET_RADIUS:
