@@ -19,11 +19,6 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         - (11/23/20) Updated reward function to new pick-place style
     """
 
-    PAD_SUCCESS_MARGIN = 0.05
-    X_Z_SUCCESS_MARGIN = 0.005
-    OBJ_RADIUS = 0.015
-    TARGET_RADIUS = 0.05
-
     def __init__(self):
 
         hand_low = (-0.5, 0.40, 0.07)
@@ -73,9 +68,8 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_bin_picking.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        obj = ob[4:7]
+    def evaluate_state(self, obs, action):
+        obj = obs[4:7]
 
         (
             reward,
@@ -84,7 +78,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             obj_to_target,
             grasp_reward,
             in_place_reward
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
             'success': float(obj_to_target <= 0.05),
@@ -100,8 +94,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
@@ -121,23 +114,17 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
+        obj_height = self.get_body_com('obj')[2]
 
         if self.random_init:
             self.obj_init_pos = self._get_state_rand_vec()[:2]
-            self.obj_init_pos = np.concatenate((self.obj_init_pos, [self.objHeight]))
+            self.obj_init_pos = np.concatenate((self.obj_init_pos, [obj_height]))
 
         self._set_obj_xyz(self.obj_init_pos)
         self._target_pos = self.get_body_com('bin_goal')
         self._target_to_obj_init = None
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
@@ -153,7 +140,15 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            object_reach_radius=0.01,
+            xz_thresh=0.005,
+            high_density=True,
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]

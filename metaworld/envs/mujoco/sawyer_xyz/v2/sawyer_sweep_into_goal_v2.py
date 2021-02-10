@@ -47,8 +47,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_table_with_hole.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         (
             reward,
@@ -70,8 +69,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             'obj_to_target': target_to_obj,
             'unscaled_reward': reward,
         }
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
@@ -98,13 +96,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand(10)
-
-        rightFinger, leftFinger = self._get_site_pos('rightEndEffector'), self._get_site_pos('leftEndEffector')
-        self.init_fingerCOM  =  (rightFinger + leftFinger)/2
-        self.reachCompleted = False
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
@@ -141,7 +132,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-
         assert right_caging >= 0 and right_caging <= 1
         assert left_caging >= 0 and left_caging <= 1
 
@@ -155,7 +145,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
         init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
@@ -179,7 +168,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         assert caging_and_gripping >= 0 and caging_and_gripping <= 1
 
         return caging_and_gripping
-
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05

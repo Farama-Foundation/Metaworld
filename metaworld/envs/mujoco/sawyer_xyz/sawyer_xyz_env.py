@@ -129,6 +129,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.array([+1, +1, +1, +1]),
         )
 
+        self.isV2 = "V2" in type(self).__name__
+        # Technically these observation lengths are different between v1 and v2,
+        # but we handle that elsewhere and just stick with v2 numbers here
         self._obs_obj_max_len = 14
         self._obs_obj_possible_lens = (7, 14)
 
@@ -139,11 +142,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
 
+        self._last_stable_obs = None
         # Note: It is unlikely that the positions and orientations stored
-        # in this initiation of prev_obs are correct. That being said, it
+        # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
-        self.prev_obs = self._get_curr_obs_combined_no_goal()
+        self._prev_obs = self._get_curr_obs_combined_no_goal()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -181,29 +185,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = goals
         # update the goal_space to a Discrete space
         self.discrete_goal_space = Discrete(len(self.discrete_goals))
-
-    # Belows are methods for using the new wrappers.
-    # `sample_goals` is implmented across the sawyer_xyz
-    # as sampling from the task lists. This will be done
-    # with the new `discrete_goals`. After all the algorithms
-    # conform to this API (i.e. using the new wrapper), we can
-    # just remove the underscore in all method signature.
-    def sample_goals_(self, batch_size):
-        assert False
-        if self.discrete_goal_space is not None:
-            return [self.discrete_goal_space.sample() for _ in range(batch_size)]
-        else:
-            return [self.goal_space.sample() for _ in range(batch_size)]
-
-    def set_goal_(self, goal):
-        assert False
-        if self.discrete_goal_space is not None:
-            self.active_discrete_goal = goal
-            self.goal = self.discrete_goals[goal]
-            self._target_pos_idx = np.zeros(len(self.discrete_goals))
-            self._target_pos_idx[goal] = 1.
-        else:
-            self.goal = goal
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -307,7 +288,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
-        raise NotImplementedError
+        if self.isV2:
+            raise NotImplementedError
+        else:
+            return np.zeros(4)
 
     def _get_pos_goal(self):
         """Retrieves goal position from mujoco properties or instance vars
@@ -374,9 +358,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             pos_goal = np.zeros_like(pos_goal)
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        obs = np.hstack((curr_obs, self.prev_obs, pos_goal))
-        self.prev_obs = curr_obs
-        return obs
+        obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+        self._prev_obs = curr_obs
+        return obs if self.isV2 else np.hstack((obs[:3], obs[4:10], obs[-3:]))
 
     def _get_obs_dict(self):
         obs = self._get_obs()
@@ -388,39 +372,88 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obj_low = np.full(self._obs_obj_max_len, -np.inf)
-        obj_high = np.full(self._obs_obj_max_len, +np.inf)
+        obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
+
+        obj_low = np.full(obs_obj_max_len, -np.inf)
+        obj_high = np.full(obs_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
             else self.goal_space.high
         gripper_low = -1.
         gripper_high = +1.
+
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
+        ) if self.isV2 else Box(
+            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
+        self.curr_path_length += 1
 
+        # Running the simulator can sometimes mess up site positions, so
+        # re-position them here to make sure they're accurate
         for site in self._target_site_config:
             self._set_pos_site(*site)
 
-        return self._get_obs()
+        if self._did_see_sim_exception:
+            return (
+                self._last_stable_obs,  # observation just before going unstable
+                0.0,  # reward (penalize for causing instability)
+                False,  # termination flag always False
+                {  # info
+                    'success': False,
+                    'near_object': 0.0,
+                    'grasp_success': False,
+                    'grasp_reward': 0.0,
+                    'in_place_reward': 0.0,
+                    'obj_to_target': 0.0,
+                    'unscaled_reward': 0.0,
+                }
+            )
+
+        self._last_stable_obs = self._get_obs()
+        if not self.isV2:
+            # v1 environments expect this superclass step() to return only the
+            # most recent observation. they override the rest of the
+            # functionality and end up returning the same sort of tuple that
+            # this does
+            return self._last_stable_obs
+
+        reward, info = self.evaluate_state(self._last_stable_obs, action)
+        return self._last_stable_obs, reward, False, info
+
+    def evaluate_state(self, obs, action):
+        """Does the heavy-lifting for `step()` -- namely, calculating reward
+        and populating the `info` dict with training metrics
+
+        Returns:
+            float: Reward between 0 and 10
+            dict: Dictionary which contains useful metrics (success,
+                near_object, grasp_success, grasp_reward, in_place_reward,
+                obj_to_target, unscaled_reward)
+
+        """
+        # Throw error rather than making this an @abc.abstractmethod so that
+        # V1 environments don't have to implement it
+        raise NotImplementedError
 
     def reset(self):
         self.curr_path_length = 0
         return super().reset()
 
     def _reset_hand(self, steps=50):
-        self.init_tcp = self.tcp_center
         for _ in range(steps):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
+        self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
@@ -438,9 +471,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                                action,
                                obj_pos,
                                obj_radius,
-                               pad_success_margin,
+                               pad_success_thresh,
                                object_reach_radius,
-                               x_z_margin,
+                               xz_thresh,
+                               desired_gripper_effort=1.0,
                                high_density=False,
                                medium_density=False):
         """Reward for agent grasping obj
@@ -449,11 +483,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                     delta(x), delta(y), delta(z), gripper_effort
                 obj_pos(np.ndarray): (3,) array representing the obj x,y,z
                 obj_radius(float):radius of object's bounding sphere
-                pad_success_margin(float): successful distance of gripper_pad
+                pad_success_thresh(float): successful distance of gripper_pad
                     to object
                 object_reach_radius(float): successful distance of gripper center
                     to the object.
-                x_z_margin(float): successful distance of gripper in x_z axis to the
+                xz_thresh(float): successful distance of gripper in x_z axis to the
                     object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
@@ -463,27 +497,48 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         left_pad = self.get_body_com('leftpad')
         right_pad = self.get_body_com('rightpad')
 
-        tcp = self.tcp_center
-        tcp_to_obj = np.linalg.norm(obj_pos - tcp)
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
-        reach = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, object_reach_radius),
-            margin=abs(tcp_to_obj_init-object_reach_radius),
-            sigmoid='long_tail',
-        )
-
+        # get current positions of left and right pads (Y axis)
         pad_y_lr = np.hstack((left_pad[1], right_pad[1]))
-        pad_y_lr_init = np.hstack((self.init_left_pad[1], self.init_right_pad[1]))
+        # compare *current* pad positions with *current* obj position (Y axis)
+        pad_to_obj_lr = np.abs(pad_y_lr - obj_pos[1])
+        # compare *current* pad positions with *initial* obj position (Y axis)
+        pad_to_objinit_lr = np.abs(pad_y_lr - self.obj_init_pos[1])
 
-        obj_to_pad_lr = np.abs(pad_y_lr - obj_pos[1])
-        obj_to_pad_lr_init = np.abs(pad_y_lr_init - self.obj_init_pos[1])
-
-        caging_margin_lr = np.abs(obj_to_pad_lr_init - pad_success_margin)
+        # Compute the left/right caging rewards. This is crucial for success,
+        # yet counterintuitive mathematically because we invented it
+        # accidentally.
+        #
+        # Before touching the object, `pad_to_obj_lr` ("x") is always separated
+        # from `caging_lr_margin` ("the margin") by some small number,
+        # `pad_success_thresh`.
+        #
+        # When far away from the object:
+        #       x = margin + pad_success_thresh
+        #       --> Thus x is outside the margin, yielding very small reward.
+        #           Here, any variation in the reward is due to the fact that
+        #           the margin itself is shifting.
+        # When near the object (within pad_success_thresh):
+        #       x = pad_success_thresh - margin
+        #       --> Thus x is well within the margin. As long as x > obj_radius,
+        #           it will also be within the bounds, yielding maximum reward.
+        #           Here, any variation in the reward is due to the gripper
+        #           moving *too close* to the object (i.e, blowing past the
+        #           obj_radius bound).
+        #
+        # Therefore, before touching the object, this is very nearly a binary
+        # reward -- if the gripper is between obj_radius and pad_success_thresh,
+        # it gets maximum reward. Otherwise, the reward very quickly falls off.
+        #
+        # After grasping the object and moving it away from initial position,
+        # x remains (mostly) constant while the margin grows considerably. This
+        # penalizes the agent if it moves *back* toward `obj_init_pos`, but
+        # offers no encouragement for leaving that position in the first place.
+        # That part is left to the reward functions of individual environments.
+        caging_lr_margin = np.abs(pad_to_objinit_lr - pad_success_thresh)
         caging_lr = [reward_utils.tolerance(
-            obj_to_pad_lr[i],
-            bounds=(obj_radius, pad_success_margin),
-            margin=caging_margin_lr[i],
+            pad_to_obj_lr[i],  # "x" in the description above
+            bounds=(obj_radius, pad_success_thresh),
+            margin=caging_lr_margin[i],  # "margin" in the description above
             sigmoid='long_tail',
         ) for i in range(2)]
         caging_y = reward_utils.hamacher_product(*caging_lr)
@@ -491,18 +546,23 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # MARK: X-Z gripper information for caging reward-----------------------
         tcp = self.tcp_center
         xz = [0, 2]
-        xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
-        xz_margin -= x_z_margin
 
+        # Compared to the caging_y reward, caging_xz is simple. The margin is
+        # constant (something in the 0.3 to 0.5 range) and x shrinks as the
+        # gripper moves towards the object. After picking up the object, the
+        # reward is maximized and changes very little
+        caging_xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
+        caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
-            np.linalg.norm(tcp[xz] - obj_pos[xz]),
-            bounds=(0, x_z_margin),
-            margin=xz_margin,
+            np.linalg.norm(tcp[xz] - obj_pos[xz]),  # "x" in the description above
+            bounds=(0, xz_thresh),
+            margin=caging_xz_margin,  # "margin" in the description above
             sigmoid='long_tail',
         )
 
         # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = min(max(0, action[-1]), 1)
+        gripper_closed = min(max(0, action[-1]), desired_gripper_effort) \
+                         / desired_gripper_effort
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
@@ -512,6 +572,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if high_density:
             caging_and_gripping = (caging_and_gripping + caging) / 2
         if medium_density:
+            tcp = self.tcp_center
+            tcp_to_obj = np.linalg.norm(obj_pos - tcp)
+            tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
+            # Compute reach reward
+            # - We subtract `object_reach_radius` from the margin so that the
+            #   reward always starts with a value of 0.1
+            reach_margin = abs(tcp_to_obj_init - object_reach_radius)
+            reach = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, object_reach_radius),
+                margin=reach_margin,
+                sigmoid='long_tail',
+            )
             caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping

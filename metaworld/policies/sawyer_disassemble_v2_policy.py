@@ -11,9 +11,10 @@ class SawyerDisassembleV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'wrench_pos': obs[3:6],
-            'peg_pos': obs[9:],
-            'unused_info': obs[6:9],
+            'gripper': obs[3],
+            'wrench_pos': obs[4:7],
+            'peg_pos': obs[-3:],
+            'unused_info': obs[7:-3],
         }
 
     def get_action(self, obs):
@@ -41,12 +42,9 @@ class SawyerDisassembleV2Policy(Policy):
         # Once XY error is low enough, drop end effector down on top of wrench
         elif abs(pos_curr[2] - pos_wrench[2]) > 0.03:
             return pos_wrench
-        # If still hooked on peg, move upwards
-        elif pos_wrench[2] < 0.12:
-            return pos_peg + np.array([.0, .0, .1])
-        # Move away from peg
+        # Move upwards
         else:
-            return pos_curr + np.array([.0, -.1, .0])
+            return pos_curr + np.array([.0, .0, .1])
 
     @staticmethod
     def _grab_effort(o_d):

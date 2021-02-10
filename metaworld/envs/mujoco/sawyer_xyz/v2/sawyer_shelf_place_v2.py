@@ -10,8 +10,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def __init__(self):
-
-        liftThresh = 0.04
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -34,8 +32,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-
-        self.liftThresh = liftThresh
         
         self.num_resets = 0
 
@@ -50,8 +46,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_shelf_placing.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place = self.compute_reward(action, obs)
         success = float(obj_to_target <= 0.07)
@@ -68,10 +63,8 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
 
         }
-        self.curr_path_length += 1
 
-
-        return obs, reward, False, info
+        return reward, info
 
 
     def _get_pos_objects(self):
@@ -97,8 +90,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self._target_pos = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -110,21 +101,9 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             self._target_pos = self.sim.model.site_pos[self.model.site_name2id('goal')] + self.sim.model.body_pos[self.model.body_name2id('shelf')]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)) + self.heightTarget
-        self.target_reward = 1000*self.maxPlacingDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()
-
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        rightFinger, leftFinger = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_fingerCOM = (rightFinger + leftFinger) / 2
-        self.pickCompleted = False
 
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
@@ -143,12 +122,12 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
                                     sigmoid='long_tail',)
 
         object_grasped = self._gripper_caging_reward(action=action,
-                                                    obj_pos=obj,
-                                                    obj_radius=0.02,
-                                                    pad_success_margin=0.05,
-                                                    object_reach_radius=0.01,
-                                                    x_z_margin=0.01,
-                                                    high_density=False)
+                                                     obj_pos=obj,
+                                                     obj_radius=0.02,
+                                                     pad_success_thresh=0.05,
+                                                     object_reach_radius=0.01,
+                                                     xz_thresh=0.01,
+                                                     high_density=False)
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         if (0.0 < obj[2] < 0.24 and \

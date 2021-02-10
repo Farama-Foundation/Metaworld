@@ -26,7 +26,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             the hole's position, as opposed to hand_low and hand_high
     """
     def __init__(self):
-        liftThresh = 0.11
         hand_init_pos = (0, 0.6, 0.2)
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -52,9 +51,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-        
-
         self.hand_init_pos = np.array(hand_init_pos)
 
         self._random_reset_space = Box(
@@ -71,10 +67,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_peg_insertion_side.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-
-        obs = self._get_obs()
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
         reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward, collision_box_front, ip_orig= (
@@ -93,8 +86,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self._get_site_pos('pegGrasp')
@@ -118,15 +110,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
         self._target_pos = pos_box + np.array([.03, .0, .13])
-        
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         tcp = self.tcp_center
@@ -170,8 +155,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
                                                      obj,
                                                      object_reach_radius=object_reach_radius,
                                                      obj_radius=obj_radius,
-                                                     pad_success_margin=pad_success_margin,
-                                                     x_z_margin=x_z_margin,
+                                                     pad_success_thresh=pad_success_margin,
+                                                     xz_thresh=x_z_margin,
                                                      high_density=True)
         if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             object_grasped = 1.

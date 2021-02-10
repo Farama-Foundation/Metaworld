@@ -8,8 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 class SawyerStickPullEnvV2(SawyerXYZEnv):
 
     def __init__(self):
-
-        liftThresh = 0.04
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.55, 0.000)
@@ -31,8 +29,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self.stick_init_pos = self.init_config['stick_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = liftThresh
-
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.0])
         self.obj_init_qpos = np.array([0., 0.09])
@@ -48,10 +44,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, _, reachDist, pickRew, _, pullDist, _ = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        reward, _, reachDist, pickRew, _, pullDist, _ = self.compute_reward(action, obs)
 
         info = {
             'reachDist': reachDist,
@@ -61,7 +55,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             'success': float(pullDist <= 0.08 and reachDist <= 0.05)
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return np.hstack((
@@ -111,10 +105,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self.maxPlaceDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self.stick_init_pos)) + self.heightTarget
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
 
