@@ -74,6 +74,10 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
         return reward, info
 
+    @property
+    def _target_site_config(self):
+        return []
+
     def _get_pos_objects(self):
         return self._get_site_pos('handleStart')
 
