@@ -76,7 +76,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
 
 def obs_space_error_text(env, obs):
     return "Obs Out of Bounds\n\tlow: {}, \n\tobs: {}, \n\thigh: {}".format(
-        env.observation_space.low[[0, 1, 2, 9, 10, 11]],
-        obs[[0, 1, 2, 9, 10, 11]],
-        env.observation_space.high[[0, 1, 2, 9, 10, 11]]
+        env.observation_space.low[[0, 1, 2, -3, -2, -1]],
+        obs[[0, 1, 2, -3, -2, -1]],
+        env.observation_space.high[[0, 1, 2, -3, -2, -1]]
     )

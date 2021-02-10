@@ -57,9 +57,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
-    def evaluate_state(self, action):
-        ob = super().step(action)
-        obj = ob[4:7]
+    def evaluate_state(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -67,7 +65,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             obj_to_target,
             object_grasped,
             in_place
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
@@ -82,15 +80,13 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos('puck')
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(self.data.get_geom_xmat('puck')).as_quat()
-
 
     def _get_obs_dict(self):
         return dict(
@@ -142,8 +138,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
                                     margin=obj_grasped_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
         reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:

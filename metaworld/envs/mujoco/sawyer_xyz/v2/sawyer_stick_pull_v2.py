@@ -46,8 +46,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
-    def evaluate_state(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         stick = obs[4:7]
         handle = obs[11:14]
         end_of_stick = self._get_site_pos('stick_end')
@@ -69,9 +68,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             'obj_to_target': container_to_target,
             'unscaled_reward': reward,
         }
-        self.curr_path_length += 1
 
-        return obs, reward, False, info
+        return reward, info
 
     def _get_pos_objects(self):
         return np.hstack((
@@ -108,8 +106,6 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.array([0.2, 0.69, 0.04])
         self.obj_init_qpos = np.array([0., 0.09])
         self.stick_init_pos = self.init_config['stick_init_pos']
-        self.stickHeight = self.get_body_com('stick').copy()[2]
-        self.heightTarget = self.stickHeight + self.liftThresh
         self._target_pos = np.array([0.3, 0.4, self.stick_init_pos[-1]])
 
         if self.random_init:
@@ -124,18 +120,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com('object').copy()
-        self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] -
-                                          self._target_pos[:-1])
-        self.maxPlaceDist = np.linalg.norm(
-            np.array([
-                self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget
-            ]) - np.array(self.stick_init_pos)) + self.heightTarget
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.pickCompleted = False
 
     def _stick_is_inserted(self, handle, end_of_stick):
         return (end_of_stick[0] >= handle[0]) \
@@ -188,9 +174,9 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             action=action,
             obj_pos=stick,
             obj_radius=0.014,
-            pad_success_margin=0.05,
+            pad_success_thresh=0.05,
             object_reach_radius=0.01,
-            x_z_margin=0.01,
+            xz_thresh=0.01,
             high_density=True
         )
 
