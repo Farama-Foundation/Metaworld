@@ -79,8 +79,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             'obj_to_target': obj_to_target,
             'unscaled_reward': reward
         }
-
-        self.curr_path_length += 1
         return reward, info
 
     def _get_pos_objects(self):
