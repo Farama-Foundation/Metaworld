@@ -141,7 +141,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos) 
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -165,6 +165,9 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             reward += 1. + 5. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
+
+        print("REWARD: {}".format(reward))
+        
         return (
             reward,
             tcp_to_obj,
