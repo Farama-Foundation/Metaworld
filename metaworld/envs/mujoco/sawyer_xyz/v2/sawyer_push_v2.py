@@ -159,15 +159,15 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             xz_thresh=0.005,
             high_density=True
         )
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
+        reward = 2 * object_grasped
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 1. + reward + 5. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
 
         print("REWARD: {}".format(reward))
-        
+
         return (
             reward,
             tcp_to_obj,
