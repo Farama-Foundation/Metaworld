@@ -87,7 +87,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
     def _get_quat_objects(self):
         return Rotation.from_matrix(self.data.get_geom_xmat('puck')).as_quat()
 
-
     def _get_obs_dict(self):
         return dict(
             state_observation=self._get_obs(),
@@ -138,8 +137,6 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
                                     margin=obj_grasped_margin - _TARGET_RADIUS,
                                     sigmoid='long_tail',)
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place)
         reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:

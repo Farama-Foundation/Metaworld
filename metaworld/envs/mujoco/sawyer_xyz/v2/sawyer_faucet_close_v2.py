@@ -6,6 +6,8 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
+    HANDLE_LENGTH = 0.175
+
     def __init__(self):
 
         hand_low = (-0.5, 0.40, -0.15)
@@ -29,14 +31,11 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.handle_length = 0.175
 
     @property
     def model_name(self):
@@ -71,7 +70,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             -np.cos(knob_angle_rad),
             0
         ])
-        offset *= self.handle_length
+        offset *= self.HANDLE_LENGTH
 
         return knob_center + offset
 
