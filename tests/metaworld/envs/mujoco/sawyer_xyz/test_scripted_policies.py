@@ -261,7 +261,7 @@ def env(request):
     test_cases,
     indirect=['env']
 )
-def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=1000):
+def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -278,6 +278,6 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
 
     successes = 0
     for _ in range(iters):
-        successes += float(trajectory_summary(env, policy, act_noise_pct, render=True)[0])
+        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
     print(successes)
     assert successes >= expected_success_rate * iters
