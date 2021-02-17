@@ -166,8 +166,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
 
-        print("REWARD: {}".format(reward))
-
         return (
             reward,
             tcp_to_obj,
