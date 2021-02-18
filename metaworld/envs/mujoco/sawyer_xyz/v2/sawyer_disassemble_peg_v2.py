@@ -154,16 +154,18 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             obj_radius=0.015,
             pad_success_thresh=0.02,
             xz_thresh=0.01,
-            medium_density=True,
+            high_density=True,
         )
         reward_in_place = SawyerNutDisassembleEnvV2._reward_pos(
             wrench_center,
             self._target_pos
         )
 
-        reward = (4.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
+        reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success
         success = obs[6] > self._target_pos[2]
+        if success:
+            reward = 10.0
 
         return (
             reward,
