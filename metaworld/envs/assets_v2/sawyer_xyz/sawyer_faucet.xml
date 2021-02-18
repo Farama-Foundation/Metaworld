@@ -7,9 +7,6 @@
 
         <body name="faucetBase" pos="0 0.8 0">
             <include file="../objects/assets/faucet.xml"/>
-            <site name="handleStartOpen" pos="-0.015 -0.175 0.125" size="0.005" rgba="1 1 1 1"/>
-
-            <site name="handleStartClose" pos="0.015 -0.175 0.125" size="0.005" rgba="0 0 0 1"/>
 
         </body>
 
