@@ -46,12 +46,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
-            opened,
+            grasp_success,
             obj_to_target,
             grasp_reward,
             in_place_reward
@@ -59,11 +57,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(
-            self.touching_main_object and
-            (opened > 0) and
-            (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(grasp_success)
 
         info = {
             'success': success,
@@ -112,25 +106,25 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def compute_reward(self, action, obs):
-        obj = obs[4:7] + np.array([.0, .0, .02])
+        obj = obs[4:7]
         gripper = self.tcp_center
 
         obj_to_target = np.linalg.norm(obj - self._target_pos)
         tcp_to_obj = np.linalg.norm(obj - gripper)
         in_place_margin = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
-        threshold = 0.06
-        # floor is a 3D funnel centered on the object
-        radius = np.linalg.norm(gripper[:2] - obj[:2])
+        threshold = 0.03
+        # floor is a 3D funnel centered on the initial object pos
+        radius = np.linalg.norm(gripper[:2] - self.obj_init_pos[:2])
         if radius <= threshold:
-            floor = (obj[2] - 0.05) + 0.0
+            floor = 0.0
         else:
-            floor = (obj[2] - 0.05) + 0.015 * np.log(radius - threshold) + 0.15
+            floor = 0.015 * np.log(radius - threshold) + 0.15
         # prevent the hand from running into cliff edge by staying above floor
         above_floor = 1.0 if gripper[2] >= floor else reward_utils.tolerance(
-            floor - gripper[2],
+            max(floor - gripper[2], 0.0),
             bounds=(0.0, 0.01),
-            margin=0.05,
+            margin=0.02,
             sigmoid='long_tail',
         )
         object_grasped = self._gripper_caging_reward(
@@ -145,30 +139,29 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         )
         in_place = reward_utils.tolerance(
             obj_to_target,
-            bounds=(0, SawyerPickOutOfHoleEnvV2._TARGET_RADIUS),
+            bounds=(0, 0.02),
             margin=in_place_margin,
             sigmoid='long_tail'
         )
-        reward = reward_utils.hamacher_product(
-            object_grasped,
-            (in_place + above_floor) / 2.0
-        )
+        reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        near_object = tcp_to_obj < 0.02
-        closed = obs[3] > 0.
-        lifted = (obj[2] - 0.05) - 0.02 > self.obj_init_pos[2]
-
+        near_object = tcp_to_obj < 0.04
+        pinched_without_obj = obs[3] < 0.33
+        lifted = obj[2] - 0.02 > self.obj_init_pos[2]
         # Increase reward when properly grabbed obj
-        if near_object and closed and lifted:
-            reward += 1. + 5. * in_place
+        grasp_success = near_object and lifted and not pinched_without_obj
+        if grasp_success:
+            reward += 1. + 5. * reward_utils.hamacher_product(
+                in_place, above_floor
+            )
         # Maximize reward on success
-        if obj_to_target < SawyerPickOutOfHoleEnvV2._TARGET_RADIUS:
+        if obj_to_target < self.TARGET_RADIUS:
             reward = 10.
 
         return (
             reward,
             tcp_to_obj,
-            closed,
+            grasp_success,
             obj_to_target,
             object_grasped,
             in_place,
