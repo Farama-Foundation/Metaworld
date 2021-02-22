@@ -69,12 +69,10 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        obj = obs[4:7]
-
         (
             reward,
-            tcp_to_obj,
-            tcp_open,
+            near_object,
+            grasp_success,
             obj_to_target,
             grasp_reward,
             in_place_reward
@@ -82,11 +80,8 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
         info = {
             'success': float(obj_to_target <= 0.05),
-            'near_object': float(tcp_to_obj <= 0.03),
-            'grasp_success': float(
-                (tcp_open > 0) and
-                (obj[2] - 0.02 > self.obj_init_pos[2])
-            ),
+            'near_object': float(near_object),
+            'grasp_success': float(grasp_success),
             'grasp_reward': grasp_reward,
             'in_place_reward': in_place_reward,
             'obj_to_target': obj_to_target,
@@ -157,7 +152,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         above_floor = 1.0 if hand[2] >= floor else reward_utils.tolerance(
             max(floor - hand[2], 0.0),
             bounds=(0.0, 0.01),
-            margin=0.02,
+            margin=0.05,
             sigmoid='long_tail',
         )
 
@@ -173,20 +168,23 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        tcp_opened = obs[3]
-        tcp_to_obj = np.linalg.norm(obj - hand)
-
-        if tcp_to_obj < 0.05 and tcp_opened > 0.43:
-            reward += 1 + 5. * reward_utils.hamacher_product(
+        near_object = np.linalg.norm(obj - hand) < 0.04
+        pinched_without_obj = obs[3] < 0.43
+        lifted = obj[2] - 0.02 > self.obj_init_pos[2]
+        # Increase reward when properly grabbed obj
+        grasp_success = near_object and lifted and not pinched_without_obj
+        if grasp_success:
+            reward += 1. + 5. * reward_utils.hamacher_product(
                 above_floor, in_place
             )
+        # Maximize reward on success
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
 
         return (
             reward,
-            tcp_to_obj,
-            tcp_opened,
+            near_object,
+            grasp_success,
             target_to_obj,
             object_grasped,
             in_place
