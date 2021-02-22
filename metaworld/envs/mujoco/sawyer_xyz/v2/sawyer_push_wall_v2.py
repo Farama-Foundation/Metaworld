@@ -125,78 +125,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.num_resets += 1
         return self._get_obs()
 
-    def _gripper_caging_reward(self, action, obj_position, obj_radius):
-        pad_success_margin = 0.05
-        grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
-
-        tcp = self.tcp_center
-        left_pad = self.get_body_com('leftpad')
-        right_pad = self.get_body_com('rightpad')
-        delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
-
-        right_caging = reward_utils.tolerance(delta_object_y_right_pad,
-            bounds=(obj_radius, pad_success_margin),
-            margin=right_caging_margin,
-            sigmoid='long_tail',
-        )
-        left_caging = reward_utils.tolerance(delta_object_y_left_pad,
-            bounds=(obj_radius, pad_success_margin),
-            margin=left_caging_margin,
-            sigmoid='long_tail',
-        )
-
-        right_gripping = reward_utils.tolerance(delta_object_y_right_pad,
-            bounds=(obj_radius, grip_success_margin),
-            margin=right_caging_margin,
-            sigmoid='long_tail',
-        )
-        left_gripping = reward_utils.tolerance(delta_object_y_left_pad,
-            bounds=(obj_radius, grip_success_margin),
-            margin=left_caging_margin,
-            sigmoid='long_tail',
-        )
-
-        assert right_caging >= 0 and right_caging <= 1
-        assert left_caging >= 0 and left_caging <= 1
-
-        y_caging = reward_utils.hamacher_product(right_caging, left_caging)
-        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
-
-        assert y_caging >= 0 and y_caging <= 1
-
-        tcp_xz = tcp + np.array([0., -tcp[1], 0.])
-        obj_position_x_z = np.copy(obj_position) + np.array([0., -obj_position[1], 0.])
-        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
-        init_obj_x_z = self.obj_init_pos + np.array([0., -self.obj_init_pos[1], 0.])
-        init_tcp_x_z = self.init_tcp + np.array([0., -self.init_tcp[1], 0.])
-
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        x_z_caging = reward_utils.tolerance(tcp_obj_norm_x_z,
-                                bounds=(0, x_z_success_margin),
-                                margin=tcp_obj_x_z_margin,
-                                sigmoid='long_tail',)
-
-        assert right_caging >= 0 and right_caging <= 1
-        gripper_closed = min(max(0, action[-1]), 1)
-        assert gripper_closed >= 0 and gripper_closed <= 1
-        caging = reward_utils.hamacher_product(y_caging, x_z_caging)
-        assert caging >= 0 and caging <= 1
-
-        if caging > 0.95:
-            gripping = y_gripping
-        else:
-            gripping = 0.
-        assert gripping >= 0 and gripping <= 1
-
-        caging_and_gripping = (caging + gripping) / 2
-        assert caging_and_gripping >= 0 and caging_and_gripping <= 1
-
-        return caging_and_gripping
-
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
@@ -226,16 +154,21 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             sigmoid='long_tail'
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            xz_thresh=0.005,
+            high_density=True
+        )
+        reward = 2 * object_grasped
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped,
-                                                                    in_place_part1)
-        reward = in_place_and_object_grasped
-
-        if tcp_to_obj < 0.02 and tcp_opened > 0 and object_grasped > 0.5:
-            reward = in_place_and_object_grasped + 1. + 4. * in_place_part1
+        if tcp_to_obj < 0.02 and tcp_opened > 0:
+            reward = 2 * object_grasped + 1. + 4. * in_place_part1
             if obj[1] > 0.75:
-                reward = in_place_and_object_grasped + 1. + 4. + 3. * in_place_part2
+                reward = 2 * object_grasped + 1. + 4. + 3. * in_place_part2
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.

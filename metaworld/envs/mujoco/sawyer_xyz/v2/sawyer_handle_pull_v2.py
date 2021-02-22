@@ -117,7 +117,8 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
             action,
             obj,
             pad_success_thresh=0.05,
-            object_reach_radius=0.022,
+            obj_radius=0.022,
+            object_reach_radius=0.01,
             xz_thresh=0.01,
             high_density=True,
         )
