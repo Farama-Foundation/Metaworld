@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box
+from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -7,6 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
+    _TARGET_RADIUS = 0.02
 
     def __init__(self):
         hand_low = (-0.5, 0.40, -0.05)
