@@ -30,21 +30,19 @@ class SawyerHandlePullV2Policy(Policy):
 
     @staticmethod
     def _desired_pos(o_d):
-        pos_curr = o_d['hand_pos']
-        pos_handle = o_d['handle_pos']
+        pos_curr = o_d['hand_pos'] + np.array([0., 0.01, 0.])
+        pos_handle = o_d['handle_pos'] + np.array([0., 0., -0.01])
 
-        if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) > 0.02:
-            return pos_handle + np.array([.0, .0, .1])
-        if abs(pos_curr[2] - pos_handle[2]) > 0.02:
+        if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) > 0.03:
             return pos_handle
+        if abs(pos_curr[2] - pos_handle[2]) > 0.03:
+            return pos_handle[2]
         return pos_handle + np.array([0., 0., 1.])
 
     @staticmethod
     def _grab_effort(o_d):
-        pos_curr = o_d['hand_pos']
-        pos_handle = o_d['handle_pos'] + np.array([-.06, .0, .0])
-
-        if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) > 0.02 or abs(pos_curr[2] - pos_handle[2]) > 0.06:
-            return 0.
-        else:
-            return 0.6
+        pos_curr = o_d['hand_pos'] + np.array([0.01, 0., 0.])
+        pos_handle = o_d['handle_pos'] + np.array([0., 0., -0.01])
+        if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) < 0.02 and abs(pos_curr[2] - (pos_handle[2] - 0.01)) < 0.032:
+            return 0.1
+        return 0.
