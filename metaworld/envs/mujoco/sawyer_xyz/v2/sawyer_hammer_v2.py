@@ -146,18 +146,21 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         reward_grab = self._gripper_caging_reward(
             actions, hammer_threshed,
             object_reach_radius=0.01,
-            obj_radius=0.02,
-            pad_success_thresh=0.05,
+            obj_radius=0.015,
+            pad_success_thresh=0.02,
             xz_thresh=0.01,
-            medium_density=True,
+            high_density=True,
         )
         reward_in_place = SawyerHammerEnvV2._reward_pos(
             hammer_head,
             self._target_pos
         )
 
-        reward = (2.0 * reward_grab + 8.0 * reward_in_place) * reward_quat
+        reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
+        # Override reward on success
         success = self.data.get_joint_qpos('NailSlideJoint') > 0.09
+        if success:
+            reward = 10.0
 
         return (
             reward,
