@@ -137,6 +137,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = data['partially_observable']
         del data['partially_observable']
         self._set_task_inner(**data)
+        self.reset()
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
