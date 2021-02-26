@@ -86,4 +86,4 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
 
-        return [reward, in_place, hand_in_place]
+        return [reward, obj_to_target, hand_in_place]
