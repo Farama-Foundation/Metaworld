@@ -12,8 +12,8 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
         obj_high = (-0.15, 0.8, 0.001)
-        goal_low = obj_low + np.array([.244, .0, .131])
-        goal_high = obj_high + np.array([.244, .0, .131])
+        goal_low = obj_low + np.array([.194, .0, .131])
+        goal_high = obj_high + np.array([.194, .0, .131])
 
         super().__init__(
             self.model_name,
@@ -82,9 +82,9 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
         pos_plug = pos_box + np.array([.044, .0, .131])
         self._set_obj_xyz(pos_plug)
-        self.obj_init_pos = pos_plug
+        self.obj_init_pos = self._get_site_pos('pegEnd')
 
-        self._target_pos = pos_plug + np.array([.2, .0, .0])
+        self._target_pos = pos_plug + np.array([.15, .0, .0])
 
         return self._get_obs()
 
@@ -110,6 +110,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             desired_gripper_effort=0.8,
             high_density=True)
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+        
         in_place = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, 0.05),
@@ -117,11 +118,19 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
         grasp_success = (tcp_opened > 0.3 and 
-            (obj[0] - self.obj_init_pos[0] > 0.03))
-        reward = object_grasped
-        if obj_to_target <= 0.07:
+            (obj[0] - self.obj_init_pos[0] > 0.005))
+        reward = 2 * object_grasped
+
+
+        if grasp_success:
+            reward = 2 * object_grasped + 5 * in_place
+
+        if obj_to_target <= 0.05:
             reward = 10.
         # something is wrong with the peg end in peg unplug.
+
+        print("REWARD: {}, {}, {}".format(reward, object_grasped, in_place))
+        # print(self.obj_init_pos, obj)
 
         return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, float(
             grasp_success)
