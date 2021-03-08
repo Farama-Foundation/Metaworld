@@ -98,7 +98,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         pad_success_margin = 0.05
         object_reach_radius = 0.01
         x_z_margin = 0.005
-        obj_radius = 0.015
+        obj_radius = 0.025
 
         object_grasped = self._gripper_caging_reward(
             action,
@@ -117,20 +117,17 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             margin=in_place_margin,
             sigmoid='long_tail',
         )
-        grasp_success = (tcp_opened > 0.3 and 
-            (obj[0] - self.obj_init_pos[0] > 0.005))
+        grasp_success = (tcp_opened > 0.5 and 
+            (obj[0] - self.obj_init_pos[0] > 0.015))
+        
+        
         reward = 2 * object_grasped
 
-
-        if grasp_success:
-            reward = 2 * object_grasped + 5 * in_place
+        if grasp_success and tcp_to_obj < 0.035:
+            reward = 1 + 2 * object_grasped + 5 * in_place
 
         if obj_to_target <= 0.05:
             reward = 10.
-        # something is wrong with the peg end in peg unplug.
-
-        print("REWARD: {}, {}, {}".format(reward, object_grasped, in_place))
-        # print(self.obj_init_pos, obj)
 
         return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, float(
             grasp_success)
