@@ -9,7 +9,10 @@
       <body name="plug1" pos="-.252 .6 .131">
         <joint type="free"/>
         <include file="../objects/assets/plug.xml"/>
-
+        <!-- <geom pos="-0.035 0 0" size="0.036 0.021 0.021" type="box" mass=".001" rgba="0.8 0 0 1"/>
+        <geom euler="0 1.57 0" pos="-0.013 0 0" size="0.045  0.007" type="cylinder" mass=".001" rgba="0.8 0 0 1"/>
+        <geom pos="0.06 0 0" size="0.04" type="sphere" mass=".001" rgba="0.8 0 0 1"/>
+        <geom euler="0 1.57 0" pos="0.025 0.0 -0.0" size="0.038 0.038 0.035" type="box" mass=".001"/> -->
       </body>
 
       <body name="box" pos="-.3 .6 0">
