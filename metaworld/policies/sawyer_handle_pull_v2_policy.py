@@ -11,7 +11,7 @@ class SawyerHandlePullV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'handle_pos': obs[3:6],
+            'handle_pos': obs[4:7],
             'unused_info': obs[6:],
         }
 
@@ -31,20 +31,14 @@ class SawyerHandlePullV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_handle = o_d['handle_pos'] + np.array([-.06, .0, .0])
+        pos_handle = o_d['handle_pos'] + np.array([0, -0.04, 0])
 
         if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) > 0.02:
-            return pos_handle + np.array([.0, .0, .1])
-        if abs(pos_curr[2] - pos_handle[2]) > 0.02:
             return pos_handle
-        return pos_handle + np.array([0., 0., 1.])
+        if abs(pos_curr[2] - pos_handle[2]) > 0.02:
+            return pos_handle[2]
+        return pos_handle + np.array([0., 0., 0.1])
 
     @staticmethod
     def _grab_effort(o_d):
-        pos_curr = o_d['hand_pos']
-        pos_handle = o_d['handle_pos'] + np.array([-.06, .0, .0])
-
-        if np.linalg.norm(pos_curr[:2] - pos_handle[:2]) > 0.02 or abs(pos_curr[2] - pos_handle[2]) > 0.06:
-            return 0.
-        else:
-            return 0.6
+        return 1.

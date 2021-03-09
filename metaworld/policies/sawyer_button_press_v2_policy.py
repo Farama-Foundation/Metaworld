@@ -10,8 +10,9 @@ class SawyerButtonPressV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'button_start_pos': obs[3:6],
-            'unused_info': obs[6:],
+            'hand_closed': obs[3],
+            'button_pos': obs[4:7],
+            'unused_info': obs[7:],
         }
 
     def get_action(self, obs):
@@ -30,7 +31,7 @@ class SawyerButtonPressV2Policy(Policy):
     @staticmethod
     def desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_button = o_d['button_start_pos'] + np.array([0., 0., -0.07])
+        pos_button = o_d['button_pos'] + np.array([0., 0., -0.07])
         
         # align the gripper with the button if the gripper does not have
         # the same x and z position as the button.

@@ -1,6 +1,7 @@
 import numpy as np
 from gym.spaces import Box
 
+from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 
@@ -36,41 +37,51 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 150
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-        self.target_reward = 1000 * self.max_dist + 1000 * 2
-
     @property
     def model_name(self):
         return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        reward, reachDist, pushDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
+    def evaluate_state(self, obs, action):
+        (
+            reward,
+            tcp_to_obj,
+            tcp_open,
+            obj_to_target,
+            near_button,
+            button_pressed
+        ) = self.compute_reward(action, obs)
+
         info = {
-            'reachDist': reachDist,
-            'goalDist': pushDist,
-            'epRew': reward,
-            'pickRew': None,
-            'success': float(pushDist <= 0.02)
+            'success': float(obj_to_target <= 0.02),
+            'near_object': float(tcp_to_obj <= 0.05),
+            'grasp_success': float(tcp_open > 0),
+            'grasp_reward': near_button,
+            'in_place_reward': button_pressed,
+            'obj_to_target': obj_to_target,
+            'unscaled_reward': reward,
         }
 
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
         return [('coffee_goal', self._target_pos)]
 
+    def _get_id_main_object(self):
+        return None
+
     def _get_pos_objects(self):
         return self._get_site_pos('buttonStart')
+
+    def _get_quat_objects(self):
+        return np.array([1., 0., 0., 0.])
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flatten()
@@ -96,32 +107,38 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.reachCompleted = False
+    def compute_reward(self, action, obs):
+        del action
+        obj = obs[4:7]
+        tcp = self.tcp_center
 
-    def compute_reward(self, actions, obs):
-        del actions
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
+        obj_to_target = abs(self._target_pos[1] - obj[1])
 
-        objPos = obs[3:6]
+        tcp_closed = max(obs[3], 0.0)
+        near_button = reward_utils.tolerance(
+            tcp_to_obj,
+            bounds=(0, 0.05),
+            margin=tcp_to_obj_init,
+            sigmoid='long_tail',
+        )
+        button_pressed = reward_utils.tolerance(
+            obj_to_target,
+            bounds=(0, 0.005),
+            margin=self.max_dist,
+            sigmoid='long_tail',
+        )
 
-        leftFinger = self._get_site_pos('leftEndEffector')
-        fingerCOM  =  leftFinger
+        reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
+        if tcp_to_obj <= 0.05:
+            reward += 8 * button_pressed
 
-        pressGoal = self._target_pos[1]
-
-        pressDist = np.abs(objPos[1] - pressGoal)
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-
-        c1 = 1000
-        c2 = 0.01
-        c3 = 0.001
-        if reachDist < 0.05:
-            pressRew = 1000 * (self.max_dist - pressDist) + c1 * (np.exp(-(pressDist ** 2) / c2) + np.exp(-(pressDist ** 2) / c3))
-        else:
-            pressRew = 0
-
-        pressRew = max(pressRew, 0)
-        reward = -reachDist + pressRew
-
-        return [reward, reachDist, pressDist]
+        return (
+            reward,
+            tcp_to_obj,
+            obs[3],
+            obj_to_target,
+            near_button,
+            button_pressed
+        )

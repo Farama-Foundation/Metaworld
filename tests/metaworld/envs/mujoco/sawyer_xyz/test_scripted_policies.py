@@ -34,7 +34,7 @@ test_cases_latest_nonoise = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .0, 1.],
     ['assembly-v2', SawyerAssemblyV2Policy(), .0, 1.],
     ['basketball-v1', SawyerBasketballV1Policy(), .0, .98],
-    ['basketball-v2', SawyerBasketballV1Policy(), .0, .98],
+    ['basketball-v2', SawyerBasketballV2Policy(), .0, .98],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .0, .98],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .0, .85],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .0, .90],
@@ -125,7 +125,7 @@ test_cases_latest_noisy = [
     ['assembly-v1', SawyerAssemblyV1Policy(), .1, .69],
     ['assembly-v2', SawyerAssemblyV2Policy(), .1, .70],
     ['basketball-v1', SawyerBasketballV1Policy(), .1, .97],
-    ['basketball-v2', SawyerBasketballV1Policy(), .1, .96],
+    ['basketball-v2', SawyerBasketballV2Policy(), .1, .96],
     ['bin-picking-v2', SawyerBinPickingV2Policy(), .1, .96],
     ['box-close-v1', SawyerBoxCloseV1Policy(), .1, .84],
     ['box-close-v2', SawyerBoxCloseV2Policy(), .1, .82],
@@ -160,7 +160,7 @@ test_cases_latest_noisy = [
     ['drawer-open-v1', SawyerDrawerOpenV1Policy(), .1, .97],
     ['drawer-open-v2', SawyerDrawerOpenV2Policy(), .1, .97],
     ['faucet-close-v1', SawyerFaucetCloseV1Policy(), .1, .93],
-    ['faucet-close-v2', SawyerFaucetCloseV2Policy(), .1, .93],
+    ['faucet-close-v2', SawyerFaucetCloseV2Policy(), .1, 1.],
     ['faucet-open-v1', SawyerFaucetOpenV1Policy(), .1, .99],
     ['faucet-open-v2', SawyerFaucetOpenV2Policy(), .1, .99],
     ['hammer-v1', SawyerHammerV1Policy(), .1, .97],
@@ -171,13 +171,13 @@ test_cases_latest_noisy = [
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
     ['handle-press-v2', SawyerHandlePressV2Policy(), .1, 1.],
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
-    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .65],
+    ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .99],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
-    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .51],
+    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .84],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
-    ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .1, .95],
+    ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .1, .80],
     ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],
     ['pick-out-of-hole-v2', SawyerPickOutOfHoleV2Policy(), .1, .89],
     ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
@@ -211,6 +211,25 @@ test_cases_latest_noisy = [
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
 ]
 
+test_cases_latest_ml10 = [
+    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
+    ['reach-v2', SawyerReachV2Policy(), .1, .98],
+    ['push-v2', SawyerPushV2Policy(), .1, .88],
+    ['door-open-v2', SawyerDoorOpenV2Policy(), .1, .92],
+    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .97],
+    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .93],
+    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
+    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
+    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
+    ['drawer-close-v2', SawyerDrawerCloseV2Policy(), .1, .99],
+    ['drawer-open-v2', SawyerDrawerOpenV2Policy(), .1, .97],
+    ['sweep-into-v2',  SawyerSweepIntoV2Policy(), .1, 0.98],
+    ['dial-turn-v2', SawyerDialTurnV2Policy(), .1, 0.84],
+    ['basketball-v2', SawyerBasketballV2Policy(), .1, .96],
+    ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, .89],
+    ['sweep-v2', SawyerSweepV2Policy(), .1, 0.99],
+    ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
+]
 
 # Combine test cases into a single array to pass to parameterized test function
 test_cases = []
@@ -219,9 +238,11 @@ for row in test_cases_old_nonoise:
 for row in test_cases_old_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_nonoise:
-    test_cases.append(pytest.param(*row, marks=pytest.mark.skip_on_ci))
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+for row in test_cases_latest_ml10:
+    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 

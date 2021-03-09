@@ -11,9 +11,10 @@ class SawyerSoccerV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'ball_pos': obs[3:6],
-            'goal_pos': obs[9:],
-            'unused_info': obs[6:9],
+            'unused_1': obs[3],
+            'ball_pos': obs[4:7],
+            'unused_2':  obs[7:-3],
+            'goal_pos': obs[-3:],
         }
 
     def get_action(self, obs):

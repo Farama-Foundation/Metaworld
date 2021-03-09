@@ -11,9 +11,12 @@ class SawyerPickPlaceV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'puck_pos': obs[3:6],
-            'goal_pos': obs[9:],
-            'unused_info': obs[6:9],
+            'gripper_distance_apart': obs[3],
+            'puck_pos': obs[4:7],
+            'puck_rot': obs[7:11],
+            'goal_pos': obs[-3:],
+            'unused_info_curr_obs': obs[11:18],
+            '_prev_obs':obs[18:36]
         }
 
     def get_action(self, obs):
@@ -34,13 +37,16 @@ class SawyerPickPlaceV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos'] + np.array([-0.005, 0, 0])
         pos_goal = o_d['goal_pos']
-
+        gripper_separation = o_d['gripper_distance_apart']
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
             return pos_puck + np.array([0., 0., 0.1])
         # Once XY error is low enough, drop end effector down on top of puck
         elif abs(pos_curr[2] - pos_puck[2]) > 0.05 and pos_puck[-1] < 0.04:
             return pos_puck + np.array([0., 0., 0.03])
+        # Wait for gripper to close before continuing to move
+        elif gripper_separation > 0.73:
+            return pos_curr
         # Move to goal
         else:
             return pos_goal
@@ -49,9 +55,7 @@ class SawyerPickPlaceV2Policy(Policy):
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
-
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02 or abs(pos_curr[2] - pos_puck[2]) > 0.1:
-            return 0.
-        # While end effector is moving down toward the puck, begin closing the grabber
+        if np.linalg.norm(pos_curr - pos_puck) < 0.07:
+            return 1.
         else:
-            return 0.8
+            return 0.
