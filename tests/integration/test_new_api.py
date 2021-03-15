@@ -138,7 +138,7 @@ def test_all_ml45():
         env.set_task(task)
         obs = env.reset()
         assert np.all(obs[-3:] == np.array([0,0,0]))
-        assert env.observation_space.shape == (12,)
+        assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -196,7 +196,7 @@ def test_all_mt50():
         env.set_task(task)
         obs = env.reset()
         assert np.any(obs[-3:] != np.array([0,0,0]))
-        assert env.observation_space.shape == (12,)
+        assert env.observation_space.shape == (39,)
         assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -234,11 +234,11 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
     """Verify that all the state_goals are unique for the different rand_vecs that are sampled.
 
     Note: The following envs randomize object initial position but not state_goal.
-    ['hammer-v1', 'sweep-into-v1', 'bin-picking-v1']
+    ['hammer-v2', 'sweep-into-v2', 'bin-picking-v2', 'basketball-v2']
 
     """
     for env_name, rand_vecs in env_rand_vecs.items():
-        if env_name in set(['hammer-v1', 'sweep-into-v1', 'bin-picking-v1']):
+        if env_name in set(['hammer-v2', 'sweep-into-v2', 'bin-picking-v2', 'basketball-v2']):
             continue
         env = env_instances[env_name]
         state_goals = []
@@ -248,4 +248,4 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
             state_goals.append(env._target_pos)
         state_goals = np.array(state_goals)
         unique_target_poss = np.unique(state_goals, axis=0)
-        assert unique_target_poss.shape[0] == metaworld._N_GOALS == len(rand_vecs)
+        assert unique_target_poss.shape[0] == metaworld._N_GOALS == len(rand_vecs), env_name
