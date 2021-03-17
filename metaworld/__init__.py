@@ -173,14 +173,15 @@ class ML45(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train']
-        self._test_classes = _env_dict.HARD_MODE_CLS_DICT['test']
-        train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train']
+        self._train_classes = _env_dict.ML45_V2['train']
+        self._test_classes = _env_dict.ML45_V2['test']
+        train_kwargs = _env_dict.ml45_train_args_kwargs
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _ML_OVERRIDE)
+        test_kwargs = _env_dict.ml45_test_args_kwargs
         self._test_tasks = _make_tasks(self._test_classes,
-                                       _env_dict.HARD_MODE_ARGS_KWARGS['test'],
+                                       test_kwargs,
                                        _ML_OVERRIDE)
 
 
@@ -201,16 +202,9 @@ class MT50(Benchmark):
 
     def __init__(self):
         super().__init__()
-        self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train'].copy()
-        # We're going to modify it, so make a copy
-        train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'].copy()
-        test_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test']
-        for (env_name, cls) in _env_dict.HARD_MODE_CLS_DICT['test'].items():
-            assert env_name not in self._train_classes
-            assert env_name not in train_kwargs
-            self._train_classes[env_name] = cls
-            train_kwargs[env_name] = test_kwargs[env_name]
+        self._train_classes = _env_dict.MT50_V2
         self._test_classes = OrderedDict()
+        train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
         self._train_tasks = _make_tasks(self._train_classes,
                                         train_kwargs,
                                         _MT_OVERRIDE)
