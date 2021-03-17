@@ -138,7 +138,7 @@ def test_all_ml45():
         env.set_task(task)
         obs = env.reset()
         assert np.all(obs[-3:] == np.array([0,0,0]))
-        assert env.observation_space.shape == (39,)
+        assert env.observation_space.shape == (39,) 
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
