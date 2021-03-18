@@ -71,6 +71,10 @@ class SawyerStickPushEnv(SawyerXYZEnv):
             self.get_body_com('object').copy(),
         ))
 
+    def _get_quat_objects(self):
+        del self
+        return np.array([0.] * 8)
+
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
         obs_dict['state_achieved_goal'] = self.get_body_com('object').copy()

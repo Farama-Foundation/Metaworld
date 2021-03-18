@@ -132,8 +132,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.isV2 = "V2" in type(self).__name__
         # Technically these observation lengths are different between v1 and v2,
         # but we handle that elsewhere and just stick with v2 numbers here
-        self._obs_obj_max_len = 14
-        self._obs_obj_possible_lens = (7, 14)
+        self._obs_obj_max_len = 14 if self.isV2 else 6
+        self._obs_obj_possible_lens = (6, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -292,7 +292,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if self.isV2:
             raise NotImplementedError
         else:
-            return np.zeros(4)
+            return None
 
     def _get_pos_goal(self):
         """Retrieves goal position from mujoco properties or instance vars
@@ -332,19 +332,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         obs_obj_padded = np.zeros(self._obs_obj_max_len)
 
         obj_pos = self._get_pos_objects()
-        obj_quat = self._get_quat_objects()
         assert len(obj_pos) % 3 == 0
-        assert len(obj_quat) % 4 == 0
+
         obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
-        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
 
-        obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
-            np.hstack((pos, quat))
-            for pos, quat in zip(obj_pos_split, obj_quat_split)
-        ])
-        assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
-
-        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
+        if self.isV2:
+            obj_quat = self._get_quat_objects()
+            assert len(obj_quat) % 4 == 0
+            obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+            obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
+                np.hstack((pos, quat))
+                for pos, quat in zip(obj_pos_split, obj_quat_split)
+            ])
+            assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
+            return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
+        else:
+            # is a v1 environment
+            obs_obj_padded[:len(obj_pos)] = obj_pos
+            assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
+            return np.hstack((pos_hand, obs_obj_padded))
 
     def _get_obs(self):
         """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the
@@ -359,9 +365,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             pos_goal = np.zeros_like(pos_goal)
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+        if self.isV2:
+            obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+        else:
+            obs = np.hstack((curr_obs, pos_goal))
         self._prev_obs = curr_obs
-        return obs if self.isV2 else np.hstack((obs[:3], obs[4:10], obs[-3:]))
+        return obs
 
     def _get_obs_dict(self):
         obs = self._get_obs()

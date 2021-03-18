@@ -69,7 +69,6 @@ class SawyerReachPushPickPlaceEnv(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, _, pushDist, pickRew, _, placingDist = self.compute_reward(action, ob)
-        self.curr_path_length +=1
 
         goal_dist = placingDist if self.task_type == 'pick_place' else pushDist
 
