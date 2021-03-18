@@ -166,19 +166,19 @@ test_cases_latest_noisy = [
     ['hammer-v1', SawyerHammerV1Policy(), .1, .97],
     ['hammer-v2', SawyerHammerV2Policy(), .1, .96],
     ['hand-insert-v1', SawyerHandInsertV1Policy(), .1, 0.95],
-    ['hand-insert-v2', SawyerHandInsertV2Policy(), .1, 0.92],
+    ['hand-insert-v2', SawyerHandInsertV2Policy(), .1, 0.86],
     ['handle-press-side-v2', SawyerHandlePressSideV2Policy(), .1, .98],
     ['handle-press-v1', SawyerHandlePressV1Policy(), .1, 1.],
     ['handle-press-v2', SawyerHandlePressV2Policy(), .1, 1.],
     ['handle-pull-v1', SawyerHandlePullV1Policy(), .1, 1.],
     ['handle-pull-v2', SawyerHandlePullV2Policy(), .1, .99],
     ['handle-pull-side-v1', SawyerHandlePullSideV1Policy(), .1, .75],
-    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .84],
+    ['handle-pull-side-v2', SawyerHandlePullSideV2Policy(), .1, .71],
     ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
     ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
     ['peg-unplug-side-v1', SawyerPegUnplugSideV1Policy(), .1, .97],
     ['peg-unplug-side-v2', SawyerPegUnplugSideV2Policy(), .1, .80],
-    ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .89],
+    ['pick-out-of-hole-v1', SawyerPickOutOfHoleV1Policy(), .1, .87],
     ['pick-out-of-hole-v2', SawyerPickOutOfHoleV2Policy(), .1, .89],
     ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
     ['pick-place-wall-v2', SawyerPickPlaceWallV2Policy(), .1, .83],
@@ -198,37 +198,17 @@ test_cases_latest_noisy = [
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, .89],
     ['soccer-v1', SawyerSoccerV1Policy(), .1, .91],
-    ['soccer-v2', SawyerSoccerV2Policy(), .1, .91],
-    ['stick-pull-v1', SawyerStickPullV1Policy(), .1, 0.85],
+    ['soccer-v2', SawyerSoccerV2Policy(), .1, .85],
+    ['stick-pull-v1', SawyerStickPullV1Policy(), .1, 0.81],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.81],
     ['stick-push-v1', SawyerStickPushV1Policy(), .1, 0.95],
     ['stick-push-v2', SawyerStickPushV2Policy(), .1, 0.95],
     ['sweep-into-v1', SawyerSweepIntoV1Policy(), .1, 1.],
-    ['sweep-into-v2',  SawyerSweepIntoV2Policy(), .1, 0.98],
+    ['sweep-into-v2',  SawyerSweepIntoV2Policy(), .1, 0.86],
     ['sweep-v1', SawyerSweepV1Policy(), .1, 1.],
     ['sweep-v2', SawyerSweepV2Policy(), .0, 0.99],
     ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
     ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
-]
-
-test_cases_latest_ml10 = [
-    ['pick-place-v2', SawyerPickPlaceV2Policy(), .1, .83],
-    ['reach-v2', SawyerReachV2Policy(), .1, .98],
-    ['push-v2', SawyerPushV2Policy(), .1, .88],
-    ['door-open-v2', SawyerDoorOpenV2Policy(), .1, .92],
-    ['door-close-v2', SawyerDoorCloseV2Policy(), .1, .97],
-    ['button-press-topdown-v2', SawyerButtonPressTopdownV2Policy(), .1, .93],
-    ['peg-insert-side-v2', SawyerPegInsertionSideV2Policy(), .1, .87],
-    ['window-close-v2', SawyerWindowCloseV2Policy(), .1, .95],
-    ['window-open-v2', SawyerWindowOpenV2Policy(), .1, .93],
-    ['drawer-close-v2', SawyerDrawerCloseV2Policy(), .1, .99],
-    ['drawer-open-v2', SawyerDrawerOpenV2Policy(), .1, .97],
-    ['sweep-into-v2',  SawyerSweepIntoV2Policy(), .1, 0.98],
-    ['dial-turn-v2', SawyerDialTurnV2Policy(), .1, 0.84],
-    ['basketball-v2', SawyerBasketballV2Policy(), .1, .96],
-    ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, .89],
-    ['sweep-v2', SawyerSweepV2Policy(), .1, 0.99],
-    ['lever-pull-v2', SawyerLeverPullV2Policy(), .1, .90],
 ]
 
 # Combine test cases into a single array to pass to parameterized test function
@@ -241,8 +221,6 @@ for row in test_cases_latest_nonoise:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
-for row in test_cases_latest_ml10:
-    test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 
 ALL_ENVS = {**ALL_V1_ENVIRONMENTS, **ALL_V2_ENVIRONMENTS}
 

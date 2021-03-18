@@ -3,25 +3,19 @@
 Usage:
 
 <mujoco>
-    <compiler meshdir="../meshes/sawyer" ...></compiler>
-    <include file="shared_config.xml"></include>
+	<compiler meshdir="../meshes/sawyer" ...></compiler>
+	<include file="shared_config.xml"></include>
     (new stuff)
-    <worldbody>
-        <include file="sawyer_xyz_base.xml"></include>
+	<worldbody>
+		<include file="sawyer_xyz_base.xml"></include>
         (new stuff)
-    </worldbody>
+	</worldbody>
 </mujoco>
 -->
 
 <mujoco model="sawyer">
     <camera pos="0 0 3.2" name="topview" />
 
-    <!--<geom name="floor" type="plane" pos="0 0 -.9" size="10 10 10"-->
-          <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
-    <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"
-          rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
-    <!-- <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
-          rgba=".6 .6 .5 1" contype="15" conaffinity="15" /> -->
 
     <body name="base" pos="0 0 0">
         <site name="basesite" pos="0 0 0" size="0.01" />
@@ -155,22 +149,30 @@ Usage:
                                                 <!--IMPORTANT: For rougher contact with gripper, set higher friciton values for the other interacting objects -->
                                                 <body name="rightclaw" pos="0 -0.05 0" >
 
-                                                    <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="1 1 1 1.0"   />
+                                                    <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015"  rgba="1 1 1 1.0"   />
                                             
                                                     <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.04" armature="100" damping="1000" limited="true"  type="slide"/> 
                                                     <!-- <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true"  type="slide"/>  -->
 
                                                     <!-- <site name="rightEndEffector" pos="0.0 0.005 0" size="0.044 0.008 0.012" type='box' /> -->
-                                                    <site name="rightEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+
+                                                    <!-- <site name="rightEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
+                                                    <site name="rightEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+                                                    <body name="rightpad" pos ="0 .003 0" >
+                                                        <geom name="rightpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="1 1 1 1.0" solimp="0.99 0.99 0.01" solref="0.01 1" contype="1" conaffinity="1" friction="1.5 0.1 0.002"/>
+                                                    </body>
 
                                                 </body>
 
                                                 <body name="leftclaw" pos="0 0.05 0">
-                                                    <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="0 1 1 1.0"  />
+                                                    <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015"  rgba="0 1 1 1.0"  />
                                                     <joint name="l_close" pos="0 0 0" axis="0 1 0" range= "-0.03 0" armature="100" damping="1000" limited="true"  type="slide"/>
                                                     <!-- <site name="leftEndEffector" pos="0.0 -0.005 0" size="0.044 0.008 0.012" type='box' /> -->
-                                                    <site name="leftEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
-
+                                                    <!-- <site name="leftEndEffector" pos="0.035 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/> -->
+                                                    <site name="leftEndEffector" pos="0.045 0 0" size="0.01" rgba="1.0 0.0 0.0 1.0"/>
+                                                    <body name="leftpad" pos ="0 -.003 0" >
+                                                        <geom name="leftpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="0 1 1 1.0" solimp="0.99 0.99 0.01" solref="0.01 1"  contype="1" conaffinity="1" friction="1.5 0.1 0.002"/>
+                                                    </body>
                                       
                                                 </body>
                                             </body>
