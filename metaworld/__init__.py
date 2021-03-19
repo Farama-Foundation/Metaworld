@@ -104,6 +104,8 @@ def _make_tasks(classes, args_kwargs, kwargs_override, mt1=False):
             kwargs.update(kwargs_override)
             if mt1:
                 env_name_modified = f"{env_name}-{i}"
+            else:
+                env_name_modified = env_name
             tasks.append(_encode_task(env_name_modified, kwargs))
     return tasks
 
