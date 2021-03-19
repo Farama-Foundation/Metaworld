@@ -585,3 +585,26 @@ ML45_ARGS_KWARGS = dict(
     train=ml45_train_args_kwargs,
     test=ml45_test_args_kwargs,
 )
+
+def create_hidden_goal_envs():
+    hidden_goal_envs = {}
+    for env_name, env in ALL_V2_ENVIRONMENTS.items():
+        d = {}
+        def initialize(cls):
+            super(type(cls), cls).__init__()
+            cls._partially_observable = True
+            cls._freeze_rand_vec = False
+            cls._set_task_called = True
+            cls.reset()
+            cls._freeze_rand_vec = True
+
+        d['__init__'] = initialize
+
+        hg_env_key = '{}-goal-hidden'.format(env_name)
+        hg_env_name = '{}GoalHidden'.format(env.__name__)
+        HiddenGoalEnv = type(hg_env_name, (env,), d)
+        hidden_goal_envs[hg_env_key] = HiddenGoalEnv
+
+    return OrderedDict(hidden_goal_envs)
+    
+ALL_V2_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs()
