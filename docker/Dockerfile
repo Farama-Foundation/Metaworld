@@ -1,4 +1,4 @@
-ARG PARENT_IMAGE=rlworkgroup/garage-headless
+ARG PARENT_IMAGE=rlworkgroup/garage-base
 FROM $PARENT_IMAGE
 
 # Copy setup.py first, so that the Docker cache doesn't expire until
