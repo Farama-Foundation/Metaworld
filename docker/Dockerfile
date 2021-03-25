@@ -1,6 +1,8 @@
 ARG PARENT_IMAGE=rlworkgroup/garage-base
 FROM $PARENT_IMAGE
 
+RUN mkdir -p $HOME/code/metaworld/docker && \
+  cp $HOME/code/garage/docker/entrypoint-headless.sh $HOME/code/metaworld/docker/entrypoint-headless.sh
 # Copy setup.py first, so that the Docker cache doesn't expire until
 # dependencies change
 COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
@@ -11,3 +13,4 @@ RUN pip install -e .[dev]
 
 # Add code stub last
 COPY --chown=$USER:$USER . $HOME/code/metaworld
+ENTRYPOINT ["docker/entrypoint-headless.sh"]
