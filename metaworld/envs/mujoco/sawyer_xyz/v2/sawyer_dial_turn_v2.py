@@ -131,7 +131,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         tcp_opened = 0
         object_grasped = reach
 
-        reward = reward_utils.hamacher_product(reach, in_place)
+        reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
         return (reward,
                tcp_to_obj,
