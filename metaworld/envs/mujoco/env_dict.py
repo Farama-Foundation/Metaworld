@@ -581,16 +581,16 @@ def create_hidden_goal_envs():
     for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
         d = {}
 
-        def initialize(cls, seed=None):
+        def initialize(env, seed=None):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
-            super(type(cls), cls).__init__()
-            cls._partially_observable = True
-            cls._freeze_rand_vec = False
-            cls._set_task_called = True
-            cls.reset()
-            cls._freeze_rand_vec = True
+            super(type(env), env).__init__()
+            env._partially_observable = True
+            env._freeze_rand_vec = False
+            env._set_task_called = True
+            env.reset()
+            env._freeze_rand_vec = True
             if seed is not None:
                 np.random.set_state(st0)
 
@@ -611,16 +611,16 @@ def create_observable_goal_envs():
     for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
         d = {}
 
-        def initialize(cls, seed=None):
+        def initialize(env, seed=None):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
-            super(type(cls), cls).__init__()
-            cls._partially_observable = False
-            cls._freeze_rand_vec = False
-            cls._set_task_called = True
-            cls.reset()
-            cls._freeze_rand_vec = True
+            super(type(env), env).__init__()
+            env._partially_observable = False
+            env._freeze_rand_vec = False
+            env._set_task_called = True
+            env.reset()
+            env._freeze_rand_vec = True
             if seed is not None:
                 np.random.set_state(st0)
 
