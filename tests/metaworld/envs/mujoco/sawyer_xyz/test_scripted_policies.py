@@ -198,7 +198,7 @@ test_cases_latest_noisy = [
     ['shelf-place-v1', SawyerShelfPlaceV1Policy(), .1, .90],
     ['shelf-place-v2', SawyerShelfPlaceV2Policy(), .1, .89],
     ['soccer-v1', SawyerSoccerV1Policy(), .1, .91],
-    ['soccer-v2', SawyerSoccerV2Policy(), .1, .85],
+    ['soccer-v2', SawyerSoccerV2Policy(), .1, .81],
     ['stick-pull-v1', SawyerStickPullV1Policy(), .1, 0.81],
     ['stick-pull-v2', SawyerStickPullV2Policy(), .1, 0.81],
     ['stick-push-v1', SawyerStickPushV1Policy(), .1, 0.95],

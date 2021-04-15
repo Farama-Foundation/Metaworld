@@ -10,6 +10,7 @@ __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
   * [Basics](#basics)
+  * [Seeding a Benchmark Instance](#seeding-a-benchmark-instance)
   * [Running ML1, MT1](#running-ml1-or-mt1)
   * [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
   * [Accessing Single Goal Environments](#accessing-single-goal-environments)
@@ -59,9 +60,22 @@ For each of those environments, a task must be assigned to it using
 respectively.
 `Tasks` can only be assigned to environments which have a key in
 `benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
+Please see the sections [Running ML1, MT1](#running-ml1-or-mt1) and [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
+for more details.
 
-Please see below for some small examples using this API.
+You may wish to only access individual environments used in the Metaworld benchmark for your research. See the
+[Accessing Single Goal Environments](#accessing-single-goal-environments) for more details.
 
+
+### Seeding a Benchmark Instance
+For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
+You can do so in the following way:
+```python
+import metaworld
+
+SEED = 0  # some seed number here
+benchmark = metaworld.BENCHMARK(seed=SEED)
+```
 
 ### Running ML1 or MT1
 ```python
