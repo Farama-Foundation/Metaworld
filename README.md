@@ -10,8 +10,10 @@ __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
   * [Basics](#basics)
+  * [Seeding a Benchmark Instance](#seeding-a-benchmark-instance)
   * [Running ML1, MT1](#running-ml1-or-mt1)
   * [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
+  * [Accessing Single Goal Environments](#accessing-single-goal-environments)
 - [Citing Meta-World](#citing-meta-world)
 - [Accompanying Baselines](accompanying-baselines)
 - [Become a Contributor](#become-a-contributor)
@@ -58,9 +60,22 @@ For each of those environments, a task must be assigned to it using
 respectively.
 `Tasks` can only be assigned to environments which have a key in
 `benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
+Please see the sections [Running ML1, MT1](#running-ml1-or-mt1) and [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
+for more details.
 
-Please see below for some small examples using this API.
+You may wish to only access individual environments used in the Metaworld benchmark for your research. See the
+[Accessing Single Goal Environments](#accessing-single-goal-environments) for more details.
 
+
+### Seeding a Benchmark Instance
+For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
+You can do so in the following way:
+```python
+import metaworld
+
+SEED = 0  # some seed number here
+benchmark = metaworld.BENCHMARK(seed=SEED)
+```
 
 ### Running ML1 or MT1
 ```python
@@ -120,6 +135,57 @@ for env in testing_envs:
   obs = env.reset()  # Reset environment
   a = env.action_space.sample()  # Sample an action
   obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+```
+
+## Accessing Single Goal Environments
+You may wish to only access individual environments used in the Metaworld benchmark for your research.
+We provide constructors for creating environments where the goal has been hidden (by zeroing out the goal in
+the observation) and environments where the goal is observable. They are called GoalHidden and GoalObservable
+environments respectively.
+
+You can access them in the following way:
+```python
+from metaworld.envs import (ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE,
+                            ALL_V2_ENVIRONMENTS_GOAL_HIDDEN)
+                            # these are ordered dicts where the key : value
+                            # is env_name : env_constructor
+
+import numpy as np
+
+door_open_goal_observable_cls = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE["door-open-v2-goal-observable"]
+door_open_goal_hidden_cls = ALL_V2_ENVIRONMENTS_GOAL_HIDDEN["door-open-v2-goal-hidden"]
+
+env = door_open_goal_hidden_cls()
+env.reset()  # Reset environment
+a = env.action_space.sample()  # Sample an action
+obs, reward, done, info = env.step(a)  # Step the environoment with the sampled random action
+assert (obs[-3:] == np.zeros(3)).all() # goal will be zeroed out because env is HiddenGoal
+
+# You can choose to initialize the random seed of the environment.
+# The state of your rng will remain unaffected after the environment is constructed.
+env1 = door_open_goal_observable_cls(seed=5)
+env2 = door_open_goal_observable_cls(seed=5)
+
+env1.reset()  # Reset environment
+env2.reset()
+a1 = env1.action_space.sample()  # Sample an action
+a2 = env2.action_space.sample()
+next_obs1, _, _, _ = env1.step(a1)  # Step the environoment with the sampled random action
+next_obs2, _, _, _ = env2.step(a2)  
+assert (next_obs1[-3:] == next_obs2[-3:]).all() # 2 envs initialized with the same seed will have the same goal
+assert not (next_obs2[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
+
+env3 = door_open_goal_observable_cls(seed=10)  # Construct an environment with a different seed
+env1.reset()  # Reset environment
+env3.reset()
+a1 = env1.action_space.sample()  # Sample an action
+a3 = env3.action_space.sample()
+next_obs1, _, _, _ = env1.step(a1)  # Step the environoment with the sampled random action
+next_obs3, _, _, _ = env3.step(a3)  
+
+assert not (next_obs1[-3:] == next_obs3[-3:]).all() # 2 envs initialized with different seeds will have different goals
+assert not (next_obs1[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
+
 ```
 
 ## Citing Meta-World
