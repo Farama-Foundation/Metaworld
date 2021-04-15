@@ -136,7 +136,8 @@ class ML1(Benchmark):
         self._test_tasks = _make_tasks(self._test_classes,
                                         {env_name: args_kwargs},
                                         _ML_OVERRIDE)
-        
+
+
 class MT1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
@@ -218,3 +219,5 @@ class MT50(Benchmark):
                                         train_kwargs,
                                         _MT_OVERRIDE)
         self._test_tasks = []
+
+__all__ = ["ML1", "MT1", "ML10", "MT10", "ML45", "MT50"]
