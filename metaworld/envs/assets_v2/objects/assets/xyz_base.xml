@@ -148,6 +148,7 @@
                                               </body> -->
                                               <body name="hand" pos="0 0 0.12" quat="-1 0 1 0">
                                                   <camera name="behindGripper" mode="track" pos="0 0 -0.5" quat="0 1 0 0" fovy="60" />
+                                                  <camera name="behindGripper2" mode="track" pos="0 0 -0.5" quat="0 0.924 0 -0.383" fovy="60" />
                                                   <camera name="gripperPOV" mode="track" pos="0 -0.1 0" quat="-1 -1.3 0 0" fovy="90" />
 
                                                   <site name="endEffector" pos="0.04 0 0" size="0.01" rgba='1 1 1 0' />
