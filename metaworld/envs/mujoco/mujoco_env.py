@@ -1,17 +1,21 @@
 import abc
 import warnings
+from os import path
 
 import glfw
 from gym import error
 from gym.utils import seeding
-import numpy as np
-from os import path
 import gym
+import numpy as np
 
 try:
     import mujoco_py
 except ImportError as e:
-    raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
+    raise error.DependencyNotInstalled(
+        '{}. (HINT: you need to install mujoco_py, and also perform the setup '
+        'instructions here: https://github.com/openai/mujoco-py/.) '
+        .format(e)
+    )
 
 
 def _assert_task_is_set(func):
@@ -26,8 +30,6 @@ def _assert_task_is_set(func):
     return inner
 
 
-DEFAULT_SIZE = 500
-
 class MujocoEnv(gym.Env, abc.ABC):
     """
     This is a simplified version of the gym MujocoEnv class.
@@ -40,7 +42,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     def __init__(self, model_path, frame_skip, rgb_array_res=(640, 480)):
         if not path.exists(model_path):
-            raise IOError("File %s does not exist" % model_path)
+            raise IOError('File {} does not exist'.fomrat(model_path))
 
         self.frame_skip = frame_skip
         self.model = mujoco_py.load_model_from_path(model_path)

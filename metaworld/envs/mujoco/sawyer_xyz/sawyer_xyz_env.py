@@ -8,7 +8,7 @@ import mujoco_py
 import numpy as np
 
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
+from metaworld.envs.mujoco_sawyer_xyz.mujoco_env import MujocoEnv, _assert_task_is_set
 
 
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
