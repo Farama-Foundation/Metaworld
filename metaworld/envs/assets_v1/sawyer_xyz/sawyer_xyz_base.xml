@@ -16,10 +16,6 @@ Usage:
 <mujoco model="sawyer">
     <camera pos="0 0 3.2" name="topview" />
 
-    <!--<geom name="floor" type="plane" pos="0 0 -.9" size="10 10 10"-->
-          <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
-    <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"
-          rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
     <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.4 0.5"
           rgba=".6 .6 .5 1" contype="1" conaffinity="1" friction="2 0.1 0.002" material="light_wood_v3"/>
 

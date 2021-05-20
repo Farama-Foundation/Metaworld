@@ -33,8 +33,6 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        self.max_path_length = 500
-
         self._random_reset_space = Box(
             np.array(obj_low),
             np.array(obj_high),
@@ -47,8 +45,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_button_press_wall.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
+    def evaluate_state(self, obs, action):
         (
             reward,
             tcp_to_obj,
@@ -56,10 +53,10 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
             obj_to_target,
             near_button,
             button_pressed
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(obj_to_target <= 0.02),
+            'success': float(obj_to_target <= 0.03),
             'near_object': float(tcp_to_obj <= 0.05),
             'grasp_success': float(tcp_open > 0),
             'grasp_reward': near_button,
@@ -68,8 +65,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _target_site_config(self):
@@ -110,12 +106,6 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         )
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def compute_reward(self, action, obs):
         del action

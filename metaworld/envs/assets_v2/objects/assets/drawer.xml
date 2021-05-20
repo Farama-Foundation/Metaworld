@@ -10,7 +10,7 @@
             <body name="drawer_link" pos="0 -0.01 0.006">
                 <joint type="slide" range="-0.16 0" axis="0 1 0" name="goal_slidey" pos="0 0 0" damping="2"/>
                 <geom material="drawer_beige" mesh="drawer"/>
-                <geom material="drawer_white" mesh="drawerhandle" pos="0 -0.114 0"/>
+                <geom material="drawer_white" mesh="drawerhandle" pos="0 -0.114 0" name="objGeom"/>
                 <geom class="drawer_col" pos="0 -0.082 0.008" size="0.1 0.008 0.052" type="box" mass=".04"/>
                 <geom class="drawer_col" pos="0 0.082 0.008" size="0.1 0.008 0.052" type="box" mass=".04"/>
                 <geom class="drawer_col" pos="-0.092 0 0.008" size="0.008 0.074 0.052" type="box" mass=".04"/>

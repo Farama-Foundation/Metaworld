@@ -14,6 +14,8 @@
                 <geom class="faucet_col" euler="1.57 0 0" pos="0 -0.12 0.001" size="0.017 0.055" type="capsule"/>
                 <geom class="faucet_col" pos="0 0 0.001" size="0.032 0.02" type="cylinder"/>
 
+                <site name="handleStartClose" pos="0.015 -0.175 0" size="0.01" rgba="0 0 0 1"/>
+                <site name="handleStartOpen" pos="-0.015 -0.175 0" size="0.005" rgba="1 1 1 1"/>
             </body>
         </body>
 

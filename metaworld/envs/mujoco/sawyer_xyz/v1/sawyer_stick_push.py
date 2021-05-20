@@ -48,7 +48,6 @@ class SawyerStickPushEnv(SawyerXYZEnv):
     def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, pickRew, _, pushDist = self.compute_reward(action, ob)
-        self.curr_path_length += 1
 
         info = {
             'reachDist': reachDist,
@@ -71,6 +70,10 @@ class SawyerStickPushEnv(SawyerXYZEnv):
             self.get_body_com('stick').copy(),
             self.get_body_com('object').copy(),
         ))
+
+    def _get_quat_objects(self):
+        del self
+        return np.array([0.] * 8)
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()

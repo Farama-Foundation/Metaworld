@@ -7,9 +7,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandInsertEnvV2(SawyerXYZEnv):
-    PAD_SUCCESS_MARGIN = 0.05
-    X_Z_SUCCESS_MARGIN = 0.005
-    OBJ_RADIUS = 0.015
     TARGET_RADIUS = 0.05
 
     def __init__(self):
@@ -37,8 +34,6 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.max_path_length = 500
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -50,9 +45,8 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_table_with_hole.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        ob = super().step(action)
-        obj = ob[4:7]
+    def evaluate_state(self, obs, action):
+        obj = obs[4:7]
 
         (
             reward,
@@ -61,7 +55,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             obj_to_target,
             grasp_reward,
             in_place_reward
-        ) = self.compute_reward(action, ob)
+        ) = self.compute_reward(action, obs)
 
         info = {
             'success': float(obj_to_target <= 0.05),
@@ -77,8 +71,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return ob, reward, False, info
+        return reward, info
 
     @property
     def _get_id_main_object(self):
@@ -107,12 +100,6 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
-
     def compute_reward(self, action, obs):
         obj = obs[4:7]
 
@@ -126,14 +113,22 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = reward_utils.gripper_caging_reward(self, action, obj)
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            xz_thresh=0.005,
+            high_density=True
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 1. + 7. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
         return (

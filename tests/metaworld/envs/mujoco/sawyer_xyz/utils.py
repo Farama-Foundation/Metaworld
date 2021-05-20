@@ -22,7 +22,15 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
 
     for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render, p_scale)):
         rewards.append(r)
-
+        assert not env.isV2 or set(info.keys()) == {
+            'success',
+            'near_object',
+            'grasp_success',
+            'grasp_reward',
+            'in_place_reward',
+            'obj_to_target',
+            'unscaled_reward'
+        }
         success |= bool(info['success'])
         if not success:
             first_success = t
@@ -70,7 +78,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False, p_scale=1.0):
 
 def obs_space_error_text(env, obs):
     return "Obs Out of Bounds\n\tlow: {}, \n\tobs: {}, \n\thigh: {}".format(
-        env.observation_space.low[[0, 1, 2, 9, 10, 11]],
-        obs[[0, 1, 2, 9, 10, 11]],
-        env.observation_space.high[[0, 1, 2, 9, 10, 11]]
+        env.observation_space.low[[0, 1, 2, -3, -2, -1]],
+        obs[[0, 1, 2, -3, -2, -1]],
+        env.observation_space.high[[0, 1, 2, -3, -2, -1]]
     )

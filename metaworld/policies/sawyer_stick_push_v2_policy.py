@@ -11,8 +11,11 @@ class SawyerStickPushV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'stick_pos': obs[3:6],
-            'obj_pos': obs[6:-3],
+            'unused_1': obs[3],
+            'stick_pos': obs[4:7],
+            'unused_2': obs[7:11],
+            'obj_pos': obs[11:14],
+            'unused_3': obs[14:-3],
             'goal_pos': obs[-3:],
         }
 
@@ -23,7 +26,7 @@ class SawyerStickPushV2Policy(Policy):
             'delta_pos': np.arange(3),
             'grab_pow': 3
         })
-        
+
         action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_xyz(o_d), p=10.)
         action['grab_pow'] = self._grab_pow(o_d)
 

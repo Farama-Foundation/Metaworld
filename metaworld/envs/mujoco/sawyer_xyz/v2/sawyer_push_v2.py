@@ -20,12 +20,9 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
-
-    OBJ_RADIUS = 0.01
+    TARGET_RADIUS=0.05
 
     def __init__(self):
-        lift_thresh = 0.04
-
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -51,9 +48,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.hand_init_pos = self.init_config['hand_init_pos']
 
-        self.liftThresh = lift_thresh
-        self.max_path_length = 200
-
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
@@ -71,8 +65,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return full_v2_path_for('sawyer_xyz/sawyer_push_v2.xml')
 
     @_assert_task_is_set
-    def step(self, action):
-        obs = super().step(action)
+    def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
         (
@@ -85,7 +78,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(target_to_obj <= 0.05),
+            'success': float(target_to_obj <= self.TARGET_RADIUS),
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_success': float(
                 self.touching_main_object and
@@ -98,8 +91,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             'unscaled_reward': reward,
         }
 
-        self.curr_path_length += 1
-        return obs, reward, False, info
+        return reward, info
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
@@ -129,8 +121,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
-        self.objHeight = self.get_body_com('obj')[2]
-        self.heightTarget = self.objHeight + self.liftThresh
 
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
@@ -142,29 +132,16 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
-        self.target_reward = 1000*self.maxPushDist + 1000*2
         self.num_resets += 1
 
         return self._get_obs()
-
-    def _reset_hand(self):
-        super()._reset_hand()
-
-        finger_right, finger_left = (
-            self._get_site_pos('rightEndEffector'),
-            self._get_site_pos('leftEndEffector')
-        )
-        self.init_finger_center = (finger_right + finger_left) / 2
-        self.pickCompleted = False
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(obj - self.obj_init_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -173,15 +150,22 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             sigmoid='long_tail',
         )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
-
-
+        object_grasped = self._gripper_caging_reward(
+            action,
+            obj,
+            object_reach_radius=0.01,
+            obj_radius=0.015,
+            pad_success_thresh=0.05,
+            xz_thresh=0.005,
+            high_density=True
+        )
+        reward = 2 * object_grasped
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward += 1. + 5. * in_place
+            reward += 1. + reward + 5. * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.
+
         return (
             reward,
             tcp_to_obj,

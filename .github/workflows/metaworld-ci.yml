@@ -1,0 +1,41 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: MetaWorld CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  MJKEY: ${{ secrets.MJKEY }}
+
+jobs:
+  test-docker:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: |
+        docker pull rlworkgroup/metaworld-ci:latest
+        docker build \
+            --cache-from rlworkgroup/metaworld-ci:latest \
+            -f docker/Dockerfile \
+            -t "rlworkgroup/metaworld-ci:$GITHUB_RUN_ID" \
+            .
+
+    - name: Run the Docker image
+      run: |
+        docker run \
+            -t \
+            --rm \
+            -e "MJKEY=$MJKEY" \
+            --memory 7000m \
+            --memory-swap 7000m \
+            --name metaworld-ci rlworkgroup/metaworld-ci:$GITHUB_RUN_ID pytest -n 0 -v -m 'not large and not skip_on_ci'

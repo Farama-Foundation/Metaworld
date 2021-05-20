@@ -7,7 +7,6 @@ from typing import List, NamedTuple, Type
 import metaworld.envs.mujoco.env_dict as _env_dict
 import numpy as np
 
-
 EnvName = str
 
 
@@ -27,7 +26,6 @@ class MetaWorldEnv:
     Takes no arguments to its constructor, and raises an exception if used
     before `set_task` is called.
     """
-
     def set_task(self, task: Task) -> None:
         """Set the task.
 
@@ -42,7 +40,6 @@ class Benchmark(abc.ABC):
 
     When used to evaluate an algorithm, only a single instance should be used.
     """
-
     @abc.abstractmethod
     def __init__(self):
         pass
@@ -78,7 +75,10 @@ def _encode_task(env_name, data):
     return Task(env_name=env_name, data=pickle.dumps(data))
 
 
-def _make_tasks(classes, args_kwargs, kwargs_override):
+def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
+    if seed is not None:
+        st0 = np.random.get_state()
+        np.random.seed(seed)
     tasks = []
     for (env_name, args) in args_kwargs.items():
         assert len(args['args']) == 0
@@ -103,13 +103,13 @@ def _make_tasks(classes, args_kwargs, kwargs_override):
             kwargs.update(dict(rand_vec=rand_vec, env_cls=env_cls))
             kwargs.update(kwargs_override)
             tasks.append(_encode_task(env_name, kwargs))
+    if seed is not None:
+        np.random.set_state(st0)
     return tasks
 
 
 def _ml1_env_names():
-    key_train = _env_dict.HARD_MODE_ARGS_KWARGS['train']
-    key_test = _env_dict.HARD_MODE_ARGS_KWARGS['test']
-    tasks = sum([list(key_train)], list(key_test))
+    tasks = list(_env_dict.ML1_V2['train'])
     assert len(tasks) == 50
     return tasks
 
@@ -118,104 +118,98 @@ class ML1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
+    def __init__(self, env_name, seed=None):
         super().__init__()
-        try:
-            cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
-        except KeyError:
-            cls = _env_dict.HARD_MODE_CLS_DICT['test'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test'][env_name]
+        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V2 environment")
+        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = self._train_classes
         self._train_ = OrderedDict([(env_name, cls)])
+        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
+
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
-                                        _ML_OVERRIDE)
-        self._test_tasks = _make_tasks(self._test_classes,
-                                        {env_name: args_kwargs},
-                                        _ML_OVERRIDE)
-        
+                                        _ML_OVERRIDE,
+                                        seed=seed)
+        self._test_tasks = _make_tasks(
+            self._test_classes, {env_name: args_kwargs},
+            _ML_OVERRIDE,
+            seed=(seed + 1 if seed is not None else seed))
+
+
 class MT1(Benchmark):
 
     ENV_NAMES = _ml1_env_names()
 
-    def __init__(self, env_name):
+    def __init__(self, env_name, seed=None):
         super().__init__()
-        try:
-            cls = _env_dict.HARD_MODE_CLS_DICT['train'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'][env_name]
-        except KeyError:
-            cls = _env_dict.HARD_MODE_CLS_DICT['test'][env_name]
-            args_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test'][env_name]
+        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V2 environment")
+        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
-        self._test_classes = OrderedDict()
+        self._test_classes = self._train_classes
         self._train_ = OrderedDict([(env_name, cls)])
+        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
+
         self._train_tasks = _make_tasks(self._train_classes,
                                         {env_name: args_kwargs},
-                                        _MT_OVERRIDE)
+                                        _MT_OVERRIDE,
+                                        seed=seed)
         self._test_tasks = []
 
 
 class ML10(Benchmark):
-
-    def __init__(self):
+    def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.MEDIUM_MODE_CLS_DICT['train']
-        self._test_classes = _env_dict.MEDIUM_MODE_CLS_DICT['test']
-        train_kwargs = _env_dict.medium_mode_train_args_kwargs
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        train_kwargs,
-                                        _ML_OVERRIDE)
-        test_kwargs = _env_dict.medium_mode_test_args_kwargs
-        self._test_tasks = _make_tasks(self._test_classes,
-                                       test_kwargs,
-                                       _ML_OVERRIDE)
+        self._train_classes = _env_dict.ML10_V2['train']
+        self._test_classes = _env_dict.ML10_V2['test']
+        train_kwargs = _env_dict.ml10_train_args_kwargs
+        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
+                                        _ML_OVERRIDE,
+                                        seed=seed)
+        test_kwargs = _env_dict.ml10_test_args_kwargs
+        self._test_tasks = _make_tasks(self._test_classes, test_kwargs,
+                                       _ML_OVERRIDE,
+                                       seed=seed)
 
 
 class ML45(Benchmark):
-
-    def __init__(self):
+    def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train']
-        self._test_classes = _env_dict.HARD_MODE_CLS_DICT['test']
-        train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train']
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        train_kwargs,
-                                        _ML_OVERRIDE)
-        self._test_tasks = _make_tasks(self._test_classes,
-                                       _env_dict.HARD_MODE_ARGS_KWARGS['test'],
-                                       _ML_OVERRIDE)
+        self._train_classes = _env_dict.ML45_V2['train']
+        self._test_classes = _env_dict.ML45_V2['test']
+        train_kwargs = _env_dict.ml45_train_args_kwargs
+        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
+                                        _ML_OVERRIDE,
+                                        seed=seed)
+        test_kwargs = _env_dict.ml45_test_args_kwargs
+        self._test_tasks = _make_tasks(self._test_classes, test_kwargs,
+                                       _ML_OVERRIDE,
+                                       seed=seed)
 
 
 class MT10(Benchmark):
-
-    def __init__(self):
+    def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.EASY_MODE_CLS_DICT
+        self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.EASY_MODE_ARGS_KWARGS
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        train_kwargs,
-                                        _MT_OVERRIDE)
+        train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
+        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
+                                        _MT_OVERRIDE,
+                                        seed=seed)
         self._test_tasks = []
 
 
 class MT50(Benchmark):
-
-    def __init__(self):
+    def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.HARD_MODE_CLS_DICT['train'].copy()
-        # We're going to modify it, so make a copy
-        train_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['train'].copy()
-        test_kwargs = _env_dict.HARD_MODE_ARGS_KWARGS['test']
-        for (env_name, cls) in _env_dict.HARD_MODE_CLS_DICT['test'].items():
-            assert env_name not in self._train_classes
-            assert env_name not in train_kwargs
-            self._train_classes[env_name] = cls
-            train_kwargs[env_name] = test_kwargs[env_name]
+        self._train_classes = _env_dict.MT50_V2
         self._test_classes = OrderedDict()
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        train_kwargs,
-                                        _MT_OVERRIDE)
+        train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
+        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
+                                        _MT_OVERRIDE,
+                                        seed=seed)
         self._test_tasks = []
+
+__all__ = ["ML1", "MT1", "ML10", "MT10", "ML45", "MT50"]
