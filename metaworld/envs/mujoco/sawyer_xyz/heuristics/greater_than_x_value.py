@@ -4,6 +4,9 @@ from .heuristic import Heuristic
 
 
 class GreaterThanXValue(Heuristic):
+    """
+    Attempts to place tools to the right of some X value.
+    """
     def __init__(self, x_value):
         self._x_value = x_value
 

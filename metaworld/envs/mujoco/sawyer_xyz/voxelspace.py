@@ -15,6 +15,7 @@ class VoxelSpace(abc.ABC):
         """
         self.size = size
         self.resolution = resolution
+        # `mat` is a boolean matrix wherein `True` denotes filled space
         self.mat = np.zeros(
             list(map(lambda s: int(s * resolution), size)),
             dtype='bool'
@@ -22,6 +23,16 @@ class VoxelSpace(abc.ABC):
 
     @staticmethod
     def _fill(mat, ijk_bbox, value=True):
+        """
+        For a given `mat`, declares that all space within a bounding box is
+        occupied (or not).
+        Args:
+            mat (np.ndarray): The matrix representation of a space
+            ijk_bbox (tuple of int): Matrix indices defining the bounding box
+                to fill. ijk_bbox[:3] is the lower-left corner; [3:] is the
+                upper-right corner.
+            value (bool): Whether the space is occupied (True) or not (False)
+        """
         mat[
             ijk_bbox[0]:ijk_bbox[3],
             ijk_bbox[1]:ijk_bbox[4],
@@ -29,14 +40,40 @@ class VoxelSpace(abc.ABC):
         ] = value
 
     def fill(self, ijk_bbox, value=True):
+        """
+        Declare that all space within a bounding box is occupied (or not).
+        Args:
+            ijk_bbox (tuple of int): Matrix indices defining the bounding box
+                to fill. ijk_bbox[:3] is the lower-left corner; [3:] is the
+                upper-right corner.
+            value (bool): Whether the space is occupied (True) or not (False)
+        """
         VoxelSpace._fill(self.mat, ijk_bbox, value)
 
     def fill_tool(self, tool, value=True):
+        """
+        Declare whether or not a tool should be considered physically-present
+        inside at its `.specified_pos` property, or if it's more of a ghost
+
+        Args:
+            tool (Tool): The tool to consider
+            value (bool): Whether the tool is present (True) or not (False)
+        """
         self.fill((
-            tool.bbox * self.resolution + np.hstack([tool.specified_pos] * 2)
+            tool.bbox * self.resolution + np.hstack([tool.specified_pos] * 2),
+            value
         ).astype('uint32'))
 
     def pick_least_overlap(self, ijks, tool_bbox):
+        """
+        Given a list of potential positions and the volume required for a tool,
+        pick the one that results in the least intersection with other objects
+        in the VoxelSpace.
+
+        ijks (list): A list of potential positions
+        tool_bbox (tuple): A bounding box (6 floats) that define the
+            corner-to-corner rectangular volume required by the tool
+        """
         best_ijk = None
         best_bbox = None
         highest_volume = 0

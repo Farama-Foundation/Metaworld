@@ -4,6 +4,11 @@ from .heuristic import Heuristic
 
 
 class Ceiling(Heuristic):
+    """
+    Attempts to place tools such that they don't "bump their heads" on some
+    imaginary ceiling. If the scene's camera is centrally located, then a
+    ceiling whose height increases radially can help avoid most occlusions.
+    """
     def __init__(self, func_of_i_and_j):
         self._ceil_func = func_of_i_and_j
 

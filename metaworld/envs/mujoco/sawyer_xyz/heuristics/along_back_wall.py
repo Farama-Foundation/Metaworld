@@ -4,6 +4,11 @@ from .heuristic import Heuristic
 
 
 class AlongBackWall(Heuristic):
+    """
+    Attempts to place tools behind some minimum Y value. If this heuristic is
+    used for multiple tools, they'll be placed from left to right (most negative
+    X to most positive X)
+    """
     def __init__(self, y_value):
         self._y_value = y_value
 

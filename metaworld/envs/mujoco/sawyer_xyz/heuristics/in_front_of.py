@@ -4,6 +4,11 @@ from .heuristic import Heuristic
 
 
 class InFrontOf(Heuristic):
+    """
+    Attempts to place tools immediately in front of some base tool. If this
+    heuristic is used for multiple tools, later tools will be placed in front
+    of earlier tools (you could consider it a recursive heuristic).
+    """
     def __init__(self, base_tool):
         self._base_tool = base_tool
 

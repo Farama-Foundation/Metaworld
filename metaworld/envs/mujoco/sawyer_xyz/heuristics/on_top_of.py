@@ -4,6 +4,11 @@ from .heuristic import Heuristic
 
 
 class OnTopOf(Heuristic):
+    """
+    Attempts to stack a tool directly on top of some base tool. Unless the base
+    tool's top surface area is massive, don't try to use this heuristic for
+    multiple tools.
+    """
     def __init__(self, base_tool):
         self._base_tool = base_tool
 
