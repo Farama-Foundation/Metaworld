@@ -58,7 +58,7 @@ class PickPlace(Task):
         puck.specified_pos = np.array([x, y, z])
         solver.did_manual_set(puck)
 
-    def evaluate_state(self, state: SawyerXYZState):
+    def compute_reward(self, state: SawyerXYZState):
         if state.timestep == 1:
             self._initial_pos_obj = state.pos_objs[:3].copy()
             self._initial_pos_pads_center = state.pos_pads_center.copy()

@@ -226,7 +226,7 @@ def gripper_caging_reward(
         pad_success_thresh: float,
         xz_thresh: float,
         desired_gripper_effort=1.0,
-        include_reach_reward=False,
+        include_reach_reward=False,  # previously called `medium_density`
         reach_reward_radius=0.0):
     """Reward for grasping the main object. The main object's position should
     be at state.pos_objs[:3]

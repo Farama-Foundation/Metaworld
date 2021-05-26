@@ -8,11 +8,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_state import SawyerXYZState
 
 class Task(abc.ABC):
 
-    # @abc.abstractmethod
-    # @property
-    # def id_main_object(self) -> str:
-    #     pass
-
     @property
     @abc.abstractmethod
     def random_reset_space(self) -> Box:
@@ -20,10 +15,30 @@ class Task(abc.ABC):
 
     @abc.abstractmethod
     def get_pos_objects(self, mjsim) -> np.ndarray:
+        """
+        Returns positions of objects pertinent to the task. Since the proc gen
+        env wrapper knows which tools are involved in the task, it could compute
+        some standard positions on its own. But *useful* positions often involve
+        rather bespoke transformations for each task, so it ends up here.
+
+        Note: These positions will be passed through to `compute_reward`
+
+        Args:
+            mjsim (Mujoco.MjSim): The active Mujoco simulation object
+        """
         pass
 
     @abc.abstractmethod
     def get_quat_objects(self, mjsim) -> np.ndarray:
+        """
+        Similar to `get_pos_objects` but for quaternions. Again, this can be
+        highly task-specific.
+
+        Note: These quaternions will be passed through to `compute_reward`
+
+        Args:
+            mjsim (Mujoco.MjSim): The active Mujoco simulation object
+        """
         pass
 
     @abc.abstractmethod
@@ -50,7 +65,7 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def evaluate_state(self, state: SawyerXYZState) -> (float, dict):
+    def compute_reward(self, state: SawyerXYZState) -> (float, dict):
         """Evaluates an environment's current state relative to the task.
         Returns the reward as well as a dict containing the success flag and
         any other pertinent metrics

@@ -116,7 +116,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         """
         Allows implementations to customize how the required tools are placed,
         as those placements may drastically impact task solvability, making
-        automatic placement may be undesirable
+        automatic placement undesirable
         """
         self._task.reset_required_tools(
             world,
@@ -257,6 +257,10 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self._anneal_free_joints(steps=50)
 
     def show_bbox_for(self, tool):
+        """
+        Places sites at the 6 corners of `tool`'s bounding box. Useful when
+        debugging procedural generation.
+        """
         tool_pos = get_position_of(tool, self.sim)
         for site, corner in zip(
                 ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
@@ -267,6 +271,13 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             ] = tool_pos + np.array(corner)
 
     def _make_everything_match_solver(self):
+        """
+        Looks at all tools associated with `self._solver`, including those that
+        were placed manually. For each enabled tool which is actually present
+        in the XML, this will ensure Mujoco position matches locally-defined
+        position. If tool name includes 'Joint', joint position will be set
+        rather than absolute object position.
+        """
         for tool in self._solver.tools:
             if not tool.enabled:
                 continue
@@ -277,8 +288,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
                 qpos_old = get_joint_pos_of(tool, self.sim)
                 qpos_new = qpos_old.copy()
 
-                print(tool.name)
-                print(self.model.body_dofadr[self.model.body_name2id(tool.name)])
+                print(f'{tool.name} is associated with Mujoco DoF {self.model.body_dofadr[self.model.body_name2id(tool.name)]}. Refer to these messages if something goes unstable')
 
                 qpos_new[:3] = tool.specified_pos
                 qpos_new[3:] = np.round(qpos_old[3:], decimals=1)
@@ -289,6 +299,10 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
                 set_position_of(tool, self.sim, self.model)
 
     def _anneal_free_joints(self, steps=10):
+        """
+        Exponentially reduces joint velocities over some number of `steps`.
+        Should be called immediately after `self._make_everything_match_solver`
+        """
         for step in range(steps):
             self.sim.step()
 
@@ -335,4 +349,4 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             self.sim
         )
 
-        return self._task.evaluate_state(self._state)
+        return self._task.compute_reward(self._state)

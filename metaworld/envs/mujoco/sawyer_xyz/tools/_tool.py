@@ -60,13 +60,18 @@ def set_vel_of(tool, mjsim, mjmodel):
 
 
 class Tool(abc.ABC):
+    """
+    Any object involved in accomplishing a task, excepting the robot itself and
+    the table. If a `Tool` is meant to be frozen in place over the course of a
+    trajectory, you should use the `Artifact` subclass instead.
+    """
     def __init__(self, enabled=True):
         self.specified_pos = None
         self.specified_quat = None
         self.enabled = enabled
 
     @property
-    def name(self):
+    def name(self) -> str:
         return type(self).__name__
 
     @property
@@ -76,6 +81,10 @@ class Tool(abc.ABC):
     @property
     @abc.abstractmethod
     def bbox(self):
+        """
+        6 element np.ndarray representing an oversized bounding box for the
+        object. First 3 are bottom-left corner, last 3 are upper-right corner
+        """
         pass
 
     def get_bbox_corners(self):
@@ -84,7 +93,8 @@ class Tool(abc.ABC):
         return itertools.product(*zip(bbox[:3], bbox[3:]))
 
     @property
-    def resting_pos_z(self):
+    def resting_pos_z(self) -> float:
+        """The Z position perceived by Mujoco when object lies flat on table"""
         return 0.0
 
 
