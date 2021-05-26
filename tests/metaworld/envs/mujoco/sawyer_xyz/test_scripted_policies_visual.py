@@ -1,19 +1,21 @@
 import pytest
 
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_proc_gen_env import VisualSawyerSandboxEnv
-from metaworld.envs.mujoco.sawyer_xyz.tasks import PickPlace, ButtonPress
+from metaworld.envs.mujoco.sawyer_xyz.tasks import PickPlace, ButtonPress, Assemble
 from metaworld.policies import *
 from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 
 
 test_cases_nonoise = [
     # name, policy, action noise pct, success rate
+    # [Assemble(), SawyerAssemblyV2Policy(), .0, .0], # TODO
     [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .0, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .0, .0],
 ]
 
 test_cases_noisy = [
     # name, policy, action noise pct, success rate
+    # [Assemble(), SawyerAssemblyV2Policy(), .0, .0], # TODO
     [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .1, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .1, .0],
 ]
