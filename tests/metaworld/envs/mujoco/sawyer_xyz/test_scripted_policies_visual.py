@@ -1,20 +1,21 @@
 import pytest
 
-from metaworld.envs.mujoco.env_dict import ALL_VISUAL_ENVS
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_proc_gen_env import VisualSawyerSandboxEnv
+from metaworld.envs.mujoco.sawyer_xyz.tasks import PickPlace, ButtonPress
 from metaworld.policies import *
 from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
 
 
 test_cases_nonoise = [
     # name, policy, action noise pct, success rate
-    ['button-press', SawyerButtonPressTopdownV2Policy(), .0, .0],
-    ['pick-place', SawyerPickPlaceV2Policy(), .0, .0],
+    [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .0, .0],
+    [PickPlace(), SawyerPickPlaceV2Policy(), .0, .0],
 ]
 
 test_cases_noisy = [
     # name, policy, action noise pct, success rate
-    ['button-press', SawyerButtonPressTopdownV2Policy(), .1, .0],
-    ['pick-place', SawyerPickPlaceV2Policy(), .1, .0],
+    [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .1, .0],
+    [PickPlace(), SawyerPickPlaceV2Policy(), .1, .0],
 ]
 
 # Visual environments have a smaller Mujoco step size than V1 and V2, which
@@ -31,19 +32,18 @@ for row in test_cases_nonoise:
 for row in test_cases_noisy:
     test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
 
-ALL_ENVS = {**ALL_VISUAL_ENVS}
-
 
 @pytest.fixture(scope='function')
 def env(request):
-    e = ALL_ENVS[request.param]()
+    e = VisualSawyerSandboxEnv(request.param)
+    e.randomize_extra_toolset(5, seed=1111)
     e._partially_observable = False
     e._freeze_rand_vec = False
     e._set_task_called = True
     return e
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.parametrize(
     'env,policy,act_noise_pct,expected_success_rate',
     test_cases,
@@ -75,7 +75,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             env,
             policy,
             act_noise_pct,
-            render=False,
+            render=True,
             p_scale=SCALE_P_ERROR
         )[0])
     assert successes >= expected_success_rate * iters

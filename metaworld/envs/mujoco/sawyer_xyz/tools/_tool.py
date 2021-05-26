@@ -3,7 +3,9 @@ import itertools
 
 
 def get_position_of(tool, mjsim):
-    return mjsim.data.get_body_xpos(tool.name)
+    if type(tool) is not str:
+        tool = tool.name
+    return mjsim.data.get_body_xpos(tool)
 
 
 def set_position_of(tool, mjsim, mjmodel):
@@ -12,7 +14,9 @@ def set_position_of(tool, mjsim, mjmodel):
 
 
 def get_joint_pos_of(tool, mjsim):
-    return mjsim.data.get_joint_qpos(tool.name + 'Joint')
+    if type(tool) is not str:
+        tool = tool.name
+    return mjsim.data.get_joint_qpos(tool + 'Joint')
 
 
 def set_joint_pos_of(tool, mjsim, pos):
@@ -20,7 +24,9 @@ def set_joint_pos_of(tool, mjsim, pos):
 
 
 def get_joint_vel_of(tool, mjsim):
-    return mjsim.data.get_joint_qvel(tool.name + 'Joint')
+    if type(tool) is not str:
+        tool = tool.name
+    return mjsim.data.get_joint_qvel(tool + 'Joint')
 
 
 def set_joint_vel_of(tool, mjsim, vel):
@@ -28,7 +34,9 @@ def set_joint_vel_of(tool, mjsim, vel):
 
 
 def get_quat_of(tool, mjsim):
-    return mjsim.data.get_body_xquat[tool.name]
+    if type(tool) is not str:
+        tool = tool.name
+    return mjsim.data.get_body_xquat(tool)
 
 
 def set_quat_of(tool, mjsim, mjmodel):
@@ -38,7 +46,9 @@ def set_quat_of(tool, mjsim, mjmodel):
 
 
 def get_vel_of(tool, mjsim, mjmodel):
-    return mjsim.data.cvel[mjmodel.body_name2id(tool.name)]
+    if type(tool) is not str:
+        tool = tool.name
+    return mjsim.data.cvel[mjmodel.body_name2id(tool)]
 
 
 def set_vel_of(tool, mjsim, mjmodel):

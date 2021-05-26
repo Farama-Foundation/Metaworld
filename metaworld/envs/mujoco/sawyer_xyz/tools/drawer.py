@@ -1,6 +1,6 @@
 import numpy as np
 
-from .tool import Artifact
+from ._tool import Artifact
 
 
 class Drawer(Artifact):

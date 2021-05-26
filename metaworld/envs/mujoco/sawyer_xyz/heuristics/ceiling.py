@@ -1,6 +1,6 @@
 import numpy as np
 
-from .heuristic import Heuristic
+from ._heuristic import Heuristic
 
 
 class Ceiling(Heuristic):

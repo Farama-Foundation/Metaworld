@@ -1,3 +1,16 @@
+from ._tool import (
+    Tool,
+    get_position_of,
+    get_quat_of,
+    get_vel_of,
+    get_joint_pos_of,
+    get_joint_vel_of,
+    set_position_of,
+    set_quat_of,
+    set_vel_of,
+    set_joint_pos_of,
+    set_joint_vel_of
+)
 from .basketball import Basketball
 from .basketball_hoop import BasketballHoop
 from .bin_a import BinA
@@ -26,6 +39,17 @@ from .window import Window
 
 
 __all__ = [
+    'Tool',
+    'get_position_of',
+    'get_quat_of',
+    'get_vel_of',
+    'get_joint_pos_of',
+    'get_joint_vel_of',
+    'set_position_of',
+    'set_quat_of',
+    'set_vel_of',
+    'set_joint_pos_of',
+    'set_joint_vel_of',
     'Basketball',
     'BasketballHoop',
     'BinA',

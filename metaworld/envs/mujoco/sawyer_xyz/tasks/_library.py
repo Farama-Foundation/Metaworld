@@ -1,3 +1,4 @@
+# A mapping from 'TaskName' to tools that are required to complete that task
 TOOLSETS = {
     'Assemble': {'ScrewEye', 'ScrewEyePeg'},
     'Basketball': {'Basketball', 'BasketballHoop'},

@@ -1,7 +1,6 @@
-"""A set of reward utilities written by the authors of dm_control"""
-
-from multiprocessing import Value
 import numpy as np
+
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_state import SawyerXYZState
 
 # The value returned by tolerance() at `margin` distance from `bounds` interval.
 _DEFAULT_VALUE_AT_MARGIN = 0.1
@@ -162,7 +161,7 @@ def inverse_tolerance(x,
 
 
 def rect_prism_tolerance(curr, zero, one):
-    """Computes a reward if curr is inside a rectangluar prism region.
+    """Computes a reward if curr is inside a rectangular prism region.
 
     The 3d points curr and zero specify 2 diagonal corners of a rectangular
     prism that represents the decreasing region.
@@ -217,3 +216,130 @@ def hamacher_product(a, b):
 
     assert 0. <= h_prod <= 1.
     return h_prod
+
+
+def gripper_caging_reward(
+        state: SawyerXYZState,
+        initial_pos_obj: np.ndarray,
+        initial_pos_pads_center: np.ndarray,
+        obj_radius: float,
+        pad_success_thresh: float,
+        xz_thresh: float,
+        desired_gripper_effort=1.0,
+        include_reach_reward=False,
+        reach_reward_radius=0.0):
+    """Reward for grasping the main object. The main object's position should
+    be at state.pos_objs[:3]
+
+    Args:
+        state: a state-based observation (NOT visual obs)
+        obj_radius: radius of object's bounding sphere
+        pad_success_thresh: successful distance of l/r pad to object
+        xz_thresh: successful distance of gripper in x_z axis to the
+            object. Y axis not included since the caging function handles
+            successful grasping in the Y axis.
+        object_reach_radius: successful distance of gripper center to the object
+
+    """
+    obj = state.pos_objs[:3]
+
+    # MARK: Left-right gripper information for caging reward----------------
+    # get current positions of left and right pads (Y axis)
+    pad_y_lr = np.hstack((state.pos_pad_l[1], state.pos_pad_r[1]))
+    # compare *current* pad positions with *current* obj position (Y axis)
+    pad_to_obj_lr = np.abs(pad_y_lr - obj[1])
+    # compare *current* pad positions with *initial* obj position (Y axis)
+    pad_to_objinit_lr = np.abs(pad_y_lr - initial_pos_obj[1])
+
+    # Compute the left/right caging rewards. This is crucial for success,
+    # yet counterintuitive mathematically because we invented it
+    # accidentally.
+    #
+    # Before touching the object, `pad_to_obj_lr` ("x") is always separated
+    # from `caging_lr_margin` ("the margin") by some small number,
+    # `pad_success_thresh`.
+    #
+    # When far away from the object:
+    #       x = margin + pad_success_thresh
+    #       --> Thus x is outside the margin, yielding very small reward.
+    #           Here, any variation in the reward is due to the fact that
+    #           the margin itself is shifting.
+    # When near the object (within pad_success_thresh):
+    #       x = pad_success_thresh - margin
+    #       --> Thus x is well within the margin. As long as x > obj_radius,
+    #           it will also be within the bounds, yielding maximum reward.
+    #           Here, any variation in the reward is due to the gripper
+    #           moving *too close* to the object (i.e, blowing past the
+    #           obj_radius bound).
+    #
+    # Therefore, before touching the object, this is very nearly a binary
+    # reward -- if the gripper is between obj_radius and pad_success_thresh,
+    # it gets maximum reward. Otherwise, the reward very quickly falls off.
+    #
+    # After grasping the object and moving it away from initial position,
+    # x remains (mostly) constant while the margin grows considerably. This
+    # penalizes the agent if it moves *back* toward `obj_init_pos`, but
+    # offers no encouragement for leaving that position in the first place.
+    # That part is left to the reward functions of individual environments.
+
+    caging_lr_margin = np.abs(pad_to_objinit_lr - pad_success_thresh)
+    caging_lr = [tolerance(
+        pad_to_obj_lr[i],  # "x" in the description above
+        bounds=(obj_radius, pad_success_thresh),
+        margin=caging_lr_margin[i],  # "margin" in the description above
+        sigmoid='long_tail',
+    ) for i in range(2)]
+    caging_y = hamacher_product(*caging_lr)
+
+    # MARK: X-Z gripper information for caging reward-----------------------
+    tcp = state.pos_pads_center
+    xz = [0, 2]
+
+    # Compared to the caging_y reward, caging_xz is simple. The margin is
+    # constant (something in the 0.3 to 0.5 range) and x shrinks as the
+    # gripper moves towards the object. After picking up the object, the
+    # reward is maximized and changes very little
+    caging_xz_margin = np.linalg.norm(
+        initial_pos_obj[xz] -
+        initial_pos_pads_center[xz]
+    )
+    caging_xz_margin -= xz_thresh
+    caging_xz = tolerance(
+        np.linalg.norm(tcp[xz] - obj[xz]),  # "x" in the description above
+        bounds=(0, xz_thresh),
+        margin=caging_xz_margin,  # "margin" in the description above
+        sigmoid='long_tail',
+    )
+
+    # MARK: Closed-extent gripper information for caging reward-------------
+    gripper_closed = min(
+        max(0, state.action[-1]),
+        desired_gripper_effort
+    ) / desired_gripper_effort
+
+    # MARK: Combine components----------------------------------------------
+    caging = hamacher_product(caging_y, caging_xz)
+    gripping = gripper_closed if caging > 0.97 else 0.
+    caging_and_gripping = hamacher_product(caging, gripping)
+
+    if not include_reach_reward:
+        return (caging_and_gripping + caging) / 2
+    else:
+        assert reach_reward_radius > 0.0, 'When reach reward is enabled, reach_reward_radius must be > 0'
+
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj_init = np.linalg.norm(
+            initial_pos_obj -
+            initial_pos_pads_center
+        )
+        # Compute reach reward
+        # - We subtract `object_reach_radius` from the margin so that the
+        #   reward always starts with a value of 0.1
+        reach_margin = abs(tcp_to_obj_init - reach_reward_radius)
+        reach = tolerance(
+            tcp_to_obj,
+            bounds=(0, reach_reward_radius),
+            margin=reach_margin,
+            sigmoid='long_tail',
+        )
+        return (caging_and_gripping + reach) / 2

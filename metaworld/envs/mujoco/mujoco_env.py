@@ -42,7 +42,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     def __init__(self, model_path, frame_skip, rgb_array_res=(640, 480)):
         if not path.exists(model_path):
-            raise IOError('File {} does not exist'.fomrat(model_path))
+            raise IOError('File {} does not exist'.format(model_path))
 
         self.frame_skip = frame_skip
         self.model = mujoco_py.load_model_from_path(model_path)

@@ -1,9 +1,10 @@
 import functools
 import random
+from typing import Union
 
 import numpy as np
 
-from metaworld.envs.asset_path_utils import full_visual_path_for
+from metaworld.envs.utils_asset_path import full_visual_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from .heuristics import (
     AlongBackWall,
@@ -41,7 +42,7 @@ from .tools import (
     ToasterHandle,
     Window,
 )
-from .tools.tool import (
+from .tools import (
     get_position_of,
     set_position_of,
     get_joint_pos_of,
@@ -51,12 +52,13 @@ from .tools.tool import (
 )
 from .solver import Solver
 from .voxelspace import VoxelSpace
-from .tasks.library import TOOLSETS
+from .tasks import TOOLSETS, Task
+from .sawyer_xyz_state import SawyerXYZState
 
 
 class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, task: Task):
         super().__init__(
             self.model_name,
             hand_low=(-0.5, 0.4, .05),
@@ -65,13 +67,19 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self.hand_init_pos = np.array((0, 0.6, 0.4), dtype=np.float32)
         self.max_path_length = 500
 
+        # MARK: Task requirements ----------------------------------------------
+        self._task = task
+        self._state: Union[SawyerXYZState, None] = None
+        self._random_reset_space = self._task.random_reset_space
+
+        # MARK: Procedural generation requirements -----------------------------
         self._all_tool_names = list(self._body_names)
         self._world = None
         self._solver = None
 
         # toolset_required should contain the names of tools that are necessary
         # to solve the current task
-        self._toolset_required = set()
+        self._toolset_required = TOOLSETS[type(self._task).__name__]
         # toolset_extra should contain the named of additional tools that will
         # be placed on the table to make task identification non-trivial
         self._toolset_extra = set()
@@ -89,7 +97,7 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     def randomize_extra_toolset(self, n_tasks, seed=None):
         extra_toolsets = {**TOOLSETS}
-        del extra_toolsets[type(self).__name__]
+        del extra_toolsets[type(self._task).__name__]
 
         if seed is not None:
             random.seed(seed)
@@ -110,10 +118,16 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         as those placements may drastically impact task solvability, making
         automatic placement may be undesirable
         """
-        pass
+        self._task.reset_required_tools(
+            world,
+            solver,
+            self._get_state_rand_vec(),
+            opt_rand_init=self.random_init
+        )
 
     def reset_model(self, solve_required_tools=False):
         self._reset_hand()
+        self._state = SawyerXYZState()  # Resets timestep counter
 
         world = VoxelSpace((1.75, 0.6, 0.5), 100)
         solver = Solver(world)
@@ -242,8 +256,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self._make_everything_match_solver()
         self._anneal_free_joints(steps=50)
 
-        return self._get_obs()
-
     def show_bbox_for(self, tool):
         tool_pos = get_position_of(tool, self.sim)
         for site, corner in zip(
@@ -305,3 +317,22 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     @property
     def _joint_type(self):
         return self.model.jnt_type
+
+    def _get_pos_objects(self):
+        return self._task.get_quat_objects(self.sim)
+
+    def _get_quat_objects(self):
+        return self._task.get_quat_objects(self.sim)
+
+    def evaluate_state(self, obs, action):
+        # TODO this function doesn't (and shouldn't) use the obs arg passed to
+        # it from superclass. Remove this arg (and associated superclass logic)
+
+        self._state.populate(
+            action,
+            self._task.get_pos_objects(self.sim),
+            self._task.get_quat_objects(self.sim),
+            self.sim
+        )
+
+        return self._task.evaluate_state(self._state)

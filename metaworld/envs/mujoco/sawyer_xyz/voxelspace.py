@@ -60,9 +60,8 @@ class VoxelSpace(abc.ABC):
             value (bool): Whether the tool is present (True) or not (False)
         """
         self.fill((
-            tool.bbox * self.resolution + np.hstack([tool.specified_pos] * 2),
-            value
-        ).astype('uint32'))
+            tool.bbox * self.resolution + np.hstack([tool.specified_pos] * 2)
+        ).astype('uint32'), value)
 
     def pick_least_overlap(self, ijks, tool_bbox):
         """

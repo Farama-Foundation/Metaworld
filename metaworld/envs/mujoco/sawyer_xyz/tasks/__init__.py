@@ -1,8 +1,12 @@
-from metaworld.envs.mujoco.sawyer_xyz.visual.tasks.button_press import ButtonPress as VisualSawyerButtonPressEnv
-from metaworld.envs.mujoco.sawyer_xyz.visual.tasks.pick_place import PickPlace as VisualSawyerPickPlaceEnv
+from ._library import TOOLSETS
+from ._task import Task
+from .pick_place import PickPlace
+from .button_press import ButtonPress
 
 
 __all__ = [
-    'VisualSawyerButtonPressEnv',
-    'VisualSawyerPickPlaceEnv',
+    'TOOLSETS',
+    'Task',
+    'ButtonPress',
+    'PickPlace',
 ]

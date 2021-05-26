@@ -3,6 +3,8 @@ import warnings
 
 import numpy as np
 
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_state import SawyerXYZState
+
 
 def assert_fully_parsed(func):
     """Decorator function to ensure observations are fully parsed
@@ -59,11 +61,11 @@ class Policy(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_action(self, obs):
+    def get_action(self, state: SawyerXYZState):
         """Gets an action in response to an observation.
 
         Args:
-            obs (np.ndarray): Observation which conforms to env.observation_space
+            state: Environment state (non-visual)
 
         Returns:
             np.ndarray: Array (usually 4 elements) representing the action to take

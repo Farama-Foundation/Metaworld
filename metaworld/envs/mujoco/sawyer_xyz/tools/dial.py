@@ -1,6 +1,6 @@
 import numpy as np
 
-from .tool import Tool
+from ._tool import Tool
 
 
 class Dial(Tool):
