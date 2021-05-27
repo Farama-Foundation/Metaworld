@@ -27,18 +27,18 @@ class Assemble(Task):
     @property
     def random_reset_space(self) -> Box:
         return Box(
-            np.array([-.1, .4, -.1, .4]),
-            np.array([+.1, .6, +.1, .6]),
+            np.array([-.1, .2, -.1, .2]),
+            np.array([+.1, .4, +.1, .4]),
         )
 
     def get_pos_objects(self, mjsim) -> np.ndarray:
-        return np.concatenate(
+        return np.concatenate((
             mjsim.data.site_xpos[mjsim.model.site_name2id('RoundNut-8')],
             mjsim.data.site_xpos[mjsim.model.site_name2id('RoundNut')]
-        )
+        ))
 
     def get_quat_objects(self, mjsim) -> np.ndarray:
-        return get_quat_of('RoundNut', mjsim)
+        return get_quat_of(ScrewEye(), mjsim)
 
     def reset_required_tools(
             self,
@@ -56,7 +56,7 @@ class Assemble(Task):
         displacement = vec[:2] - vec[2:]
 
         xyz0[:2] = vec[:2]
-        xyz1[:2] = vec[:2] + 0.15 * displacement / np.linalg.norm(displacement)
+        xyz1[:2] = vec[:2] + 0.2 * displacement / np.linalg.norm(displacement)
 
         xyz0[0] += world.size[0] / 2.0
         xyz1[0] += world.size[0] / 2.0
