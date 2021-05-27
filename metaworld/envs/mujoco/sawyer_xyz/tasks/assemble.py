@@ -44,8 +44,7 @@ class Assemble(Task):
             self,
             world,
             solver,
-            opt_rand_state_vec,  # TODO deprecate?
-            opt_rand_init=True  # TODO deprecate?
+            random_reset_vec,
     ):
         screw_eye = ScrewEye()
         peg = ScrewEyePeg()
@@ -53,12 +52,11 @@ class Assemble(Task):
         xyz0 = np.array([.0, .0, screw_eye.resting_pos_z])
         xyz1 = np.array([.0, .0, peg.resting_pos_z])
 
-        if opt_rand_init:
-            vec = opt_rand_state_vec
-            displacement = vec[:2] - vec[2:]
+        vec = random_reset_vec
+        displacement = vec[:2] - vec[2:]
 
-            xyz0[:2] = vec[:2]
-            xyz1[:2] = vec[:2] + 0.15 * displacement / np.linalg.norm(displacement)
+        xyz0[:2] = vec[:2]
+        xyz1[:2] = vec[:2] + 0.15 * displacement / np.linalg.norm(displacement)
 
         xyz0[0] += world.size[0] / 2.0
         xyz1[0] += world.size[0] / 2.0

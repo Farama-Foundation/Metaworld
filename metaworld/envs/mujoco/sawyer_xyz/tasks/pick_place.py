@@ -40,20 +40,16 @@ class PickPlace(Task):
             self,
             world,
             solver,
-            opt_rand_state_vec,  # TODO deprecate?
-            opt_rand_init=True  # TODO deprecate?
+            random_reset_vec,
     ):
         puck = Puck()
-        self._target_pos = np.array([0.1, 0.8, 0.2])
-        x = 0.0
-        y = 0.0
-        z = puck.resting_pos_z
-        if opt_rand_init:
-            vec = opt_rand_state_vec
-            self._target_pos = vec[2:]
 
-            x = world.size[0] / 2.0 + vec[0]
-            y = vec[1] - 0.3
+        vec = random_reset_vec
+        self._target_pos = vec[2:]
+
+        x = world.size[0] / 2.0 + vec[0]
+        y = vec[1] - 0.3
+        z = puck.resting_pos_z
 
         puck.specified_pos = np.array([x, y, z])
         solver.did_manual_set(puck)

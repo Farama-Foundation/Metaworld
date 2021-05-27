@@ -46,8 +46,7 @@ class Task(abc.ABC):
             self,
             world,
             solver,
-            opt_rand_state_vec,  # TODO deprecate?
-            opt_rand_init=True  # TODO deprecate?
+            random_reset_vec,
     ):
         """
         Configures the minimal requisite set of tools for the task to be
@@ -58,8 +57,7 @@ class Task(abc.ABC):
                 (should match the private `._voxel_space` member of the solver)
             solver (Solver): The solver that will be in charge of proc gen after
                 this manual placement is complete
-            opt_rand_state_vec (np.ndarray): A list of positions
-            opt_rand_init (boolean): Whether to use positions in opt_rand_state_vec
+            random_reset_vec (np.ndarray): A list of positions
 
         """
         pass

@@ -47,17 +47,14 @@ class ButtonPress(Task):
             self,
             world,
             solver,
-            opt_rand_state_vec,  # TODO deprecate?
-            opt_rand_init=True  # TODO deprecate?
+            random_reset_vec,
     ):
         button = ButtonBox()
-        x = 0.0
-        y = 0.0
+
+        vec = random_reset_vec
+        x = world.size[0] / 2.0 + 0.8 * (vec[0] - 0.5)
+        y = world.size[1] / 8.0 + 0.3 * (vec[1] - 0.0)
         z = button.resting_pos_z
-        if opt_rand_init:
-            vec = opt_rand_state_vec
-            x = world.size[0] / 2.0 + 0.8 * (vec[0] - 0.5)
-            y = world.size[1] / 8.0 + 0.3 * (vec[1] - 0.0)
 
         button.specified_pos = np.array([x, y, z])
         solver.did_manual_set(button)
