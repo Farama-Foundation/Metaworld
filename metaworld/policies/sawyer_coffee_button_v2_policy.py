@@ -16,7 +16,7 @@ class SawyerCoffeeButtonV2Policy(Policy):
             'unused_info': obs[7:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, p_scale=1.0):
         o_d = self._parse_obs(obs)
 
         action = Action({
@@ -24,7 +24,7 @@ class SawyerCoffeeButtonV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10. * p_scale)
         action['grab_effort'] = -1.
 
         return action.array

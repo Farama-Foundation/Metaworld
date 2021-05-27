@@ -26,8 +26,8 @@ class CoffeeButton(Task):
     @property
     def random_reset_space(self) -> Box:
         return Box(
-            np.array([-.1, .4]),
-            np.array([+.1, .6]),
+            np.array([-.2, .8]),
+            np.array([+.2, .9]),
         )
 
     def get_pos_objects(self, mjsim) -> np.ndarray:
@@ -51,13 +51,11 @@ class CoffeeButton(Task):
         machine.specified_pos = np.array([x, y, z])
         solver.did_manual_set(machine)
 
-        button = machine.specified_pos + np.array([.0, -.22, .3])
-        self._target_pos = button + np.array([.0, 0.03, .0])
-
     def compute_reward(self, state: SawyerXYZState):
         if state.timestep == 1:
             self._initial_pos_obj = state.pos_objs[:3].copy()
             self._initial_pos_pads_center = state.pos_pads_center.copy()
+            self._target_pos = self._initial_pos_obj + np.array([.0, 0.03, .0])
 
         obj = state.pos_objs[:3]
         tcp = state.pos_pads_center

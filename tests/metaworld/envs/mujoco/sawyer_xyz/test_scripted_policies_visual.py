@@ -10,6 +10,7 @@ test_cases_nonoise = [
     # name, policy, action noise pct, success rate
     [Assemble(), SawyerAssemblyV2Policy(), .0, .0],
     [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .0, .0],
+    [CoffeeButton(), SawyerCoffeeButtonV2Policy(), .0, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .0, .0],
 ]
 
@@ -17,6 +18,7 @@ test_cases_noisy = [
     # name, policy, action noise pct, success rate
     [Assemble(), SawyerAssemblyV2Policy(), .1, .0],
     [ButtonPress(), SawyerButtonPressTopdownV2Policy(), .1, .0],
+    [CoffeeButton(), SawyerCoffeeButtonV2Policy(), .1, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .1, .0],
 ]
 

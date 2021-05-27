@@ -77,6 +77,10 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self._toolset_extra = functools.reduce(
             lambda a, b: set(a).union(b), selected
         )
+        # Since certain tools appear in multiple tasks, we have to double check
+        # that a required tool doesn't end up being labelled 'extra'
+        for tool_name in TOOLSETS[type(self._task).__name__]:
+            self._toolset_extra.discard(tool_name)
 
     def reset_model(self, solve_required_tools=False):
         self._reset_hand()
