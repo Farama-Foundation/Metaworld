@@ -78,22 +78,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             lambda a, b: set(a).union(b), selected
         )
 
-    def _reset_required_tools(self, world, solver):
-        """
-        Allows implementations to customize how the required tools are placed,
-        as those placements may drastically impact task solvability, making
-        automatic placement undesirable
-        """
-        random_reset_vec = self._get_state_rand_vec() if self.random_init else \
-            (self._task.random_reset_space.low +
-             self._task.random_reset_space.high) / 2.0
-
-        self._task.reset_required_tools(
-            world,
-            solver,
-            random_reset_vec
-        )
-
     def reset_model(self, solve_required_tools=False):
         self._reset_hand()
         self._state = SawyerXYZState()  # Resets timestep counter
@@ -128,6 +112,28 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         self._make_everything_match_solver()
         self._anneal_free_joints(steps=50)
 
+    def _evaluate_state_after(self, action):
+        # TODO this function doesn't (and shouldn't) use the obs arg passed to
+        # it from superclass. Remove this arg (and associated superclass logic)
+
+        self._state.populate(
+            action,
+            self._task.get_pos_objects(self.sim),
+            self._task.get_quat_objects(self.sim),
+            self.sim
+        )
+
+        return self._task.compute_reward(self._state)
+
+    def _get_current_obs(self):
+        return {
+            'rgb_mat': self.render('rgb_array'),
+            'vector': np.concatenate((
+                self._state.get_vector(),
+                self._task._target_pos # TODO this is a hacky way of accessing
+            ))
+        }
+
     def show_bbox_for(self, tool):
         """
         Places sites at the 6 corners of `tool`'s bounding box. Useful when
@@ -141,6 +147,22 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
             self.sim.model.site_pos[
                 self.model.site_name2id(f'BBox{site}')
             ] = tool_pos + np.array(corner)
+
+    def _reset_required_tools(self, world, solver):
+        """
+        Allows implementations to customize how the required tools are placed,
+        as those placements may drastically impact task solvability, making
+        automatic placement undesirable
+        """
+        random_reset_vec = self._get_state_rand_vec() if self.random_init else \
+            (self._task.random_reset_space.low +
+             self._task.random_reset_space.high) / 2.0
+
+        self._task.reset_required_tools(
+            world,
+            solver,
+            random_reset_vec
+        )
 
     def _make_everything_match_solver(self):
         """
@@ -203,16 +225,3 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     @property
     def _joint_type(self):
         return self.model.jnt_type
-
-    def evaluate_state(self, obs, action):
-        # TODO this function doesn't (and shouldn't) use the obs arg passed to
-        # it from superclass. Remove this arg (and associated superclass logic)
-
-        self._state.populate(
-            action,
-            self._task.get_pos_objects(self.sim),
-            self._task.get_quat_objects(self.sim),
-            self.sim
-        )
-
-        return self._task.compute_reward(self._state)

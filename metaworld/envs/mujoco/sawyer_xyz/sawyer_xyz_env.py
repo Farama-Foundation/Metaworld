@@ -182,13 +182,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 }
             )
 
-        self._last_stable_obs = np.zeros(3)
+        reward, info = self._evaluate_state_after(action)
+        self._last_stable_obs = self._get_current_obs()  # TODO frame stacking
 
-        reward, info = self.evaluate_state(self._last_stable_obs, action)
         return self._last_stable_obs, reward, False, info
 
     @abc.abstractmethod
-    def evaluate_state(self, obs, action):
+    def _evaluate_state_after(self, action):
         """Does the heavy-lifting for `step()` -- namely, calculating reward
         and populating the `info` dict with training metrics
 
@@ -199,6 +199,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 obj_to_target, unscaled_reward)
 
         """
+        pass
+
+    @abc.abstractmethod
+    def _get_current_obs(self):
         pass
 
     def reset(self):

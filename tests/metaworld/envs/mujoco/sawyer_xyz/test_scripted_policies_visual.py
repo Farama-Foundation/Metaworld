@@ -38,7 +38,7 @@ for row in test_cases_noisy:
 @pytest.fixture(scope='function')
 def env(request):
     e = VisualSawyerSandboxEnv(request.param)
-    e.randomize_extra_toolset(5, seed=1111)
+    e.randomize_extra_toolset(5, seed=1111)  # IMPORTANT TO DO THIS
     e._partially_observable = False
     e._freeze_rand_vec = False
     e._set_task_called = True
@@ -77,7 +77,7 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             env,
             policy,
             act_noise_pct,
-            render=True,
+            render=False,
             p_scale=SCALE_P_ERROR
         )[0])
     assert successes >= expected_success_rate * iters

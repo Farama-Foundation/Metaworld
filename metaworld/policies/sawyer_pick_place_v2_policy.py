@@ -13,29 +13,29 @@ class SawyerPickPlaceV2Policy(Policy):
             'hand_pos': obs[:3],
             'gripper_distance_apart': obs[3],
             'puck_pos': obs[4:7],
-            'puck_rot': obs[7:11],
+            'unused': obs[7:-3],
             'goal_pos': obs[-3:],
-            'unused_info_curr_obs': obs[11:18],
-            '_prev_obs':obs[18:36]
         }
 
-    def get_action(self, state, p_scale=1.0):
+    def get_action(self, obs, p_scale=1.0):
+        o_d = self._parse_obs(obs)
+
         action = Action({
             'delta_pos': np.arange(3),
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(state.pos_hand, to_xyz=self._desired_pos(state), p=10. * p_scale)
-        action['grab_effort'] = self._grab_effort(state)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10. * p_scale)
+        action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def _desired_pos(state):
-        pos_curr = state.pos_hand
-        pos_puck = state.pos_objs[:3] + np.array([-0.005, 0, 0])
-        pos_goal = np.array([0.0, 0.5, 0.2])
-        gripper_separation = state.normalized_inter_pad_distance
+    def _desired_pos(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_puck = o_d['puck_pos'] + np.array([-0.005, 0, 0])
+        pos_goal = o_d['goal_pos']
+        gripper_separation = o_d['gripper_distance_apart']
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
             return pos_puck + np.array([0., 0., 0.1])
@@ -50,9 +50,9 @@ class SawyerPickPlaceV2Policy(Policy):
             return pos_goal
 
     @staticmethod
-    def _grab_effort(state):
-        pos_curr = state.pos_hand
-        pos_puck = state.pos_objs[:3]
+    def _grab_effort(o_d):
+        pos_curr = o_d['hand_pos']
+        pos_puck = o_d['puck_pos']
         if np.linalg.norm(pos_curr - pos_puck) < 0.07:
             return 1.
         else:

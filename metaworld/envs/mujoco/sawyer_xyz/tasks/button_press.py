@@ -89,8 +89,6 @@ class ButtonPress(Task):
         if tcp_to_obj <= 0.03:
             reward += 5 * button_pressed
 
-        print(obj_to_target)
-
         return reward, {
             'success': float(obj_to_target <= 0.02),
             'near_object': float(tcp_to_obj <= 0.05),

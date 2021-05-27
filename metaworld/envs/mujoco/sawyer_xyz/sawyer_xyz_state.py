@@ -3,7 +3,8 @@ import numpy as np
 
 class SawyerXYZState:
 
-    def __init__(self):
+    def __init__(self, max_num_objs=3):
+        self._max_num_objs = max_num_objs
         self._timestep = 0
 
         self._action = np.zeros(4, dtype='float')
@@ -38,6 +39,16 @@ class SawyerXYZState:
 
         self._timestep += 1
 
+    def get_vector(self):
+        return np.concatenate((
+            self.pos_hand,
+            (self.inter_pad_distance,),
+            np.pad(self.pos_objs,
+                   (0, 3 * self._max_num_objs - len(self.pos_objs))),
+            np.pad(self.quat_objs,
+                   (0, 4 * self._max_num_objs - len(self.quat_objs)))
+        ))
+
     @property
     def timestep(self):
         return self._timestep
@@ -55,7 +66,7 @@ class SawyerXYZState:
 
     @property
     def quat_objs(self):
-        return self.quat_objs
+        return self._quat_objs
 
     @property
     def pos_hand(self):
