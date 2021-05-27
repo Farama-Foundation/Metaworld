@@ -13,6 +13,7 @@ test_cases_nonoise = [
     [CoffeeButton(), SawyerCoffeeButtonV2Policy(), .0, .0],
     [DialTurn(), SawyerDialTurnV2Policy(), .0, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .0, .0],
+    [Reach(), SawyerReachV2Policy(), .0, .0],
 ]
 
 test_cases_noisy = [
@@ -22,6 +23,7 @@ test_cases_noisy = [
     [CoffeeButton(), SawyerCoffeeButtonV2Policy(), .1, .0],
     [DialTurn(), SawyerDialTurnV2Policy(), .1, .0],
     [PickPlace(), SawyerPickPlaceV2Policy(), .1, .0],
+    [Reach(), SawyerReachV2Policy(), .1, .0],
 ]
 
 # Visual environments have a smaller Mujoco step size than V1 and V2, which

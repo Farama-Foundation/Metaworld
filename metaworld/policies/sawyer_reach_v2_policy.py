@@ -17,7 +17,7 @@ class SawyerReachV2Policy(Policy):
             'goal_pos': obs[-3:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, p_scale=1.0):
         o_d = self._parse_obs(obs)
 
         action = Action({
@@ -25,7 +25,7 @@ class SawyerReachV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=o_d['goal_pos'], p=5.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=o_d['goal_pos'], p=5. * p_scale)
         action['grab_effort'] = 0.
 
         return action.array
