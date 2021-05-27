@@ -56,10 +56,10 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
 
     @property
     def _target_site_config(self):
+        # TODO this method should probably be fleshed out.
+        # Could have a mapping (like TOOLSETS in library.py) that goes from
+        # task name to associated sites. Then just return those names
         return []
-
-    def _get_id_main_object(self):
-        return None
 
     def randomize_extra_toolset(self, n_tasks, seed=None):
         extra_toolsets = {**TOOLSETS}
@@ -84,11 +84,14 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
         as those placements may drastically impact task solvability, making
         automatic placement undesirable
         """
+        random_reset_vec = self._get_state_rand_vec() if self.random_init else \
+            (self._task.random_reset_space.low +
+             self._task.random_reset_space.high) / 2.0
+
         self._task.reset_required_tools(
             world,
             solver,
-            self._get_state_rand_vec(),
-            opt_rand_init=self.random_init
+            random_reset_vec
         )
 
     def reset_model(self, solve_required_tools=False):
@@ -200,12 +203,6 @@ class VisualSawyerSandboxEnv(SawyerXYZEnv):
     @property
     def _joint_type(self):
         return self.model.jnt_type
-
-    def _get_pos_objects(self):
-        return self._task.get_quat_objects(self.sim)
-
-    def _get_quat_objects(self):
-        return self._task.get_quat_objects(self.sim)
 
     def evaluate_state(self, obs, action):
         # TODO this function doesn't (and shouldn't) use the obs arg passed to

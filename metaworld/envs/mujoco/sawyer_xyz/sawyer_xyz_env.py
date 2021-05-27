@@ -1,9 +1,7 @@
 import abc
 import copy
-import pickle
 
 from gym.spaces import Box
-from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
@@ -21,21 +19,6 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     def __init__(self, model_name, frame_skip=5):
         MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
         self.reset_mocap_welds()
-
-    def get_endeff_pos(self):
-        return self.data.get_body_xpos('hand').copy()
-
-    @property
-    def tcp_center(self):
-        """The COM of the gripper's 2 fingers
-
-        Returns:
-            (np.ndarray): 3-element position
-        """
-        right_finger_pos = self._get_site_pos('rightEndEffector')
-        left_finger_pos = self._get_site_pos('leftEndEffector')
-        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
-        return tcp_center
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
@@ -82,9 +65,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .7])
     )
-    max_path_length = 500
-
-    TARGET_RADIUS = 0.05
 
     def __init__(
             self,
@@ -113,16 +93,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._freeze_rand_vec = True
         self._last_rand_vec = None
 
-        # We use continuous goal space by default and
-        # can discretize the goal space by calling
-        # the `discretize_goal_space` method.
-        self.discrete_goal_space = None
-        self.discrete_goals = []
-        self.active_discrete_goal = None
-
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
-
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
@@ -132,29 +102,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = True
 
         self.hand_init_pos = None  # OVERRIDE ME
-        self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
 
         self._last_stable_obs = None
         self._prev_obs = None
-
-    def _set_task_inner(self):
-        # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
-        pass
-
-    def set_task(self, task):
-        self._set_task_called = True
-        data = pickle.loads(task.data)
-        assert isinstance(self, data['env_cls'])
-        del data['env_cls']
-        self._last_rand_vec = data['rand_vec']
-        self._freeze_rand_vec = True
-        self._last_rand_vec = data['rand_vec']
-        del data['rand_vec']
-        self._partially_observable = data['partially_observable']
-        del data['partially_observable']
-        self._set_task_inner(**data)
-        self.reset()
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -168,13 +119,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-
-    def discretize_goal_space(self, goals):
-        assert False
-        assert len(goals) >= 1
-        self.discrete_goals = goals
-        # update the goal_space to a Discrete space
-        self.discrete_goal_space = Discrete(len(self.discrete_goals))
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -205,78 +149,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         :rtype: list of (str, np.ndarray)
         """
-        return [('goal', self._target_pos)]
-
-    @property
-    def touching_main_object(self):
-        """Calls `touching_object` for the ID of the env's main object
-
-        Returns:
-            (bool) whether the gripper is touching the object
-
-        """
-        return self.touching_object(self._get_id_main_object)
-
-    def touching_object(self, object_geom_id):
-        """Determines whether the gripper is touching the object with given id
-
-        Args:
-            object_geom_id (int): the ID of the object in question
-
-        Returns:
-            (bool): whether the gripper is touching the object
-
-        """
-        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
-        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
-
-        leftpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (leftpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
-
-        rightpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (rightpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
-
-        leftpad_object_contact_force = sum(
-            self.unwrapped.data.efc_force[x.efc_address]
-            for x in leftpad_object_contacts)
-
-        rightpad_object_contact_force = sum(
-            self.unwrapped.data.efc_force[x.efc_address]
-            for x in rightpad_object_contacts)
-
-        return 0 < leftpad_object_contact_force and \
-               0 < rightpad_object_contact_force
-
-    @property
-    def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return []
 
     @property
     def observation_space(self):
-        obs_obj_max_len = 14
-
-        obj_low = np.full(obs_obj_max_len, -np.inf)
-        obj_high = np.full(obs_obj_max_len, +np.inf)
-        goal_low = np.zeros(3) if self._partially_observable \
-            else self.goal_space.low
-        goal_high = np.zeros(3) if self._partially_observable \
-            else self.goal_space.high
-        gripper_low = -1.
-        gripper_high = +1.
-
-        return Box(
-            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
-        ) if True else Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
-        )
+        return None
 
     @_assert_task_is_set
     def step(self, action):
@@ -310,6 +187,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         return self._last_stable_obs, reward, False, info
 
+    @abc.abstractmethod
     def evaluate_state(self, obs, action):
         """Does the heavy-lifting for `step()` -- namely, calculating reward
         and populating the `info` dict with training metrics
@@ -321,9 +199,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 obj_to_target, unscaled_reward)
 
         """
-        # Throw error rather than making this an @abc.abstractmethod so that
-        # V1 environments don't have to implement it
-        raise NotImplementedError
+        pass
 
     def reset(self):
         self.curr_path_length = 0
@@ -334,11 +210,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1, 1], self.frame_skip)
-        self.init_tcp = self.tcp_center
-
-        self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:

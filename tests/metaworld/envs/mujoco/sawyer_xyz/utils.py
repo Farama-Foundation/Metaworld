@@ -62,7 +62,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False, p_scale=1.0):
     env.reset_model()
     env.step(np.zeros(4))
 
-    for _ in range(env.max_path_length):
+    for _ in range(env.MAX_PATH_LENGTH):
         a = policy.get_action(env._state, p_scale=p_scale)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 

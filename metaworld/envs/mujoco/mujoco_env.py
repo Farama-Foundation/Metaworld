@@ -38,7 +38,7 @@ class MujocoEnv(gym.Env, abc.ABC):
      - Do not automatically set the observation/action space.
     """
 
-    max_path_length = 150
+    MAX_PATH_LENGTH = 500
 
     def __init__(self, model_path, frame_skip, rgb_array_res=(640, 480)):
         if not path.exists(model_path):
@@ -105,7 +105,7 @@ class MujocoEnv(gym.Env, abc.ABC):
         return self.model.opt.timestep * self.frame_skip
 
     def do_simulation(self, ctrl, n_frames=None):
-        if getattr(self, 'curr_path_length', 0) > self.max_path_length:
+        if getattr(self, 'curr_path_length', 0) > self.MAX_PATH_LENGTH:
             raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
         if self._did_see_sim_exception:
             return
