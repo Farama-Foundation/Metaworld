@@ -32,7 +32,7 @@ class DialTurn(Task):
 
     def get_pos_objects(self, mjsim) -> np.ndarray:
         dial_center = get_position_of(Dial(), mjsim)
-        dial_angle_rad = get_joint_pos_of(Dial(), mjsim)
+        dial_angle_rad = get_joint_pos_of('dialKnob', mjsim)
 
         offset = np.array([
             np.sin(dial_angle_rad),
@@ -61,14 +61,13 @@ class DialTurn(Task):
         z = dial.resting_pos_z
 
         dial.specified_pos = np.array([x, y, z])
-        solver.did_manual_set(dial) + np.array([0, 0.03, 0.03])
-
-        self._target_pos = dial.specified_pos
+        solver.did_manual_set(dial)
 
     def compute_reward(self, state: SawyerXYZState):
         if state.timestep == 1:
             self._initial_pos_obj = state.pos_objs[:3].copy()
             self._initial_pos_pads_center = state.pos_pads_center.copy()
+            self._target_pos = self._initial_pos_obj + np.array([-.05, .05, 0])
 
         obj = state.pos_objs[:3]
         tcp = state.pos_pads_center
@@ -82,8 +81,8 @@ class DialTurn(Task):
 
         in_place = tolerance(
             target_to_obj,
-            bounds=(0, 0.07),
-            margin=abs(target_to_obj_init - 0.07),
+            bounds=(0, 0.02),
+            margin=abs(target_to_obj_init - 0.02),
             sigmoid='long_tail',
         )
 
@@ -103,7 +102,7 @@ class DialTurn(Task):
         reward = 10 * h_prod(reach, in_place)
 
         return reward, {
-            'success': float(target_to_obj <= 0.07),
+            'success': float(target_to_obj <= 0.02),
             'near_object': float(tcp_to_obj <= 0.01),
             'grasp_success': 1.,
             'grasp_reward': reach,
