@@ -36,9 +36,9 @@ class MujocoEnv(gym.Env, abc.ABC):
      - Do not automatically set the observation/action space.
     """
 
-    max_path_length = 150
+    max_path_length = 500
 
-    def __init__(self, model_path, frame_skip, rgb_array_res=(640, 480)):
+    def __init__(self, model_path, frame_skip):
         if not path.exists(model_path):
             raise IOError("File %s does not exist" % model_path)
 
@@ -48,7 +48,6 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.data = self.sim.data
         self.viewer = None
         self._viewers = {}
-        self._rgb_array_res = rgb_array_res
 
         self.metadata = {
             'render.modes': ['human'],
@@ -119,17 +118,19 @@ class MujocoEnv(gym.Env, abc.ABC):
                 warnings.warn(str(err), category=RuntimeWarning)
                 self._did_see_sim_exception = True
 
-    def render(self, mode='human'):
-        if mode == 'human':
-            self._get_viewer(mode).render()
-        elif mode == 'rgb_array':
-            return self.sim.render(
-                *self._rgb_array_res,
-                mode='offscreen',
-                camera_name='topview'
-            )[:, :, ::-1]
+    def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
+        assert_string = ("camera_name should be one of ",
+                "corner3, corner, corner2, topview, gripperPOV, behindGripper")
+        assert camera_name in {"corner3", "corner", "corner2", 
+            "topview", "gripperPOV", "behindGripper"}, assert_string
+        if not offscreen:
+            self._get_viewer('human').render()
         else:
-            raise ValueError("mode can only be either 'human' or 'rgb_array'")
+            return self.sim.render(
+                *resolution,
+                mode='offscreen',
+                camera_name=camera_name
+            )
 
     def close(self):
         if self.viewer is not None:
