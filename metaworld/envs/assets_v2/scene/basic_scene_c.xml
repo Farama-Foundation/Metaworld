@@ -18,7 +18,7 @@
   </asset>
 
   <visual>
-      <map fogstart="1.5" fogend="5" force="0.1" znear="0.1"/>
+      <map fogstart="1.5" fogend="5" force="0.1" znear="0.01"/>
       <quality shadowsize ="4096" offsamples="4"/>
 
       <headlight ambient="0.4 0.4 0.4"/>

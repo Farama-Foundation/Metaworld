@@ -15,7 +15,8 @@
 
       <camera pos="0 0.5 1.5" name="topview" />
       <camera name="corner" mode="fixed" pos="-1.1 -0.4 0.6" xyaxes="-1 1 0 -0.2 -0.2 -1"/>
-      <camera name="corner2" mode="fixed" pos="1.1 -0.4 0.6" euler="3.9 2.3 3.7"/>
+      <camera name="corner2" fovy="60" mode="fixed" pos="1.3 -0.2 1.1" euler="3.9 2.3 0.6"/>
+      <camera name="corner3" fovy="45" mode="fixed" pos="0.9 0 1.5" euler="3.5 2.7 1"/>
       <!--<geom name="floor" type="plane" pos="0 0 -.9" size="10 10 10"-->
             <!--rgba="0 0 0 1" contype="15" conaffinity="15" />-->
       <!--<geom name="tableTop" type="box" pos="0 0.6 -0.45" size="0.4 0.2 0.45"
