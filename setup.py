@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 required = [
     # Please keep alphabetized
     'gym>=0.15.4',
-    'mujoco-py<2.1,>=2.0',
+    'mujoco-py<2.2,>=2.0',
     'numpy>=1.18',
 ]
 
@@ -25,6 +25,7 @@ extras['dev'] = [
 
 setup(
     name='metaworld',
+    version='0.1.0',
     packages=find_packages(),
     include_package_data=True,
     install_requires=required,
