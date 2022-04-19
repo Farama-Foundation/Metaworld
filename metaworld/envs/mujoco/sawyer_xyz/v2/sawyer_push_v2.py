@@ -119,7 +119,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
+        self.obj_init_pos = np.array(self.fix_extreme_obj_pos(self.init_config['obj_init_pos']))
         self.obj_init_angle = self.init_config['obj_init_angle']
 
         if self.random_init:
