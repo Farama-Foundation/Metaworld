@@ -58,10 +58,14 @@ class MujocoEnv(gym.Env, abc.ABC):
 
         self._did_see_sim_exception = False
 
-        self.seed()
+        self.np_random, _ = seeding.np_random(None)
 
-    def seed(self, seed=None):
+    def seed(self, seed):
+        assert seed is not None
         self.np_random, seed = seeding.np_random(seed)
+        self.action_space.seed(seed)
+        self.observation_space.seed(seed)
+        self.goal_space.seed(seed)
         return [seed]
 
     @abc.abstractmethod
