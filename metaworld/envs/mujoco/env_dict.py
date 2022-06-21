@@ -592,6 +592,7 @@ def create_hidden_goal_envs():
             env.reset()
             env._freeze_rand_vec = True
             if seed is not None:
+                env.seed(seed)
                 np.random.set_state(st0)
 
         d['__init__'] = initialize
@@ -622,6 +623,7 @@ def create_observable_goal_envs():
             env.reset()
             env._freeze_rand_vec = True
             if seed is not None:
+                env.seed(seed)
                 np.random.set_state(st0)
 
         d['__init__'] = initialize

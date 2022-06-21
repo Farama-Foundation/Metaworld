@@ -111,6 +111,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
+        self.seeded_rand_vec = False
         self._freeze_rand_vec = True
         self._last_rand_vec = None
 
@@ -469,6 +470,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
             return self._last_rand_vec
+        elif self.seeded_rand_vec:
+            rand_vec = self.np_random.uniform(
+                self._random_reset_space.low,
+                self._random_reset_space.high,
+                size=self._random_reset_space.low.size)
+            self._last_rand_vec = rand_vec
+            return rand_vec
         else:
             rand_vec = np.random.uniform(
                 self._random_reset_space.low,
