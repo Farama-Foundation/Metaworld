@@ -457,7 +457,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
-        return super().reset()
+        
+        ## reset self._prev_obs to current observation
+        obs = super().reset()
+        self._prev_obs = obs[:18].copy()
+        obs[18:36] = self._prev_obs
+
+        return obs
 
     def _reset_hand(self, steps=50):
         for _ in range(steps):
