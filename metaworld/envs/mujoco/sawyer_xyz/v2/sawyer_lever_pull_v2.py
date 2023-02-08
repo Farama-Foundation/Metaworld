@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -90,8 +90,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
-            else self.init_config['obj_init_pos']
+        self.obj_init_pos = self._get_state_rand_vec()
         self.sim.model.body_pos[
             self.model.body_name2id('lever')] = self.obj_init_pos
 

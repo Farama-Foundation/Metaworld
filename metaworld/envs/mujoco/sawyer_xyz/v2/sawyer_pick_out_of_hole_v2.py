@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -91,13 +91,9 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        pos_obj = self.init_config['obj_init_pos']
-        pos_goal = self.goal.copy()
-
-        if self.random_init:
+        pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
+        while np.linalg.norm(pos_obj[:2] - pos_goal[:2]) < 0.15:
             pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
-            while np.linalg.norm(pos_obj[:2] - pos_goal[:2]) < 0.15:
-                pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
 
         self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)

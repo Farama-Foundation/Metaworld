@@ -64,4 +64,4 @@ def test_reaching_limit(target):
             break
         o_prev = o
 
-    assert SawyerXYZEnv._HAND_SPACE.contains(o[:3])
+    assert SawyerXYZEnv._HAND_SPACE.contains(o[:3]), SawyerXYZEnv._HAND_SPACE

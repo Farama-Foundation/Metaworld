@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -89,9 +89,8 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self._target_pos = self.goal.copy()
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos
+        goal_pos = self._get_state_rand_vec()
+        self.obj_init_pos = goal_pos
 
         self.sim.model.body_pos[
             self.model.body_name2id('box')] = self.obj_init_pos

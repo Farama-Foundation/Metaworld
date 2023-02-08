@@ -78,6 +78,7 @@ def _encode_task(env_name, data):
 def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
     if seed is not None:
         st0 = np.random.get_state()
+        print(seed)
         np.random.seed(seed)
     tasks = []
     for (env_name, args) in args_kwargs.items():

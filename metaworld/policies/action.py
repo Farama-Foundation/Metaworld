@@ -15,7 +15,7 @@ class Action:
             structure (dict): Map from field names to output array indices
         """
         self._structure = structure
-        self.array = np.zeros(len(self), dtype='float')
+        self.array = np.zeros(len(self), dtype=np.float32)
 
     def __len__(self):
         return sum([1 if isinstance(idx, int) else len(idx) for idx in self._structure.items()])

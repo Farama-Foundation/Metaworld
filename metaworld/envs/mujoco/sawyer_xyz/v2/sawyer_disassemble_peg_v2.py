@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,8 +12,8 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0.1, 0.6, 0.025)
-        obj_high = (0., 0.75, 0.02501)
+        obj_low = (0., 0.6, 0.025)
+        obj_high = (0.1, 0.75, 0.02501)
         goal_low = (-0.1, 0.6, 0.1699)
         goal_high = (0.1, 0.75, 0.1701)
 
@@ -93,12 +93,11 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.array(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos[:3]
-            self._target_pos = goal_pos[:3] + np.array([0, 0, 0.15])
+        self.obj_init_pos = goal_pos[:3]
+        self._target_pos = goal_pos[:3] + np.array([0, 0, 0.15])
 
         peg_pos = self.obj_init_pos + np.array([0., 0., 0.03])
         peg_top_pos = self.obj_init_pos + np.array([0., 0., 0.08])
