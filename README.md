@@ -1,3 +1,11 @@
+## ALR Specific:
+Basically a fork of the metaworld with some bugs fixed, we try to get the fixes into the official repo but for now we have this
+Changes:
+- Fixed "old position" at initial step
+- Fixed sampling in disassemble_peg
+- Added (proper) Camera at Wrist 
+
+
 # Meta-World
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/rlworkgroup/metaworld/blob/master/LICENSE)
 ![Build Status](https://github.com/rlworkgroup/metaworld/workflows/MetaWorld%20CI/badge.svg)

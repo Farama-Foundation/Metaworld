@@ -148,7 +148,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
-        self._prev_obs = self._get_curr_obs_combined_no_goal()
+        self._prev_obs = None
+        #self._prev_obs = self._get_curr_obs_combined_no_goal()
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -367,7 +368,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
         if self.isV2:
-            obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+            obs = np.hstack((curr_obs, curr_obs if self._prev_obs is None else self._prev_obs, pos_goal))
         else:
             obs = np.hstack((curr_obs, pos_goal))
         self._prev_obs = curr_obs
@@ -457,6 +458,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def reset(self):
         self.curr_path_length = 0
+        self._prev_obs = None
         return super().reset()
 
     def _reset_hand(self, steps=50):

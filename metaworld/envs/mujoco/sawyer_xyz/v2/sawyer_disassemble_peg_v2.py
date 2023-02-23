@@ -12,8 +12,8 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0.1, 0.6, 0.025)
-        obj_high = (0., 0.75, 0.02501)
+        obj_low = (0., 0.6, 0.025)
+        obj_high = (0.1, 0.75, 0.02501)
         goal_low = (-0.1, 0.6, 0.1699)
         goal_high = (0.1, 0.75, 0.1701)
 
