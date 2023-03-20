@@ -33,7 +33,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         Returns:
             (np.ndarray): 3-element position
         """
-        right_finger_pos = self.data.body('rightEndEffector')
+        right_finger_pos = self.data.geom('rightEndEffector')
         left_finger_pos = self._get_site_pos('leftEndEffector')
         tcp_center = (right_finger_pos + left_finger_pos) / 2.0
         return tcp_center
@@ -150,7 +150,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # very first observation)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
         print(self._prev_obs)
-        exit(0)
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.

@@ -71,11 +71,11 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return [('pegTop', self._target_pos)]
 
     def _get_id_main_object(self):
+        """TODO: Reggie"""
         return self.unwrapped.model.geom_name2id('WrenchHandle')
 
     def _get_pos_objects(self):
         return self.data.site_xpos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'RoundNut-8')]
-
 
     def _get_quat_objects(self):
         return self.data.body('RoundNut').xquat
@@ -97,6 +97,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
         peg_pos = self._target_pos - np.array([0., 0., 0.05])
         self._set_obj_xyz(self.obj_init_pos)
+        print(self.model.body_pos)
         self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
         self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
 
