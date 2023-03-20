@@ -150,6 +150,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # very first observation)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
         print(self._prev_obs)
+        exit(0)
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -336,7 +337,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         obj_pos = self._get_pos_objects()
         assert len(obj_pos) % 3 == 0
         obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
-        print(obj_pos_split)
         if self.isV2:
             obj_quat = self._get_quat_objects()
             assert len(obj_quat) % 4 == 0
@@ -346,11 +346,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                 for pos, quat in zip(obj_pos_split, obj_quat_split)
             ])
             assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
-            print(np.hstack([
-                np.hstack((pos, quat))
-                for pos, quat in zip(obj_pos_split, obj_quat_split)
-            ]))
-            print(pos_hand, gripper_distance_apart, obs_obj_padded)
             return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
         else:
             # is a v1 environment
