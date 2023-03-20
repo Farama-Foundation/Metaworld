@@ -78,10 +78,10 @@ def _encode_task(env_name, data):
 def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
     if seed is not None:
         st0 = np.random.get_state()
-        print(seed)
         np.random.seed(seed)
     tasks = []
     for (env_name, args) in args_kwargs.items():
+        print(env_name)
         assert len(args['args']) == 0
         env_cls = classes[env_name]
         env = env_cls()
@@ -212,5 +212,6 @@ class MT50(Benchmark):
                                         _MT_OVERRIDE,
                                         seed=seed)
         self._test_tasks = []
+
 
 __all__ = ["ML1", "MT1", "ML10", "MT10", "ML45", "MT50"]

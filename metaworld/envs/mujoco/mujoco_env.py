@@ -1,17 +1,15 @@
 import abc
+import os.path
 import warnings
 
 import glfw
+import mujoco
 from gymnasium import error
 from gymnasium.utils import seeding
 import numpy as np
 from os import path
 import gymnasium
-
-try:
-    import mujoco_py
-except ImportError as e:
-    raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
+import mujoco
 
 
 def _assert_task_is_set(func):
@@ -28,6 +26,7 @@ def _assert_task_is_set(func):
 
 DEFAULT_SIZE = 500
 
+
 class MujocoEnv(gymnasium.Env, abc.ABC):
     """
     This is a simplified version of the gymnasium MujocoEnv class.
@@ -39,13 +38,16 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
     max_path_length = 500
 
     def __init__(self, model_path, frame_skip):
+        import mujoco
         if not path.exists(model_path):
             raise IOError("File %s does not exist" % model_path)
 
         self.frame_skip = frame_skip
-        self.model = mujoco_py.load_model_from_path(model_path)
-        self.sim = mujoco_py.MjSim(self.model)
-        self.data = self.sim.data
+        self.model = mujoco.MjModel.from_xml_path(filename=model_path, assets=None)
+        # self.model = mujoco_py.load_model_from_path(model_path)
+        # self.sim = mujoco_py.MjSim(self.model)
+        # self.sim = self.
+        self.data = mujoco.MjData(self.model)
         self.viewer = None
         self._viewers = {}
 
@@ -53,9 +55,9 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             'render.modes': ['human'],
             'video.frames_per_second': int(np.round(1.0 / self.dt))
         }
-        self.init_qpos = self.sim.data.qpos.ravel().copy()
-        self.init_qvel = self.sim.data.qvel.ravel().copy()
 
+        self.init_qvel = self.data.qvel.ravel().copy()
+        self.init_qpos = self.data.qpos.ravel().copy()
         self._did_see_sim_exception = False
 
         self.np_random, _ = seeding.np_random(None)
@@ -87,7 +89,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
     @_assert_task_is_set
     def reset(self):
         self._did_see_sim_exception = False
-        self.sim.reset()
+        # self.sim.reset()
+        mujoco.mj_resetData(self.model, self.data)
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
@@ -96,8 +99,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
         old_state = self.sim.get_state()
-        new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
-                                         old_state.act, old_state.udd_state)
+        new_state = self.data.efc_state()  # mujoco_py.MjSimState(old_state.time, qpos, qvel, old_state.act, old_state.udd_state)
         self.sim.set_state(new_state)
         self.sim.forward()
 
@@ -113,12 +115,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         if n_frames is None:
             n_frames = self.frame_skip
-        self.sim.data.ctrl[:] = ctrl
+        self.data.ctrl[:] = ctrl
 
         for _ in range(n_frames):
             try:
-                self.sim.step()
-            except mujoco_py.MujocoException as err:
+                mujoco.mj_forward(self.model, self.data)
+            except mujoco.mjr_getError() as err:
                 warnings.warn(str(err), category=RuntimeWarning)
                 self._did_see_sim_exception = True
 
@@ -145,11 +147,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
-                self.viewer = mujoco_py.MjViewer(self.sim)
+                self.viewer = mujoco.MjVisual(mode)
+                # self.viewer = mujoco_py.MjViewer(self.sim)
             self.viewer_setup()
             self._viewers[mode] = self.viewer
         self.viewer_setup()
         return self.viewer
 
     def get_body_com(self, body_name):
-        return self.data.get_body_xpos(body_name)
+        return self.data.geom(body_name + '_geom').xpos

@@ -51,7 +51,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
@@ -83,7 +82,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         return self.get_body_com('bsktball')
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('bsktball')
+        return self.data.get_body_xquat('bsktball')
 
     def reset_model(self):
         self._reset_hand()

@@ -1,3 +1,4 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 
@@ -73,10 +74,11 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return self.unwrapped.model.geom_name2id('WrenchHandle')
 
     def _get_pos_objects(self):
-        return self.data.site_xpos[self.model.site_name2id('RoundNut-8')]
+        return self.data.site_xpos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'RoundNut-8')]
+
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('RoundNut')
+        return self.data.body('RoundNut').xquat
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
