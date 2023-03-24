@@ -4,10 +4,6 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := help
 
-# Set the environment variable MJKEY with the contents of the file specified by
-# MJKEY_PATH.
-MJKEY_PATH ?= ~/.mujoco/mjkey.txt
-
 test:  ## Run the CI test suite locally
 test: RUN_CMD = pytest -v
 test: run
@@ -58,7 +54,6 @@ run: build-ci
 	docker run \
 		-it \
 		--rm \
-		-e MJKEY="$$(cat $(MJKEY_PATH))" \
 		--memory 7500m \
 		--memory-swap 7500m \
 		--name $(CONTAINER_NAME) \
