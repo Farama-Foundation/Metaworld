@@ -10,7 +10,7 @@ import numpy as np
 from os import path
 import gymnasium
 import mujoco
-
+# from mujoco import viewer
 
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
@@ -98,10 +98,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
-        old_state = self.sim.get_state()
-        new_state = self.data.efc_state()  # mujoco_py.MjSimState(old_state.time, qpos, qvel, old_state.act, old_state.udd_state)
-        self.sim.set_state(new_state)
-        self.sim.forward()
+        mujoco.mj_forward(self.model, self.data)
 
     @property
     def dt(self):
@@ -131,6 +128,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             "topview", "gripperPOV", "behindGripper"}, assert_string
         if not offscreen:
             self._get_viewer('human').render()
+            # self._get_viewer('human').launch(self.model, self.data)
         else:
             return self.sim.render(
                 *resolution,
@@ -148,6 +146,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         if self.viewer is None:
             if mode == 'human':
                 self.viewer = mujoco.MjVisual(mode)
+                # print(help(viewer))
+                # self.viewer = viewer
                 # self.viewer = mujoco_py.MjViewer(self.sim)
             self.viewer_setup()
             self._viewers[mode] = self.viewer

@@ -6,7 +6,6 @@ from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
 import mujoco
 import numpy as np
-import mujoco_py
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 
@@ -33,7 +32,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         Returns:
             (np.ndarray): 3-element position
         """
-        right_finger_pos = self.data.geom('rightEndEffector')
+        right_finger_pos = self._get_site_pos('rightEndEffector')
         left_finger_pos = self._get_site_pos('leftEndEffector')
         tcp_center = (right_finger_pos + left_finger_pos) / 2.0
         return tcp_center
@@ -179,8 +178,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.mocap_low,
             self.mocap_high,
         )
-        self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        self.data.mocap_pos = new_mocap_pos
+        self.data.mocap_quat = np.array([1, 0, 1, 0])
 
     def discretize_goal_space(self, goals):
         assert False
@@ -197,8 +196,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_state(qpos, qvel)
 
     def _get_site_pos(self, siteName):
-        _id = self.model.site_names.index(siteName)
-        return self.data.site_xpos[_id].copy()
+        return self.data.site(siteName).xpos.copy()
 
     def _set_pos_site(self, name, pos):
         """Sets the position of the site corresponding to `name`
@@ -210,7 +208,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert isinstance(pos, np.ndarray)
         assert pos.ndim == 1
 
-        self.data.site_xpos[self.model.site_name2id(name)] = pos[:3]
+        self.data.site(name).xpos =  pos[:3]
 
     @property
     def _target_site_config(self):
