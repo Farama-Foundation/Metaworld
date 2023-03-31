@@ -1,4 +1,5 @@
 import abc
+import copy
 import os.path
 import warnings
 
@@ -10,6 +11,8 @@ import numpy as np
 from os import path
 import gymnasium
 import mujoco
+from PIL import Image
+import time
 
 
 def _assert_task_is_set(func):
@@ -43,14 +46,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             raise IOError("File %s does not exist" % model_path)
 
         self.frame_skip = frame_skip
-        self.model = mujoco.MjModel.from_xml_path(filename=model_path, assets=None)
-        # self.model = mujoco_py.load_model_from_path(model_path)
-        # self.sim = mujoco_py.MjSim(self.model)
-        # self.sim = self.
+        self.model = mujoco.MjModel.from_xml_path(filename=model_path)
         self.data = mujoco.MjData(self.model)
         self.viewer = None
         self._viewers = {}
-
+        self.renderer = None
+        self.scene = None
         self.metadata = {
             'render.modes': ['human'],
             'video.frames_per_second': int(np.round(1.0 / self.dt))
@@ -98,10 +99,11 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
-        old_state = self.sim.get_state()
-        new_state = self.data.efc_state()  # mujoco_py.MjSimState(old_state.time, qpos, qvel, old_state.act, old_state.udd_state)
-        self.sim.set_state(new_state)
-        self.sim.forward()
+        self.data.qvel = qvel
+        self.data.qpos = qpos
+        """TODO: Reggie look into if this sets the state correctly"""
+        print(self.data.time)
+        mujoco.mj_step(self.model, self.data)
 
     @property
     def dt(self):
@@ -115,11 +117,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         if n_frames is None:
             n_frames = self.frame_skip
-        self.data.ctrl[:] = ctrl
 
         for _ in range(n_frames):
             try:
-                mujoco.mj_forward(self.model, self.data)
+                mujoco.mj_step1(self.model, self.data)
+                self.data.ctrl[:] = ctrl
+                mujoco.mj_step2(self.model, self.data)
             except mujoco.mjr_getError() as err:
                 warnings.warn(str(err), category=RuntimeWarning)
                 self._did_see_sim_exception = True
@@ -130,7 +133,15 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         assert camera_name in {"corner3", "corner", "corner2", 
             "topview", "gripperPOV", "behindGripper"}, assert_string
         if not offscreen:
-            self._get_viewer('human').render()
+            if not self.renderer:
+                self.renderer = mujoco.Renderer(self.model, 480, 640)
+            self.renderer.update_scene(self.data)
+            img = Image.fromarray(self.renderer.render())
+            img.show()
+            time.sleep(2)
+            img.close()
+            exit(0)
+            # self._get_viewer('human').render()
         else:
             return self.sim.render(
                 *resolution,
@@ -147,7 +158,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
-                self.viewer = mujoco.MjVisual(mode)
+                print("Huh")
+                #self.viewer = mujoco.MjVisual(mode)
                 # self.viewer = mujoco_py.MjViewer(self.sim)
             self.viewer_setup()
             self._viewers[mode] = self.viewer
@@ -155,4 +167,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         return self.viewer
 
     def get_body_com(self, body_name):
-        return self.data.geom(body_name + '_geom').xpos
+        try:
+            return self.data.geom(body_name + '_geom').xpos
+        except:
+            try:
+                return self.data.geom(body_name + 'Geom').xpos
+            except:
+                print(body_name + ' not found')
+                assert 1 == 2, "Something is wrong"
+

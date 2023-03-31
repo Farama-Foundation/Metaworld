@@ -88,19 +88,15 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos[:3]
         self._target_pos = goal_pos[-3:]
-
         peg_pos = self._target_pos - np.array([0., 0., 0.05])
         self._set_obj_xyz(self.obj_init_pos)
-        print(self.model.body_pos)
-        self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
-        self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
-
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'peg')] = peg_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = self._target_pos
         return self._get_obs()
 
     @staticmethod
