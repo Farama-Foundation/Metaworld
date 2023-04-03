@@ -13,6 +13,7 @@ import gymnasium
 import mujoco
 from PIL import Image
 import time
+from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
 
 def _assert_task_is_set(func):
@@ -59,6 +60,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         self.init_qvel = self.data.qvel.ravel().copy()
         self.init_qpos = self.data.qpos.ravel().copy()
+        print(self.init_qpos.shape)
+        print(self.init_qvel.shape)
         self._did_see_sim_exception = False
 
         self.np_random, _ = seeding.np_random(None)
@@ -90,7 +93,6 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
     @_assert_task_is_set
     def reset(self):
         self._did_see_sim_exception = False
-        # self.sim.reset()
         mujoco.mj_resetData(self.model, self.data)
         ob = self.reset_model()
         if self.viewer is not None:
@@ -99,11 +101,11 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
+        print(self.data.time, self.data.act)
         self.data.qvel = qvel
         self.data.qpos = qpos
         """TODO: Reggie look into if this sets the state correctly"""
-        print(self.data.time)
-        mujoco.mj_step(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)
 
     @property
     def dt(self):
@@ -117,12 +119,10 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         if n_frames is None:
             n_frames = self.frame_skip
-
+        self.data.ctrl[:] = ctrl
         for _ in range(n_frames):
             try:
-                mujoco.mj_step1(self.model, self.data)
-                self.data.ctrl[:] = ctrl
-                mujoco.mj_step2(self.model, self.data)
+                mujoco.mj_step(self.model, self.data, nstep=1)
             except mujoco.mjr_getError() as err:
                 warnings.warn(str(err), category=RuntimeWarning)
                 self._did_see_sim_exception = True
@@ -136,11 +136,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             if not self.renderer:
                 self.renderer = mujoco.Renderer(self.model, 480, 640)
             self.renderer.update_scene(self.data)
-            img = Image.fromarray(self.renderer.render())
-            img.show()
-            time.sleep(2)
-            img.close()
-            exit(0)
+            Image.fromarray(self.renderer.render(), 'RGB').show()
             # self._get_viewer('human').render()
         else:
             return self.sim.render(

@@ -436,7 +436,10 @@ ML1_args_kwargs = {
 
 MT50_V2 = OrderedDict((
     ('assembly-v2', SawyerNutAssemblyEnvV2),
-    ('basketball-v2', SawyerBasketballEnvV2),
+))
+
+'''
+('basketball-v2', SawyerBasketballEnvV2),
     ('bin-picking-v2', SawyerBinPickingEnvV2),
     ('box-close-v2', SawyerBoxCloseEnvV2),
     ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
@@ -487,8 +490,7 @@ MT50_V2 = OrderedDict((
     ('sweep-into-v2', SawyerSweepIntoGoalEnvV2),
     ('sweep-v2', SawyerSweepEnvV2),
     ('window-open-v2', SawyerWindowOpenEnvV2),
-    ('window-close-v2', SawyerWindowCloseEnvV2),
-))
+    ('window-close-v2', SawyerWindowCloseEnvV2),'''
 
 MT50_V2_ARGS_KWARGS = {
     key: dict(args=[],

@@ -39,6 +39,10 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        print(self._prev_obs)
+        print(self.data.site('rightEndEffector'))
+        print(self.data.site('leftEndEffector'))
+        print("Sawyer Peg Constructor")
 
     @property
     def model_name(self):
@@ -86,6 +90,9 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return obs_dict
 
     def reset_model(self):
+        print(self.data.site('rightEndEffector'))
+        print(self.data.site('leftEndEffector'))
+        print("reset model")
         self._reset_hand()
         self._target_pos = self.goal.copy()
         goal_pos = self._get_state_rand_vec()
@@ -96,7 +103,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         peg_pos = self._target_pos - np.array([0., 0., 0.05])
         self._set_obj_xyz(self.obj_init_pos)
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'peg')] = peg_pos
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = self._target_pos
+        self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = self._target_pos
         return self._get_obs()
 
     @staticmethod
