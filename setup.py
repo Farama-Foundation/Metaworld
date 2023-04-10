@@ -7,6 +7,7 @@ required = [
     "gym>=0.15.4",
     "mujoco-py<2.2,>=2.0",
     "numpy>=1.18",
+    "scipy>=1.4.1",
 ]
 
 
@@ -20,7 +21,6 @@ extras["dev"] = [
     "pyquaternion==0.9.5",
     "pytest>=4.4.0",  # Required for pytest-xdist
     "pytest-xdist",
-    "scipy",
 ]
 
 
