@@ -258,12 +258,12 @@ MEDIUM_MODE_CLS_DICT = OrderedDict(
                                                      SawyerSweepIntoGoalEnv), (
                                                          'lever-pull-v1',
                                                          SawyerLeverPullEnv,
-                                                     ))))))
+          ))))))
 medium_mode_train_args_kwargs = {
     key: dict(args=[],
               kwargs={
                   'task_id': list(ALL_V1_ENVIRONMENTS.keys()).index(key),
-              })
+    })
     for key, _ in MEDIUM_MODE_CLS_DICT['train'].items()
 }
 
@@ -402,13 +402,13 @@ ML10_V2 = OrderedDict(
            ('sweep-into-v2', SawyerSweepIntoGoalEnvV2), (
                'lever-pull-v2',
                SawyerLeverPullEnvV2,
-           ))))))
+          ))))))
 
 ml10_train_args_kwargs = {
     key: dict(args=[],
               kwargs={
                   'task_id': list(ALL_V2_ENVIRONMENTS.keys()).index(key),
-              })
+    })
     for key, _ in ML10_V2['train'].items()
 }
 
@@ -430,7 +430,7 @@ ML1_args_kwargs = {
     key: dict(args=[],
               kwargs={
                   'task_id': list(ALL_V2_ENVIRONMENTS.keys()).index(key),
-              })
+    })
     for key, _ in ML1_V2['train'].items()
 }
 
@@ -560,7 +560,7 @@ ml45_train_args_kwargs = {
     key: dict(args=[],
               kwargs={
                   'task_id': list(ALL_V2_ENVIRONMENTS.keys()).index(key),
-              })
+    })
     for key, _ in ML45_V2['train'].items()
 }
 
@@ -576,65 +576,46 @@ ML45_ARGS_KWARGS = dict(
 )
 
 
+def create_observable_or_hidden_goal_env(cls, hidden: bool):
+    """Creates a derived class of the given class that has a hidden or observable goal."""
+
+    hidden_observable_str = 'Hidden' if hidden else 'Observable'
+    new_class_name = f'{cls.__name__}Goal{hidden_observable_str}'
+
+    def new_class_init(self, seed=None):
+        if seed is not None:
+            original_random_state = np.random.get_state()
+            np.random.seed(seed)
+        cls.__init__(self)
+        self._partially_observable = hidden
+        self._freeze_rand_vec = False
+        self._set_task_called = True
+        self.reset()
+        self._freeze_rand_vec = True
+        if seed is not None:
+            self.seed(seed)
+            np.random.set_state(original_random_state)
+
+    new_class = type(new_class_name, (cls,), {'__init__': new_class_init})
+
+    return new_class
+
+
 def create_hidden_goal_envs():
-    hidden_goal_envs = {}
-    for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
-        d = {}
-
-        def initialize(env, seed=None):
-            if seed is not None:
-                st0 = np.random.get_state()
-                np.random.seed(seed)
-            super(type(env), env).__init__()
-            env._partially_observable = True
-            env._freeze_rand_vec = False
-            env._set_task_called = True
-            env.reset()
-            env._freeze_rand_vec = True
-            if seed is not None:
-                env.seed(seed)
-                np.random.set_state(st0)
-
-        d['__init__'] = initialize
-        hg_env_name = re.sub("(^|[-])\s*([a-zA-Z])",
-                             lambda p: p.group(0).upper(), env_name)
-        hg_env_name = hg_env_name.replace("-", "")
-        hg_env_key = '{}-goal-hidden'.format(env_name)
-        hg_env_name = '{}GoalHidden'.format(hg_env_name)
-        HiddenGoalEnvCls = type(hg_env_name, (env_cls, ), d)
-        hidden_goal_envs[hg_env_key] = HiddenGoalEnvCls
+    hidden_goal_envs = {f'{env_name}-goal-hidden':
+                        create_observable_or_hidden_goal_env(
+                            env_cls, hidden=True)
+                        for env_name, env_cls in ALL_V2_ENVIRONMENTS.items()}
 
     return OrderedDict(hidden_goal_envs)
 
 
 def create_observable_goal_envs():
-    observable_goal_envs = {}
-    for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
-        d = {}
 
-        def initialize(env, seed=None):
-            if seed is not None:
-                st0 = np.random.get_state()
-                np.random.seed(seed)
-            super(type(env), env).__init__()
-            env._partially_observable = False
-            env._freeze_rand_vec = False
-            env._set_task_called = True
-            env.reset()
-            env._freeze_rand_vec = True
-            if seed is not None:
-                env.seed(seed)
-                np.random.set_state(st0)
-
-        d['__init__'] = initialize
-        og_env_name = re.sub("(^|[-])\s*([a-zA-Z])",
-                             lambda p: p.group(0).upper(), env_name)
-        og_env_name = og_env_name.replace("-", "")
-
-        og_env_key = '{}-goal-observable'.format(env_name)
-        og_env_name = '{}GoalObservable'.format(og_env_name)
-        ObservableGoalEnvCls = type(og_env_name, (env_cls, ), d)
-        observable_goal_envs[og_env_key] = ObservableGoalEnvCls
+    observable_goal_envs = {f'{env_name}-goal-observable':
+                            create_observable_or_hidden_goal_env(
+                                env_cls, hidden=False)
+                            for env_name, env_cls in ALL_V2_ENVIRONMENTS.items()}
 
     return OrderedDict(observable_goal_envs)
 
