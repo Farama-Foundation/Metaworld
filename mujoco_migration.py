@@ -1,3 +1,4 @@
+import numpy as np
 import metaworld
 import random
 
@@ -17,15 +18,8 @@ env.action_space.seed(seed)
 env.observation_space.seed(seed)
 
 obs = env.reset()
-p = policy()
-count = 0
-done = False
-while not done and count < 500:
-    #print(p.parse_obs(obs))
-    a = p.get_action(obs)
-    obs, reward, done, info = env.step(a)
-    print(env.render())
-    count += 1
-    if done:
-        break
-print(obs, reward, done, info)
+print(env.action_space)
+action = -np.ones(4)*0.05
+while True:
+    env.render()
+    env.step(env.action_space.sample())

@@ -10,7 +10,7 @@ import mujoco_py
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 from PIL import Image
-
+        
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
@@ -86,13 +86,38 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         if self.model.nmocap > 0 and self.model.eq_data is not None:
             for i in range(self.model.eq_data.shape[0]):
                 if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
-                    body2 = self.model.body(mujoco.mj_id2name(self.model, mujoco.mjtEq.mjEQ_WELD,
-                                                              self.model.eq_obj1id[0]))
-                    self.model.eq_data[i, :7] = np.concatenate([body2.pos, body2.quat])
-                    self.model.eq_data[i, 7:] = np.array([0., 0., 0., 1.])
+                    self.model.eq_data[i, :7] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
 
                     #self.model.eq_data[i, -1] = 0
         '''TODO: what do these values mean'''
+        # mujoco.mj_forward(self.model, self.data)
+    
+    def reset_mocap2body_xpos(self):
+        """Resets the position and orientation of the mocap bodies to the same
+        values as the bodies they're welded to.
+        """
+
+        if self.model.eq_type is None or self.model.eq_obj1id is None or self.model.eq_obj2id is None:
+            return
+        for eq_type, obj1_id, obj2_id in zip(
+            self.model.eq_type, self.model.eq_obj1id, self.model.eq_obj2id
+        ):
+            if eq_type != mujoco.mjtEq.mjEQ_WELD:
+                continue
+
+            mocap_id = self.model.body_mocapid[obj1_id]
+            if mocap_id != -1:
+                # obj1 is the mocap, obj2 is the welded body
+                body_idx = obj2_id
+            else:
+                # obj2 is the mocap, obj1 is the welded body
+                mocap_id = self.model.body_mocapid[obj2_id]
+                body_idx = obj1_id
+
+            assert mocap_id != -1
+            self.data.mocap_pos[mocap_id][:] = self.data.xpos[body_idx]
+            self.data.mocap_quat[mocap_id][:] = self.data.xquat[body_idx]
+        
         mujoco.mj_forward(self.model, self.data)
 
 
@@ -190,6 +215,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
+        self.reset_mocap2body_xpos()
         pos_delta = action * self.action_scale
         new_mocap_pos = self.data.mocap_pos + pos_delta[None]
         print(new_mocap_pos)
@@ -214,6 +240,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
+    
+    def _set_robot_qpos(self, robot_qpos):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[0:7] = robot_qpos.copy()
+        qvel[0:7] = 0
+        self.set_state(qpos, qvel)
+        
 
     def _get_site_pos(self, siteName):
         _id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, siteName)
@@ -492,23 +526,28 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return obs
 
     def _reset_hand(self, steps=50):
-        print(self.hand_init_pos)
-        print(self.data.site('rightEndEffector'))
-        print(self.data.site('leftEndEffector'))
-        print(self.frame_skip)
-        print("_reset_hand xyz")
-        print(self.data.mocap_pos)
-        print(self.data.mocap_quat)
+        # print(self.hand_init_pos)
+        # print(self.data.site('rightEndEffector'))
+        # print(self.data.site('leftEndEffector'))
+        # print(self.frame_skip)
+        # print("_reset_hand xyz")
+        # print(self.data.mocap_pos)
+        # print(self.data.mocap_quat)
         # for _ in range(steps):
-        self.data.mocap_pos = copy.copy(self.hand_init_pos)
-        self.data.mocap_quat = copy.copy(np.array([1, 0, 1, 0]))
+        # self.data.mocap_pos = copy.copy(self.hand_init_pos)
+        # self.data.mocap_quat = copy.copy(np.array([1, 0, 1, 0]))
         #self.do_simulation([-1, 1], self.frame_skip)
         #mujoco.mj_forward(self.model, self.data)
-        mujoco.mj_step(self.model, self.data, nstep=50)
-        print(self.data.mocap_pos)
-        print(self.data.mocap_quat)
-        print(self.data.site('rightEndEffector'))
-        print(self.data.site('leftEndEffector'))
+        # mujoco.mj_step(self.model, self.data, nstep=50)
+        # print(self.data.mocap_pos)
+        # print(self.data.mocap_quat)
+        # print(self.data.site('rightEndEffector'))
+        # print(self.data.site('leftEndEffector'))
+        
+        self.reset_mocap_welds()
+        self.reset_mocap2body_xpos()
+        mujoco.mj_forward(self.model, self.data)
+        
         self.init_tcp = self.tcp_center
         print(f"tcp {self.init_tcp}")
 
