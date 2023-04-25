@@ -28,11 +28,13 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
             'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
+            'robot_init_qpos': np.array([2.24, -0.5, -1.32,  1.48, 1.32,  1.13, -2.13], dtype=np.float32)
         }
         self.goal = np.array([0.1, 0.8, 0.1], dtype=np.float32)
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
+        self.init_robot_qpos = self.init_config['robot_init_qpos']
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -93,6 +95,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         print(self.data.site('rightEndEffector'))
         print(self.data.site('leftEndEffector'))
         print("reset model")
+        self._set_robot_qpos(self.init_robot_qpos)
         self._reset_hand()
         self._target_pos = self.goal.copy()
         goal_pos = self._get_state_rand_vec()
@@ -102,6 +105,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
         peg_pos = self._target_pos - np.array([0., 0., 0.05])
         self._set_obj_xyz(self.obj_init_pos)
+        
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'peg')] = peg_pos
         self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = self._target_pos
         return self._get_obs()
