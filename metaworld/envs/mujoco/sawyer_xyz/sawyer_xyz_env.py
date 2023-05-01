@@ -24,6 +24,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         self.reset_mocap_welds()
 
     def get_endeff_pos(self):
+        print(self.data.body('hand').xpos)
         return self.data.body('hand').xpos
 
     @property
@@ -35,23 +36,11 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         """
         right_finger_pos = self.data.site('rightEndEffector')
         left_finger_pos = self.data.site('leftEndEffector')
-        print(right_finger_pos.xpos)
-        xpos_new = np.array([[0., 0., 0.]]).T
-        xmat_new = np.array([[0., 0., 0., 0., 0., 0., 0., 0., 0.]]).T
-        r_quat = np.array([[0., 0., 0., 0.]]).T
-        print(xpos_new.shape)
-        print(xmat_new.shape)
-        mujoco.mju_mat2Quat(r_quat, right_finger_pos.xmat)
-        print(r_quat.shape)
-        mujoco.mj_local2Global(self.data, xpos_new, xmat_new, right_finger_pos.xpos,
-                               r_quat, mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'rightEndEffector'), 0)
-        print(xpos_new)
-        print(xmat_new)
         tcp_center = (right_finger_pos.xpos + left_finger_pos.xpos) / 2.0
         return tcp_center
 
     def get_env_state(self):
-        print("Get env state")
+        #print("Get env state")
         joint_state = self.sim.get_state()
         mocap_state = self.data.mocap_pos, self.data.mocap_quat
         state = joint_state, mocap_state
@@ -86,11 +75,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         if self.model.nmocap > 0 and self.model.eq_data is not None:
             for i in range(self.model.eq_data.shape[0]):
                 if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
-                    self.model.eq_data[i, :7] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
-
-                    #self.model.eq_data[i, -1] = 0
-        '''TODO: what do these values mean'''
-        # mujoco.mj_forward(self.model, self.data)
+                    self.model.eq_data[i] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
     
     def reset_mocap2body_xpos(self):
         """Resets the position and orientation of the mocap bodies to the same
@@ -193,7 +178,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
-        print(self._prev_obs)
+
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -218,7 +203,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.reset_mocap2body_xpos()
         pos_delta = action * self.action_scale
         new_mocap_pos = self.data.mocap_pos + pos_delta[None]
-        print(new_mocap_pos)
+        #print(new_mocap_pos)
         new_mocap_pos[0, :] = np.clip(
             new_mocap_pos[0, :],
             self.mocap_low,
@@ -245,9 +230,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[0:7] = robot_qpos.copy()
-        qvel[0:7] = 0
+        qvel[:7] = [0.00000000e+00,  0.00000000e+00, -2.82528827e-15,  0.00000000e+00,
+  0.00000000e+00,  0.00000000e+00,  3.29594892e-01]
         self.set_state(qpos, qvel)
-        
 
     def _get_site_pos(self, siteName):
         _id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, siteName)
@@ -375,7 +360,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.data.body('rightclaw'),
             self.data.body('leftclaw')
         )
-
         # the gripper can be at maximum about ~0.1 m apart.
         # dividing by 0.1 normalized the gripper distance between
         # 0 and 1. Further, we clip because sometimes the grippers
@@ -458,7 +442,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @_assert_task_is_set
     def step(self, action):
-        print(action)
+        #print(action)
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
         self.curr_path_length += 1
@@ -549,7 +533,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         mujoco.mj_forward(self.model, self.data)
         
         self.init_tcp = self.tcp_center
-        print(f"tcp {self.init_tcp}")
+
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:

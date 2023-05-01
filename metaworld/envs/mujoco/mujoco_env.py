@@ -49,6 +49,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.frame_skip = frame_skip
         self.model = mujoco.MjModel.from_xml_path(filename=model_path)
         self.data = mujoco.MjData(self.model)
+        print(self.data.ctrl)
+        print('ctrl')
         self.viewer = None
         self._viewers = {}
         self.renderer = None
@@ -60,8 +62,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         self.init_qvel = self.data.qvel.ravel().copy()
         self.init_qpos = self.data.qpos.ravel().copy()
-        print(self.init_qpos.shape)
-        print(self.init_qvel.shape)
+
         self._did_see_sim_exception = False
         
         self.mujoco_renderer = MujocoRenderer(
@@ -101,14 +102,17 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
+        print(self.model.qpos0)
         return ob
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
-        print(self.data.time, self.data.act)
+        #print(self.data.time, self.data.act)
+        print("??")
+        print(self.data.time, self.data.qpos, self.data.qvel, self.data.act)
         self.data.qvel = qvel
         self.data.qpos = qpos
-        """TODO: Reggie look into if this sets the state correctly"""
+        print(self.data.qvel, self.data.qpos)
         mujoco.mj_forward(self.model, self.data)
 
     @property
@@ -122,8 +126,8 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             return
 
         if n_frames is None:
-            n_frames = self.frame_skip
-        self.data.ctrl[:] = ctrl
+            n_frames = self.frame_skip*10
+        self.data.ctrl = ctrl
         for _ in range(n_frames):
             try:
                 mujoco.mj_step(self.model, self.data, nstep=1)
@@ -209,6 +213,9 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             try:
                 return self.data.geom(body_name + 'Geom').xpos
             except:
-                print(body_name + ' not found')
-                assert 1 == 2, "Something is wrong"
+                try:
+                    return self.data.body(body_name).xpos
+                except:
+                    print(body_name + ' not found')
+                    assert 1 == 2, "Something is wrong"
 

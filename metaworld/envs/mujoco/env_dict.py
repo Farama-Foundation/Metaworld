@@ -435,7 +435,11 @@ ML1_args_kwargs = {
 }
 
 MT50_V2 = OrderedDict((
-    ('assembly-v2', SawyerNutAssemblyEnvV2),
+    ('door-unlock-v2', SawyerDoorUnlockEnvV2),
+    ('door-lock-v2', SawyerDoorLockEnvV2),
+    ('door-close-v2', SawyerDoorCloseEnvV2),
+    ('door-lock-v2', SawyerDoorLockEnvV2),
+    ('basketball-v2', SawyerBasketballEnvV2)
 ))
 
 '''
