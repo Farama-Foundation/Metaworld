@@ -70,10 +70,11 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('puck')
+        return self.data.geom('puck').xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat('puck')).as_quat()
+        geom_xmat = self.data.geom('puck').xmat.reshape(3,3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -91,7 +92,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
 
-        self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
+        self.data.body('puck_goal').xpos = self._target_pos
         self._set_obj_xyz(np.array([0, 0.15]))
 
         return self._get_obs()
