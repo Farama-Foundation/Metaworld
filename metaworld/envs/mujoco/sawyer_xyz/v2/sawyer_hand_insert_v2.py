@@ -1,6 +1,6 @@
 import numpy as np
 from gymnasium.spaces import Box
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -75,18 +75,17 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return self.model.geom('objGeom').id
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('obj')
+        return self.data.body('obj').xquat
 
     def reset_model(self):
         self._reset_hand()
         self.prev_obs = self._get_curr_obs_combined_no_goal()
-        self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
 

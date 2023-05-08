@@ -1,4 +1,5 @@
 import abc
+import copy
 import os.path
 import warnings
 
@@ -10,7 +11,10 @@ import numpy as np
 from os import path
 import gymnasium
 import mujoco
-# from mujoco import viewer
+
+from PIL import Image
+import time
+from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
@@ -43,14 +47,14 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             raise IOError("File %s does not exist" % model_path)
 
         self.frame_skip = frame_skip
-        self.model = mujoco.MjModel.from_xml_path(filename=model_path, assets=None)
-        # self.model = mujoco_py.load_model_from_path(model_path)
-        # self.sim = mujoco_py.MjSim(self.model)
-        # self.sim = self.
+        self.model = mujoco.MjModel.from_xml_path(filename=model_path)
         self.data = mujoco.MjData(self.model)
+        print(self.data.ctrl)
+        print('ctrl')
         self.viewer = None
         self._viewers = {}
-
+        self.renderer = None
+        self.scene = None
         self.metadata = {
             'render.modes': ['human'],
             'video.frames_per_second': int(np.round(1.0 / self.dt))
@@ -58,7 +62,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
 
         self.init_qvel = self.data.qvel.ravel().copy()
         self.init_qpos = self.data.qpos.ravel().copy()
+
         self._did_see_sim_exception = False
+        
+        self.mujoco_renderer = MujocoRenderer(
+            self.model, self.data
+        )
 
         self.np_random, _ = seeding.np_random(None)
 
@@ -89,15 +98,21 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
     @_assert_task_is_set
     def reset(self):
         self._did_see_sim_exception = False
-        # self.sim.reset()
         mujoco.mj_resetData(self.model, self.data)
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
+        print(self.model.qpos0)
         return ob
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
+        #print(self.data.time, self.data.act)
+        print("??")
+        print(self.data.time, self.data.qpos, self.data.qvel, self.data.act)
+        self.data.qvel = qvel
+        self.data.qpos = qpos
+        print(self.data.qvel, self.data.qpos)
         mujoco.mj_forward(self.model, self.data)
 
     @property
@@ -111,30 +126,67 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             return
 
         if n_frames is None:
-            n_frames = self.frame_skip
-        self.data.ctrl[:] = ctrl
+            n_frames = self.frame_skip*10
+        self.data.ctrl = ctrl
+        try:
+            mujoco.mj_step(self.model, self.data, nstep=n_frames)
+        except mujoco.mjr_getError() as err:
+            warnings.warn(str(err), category=RuntimeWarning)
+            self._did_see_sim_exception = True
 
-        for _ in range(n_frames):
-            try:
-                mujoco.mj_forward(self.model, self.data)
-            except mujoco.mjr_getError() as err:
-                warnings.warn(str(err), category=RuntimeWarning)
-                self._did_see_sim_exception = True
+    # def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
+    #     assert_string = ("camera_name should be one of ",
+    #             "corner3, corner, corner2, topview, gripperPOV, behindGripper")
+    #     assert camera_name in {"corner3", "corner", "corner2", 
+    #         "topview", "gripperPOV", "behindGripper"}, assert_string
+        
+        
+    #     if not offscreen:
+    #         if not self.renderer:
+    #             self.renderer = mujoco.Renderer(self.model, 480, 640)
+    #         self.renderer.update_scene(self.data)
+    #         Image.fromarray(self.renderer.render(), 'RGB').show()
+    #         # self._get_viewer('human').render()
+    #     else:
+    #         return self.sim.render(
+    #             *resolution,
+    #             mode='offscreen',
+    #             camera_name=camera_name
+    #         )
+    
+    def render(
+        self,
+        offscreen=False,
+        camera_id = None,
+        camera_name = "corner2"
+    ):
+        """Renders a frame of the simulation in a specific format and camera view.
 
-    def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
-        assert_string = ("camera_name should be one of ",
-                "corner3, corner, corner2, topview, gripperPOV, behindGripper")
-        assert camera_name in {"corner3", "corner", "corner2", 
-            "topview", "gripperPOV", "behindGripper"}, assert_string
+        Args:
+            render_mode: The format to render the frame, it can be: "human", "rgb_array", or "depth_array"
+            camera_id: The integer camera id from which to render the frame in the MuJoCo simulation
+            camera_name: The string name of the camera from which to render the frame in the MuJoCo simulation. This argument should not be passed if using cameara_id instead and vice versa
+
+        Returns:
+            If render_mode is "rgb_array" or "depth_arra" it returns a numpy array in the specified format. "human" render mode does not return anything.
+        """
         if not offscreen:
-            self._get_viewer('human').render()
-            # self._get_viewer('human').launch(self.model, self.data)
+            render_mode = 'human'
+            if self.mujoco_renderer.viewer is not None:
+                self.mujoco_renderer.viewer.add_marker(pos=self.data.mocap_pos.copy(), #position of the arrow\
+                        size=np.array([0.01,0.01,0.01]), #size of the arrow
+                        # mat=render_goal_orn, # orientation as a matrix
+                        rgba=np.array([0.,230.,64.,1.]),#color of the arrow
+                        type=mujoco.mjtGeom.mjGEOM_SPHERE,
+                        label=str('GOAL'))
         else:
-            return self.sim.render(
-                *resolution,
-                mode='offscreen',
-                camera_name=camera_name
+            render_mode = 'rgb_array'
+        
+        
+        return self.mujoco_renderer.render(
+            render_mode, camera_id, camera_name
             )
+            
 
     def close(self):
         if self.viewer is not None:
@@ -145,9 +197,9 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
-                self.viewer = mujoco.MjVisual(mode)
-                # print(help(viewer))
-                # self.viewer = viewer
+
+                print("Huh")
+                #self.viewer = mujoco.MjVisual(mode)
                 # self.viewer = mujoco_py.MjViewer(self.sim)
             self.viewer_setup()
             self._viewers[mode] = self.viewer
@@ -155,4 +207,15 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         return self.viewer
 
     def get_body_com(self, body_name):
-        return self.data.geom(body_name + '_geom').xpos
+        try:
+            return self.data.geom(body_name + '_geom').xpos
+        except:
+            try:
+                return self.data.geom(body_name + 'Geom').xpos
+            except:
+                try:
+                    return self.data.body(body_name).xpos
+                except:
+                    print(body_name + ' not found')
+                    assert 1 == 2, "Something is wrong"
+

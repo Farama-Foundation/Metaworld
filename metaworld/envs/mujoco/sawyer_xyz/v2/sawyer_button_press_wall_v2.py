@@ -78,7 +78,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         return self.get_body_com("button") + np.array([.0, -.193, .0])
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('button')
+        return self.data.body('button').xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()

@@ -81,13 +81,13 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return self.data.geom('objGeom').id
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat('objGeom')).as_quat()
+        return Rotation.from_matrix(self.data.geom('objGeom').xmat.reshape(3, 3)).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not

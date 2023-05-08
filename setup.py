@@ -7,6 +7,7 @@ required = [
     'gymnasium>=0.15.4',
     'mujoco',
     'numpy>=1.18',
+    'scipy',
 ]
 
 
