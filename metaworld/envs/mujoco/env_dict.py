@@ -365,7 +365,8 @@ for key, env_cls in HARD_MODE_CLS_DICT['test'].items():
 ############################## V2 DICTS ##############################
 
 MT10_V2 = OrderedDict(
-    (('reach-v2', SawyerReachEnvV2), ('push-v2', SawyerPushEnvV2),
+    (('reach-v2', SawyerReachEnvV2),
+     ('push-v2', SawyerPushEnvV2),
      ('pick-place-v2', SawyerPickPlaceEnvV2),
      ('door-open-v2', SawyerDoorEnvV2),
      ('drawer-open-v2', SawyerDrawerOpenEnvV2),
@@ -384,24 +385,23 @@ MT10_V2_ARGS_KWARGS = {
 ML10_V2 = OrderedDict(
     (('train',
       OrderedDict(
-          (('reach-v2', SawyerReachEnvV2), ('push-v2', SawyerPushEnvV2),
+          (('reach-v2', SawyerReachEnvV2),
+           ('push-v2', SawyerPushEnvV2),
            ('pick-place-v2', SawyerPickPlaceEnvV2),
-           ('door-open-v2', SawyerDoorEnvV2), ('drawer-close-v2',
-                                               SawyerDrawerCloseEnvV2),
-           ('button-press-topdown-v2', SawyerButtonPressEnvV2),
-           ('peg-insert-side-v2',
-            SawyerPegInsertionSideEnvV2), ('window-open-v2',
-                                           SawyerWindowOpenEnvV2),
-           ('sweep-v2', SawyerSweepEnvV2), ('basketball-v2',
-                                            SawyerBasketballEnvV2)))),
+           ('door-open-v2', SawyerDoorEnvV2),
+           ('drawer-close-v2', SawyerDrawerCloseEnvV2),
+           ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
+           ('peg-insert-side-v2', SawyerPegInsertionSideEnvV2),
+           ('window-open-v2', SawyerWindowOpenEnvV2),
+           ('sweep-v2', SawyerSweepEnvV2),
+           ('basketball-v2', SawyerBasketballEnvV2)))),
      ('test',
       OrderedDict(
           (('drawer-open-v2', SawyerDrawerOpenEnvV2),
-           ('door-close-v2', SawyerDoorCloseEnvV2), ('shelf-place-v2',
-                                                     SawyerShelfPlaceEnvV2),
-           ('sweep-into-v2', SawyerSweepIntoGoalEnvV2), (
-               'lever-pull-v2',
-               SawyerLeverPullEnvV2,
+           ('door-close-v2', SawyerDoorCloseEnvV2),
+           ('shelf-place-v2', SawyerShelfPlaceEnvV2),
+           ('sweep-into-v2', SawyerSweepIntoGoalEnvV2),
+           ('lever-pull-v2', SawyerLeverPullEnvV2,
            ))))))
 
 ml10_train_args_kwargs = {

@@ -87,12 +87,11 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self._target_pos = self.goal.copy()
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos[:3]
-            self._target_pos = goal_pos[-3:]
+        self.obj_init_pos = goal_pos[:3]
+        self._target_pos = goal_pos[-3:]
 
         peg_pos = self._target_pos - np.array([0., 0., 0.05])
         self._set_obj_xyz(self.obj_init_pos)

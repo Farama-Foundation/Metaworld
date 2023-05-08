@@ -87,12 +87,11 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         box_height = self.get_body_com('boxbody')[2]
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
             goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self._target_pos = goal_pos[-3:]
+        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        self._target_pos = goal_pos[-3:]
 
         self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
         self._set_obj_xyz(self.obj_init_pos)

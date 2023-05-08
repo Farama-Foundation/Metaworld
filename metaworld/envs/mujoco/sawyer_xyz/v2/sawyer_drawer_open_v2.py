@@ -84,8 +84,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         self.prev_obs = self._get_curr_obs_combined_no_goal()
 
         # Compute nightstand position
-        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
-            else self.init_config['obj_init_pos']
+        self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
         self.sim.model.body_pos[self.model.body_name2id(
             'drawer'

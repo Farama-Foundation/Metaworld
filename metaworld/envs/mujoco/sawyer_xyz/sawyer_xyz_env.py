@@ -100,7 +100,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             action_rot_scale=1.,
     ):
         super().__init__(model_name, frame_skip=frame_skip)
-        self.random_init = True
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
@@ -112,7 +111,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
-        self.seeded_rand_vec = False
+        self.seeded_rand_vec = True
         self._freeze_rand_vec = True
         self._last_rand_vec = None
 
@@ -434,6 +433,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             )
 
         self._last_stable_obs = self._get_obs()
+
+        self._last_stable_obs = np.clip(self._last_stable_obs,
+                                        a_max=self.observation_space.high,
+                                        a_min=self.observation_space.low,
+                                        dtype=np.float64)
         if not self.isV2:
             # v1 environments expect this superclass step() to return only the
             # most recent observation. they override the rest of the
@@ -460,8 +464,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def reset(self):
-        self.curr_path_length = 0
-        return super().reset()
+        if not self.isV2:
+            self.curr_path_length = 0
+            return super().reset()
+        else:
+            obs = np.float64(super().reset())
+            self._prev_obs = obs[:18].copy()
+            obs[18:36] = self._prev_obs
+            return obs
 
     def _reset_hand(self, steps=50):
         for _ in range(steps):
@@ -478,14 +488,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             rand_vec = self.np_random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
         else:
             rand_vec = np.random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
 

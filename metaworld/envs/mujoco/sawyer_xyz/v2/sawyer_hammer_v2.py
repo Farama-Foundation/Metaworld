@@ -95,8 +95,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self._target_pos = self._get_site_pos('goal')
 
         # Randomize hammer position
-        self.hammer_init_pos = self._get_state_rand_vec() if self.random_init \
-            else self.init_config['hammer_init_pos']
+        self.hammer_init_pos = self._get_state_rand_vec()
         self.nail_init_pos = self._get_site_pos('nailHead')
         self.obj_init_pos = self.hammer_init_pos.copy()
         self._set_hammer_xyz(self.hammer_init_pos)

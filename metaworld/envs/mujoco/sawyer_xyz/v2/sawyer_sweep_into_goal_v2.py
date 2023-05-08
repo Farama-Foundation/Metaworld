@@ -86,11 +86,10 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.objHeight = self.get_body_com('obj')[2]
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])

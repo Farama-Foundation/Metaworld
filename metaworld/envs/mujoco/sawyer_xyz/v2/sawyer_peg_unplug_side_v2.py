@@ -77,7 +77,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        pos_box = self._get_state_rand_vec() if self.random_init else self.goal
+        pos_box = self._get_state_rand_vec()
         self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
 
         pos_plug = pos_box + np.array([.044, .0, .131])

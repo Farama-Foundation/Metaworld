@@ -87,8 +87,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         self._reset_hand()
         self.prev_obs = self._get_curr_obs_combined_no_goal()
 
-        if self.random_init:
-            self.obj_init_pos = self._get_state_rand_vec()
+        self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos + np.array([.2, .0, .0])
 

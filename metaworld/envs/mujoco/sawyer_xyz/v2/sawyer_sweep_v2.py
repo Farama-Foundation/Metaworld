@@ -85,10 +85,9 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.objHeight = self.get_body_com('obj')[2]
 
-        if self.random_init:
-            obj_pos = self._get_state_rand_vec()
-            self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
-            self._target_pos[1] = obj_pos.copy()[1]
+        obj_pos = self._get_state_rand_vec()
+        self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
+        self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(self.get_body_com('obj')[:-1] - self._target_pos[:-1])

@@ -92,8 +92,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
-        self.obj_init_pos = self._get_state_rand_vec() if self.random_init \
-            else self.init_config['obj_init_pos']
+        self.obj_init_pos = self._get_state_rand_vec()
         self._target_pos = self.obj_init_pos + np.array([-0.3, -0.45, 0.])
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos

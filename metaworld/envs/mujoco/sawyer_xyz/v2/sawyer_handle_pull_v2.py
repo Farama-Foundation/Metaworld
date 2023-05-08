@@ -88,10 +88,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        self.obj_init_pos = (self._get_state_rand_vec()
-                             if self.random_init
-                             else self.init_config['obj_init_pos'])
-
+        self.obj_init_pos = self._get_state_rand_vec()
         self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
         self._set_obj_xyz(-0.1)
         self._target_pos = self._get_site_pos('goalPull')

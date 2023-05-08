@@ -14,7 +14,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
     TARGET_RADIUS=0.07
 
     def __init__(self):
-
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -88,14 +87,13 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config['obj_init_angle']
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        self._target_pos = goal_pos[3:]
+        while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-                self._target_pos = goal_pos[3:]
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[self.model.body_name2id('goal_whole')] = self._target_pos
+        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        self.sim.model.body_pos[self.model.body_name2id('goal_whole')] = self._target_pos
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])

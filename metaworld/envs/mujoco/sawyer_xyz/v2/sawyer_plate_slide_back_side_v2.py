@@ -106,10 +106,9 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self._target_pos = self.goal.copy()
 
-        if self.random_init:
-            rand_vec = self._get_state_rand_vec()
-            self.obj_init_pos = rand_vec[:3]
-            self._target_pos = rand_vec[3:]
+        rand_vec = self._get_state_rand_vec()
+        self.obj_init_pos = rand_vec[:3]
+        self._target_pos = rand_vec[3:]
 
         self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.]))

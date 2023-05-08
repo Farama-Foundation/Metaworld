@@ -86,16 +86,12 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        pos_mug_init = self.init_config['obj_init_pos']
-        pos_mug_goal = self.goal
-
-        if self.random_init:
-            pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
-            while np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2]) < 0.15:
-                pos_mug_init, pos_mug_goal = np.split(
-                    self._get_state_rand_vec(),
-                    2
-                )
+        pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
+        while np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2]) < 0.15:
+            pos_mug_init, pos_mug_goal = np.split(
+                self._get_state_rand_vec(),
+                2
+            )
 
         self._set_obj_xyz(pos_mug_init)
         self.obj_init_pos = pos_mug_init

@@ -90,10 +90,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        door_pos = self.init_config['obj_init_pos']
-
-        if self.random_init:
-            door_pos = self._get_state_rand_vec()
+        door_pos = self._get_state_rand_vec()
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = door_pos
         self._set_obj_xyz(1.5708)

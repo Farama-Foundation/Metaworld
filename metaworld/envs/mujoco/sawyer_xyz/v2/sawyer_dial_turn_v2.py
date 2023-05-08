@@ -87,11 +87,10 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.prev_obs = self._get_curr_obs_combined_no_goal()
 
-        if self.random_init:
-            goal_pos = self._get_state_rand_vec()
-            self.obj_init_pos = goal_pos[:3]
-            final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
-            self._target_pos = final_pos
+        goal_pos = self._get_state_rand_vec()
+        self.obj_init_pos = goal_pos[:3]
+        final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
+        self._target_pos = final_pos
 
         self.sim.model.body_pos[self.model.body_name2id('dial')] = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])

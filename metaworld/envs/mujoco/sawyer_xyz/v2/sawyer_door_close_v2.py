@@ -31,11 +31,10 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         self._target_pos = self.goal.copy()
         self.objHeight = self.data.get_geom_xpos('handle')[2]
 
-        if self.random_init:
-            obj_pos = self._get_state_rand_vec()
-            self.obj_init_pos = obj_pos
-            goal_pos = obj_pos.copy() + np.array([0.2, -0.2, 0.])
-            self._target_pos = goal_pos
+        obj_pos = self._get_state_rand_vec()
+        self.obj_init_pos = obj_pos
+        goal_pos = obj_pos.copy() + np.array([0.2, -0.2, 0.])
+        self._target_pos = goal_pos
 
         self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
         self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos

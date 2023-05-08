@@ -112,14 +112,13 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
 
-        if self.random_init:
+        goal_pos = self._get_state_rand_vec()
+        self._target_pos = goal_pos[3:]
+        while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-                self._target_pos = goal_pos[3:]
-            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
-            self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
         self.num_resets += 1
