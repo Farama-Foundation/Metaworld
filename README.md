@@ -20,7 +20,7 @@ __Table of Contents__
 - [Acknowledgements](#acknowledgements)
 
 ## Join the Community
-Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [discoed server](https://discord.gg/PfR7a79FpQ) 
+Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ) 
 ## Installation
 Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:
 
