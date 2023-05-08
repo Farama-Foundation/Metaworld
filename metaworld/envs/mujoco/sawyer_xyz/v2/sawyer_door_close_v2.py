@@ -1,5 +1,5 @@
 import numpy as np
-from gymnasium.spaces import Box
+from gym.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import SawyerDoorEnvV2

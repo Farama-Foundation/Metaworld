@@ -2,8 +2,8 @@ import abc
 import copy
 import pickle
 
-from gymnasium.spaces import Box
-from gymnasium.spaces import Discrete
+from gym.spaces import Box
+from gym.spaces import Discrete
 import mujoco_py
 import numpy as np
 
