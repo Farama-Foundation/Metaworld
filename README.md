@@ -63,12 +63,12 @@ You may wish to only access individual environments used in the Metaworld benchm
 
 ### Seeding a Benchmark Instance
 For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
-You can do so in the following way:
+For example, for the ML1 benchmark environment with the 'pick-place-v2' environment, you can do so in the following way:
 ```python
 import metaworld
 
 SEED = 0  # some seed number here
-benchmark = metaworld.BENCHMARK(seed=SEED)
+benchmark = metaworld.ML1('pick-place-v2', seed=SEED)
 ```
 
 ### Running ML1 or MT1
@@ -78,9 +78,9 @@ import random
 
 print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
 
-ml1 = metaworld.ML1('pick-place-v1') # Construct the benchmark, sampling tasks
+ml1 = metaworld.ML1('pick-place-v2') # Construct the benchmark, sampling tasks
 
-env = ml1.train_classes['pick-place-v1']()  # Create an environment with task `pick_place`
+env = ml1.train_classes['pick-place-v2']()  # Create an environment with task `pick_place`
 task = random.choice(ml1.train_tasks)
 env.set_task(task)  # Set task
 
