@@ -7,13 +7,11 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandlePullEnvV2(SawyerXYZEnv):
-    
     def __init__(self):
-
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.1, 0.8, -0.001)
-        obj_high = (0.1, 0.9, +0.001)
+        obj_high = (0.1, 0.9, 0.001)
         goal_low = (-0.1, 0.55, 0.04)
         goal_high = (0.1, 0.70, 0.18)
 
@@ -24,12 +22,14 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.9, 0.0]),
-            'hand_init_pos': np.array((0, 0.6, 0.2),),
+            "obj_init_pos": np.array([0, 0.9, 0.0]),
+            "hand_init_pos": np.array(
+                (0, 0.6, 0.2),
+            ),
         }
         self.goal = np.array([0, 0.8, 0.14])
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -39,31 +39,22 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_handle_press.xml')
+        return full_v2_path_for("sawyer_xyz/sawyer_handle_press.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
-        (reward,
-         tcp_to_obj,
-         tcp_open,
-         obj_to_target,
-         grasp_reward,
-         in_place_reward
-        ) = self.compute_reward(action, obs)
+        (reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(obj_to_target <= self.TARGET_RADIUS),
-            'near_object': float(tcp_to_obj <= 0.05),
-            'grasp_success': float(
-                (tcp_open > 0) and
-                (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
-            'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward,
+            "success": float(obj_to_target <= self.TARGET_RADIUS),
+            "near_object": float(tcp_to_obj <= 0.05),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
 
         return reward, info
@@ -73,7 +64,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         return []
 
     def _get_pos_objects(self):
-        return self._get_site_pos('handleRight')
+        return self._get_site_pos("handleRight")
 
     def _get_quat_objects(self):
         return np.zeros(4)
@@ -89,9 +80,9 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
+        self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(-0.1)
-        self._target_pos = self._get_site_pos('goalPull')
+        self._target_pos = self._get_site_pos("goalPull")
 
         return self._get_obs()
 
@@ -107,7 +98,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
             target_to_obj,
             bounds=(0, self.TARGET_RADIUS),
             margin=target_to_obj_init,
-            sigmoid='long_tail',
+            sigmoid="long_tail",
         )
 
         object_grasped = self._gripper_caging_reward(
@@ -124,16 +115,8 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
-        if tcp_to_obj < 0.035 and tcp_opened > 0 and \
-                obj[2] - 0.01 > self.obj_init_pos[2]:
-            reward += 1. + 5. * in_place
+        if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[1] - 0.01 > self.obj_init_pos[2]:
+            reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place
-        )
+            reward = 10.0
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
