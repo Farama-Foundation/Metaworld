@@ -1,6 +1,6 @@
 import numpy as np
 from gymnasium.spaces import Box
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -73,8 +73,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
     def _get_quat_objects(self):
         return np.hstack((
-            self.sim.data.get_body_xquat('hammer'),
-            self.sim.data.get_body_xquat('nail_link')
+            self.data.body('hammer').xquat,
+            self.data.body('nail_link').xquat
         ))
 
     def _set_hammer_xyz(self, pos):
@@ -88,9 +88,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         # Set position of box & nail (these are not randomized)
-        self.sim.model.body_pos[self.model.body_name2id(
-            'box'
-        )] = np.array([0.24, 0.85, 0.0])
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = np.array([0.24, 0.85, 0.0])
         # Update _target_pos
         self._target_pos = self._get_site_pos('goal')
 
@@ -158,7 +156,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success. We check that reward is above a threshold
         # because this env's success metric could be hacked easily
-        success = self.data.get_joint_qpos('NailSlideJoint') > 0.09
+        success = self.data.joint('NailSlideJoint').qpos > 0.09
         if success and reward > 5.:
             reward = 10.0
 

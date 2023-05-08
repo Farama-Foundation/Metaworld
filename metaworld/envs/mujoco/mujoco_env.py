@@ -128,12 +128,11 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         if n_frames is None:
             n_frames = self.frame_skip*10
         self.data.ctrl = ctrl
-        for _ in range(n_frames):
-            try:
-                mujoco.mj_step(self.model, self.data, nstep=1)
-            except mujoco.mjr_getError() as err:
-                warnings.warn(str(err), category=RuntimeWarning)
-                self._did_see_sim_exception = True
+        try:
+            mujoco.mj_step(self.model, self.data, nstep=n_frames)
+        except mujoco.mjr_getError() as err:
+            warnings.warn(str(err), category=RuntimeWarning)
+            self._did_see_sim_exception = True
 
     # def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
     #     assert_string = ("camera_name should be one of ",

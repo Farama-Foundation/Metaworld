@@ -439,8 +439,22 @@ MT50_V2 = OrderedDict((
     ('door-lock-v2', SawyerDoorLockEnvV2),
     ('door-close-v2', SawyerDoorCloseEnvV2),
     ('door-lock-v2', SawyerDoorLockEnvV2),
-    ('basketball-v2', SawyerBasketballEnvV2)
+    ('basketball-v2', SawyerBasketballEnvV2),
+    ('bin-picking-v2', SawyerBinPickingEnvV2),
+    ('box-close-v2', SawyerBoxCloseEnvV2),
+    ('button-press-topdown-v2', SawyerButtonPressTopdownEnvV2),
+    ('button-press-topdown-wall-v2', SawyerButtonPressTopdownWallEnvV2),
+    ('hand-insert-v2', SawyerHandInsertEnvV2),
+    ('hammer-v2', SawyerHammerEnvV2),
+    ('pick-place-wall-v2', SawyerPickPlaceWallEnvV2),
+    ('pick-out-of-hole-v2', SawyerPickOutOfHoleEnvV2),
+    ('push-back-v2', SawyerPushBackEnvV2),
+    ('pick-place-v2', SawyerPickPlaceEnvV2),
+    ('drawer-close-v2', SawyerDrawerCloseEnvV2)
 ))
+
+# TROUBLE: ('lever-pull-v2', SawyerLeverPullEnvV2)
+
 
 '''
 ('basketball-v2', SawyerBasketballEnvV2),

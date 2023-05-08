@@ -75,21 +75,21 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.data.geom('objGeom').xpos
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')
+            self.data.geom('objGeom').xmat.reshape(3, 3)
         ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        diff = self.get_body_com('obj')[:2] - self.data.geom('objGeom').xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
+        return [adjustedPos[0], adjustedPos[1],self.data.geom('objGeom').xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()

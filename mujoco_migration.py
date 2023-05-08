@@ -1,11 +1,11 @@
 import numpy as np
 import metaworld
 import random
-from metaworld.policies.sawyer_basketball_v2_policy import SawyerBasketballV2Policy as policy
+from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy as policy
 from PIL import Image
 import time
 seed = 42
-env_name = "basketball-v2"
+env_name = 'pick-place-v2'
 
 random.seed(seed)
 ml1 = metaworld.MT50(seed=seed)
@@ -37,9 +37,16 @@ print(env.data.qvel)
 p = policy()
 count = 0
 done = False
+
+states = []
+actions = []
+next_states = []
+rewards = []
+
+dones = []
+
 while count < 500 and not done:
     env.render()
-    print(count)
     #img = Image.fromarray(env.render(offscreen=True))
     #img.save(f"frame_{count}.png")
     #print(p._parse_obs(obs))

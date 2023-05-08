@@ -278,8 +278,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             (bool): whether the gripper is touching the object
 
         """
-        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
-        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+        leftpad_geom_id = self.data.geom('leftpad_geom').id
+        rightpad_geom_id = self.data.geom('rightpad_geom').id
 
         leftpad_object_contacts = [
             x for x in self.unwrapped.data.contact
@@ -306,7 +306,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return self.data.geom('objGeom').id  #[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, 'objGeom')]
 
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars
