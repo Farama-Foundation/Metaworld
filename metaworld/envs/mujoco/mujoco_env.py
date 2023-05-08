@@ -11,10 +11,10 @@ import numpy as np
 from os import path
 import gymnasium
 import mujoco
+
 from PIL import Image
 import time
 from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
-
 
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
@@ -197,6 +197,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
+
                 print("Huh")
                 #self.viewer = mujoco.MjVisual(mode)
                 # self.viewer = mujoco_py.MjViewer(self.sim)

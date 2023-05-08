@@ -6,7 +6,6 @@ from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
 import mujoco
 import numpy as np
-import mujoco_py
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
 from PIL import Image
@@ -247,6 +246,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         assert isinstance(pos, np.ndarray)
         assert pos.ndim == 1
+
         _id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, name)
         self.data.site_xpos[_id] = pos[:3]
 
