@@ -1,6 +1,6 @@
 import numpy as np
 from gym.spaces import Box
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -85,9 +85,7 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
         # Compute nightstand position
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
-        self.sim.model.body_pos[self.model.body_name2id(
-            'drawer'
-        )] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'drawer')] = self.obj_init_pos
         # Set _target_pos to current drawer position (closed)
         self._target_pos = self.obj_init_pos + np.array([.0, -.16, .09])
         # Pull drawer out all the way and mark its starting position

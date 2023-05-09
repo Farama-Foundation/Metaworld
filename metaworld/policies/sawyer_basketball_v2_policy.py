@@ -26,9 +26,9 @@ class SawyerBasketballV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=50.)
         action['grab_effort'] = self._grab_effort(o_d)
-
+        print(action.array)
         return action.array
 
     @staticmethod
@@ -39,14 +39,22 @@ class SawyerBasketballV2Policy(Policy):
         # Y varies between .85 and .9, so we take avg
         # Z is constant at .35
         pos_hoop = np.array([o_d['hoop_x'], .875, .35])
-
+        print(f'curr {pos_curr}')
+        print(f'ball {pos_ball}')
+        print(f'hoop {pos_hoop}')
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > .04:
+            print('not over ball')
             return pos_ball + np.array([.0, .0, .3])
-        elif abs(pos_curr[2] - pos_ball[2]) > .025:
+        elif abs(pos_curr[2] - pos_ball[2]) > 0.035:
+            print('not at same level as ball')
+            print(pos_ball)
+            print(abs(pos_curr[2] - pos_ball[2]))
             return pos_ball
-        elif abs(pos_ball[2] - pos_hoop[2]) > 0.025:
+        elif abs(pos_ball[2] - pos_hoop[2]) > 0.05:
+            print('not above hoop')
             return np.array([pos_curr[0], pos_curr[1], pos_hoop[2]])
         else:
+            print('move to hoop')
             return pos_hoop
 
     @staticmethod
@@ -55,7 +63,7 @@ class SawyerBasketballV2Policy(Policy):
         pos_ball = o_d['ball_pos']
 
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > 0.04 \
-            or abs(pos_curr[2] - pos_ball[2]) > 0.15:
+            or abs(pos_curr[2] - pos_ball[2]) > 0.07:
             return -1.
         else:
             return .6

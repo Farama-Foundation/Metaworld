@@ -4,7 +4,7 @@ from gym.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
@@ -78,7 +78,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return self.get_body_com('top_link')
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('top_link')
+        return self.data.body('top_link').xquat
+        return self.data.body('top_link').xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -93,7 +94,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id('boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()

@@ -1,6 +1,6 @@
 import numpy as np
 from gym.spaces import Box
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -74,7 +74,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         return self.get_body_com('button') + np.array([.0, -.193, .0])
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('button')
+        return self.data.body('button').xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -91,8 +91,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos
 
-        self.sim.model.body_pos[
-            self.model.body_name2id('box')] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
         self._set_obj_xyz(0)
         self._target_pos = self._get_site_pos('hole')
 

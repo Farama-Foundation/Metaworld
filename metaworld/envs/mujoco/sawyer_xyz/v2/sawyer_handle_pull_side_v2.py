@@ -7,11 +7,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
-
     def __init__(self):
-
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, 0.0)
         obj_high = (-0.25, 0.75, 0.0)
 
@@ -22,12 +20,14 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([-0.3, 0.7, 0.0]),
-            'hand_init_pos': np.array((0, 0.6, 0.2),),
+            "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
+            "hand_init_pos": np.array(
+                (0, 0.6, 0.2),
+            ),
         }
         self.goal = np.array([-0.2, 0.7, 0.14])
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.hand_init_pos = self.init_config["hand_init_pos"]
 
         goal_low = self.hand_low
         goal_high = self.hand_high
@@ -40,32 +40,22 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_handle_press_sideways.xml')
+        return full_v2_path_for("sawyer_xyz/sawyer_handle_press_sideways.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
 
-        (
-            reward,
-            tcp_to_obj,
-            tcp_open,
-            obj_to_target,
-            grasp_reward,
-            in_place_reward
-        ) = self.compute_reward(action, obs)
+        (reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(obj_to_target <= 0.08),
-            'near_object': float(tcp_to_obj <= 0.05),
-            'grasp_success': float(
-                (tcp_open > 0) and
-                (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
-            'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward,
+            "success": float(obj_to_target <= 0.08),
+            "near_object": float(tcp_to_obj <= 0.05),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
 
         return reward, info
@@ -75,7 +65,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         return []
 
     def _get_pos_objects(self):
-        return self._get_site_pos('handleCenter')
+        return self._get_site_pos("handleCenter")
 
     def _get_quat_objects(self):
         return np.zeros(4)
@@ -92,11 +82,11 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self._get_state_rand_vec()
 
-        self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
+        self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(-0.1)
-        self._target_pos = self._get_site_pos('goalPull')
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id('handleStart')][-1] - self._target_pos[-1])
-        self.target_reward = 1000*self.maxDist + 1000*2
+        self._target_pos = self._get_site_pos("goalPull")
+        self.maxDist = np.abs(self.data.site("handleStart").xpos[-1] - self._target_pos[-1])
+        self.target_reward = 1000 * self.maxDist + 1000 * 2
         self.obj_init_pos = self._get_pos_objects()
 
         return self._get_obs()
@@ -107,7 +97,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         target = self._target_pos.copy()
 
         # Emphasize Z error
-        scale = np.array([1., 1., 1.])
+        scale = np.array([1.0, 1.0, 1.0])
         target_to_obj = (obj - target) * scale
         target_to_obj = np.linalg.norm(target_to_obj)
         target_to_obj_init = (self.obj_init_pos - target) * scale
@@ -117,7 +107,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             target_to_obj,
             bounds=(0, self.TARGET_RADIUS),
             margin=target_to_obj_init,
-            sigmoid='long_tail',
+            sigmoid="long_tail",
         )
 
         object_grasped = self._gripper_caging_reward(
@@ -135,17 +125,8 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
 
-        if tcp_to_obj < 0.035 and tcp_opened > 0 and \
-                obj[2] - 0.01 > self.obj_init_pos[2]:
-            reward += 1. + 5. * in_place
+        if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
+            reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place
-        )
-
+            reward = 10.0
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

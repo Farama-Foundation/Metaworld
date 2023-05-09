@@ -80,6 +80,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
+        print(self.data.xmat)
         return Rotation.from_matrix(
             self.data.get_geom_xmat('objGeom')
         ).as_quat()

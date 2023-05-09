@@ -86,7 +86,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('obj')
+        return self.data.body('obj').xquat
 
     def reset_model(self):
         self._reset_hand()

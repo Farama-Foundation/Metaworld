@@ -86,6 +86,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         return self._get_site_pos('leverStart')
 
     def _get_quat_objects(self):
+        '''TODO: Figure this out'''
         return Rotation.from_matrix(self.data.get_geom_xmat('objGeom')).as_quat()
 
     def reset_model(self):
