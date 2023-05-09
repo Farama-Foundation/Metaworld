@@ -4,8 +4,8 @@ from setuptools import find_packages, setup
 # Required dependencies
 required = [
     # Please keep alphabetized
-    "gym>=0.15.4",
-    "mujoco-py<2.2,>=2.0",
+    "gymnasium>=0.28.1",
+    "mujoco",
     "numpy>=1.18",
     "scipy",
 ]

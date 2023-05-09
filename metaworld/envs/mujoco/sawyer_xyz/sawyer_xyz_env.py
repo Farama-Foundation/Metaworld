@@ -2,8 +2,8 @@ import abc
 import copy
 import pickle
 
-from gym.spaces import Box
-from gym.spaces import Discrete
+from gymnasium.spaces import Box
+from gymnasium.spaces import Discrete
 
 import mujoco
 import numpy as np
@@ -434,7 +434,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @_assert_task_is_set
     def step(self, action):
-        #print(action)
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
         self.curr_path_length += 1
@@ -474,7 +473,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return self._last_stable_obs
 
         reward, info = self.evaluate_state(self._last_stable_obs, action)
-        return self._last_stable_obs, reward, False, info
+        done = True if int(info['success']) == 1 else False
+        print('sawyer env')
+        return self._last_stable_obs, reward, done, False, info
 
     def evaluate_state(self, obs, action):
         """Does the heavy-lifting for `step()` -- namely, calculating reward
@@ -492,8 +493,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def reset(self):
+        self.curr_path_length = 0
         if not self.isV2:
-            self.curr_path_length = 0
             return super().reset()
         else:
             obs = np.float64(super().reset())

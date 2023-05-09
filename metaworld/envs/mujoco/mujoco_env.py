@@ -4,17 +4,16 @@ import os.path
 import warnings
 
 import glfw
-from gym import error
-from gym.utils import seeding
+from gymnasium import error
+from gymnasium.utils import seeding
 import numpy as np
 from os import path
-import gym
+import gymnasium as gym
 import mujoco
-
-
 from PIL import Image
 import time
 from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
+
 
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
@@ -66,7 +65,6 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.mujoco_renderer = MujocoRenderer(
             self.model, self.data
         )
-
         self.np_random, _ = seeding.np_random(None)
 
     def seed(self, seed):
@@ -151,7 +149,7 @@ class MujocoEnv(gym.Env, abc.ABC):
         self,
         offscreen=False,
         camera_id = None,
-        camera_name = "corner2"
+        camera_name = "gripperPOV"
     ):
         """Renders a frame of the simulation in a specific format and camera view.
 
@@ -165,21 +163,11 @@ class MujocoEnv(gym.Env, abc.ABC):
         """
         if not offscreen:
             render_mode = 'human'
-            if self.mujoco_renderer.viewer is not None:
-                self.mujoco_renderer.viewer.add_marker(pos=self.data.mocap_pos.copy(), #position of the arrow\
-                        size=np.array([0.01,0.01,0.01]), #size of the arrow
-                        # mat=render_goal_orn, # orientation as a matrix
-                        rgba=np.array([0.,230.,64.,1.]),#color of the arrow
-                        type=mujoco.mjtGeom.mjGEOM_SPHERE,
-                        label=str('GOAL'))
         else:
             render_mode = 'rgb_array'
-        
-        
         return self.mujoco_renderer.render(
             render_mode, camera_id, camera_name
             )
-            
 
     def close(self):
         if self.viewer is not None:

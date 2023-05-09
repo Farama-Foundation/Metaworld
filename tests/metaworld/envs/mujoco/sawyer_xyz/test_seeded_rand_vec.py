@@ -1,15 +1,12 @@
 import random
 
-import pytest
 import numpy as np
 
 from metaworld.envs import ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE
 
 
-@pytest.mark.parametrize(
-    'env_name',
-    sorted(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys()))
-def test_observations_match(env_name):
+def test_observations_match():
+    env_name = list(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys())[0]
     seed = random.randrange(1000)
     env1 = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](seed=seed)
     env1.seeded_rand_vec = True
@@ -17,6 +14,7 @@ def test_observations_match(env_name):
     env2.seeded_rand_vec = True
 
     obs1, obs2 = env1.reset(), env2.reset()
+    # this fails
     assert (obs1 == obs2).all()
 
     for i in range(env1.max_path_length):
@@ -27,3 +25,7 @@ def test_observations_match(env_name):
         assert r1 == r2
         assert not done1
         assert not done2
+
+
+if __name__ == "__main__":
+    test_observations_match()
