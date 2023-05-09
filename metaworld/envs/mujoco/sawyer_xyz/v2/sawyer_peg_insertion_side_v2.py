@@ -5,7 +5,7 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 from scipy.spatial.transform import Rotation
-
+import mujoco
 
 class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
     TARGET_RADIUS = 0.07
@@ -92,7 +92,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         return self._get_site_pos('pegGrasp')
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_site_xmat('pegGrasp')).as_quat()
+        geom_xmat = self.data.site('pegGrasp').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
         self._reset_hand()
@@ -106,8 +107,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = pos_peg
         self.peg_head_pos_init = self._get_site_pos('pegHead')
         self._set_obj_xyz(self.obj_init_pos)
-
-        self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = pos_box
         self._target_pos = pos_box + np.array([.03, .0, .13])
 
         return self._get_obs()

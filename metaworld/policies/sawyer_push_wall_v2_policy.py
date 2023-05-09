@@ -56,8 +56,7 @@ class SawyerPushWallV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_obj = o_d['obj_pos']
 
-        if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02 or \
-                          abs(pos_curr[2] - pos_obj[2]) > 0.1:
+        if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02 or abs(pos_curr[2] - pos_obj[2]) > 0.05:
             return 0.0
         # While end effector is moving down toward the obj, begin closing the grabber
         else:

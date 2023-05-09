@@ -1,6 +1,6 @@
 import numpy as np
 from gymnasium.spaces import Box
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -64,7 +64,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         return self._get_site_pos('pegEnd')
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('plug1')
+        return self.data.body('plug1').xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -78,7 +78,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         pos_box = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = pos_box
 
         pos_plug = pos_box + np.array([.044, .0, .131])
         self._set_obj_xyz(pos_plug)

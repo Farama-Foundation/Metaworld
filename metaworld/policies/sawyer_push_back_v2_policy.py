@@ -50,7 +50,7 @@ class SawyerPushBackV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
 
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.085:
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.05:
             return 0.
         # While end effector is moving down toward the puck, begin closing the grabber
         else:

@@ -55,7 +55,7 @@ class SawyerPickPlaceV2Policy(Policy):
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
-        if np.linalg.norm(pos_curr - pos_puck) < 0.07:
+        if np.linalg.norm(pos_curr - pos_puck) < 0.045:
             return 1.
         else:
             return 0.

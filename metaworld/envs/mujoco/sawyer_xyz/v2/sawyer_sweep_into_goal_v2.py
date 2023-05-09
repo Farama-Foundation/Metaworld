@@ -72,9 +72,8 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')
-        ).as_quat()
+        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')

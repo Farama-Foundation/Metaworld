@@ -1,7 +1,7 @@
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -86,15 +86,13 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         return self._get_site_pos('leverStart')
 
     def _get_quat_objects(self):
-        '''TODO: Figure this out'''
-        return Rotation.from_matrix(self.data.get_geom_xmat('objGeom')).as_quat()
+        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
         self._reset_hand()
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[
-            self.model.body_name2id('lever')] = self.obj_init_pos
-
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'lever')] = self.obj_init_pos
         self._lever_pos_init = self.obj_init_pos + np.array(
             [.12, -self.LEVER_RADIUS, .25]
         )
@@ -132,7 +130,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         # The skill of the agent should be measured by its ability to get the
         # lever to point straight upward. This means we'll be measuring the
         # current angle of the lever's joint, and comparing with 90deg.
-        lever_angle = -self.data.get_joint_qpos('LeverAxis')
+        lever_angle = -self.data.joint('LeverAxis').qpos
         lever_angle_desired = np.pi / 2.0
 
         lever_error = abs(lever_angle - lever_angle_desired)

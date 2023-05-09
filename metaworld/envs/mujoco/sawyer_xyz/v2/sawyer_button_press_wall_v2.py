@@ -5,7 +5,7 @@ from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, \
     _assert_task_is_set
-
+import mujoco
 
 class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
 
@@ -95,8 +95,8 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos
 
-        self.sim.model.body_pos[
-            self.model.body_name2id('box')] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
+
         self._set_obj_xyz(0)
         self._target_pos = self._get_site_pos('hole')
 

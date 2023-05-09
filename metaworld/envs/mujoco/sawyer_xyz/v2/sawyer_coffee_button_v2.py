@@ -4,7 +4,7 @@ from gymnasium.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
@@ -94,9 +94,9 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id(
-            'coffee_machine'
-        )] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'coffee_machine')] \
+            = self.obj_init_pos
+
 
         pos_mug = self.obj_init_pos + np.array([.0, -.22, .0])
         self._set_obj_xyz(pos_mug)

@@ -74,7 +74,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return self.data.get_body_xquat('obj')
+        return self.data.body('obj').xquat
 
     def _get_pos_objects(self):
         return self.get_body_com('obj')

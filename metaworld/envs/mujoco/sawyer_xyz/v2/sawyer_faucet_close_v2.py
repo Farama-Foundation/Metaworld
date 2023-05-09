@@ -4,7 +4,7 @@ from gymnasium.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
     def __init__(self):
@@ -65,7 +65,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
                 ('goal_open', np.array([10., 10., 10.]))]
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('faucetBase')
+        return self.data.body('faucetBase').xquat
 
     def _get_pos_objects(self):
         return self._get_site_pos('handleStartClose') + np.array(
@@ -77,8 +77,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         # Compute faucet position
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
-        self.sim.model.body_pos[self.model.body_name2id(
-            'faucetBase')] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'faucetBase')] = self.obj_init_pos
 
         self._target_pos = self.obj_init_pos + np.array(
             [-self._handle_length, .0, .125])

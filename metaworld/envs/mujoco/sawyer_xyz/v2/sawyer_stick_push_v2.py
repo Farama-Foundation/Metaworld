@@ -73,10 +73,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         ))
 
     def _get_quat_objects(self):
-        return np.hstack((
-            Rotation.from_matrix(self.data.get_body_xmat('stick')).as_quat(),
-            np.array([0.,0.,0.,0.])
-        ))
+        geom_xmat = self.data.body('stick').xmat.reshape(3, 3)
+        return np.hstack(
+            (Rotation.from_matrix(geom_xmat).as_quat(), np.array([0., 0., 0., 0., ])))
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()

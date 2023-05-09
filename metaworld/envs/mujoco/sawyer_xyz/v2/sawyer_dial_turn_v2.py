@@ -4,7 +4,7 @@ from gymnasium.spaces import Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerDialTurnEnvV2(SawyerXYZEnv):
     TARGET_RADIUS = 0.07
@@ -65,7 +65,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
     def _get_pos_objects(self):
         dial_center = self.get_body_com('dial').copy()
-        dial_angle_rad = self.data.get_joint_qpos('knob_Joint_1')
+        dial_angle_rad = self.data.joint('knob_Joint_1').qpos
 
         offset = np.array([
             np.sin(dial_angle_rad),
@@ -79,7 +79,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         return dial_center + offset
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('dial')
+        return self.data.body('dial').xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -91,8 +91,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
         final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
         self._target_pos = final_pos
-
-        self.sim.model.body_pos[self.model.body_name2id('dial')] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'dial')] = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
 
         return self._get_obs()

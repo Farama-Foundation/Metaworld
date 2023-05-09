@@ -4,7 +4,7 @@ from gymnasium.spaces import  Box
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     """
@@ -91,12 +91,10 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
         self._target_pos = self.obj_init_pos + np.array([.2, .0, .0])
 
-        self.sim.model.body_pos[self.model.body_name2id(
-            'window'
-        )] = self.obj_init_pos
-        self.window_handle_pos_init = self._get_pos_objects()
-        self.data.set_joint_qpos('window_slide', 0.0)
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'window')] = self.obj_init_pos
 
+        self.window_handle_pos_init = self._get_pos_objects()
+        self.data.joint('window_slide').qpos = 0.0
         return self._get_obs()
 
     def compute_reward(self, actions, obs):

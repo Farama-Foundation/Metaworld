@@ -89,9 +89,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         #return self.data.get_body_xquat('bsktball')
 
     def reset_model(self):
-        self._set_robot_qpos(self.init_robot_qpos)
         self._reset_hand()
-
         self.prev_obs = self._get_curr_obs_combined_no_goal()
         goal_pos = self._get_state_rand_vec()
         basket_pos = goal_pos[3:]

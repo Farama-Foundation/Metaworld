@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-
+import mujoco
 
 class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
@@ -72,9 +72,8 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(
-            self.data.get_geom_xmat('mug')
-        ).as_quat()
+        geom_xmat = self.data.geom('mug').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flatten()
@@ -97,9 +96,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         self.obj_init_pos = pos_mug_init
 
         pos_machine = pos_mug_init + np.array([.0, .22, .0])
-        self.sim.model.body_pos[self.model.body_name2id(
-            'coffee_machine'
-        )] = pos_machine
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'coffee_machine')] = pos_machine
 
         self._target_pos = pos_mug_goal
         return self._get_obs()

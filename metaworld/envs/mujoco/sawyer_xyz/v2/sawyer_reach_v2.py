@@ -80,10 +80,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self.get_body_com('obj')
 
     def _get_quat_objects(self):
-        print(self.data.xmat)
-        return Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')
-        ).as_quat()
+        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not

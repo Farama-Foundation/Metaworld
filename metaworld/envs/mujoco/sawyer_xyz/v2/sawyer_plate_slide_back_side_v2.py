@@ -1,7 +1,7 @@
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
-
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
@@ -82,10 +82,11 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('puck')
+        return self.data.geom('puck').xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat('puck')).as_quat()
+        geom_xmat = self.data.geom('puck').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_obs_dict(self):
         return dict(
@@ -109,8 +110,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         rand_vec = self._get_state_rand_vec()
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
-
-        self.sim.model.body_pos[self.model.body_name2id('puck_goal')] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'puck_goal')] = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.]))
 
         return self._get_obs()

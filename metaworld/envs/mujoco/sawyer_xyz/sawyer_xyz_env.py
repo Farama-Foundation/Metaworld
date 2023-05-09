@@ -23,7 +23,6 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         self.reset_mocap_welds()
 
     def get_endeff_pos(self):
-        print(self.data.body('hand').xpos)
         return self.data.body('hand').xpos
 
     @property
@@ -140,7 +139,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
         self.seeded_rand_vec = True
-        self._freeze_rand_vec = False
+        self._freeze_rand_vec = True
         self._last_rand_vec = None
 
         # We use continuous goal space by default and
@@ -154,8 +153,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.init_right_pad = self.get_body_com('rightpad')
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1], dtype=np.float32),
-            np.array([+1, +1, +1, +1], dtype=np.float32)
+            np.array([-1, -1, -1, -1], dtype=np.float64),
+            np.array([+1, +1, +1, +1], dtype=np.float64)
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -199,10 +198,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
-        self.reset_mocap2body_xpos()
         pos_delta = action * self.action_scale
         new_mocap_pos = self.data.mocap_pos + pos_delta[None]
-        #print(new_mocap_pos)
         new_mocap_pos[0, :] = np.clip(
             new_mocap_pos[0, :],
             self.mocap_low,
@@ -223,14 +220,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
-        self.set_state(qpos, qvel)
-    
-    def _set_robot_qpos(self, robot_qpos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[0:7] = robot_qpos.copy()
-        qvel[:7] = [0.00000000e+00,  0.00000000e+00, -2.82528827e-15,  0.00000000e+00,
-  0.00000000e+00,  0.00000000e+00,  3.29594892e-01]
         self.set_state(qpos, qvel)
 
     def _get_site_pos(self, siteName):
@@ -421,8 +410,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def observation_space(self):
         obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
 
-        obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float32)
-        obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float32)
+        obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float64)
+        obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float64)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
@@ -433,11 +422,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
-            dtype=np.float32
+            dtype=np.float64
         ) if self.isV2 else Box(
             np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
-            dtype=np.float32
+            dtype=np.float64
         )
 
     @_assert_task_is_set
@@ -473,7 +462,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._last_stable_obs = np.clip(self._last_stable_obs,
                                         a_max=self.observation_space.high,
                                         a_min=self.observation_space.low,
-                                        dtype=np.float32)
+                                        dtype=np.float64)
         if not self.isV2:
             # v1 environments expect this superclass step() to return only the
             # most recent observation. they override the rest of the
@@ -504,36 +493,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.curr_path_length = 0
             return super().reset()
         else:
-            obs = np.float32(super().reset())  # np.float32?
+            obs = np.float64(super().reset())  # np.float64?
             self._prev_obs = obs[:18].copy()
             obs[18:36] = self._prev_obs
             return obs
 
     def _reset_hand(self, steps=50):
-        # print(self.hand_init_pos)
-        # print(self.data.site('rightEndEffector'))
-        # print(self.data.site('leftEndEffector'))
-        # print(self.frame_skip)
-        # print("_reset_hand xyz")
-        # print(self.data.mocap_pos)
-        # print(self.data.mocap_quat)
-        # for _ in range(steps):
-        # self.data.mocap_pos = copy.copy(self.hand_init_pos)
-        # self.data.mocap_quat = copy.copy(np.array([1, 0, 1, 0]))
-        #self.do_simulation([-1, 1], self.frame_skip)
-        #mujoco.mj_forward(self.model, self.data)
-        # mujoco.mj_step(self.model, self.data, nstep=50)
-        # print(self.data.mocap_pos)
-        # print(self.data.mocap_quat)
-        # print(self.data.site('rightEndEffector'))
-        # print(self.data.site('leftEndEffector'))
-        
-        self.reset_mocap_welds()
-        self.reset_mocap2body_xpos()
-        mujoco.mj_forward(self.model, self.data)
-        
-        self.init_tcp = self.tcp_center
+        mocap_id = self.model.body_mocapid[self.data.body("mocap").id]
+        for _ in range(steps):
+            self.data.mocap_pos[mocap_id][:] = self.hand_init_pos
+            self.data.mocap_quat[mocap_id][:] = np.array([1, 0, 1, 0])
+            self.do_simulation([-1, 1], self.frame_skip)
 
+        self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
@@ -543,14 +515,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             rand_vec = self.np_random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size).astype(np.float32)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
         else:
             rand_vec = np.random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size).astype(np.float32)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
 

@@ -49,8 +49,6 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.frame_skip = frame_skip
         self.model = mujoco.MjModel.from_xml_path(filename=model_path)
         self.data = mujoco.MjData(self.model)
-        print(self.data.ctrl)
-        print('ctrl')
         self.viewer = None
         self._viewers = {}
         self.renderer = None
@@ -102,17 +100,12 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
-        print(self.model.qpos0)
         return ob
 
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
-        #print(self.data.time, self.data.act)
-        print("??")
-        print(self.data.time, self.data.qpos, self.data.qvel, self.data.act)
         self.data.qvel = qvel
         self.data.qpos = qpos
-        print(self.data.qvel, self.data.qpos)
         mujoco.mj_forward(self.model, self.data)
 
     @property
@@ -126,7 +119,7 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
             return
 
         if n_frames is None:
-            n_frames = self.frame_skip*10
+            n_frames = self.frame_skip
         self.data.ctrl = ctrl
         try:
             mujoco.mj_step(self.model, self.data, nstep=n_frames)
@@ -197,7 +190,6 @@ class MujocoEnv(gymnasium.Env, abc.ABC):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
-
                 print("Huh")
                 #self.viewer = mujoco.MjVisual(mode)
                 # self.viewer = mujoco_py.MjViewer(self.sim)
