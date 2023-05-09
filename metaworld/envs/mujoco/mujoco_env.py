@@ -4,13 +4,13 @@ import os.path
 import warnings
 
 import glfw
-import mujoco
-from gymnasium import error
-from gymnasium.utils import seeding
+from gym import error
+from gym.utils import seeding
 import numpy as np
 from os import path
-import gymnasium
+import gym
 import mujoco
+
 
 from PIL import Image
 import time
@@ -31,9 +31,9 @@ def _assert_task_is_set(func):
 DEFAULT_SIZE = 500
 
 
-class MujocoEnv(gymnasium.Env, abc.ABC):
+class MujocoEnv(gym.Env, abc.ABC):
     """
-    This is a simplified version of the gymnasium MujocoEnv class.
+    This is a simplified version of the gym MujocoEnv class.
 
     Some differences are:
      - Do not automatically set the observation/action space.

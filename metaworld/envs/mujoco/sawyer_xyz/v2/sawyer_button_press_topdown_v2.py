@@ -1,5 +1,6 @@
 import numpy as np
-from gymnasium.spaces import Box
+
+from gym.spaces import Box
 import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for

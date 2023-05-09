@@ -2,9 +2,11 @@ import abc
 import copy
 import pickle
 
+from gym.spaces import Box
+from gym.spaces import Discrete
+
 import mujoco
 import numpy as np
-from gymnasium.spaces import Box, Discrete
 
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
@@ -139,8 +141,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
-        self.seeded_rand_vec = False
-        self._freeze_rand_vec = False
+        self.seeded_rand_vec = True
+        self._freeze_rand_vec = True
         self._last_rand_vec = None
 
         # We use continuous goal space by default and
@@ -154,8 +156,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.init_right_pad = self.get_body_com('rightpad')
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1], dtype=np.float32),
-            np.array([+1, +1, +1, +1], dtype=np.float32)
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
+            dtype=np.float64,
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -421,8 +424,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def observation_space(self):
         obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
 
-        obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float32)
-        obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float32)
+        obj_low = np.full(obs_obj_max_len, -np.inf)
+        obj_high = np.full(obs_obj_max_len, +np.inf)
         goal_low = np.zeros(3) if self._partially_observable \
             else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable \
@@ -433,11 +436,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
-            dtype=np.float32
+            dtype=np.float64,
         ) if self.isV2 else Box(
             np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
             np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
-            dtype=np.float32
+            dtype=np.float64,
         )
 
     @_assert_task_is_set
@@ -473,7 +476,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._last_stable_obs = np.clip(self._last_stable_obs,
                                         a_max=self.observation_space.high,
                                         a_min=self.observation_space.low,
-                                        dtype=np.float32)
+                                        dtype=np.float64)
         if not self.isV2:
             # v1 environments expect this superclass step() to return only the
             # most recent observation. they override the rest of the
@@ -504,7 +507,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.curr_path_length = 0
             return super().reset()
         else:
-            obs = np.float32(super().reset())  # np.float32?
+            obs = np.float64(super().reset())
             self._prev_obs = obs[:18].copy()
             obs[18:36] = self._prev_obs
             return obs
@@ -527,14 +530,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             rand_vec = self.np_random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size).astype(np.float32)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
         else:
             rand_vec = np.random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size).astype(np.float32)
+                size=self._random_reset_space.low.size).astype(np.float64)
             self._last_rand_vec = rand_vec
             return rand_vec
 

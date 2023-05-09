@@ -2,9 +2,6 @@
 # Dockerfile entrypoint
 set -e
 
-# Get MuJoCo key from the environment
-echo "${MJKEY}" > ${HOME}/.mujoco/mjkey.txt
-
 # Setup dummy X server display
 # Socket for display :0 may already be in use if the container is connected
 # to the network of the host, and other low-numbered socket could also be in
@@ -28,4 +25,4 @@ if ! [ -e "$file" ]; then
   exit 1
 fi
 
-exec "$@"
+. $HOME/venv/bin/activate && exec "$@"

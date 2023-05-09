@@ -1,4 +1,4 @@
-import gymnasium
+import gym
 import memory_profiler
 import pytest
 
