@@ -2,14 +2,16 @@ import abc
 import copy
 import pickle
 
-from gymnasium.spaces import Box
-from gymnasium.spaces import Discrete
+from gym.spaces import Box
+from gym.spaces import Discrete
+
 import mujoco
 import numpy as np
+
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
-from PIL import Image
-        
+
+
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
@@ -153,8 +155,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.init_right_pad = self.get_body_com('rightpad')
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1], dtype=np.float64),
-            np.array([+1, +1, +1, +1], dtype=np.float64)
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
+            dtype=np.float64,
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -493,7 +496,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.curr_path_length = 0
             return super().reset()
         else:
-            obs = np.float64(super().reset())  # np.float64?
+            obs = np.float64(super().reset())
             self._prev_obs = obs[:18].copy()
             obs[18:36] = self._prev_obs
             return obs
@@ -504,6 +507,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.data.mocap_pos[mocap_id][:] = self.hand_init_pos
             self.data.mocap_quat[mocap_id][:] = np.array([1, 0, 1, 0])
             self.do_simulation([-1, 1], self.frame_skip)
+        self.init_tcp = self.tcp_center
 
         self.init_tcp = self.tcp_center
 

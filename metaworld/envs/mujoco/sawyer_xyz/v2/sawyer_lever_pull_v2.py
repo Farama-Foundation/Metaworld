@@ -1,5 +1,5 @@
 import numpy as np
-from gymnasium.spaces import Box
+from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 import mujoco
 from metaworld.envs import reward_utils
