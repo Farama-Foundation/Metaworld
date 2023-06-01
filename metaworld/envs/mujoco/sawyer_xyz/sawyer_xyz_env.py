@@ -464,8 +464,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def reset(self):
+        self.curr_path_length = 0
         if not self.isV2:
-            self.curr_path_length = 0
             return super().reset()
         else:
             obs = np.float64(super().reset())
