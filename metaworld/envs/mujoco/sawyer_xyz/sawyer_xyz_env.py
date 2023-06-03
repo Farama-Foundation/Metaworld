@@ -474,7 +474,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         done = True if int(info['success']) == 1 else False
-        print('sawyer env')
         return self._last_stable_obs, reward, done, False, info
 
     def evaluate_state(self, obs, action):
