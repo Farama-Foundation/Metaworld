@@ -6,6 +6,9 @@ __Meta-World is an open-source simulated benchmark for meta-reinforcement learni
 
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
+For users attempting to reproduce results found in the Meta-World paper please use this command: pip install git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
+
+
 __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
@@ -34,6 +37,11 @@ Alternatively, you can clone the repository and install an editable version loca
 git clone https://github.com/rlworkgroup/metaworld.git
 cd metaworld
 pip install -e .
+```
+
+For users attempting to reproduce results found in the Meta-World paper please use this command: 
+```
+pip install git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
 ```
 
 ## Using the benchmark
