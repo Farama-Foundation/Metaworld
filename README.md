@@ -6,9 +6,6 @@ __Meta-World is an open-source simulated benchmark for meta-reinforcement learni
 
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.
 
-For users attempting to reproduce results found in the Meta-World paper please use this command: pip install git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
-
-
 __Table of Contents__
 - [Installation](#installation)
 - [Using the benchmark](#using-the-benchmark)
@@ -23,7 +20,11 @@ __Table of Contents__
 - [Acknowledgements](#acknowledgements)
 
 ## Join the Community
-Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ) 
+Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ)
+
+## Maintenance Status
+The current roadmap for Meta-World can be found [here](https://github.com/Farama-Foundation/Metaworld/issues/409)
+
 ## Installation
 Meta-World is based on MuJoCo, which has a proprietary dependency we can't set up for you. Please follow the [instructions](https://github.com/openai/mujoco-py#install-mujoco) in the mujoco-py package for help. Once you're ready to install everything, run:
 
