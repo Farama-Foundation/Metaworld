@@ -39,6 +39,11 @@ cd metaworld
 pip install -e .
 ```
 
+For users attempting to reproduce results found in the Meta-World paper please use this command: 
+```
+pip install git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
+```
+
 ## Using the benchmark
 Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):
 * [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.
