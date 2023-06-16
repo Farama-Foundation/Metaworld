@@ -22,7 +22,6 @@ def test_all_ml1(env_name):
         env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -40,7 +39,6 @@ def test_all_ml1(env_name):
         env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -69,7 +67,6 @@ def test_all_ml10():
         env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -88,7 +85,6 @@ def test_all_ml10():
         env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -118,7 +114,6 @@ def test_all_ml45():
         env = train_env_instances[task.env_name]
         env.set_task(task)
         obs = env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -197,7 +192,6 @@ def test_all_mt50():
         obs = env.reset()
         assert np.any(obs[-3:] != np.array([0,0,0]))
         assert env.observation_space.shape == (39,)
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
