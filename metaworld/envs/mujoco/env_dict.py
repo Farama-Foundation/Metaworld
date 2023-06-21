@@ -1,6 +1,6 @@
 import re
 from collections import OrderedDict
-
+from gymnasium.wrappers import TimeLimit
 import numpy as np
 
 from metaworld.envs.mujoco.sawyer_xyz.v1 import (
@@ -553,6 +553,7 @@ def create_observable_goal_envs():
                 st0 = np.random.get_state()
                 np.random.seed(seed)
             super(type(env), env).__init__()
+
             env._partially_observable = False
             env._freeze_rand_vec = False
             env._set_task_called = True

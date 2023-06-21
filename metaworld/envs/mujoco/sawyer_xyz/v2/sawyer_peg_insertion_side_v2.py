@@ -97,19 +97,14 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-
-        pos_peg = self.obj_init_pos
-        pos_box = self.goal
         pos_peg, pos_box = np.split(self._get_state_rand_vec(), 2)
         while np.linalg.norm(pos_peg[:2] - pos_box[:2]) < 0.1:
             pos_peg, pos_box = np.split(self._get_state_rand_vec(), 2)
-
         self.obj_init_pos = pos_peg
         self.peg_head_pos_init = self._get_site_pos('pegHead')
         self._set_obj_xyz(self.obj_init_pos)
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = pos_box
         self._target_pos = pos_box + np.array([.03, .0, .13])
-
         return self._get_obs()
 
     def compute_reward(self, action, obs):

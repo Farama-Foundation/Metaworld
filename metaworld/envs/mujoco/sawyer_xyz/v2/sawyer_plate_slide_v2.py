@@ -101,6 +101,10 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
+    def reset(self):
+        self.reset_model()
+        return super().reset()
+
     def compute_reward(self, action, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center

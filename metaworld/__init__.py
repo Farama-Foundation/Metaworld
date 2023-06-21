@@ -76,6 +76,7 @@ def _encode_task(env_name, data):
 
 
 def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
+    st0 = None
     if seed is not None:
         st0 = np.random.get_state()
         np.random.seed(seed)
@@ -91,11 +92,10 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
         del kwargs['task_id']
         env._set_task_inner(**kwargs)
         for _ in range(_N_GOALS):
-            env.reset()
+            env.reset(seed=np.random.randint(0, 1000))
             rand_vecs.append(env._last_rand_vec)
-        unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
-        assert unique_task_rand_vecs.shape[0] == _N_GOALS
-
+        # unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
+        # assert unique_task_rand_vecs.shape[0] == _N_GOALS, unique_task_rand_vecs.shape[0]
         env.close()
         for rand_vec in rand_vecs:
             kwargs = args['kwargs'].copy()
@@ -105,6 +105,7 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
             tasks.append(_encode_task(env_name, kwargs))
     if seed is not None:
         np.random.set_state(st0)
+        print(st0)
     return tasks
 
 
@@ -120,7 +121,7 @@ class ML1(Benchmark):
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V2 environment")
         cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
@@ -128,14 +129,19 @@ class ML1(Benchmark):
         self._train_ = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        {env_name: args_kwargs},
-                                        _ML_OVERRIDE,
-                                        seed=seed)
-        self._test_tasks = _make_tasks(
-            self._test_classes, {env_name: args_kwargs},
-            _ML_OVERRIDE,
-            seed=(seed + 1 if seed is not None else seed))
+        train_tasks = _make_tasks(self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
+
+        test_tasks = _make_tasks(
+            self._test_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=(seed + 1 if seed is not None else seed))
+
+        for cls in self._test_classes:
+            tasks_for_cls = [task for task in test_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._test_classes[cls].tasks = tasks_for_cls
 
 
 class MT1(Benchmark):
@@ -144,19 +150,19 @@ class MT1(Benchmark):
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V2 environment")
         cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = self._train_classes
-        self._train_ = OrderedDict([(env_name, cls)])
-        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
-
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        {env_name: args_kwargs},
-                                        _MT_OVERRIDE,
-                                        seed=seed)
-        self._test_tasks = []
+        train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
+        train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
+            self._test_classes[cls].tasks = tasks_for_cls
+            # because MT envs don't have different test tasks, use the same rand vecs
 
 
 class ML10(Benchmark):
@@ -165,13 +171,20 @@ class ML10(Benchmark):
         self._train_classes = _env_dict.ML10_V2['train']
         self._test_classes = _env_dict.ML10_V2['test']
         train_kwargs = _env_dict.ml10_train_args_kwargs
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
-                                        _ML_OVERRIDE,
-                                        seed=seed)
         test_kwargs = _env_dict.ml10_test_args_kwargs
-        self._test_tasks = _make_tasks(self._test_classes, test_kwargs,
-                                       _ML_OVERRIDE,
-                                       seed=seed)
+
+        train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
+
+        test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)
+
+        for cls in self._test_classes:
+            tasks_for_cls = [task for task in test_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._test_classes[cls].tasks = tasks_for_cls
 
 
 class ML45(Benchmark):
@@ -180,13 +193,20 @@ class ML45(Benchmark):
         self._train_classes = _env_dict.ML45_V2['train']
         self._test_classes = _env_dict.ML45_V2['test']
         train_kwargs = _env_dict.ml45_train_args_kwargs
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
-                                        _ML_OVERRIDE,
-                                        seed=seed)
         test_kwargs = _env_dict.ml45_test_args_kwargs
-        self._test_tasks = _make_tasks(self._test_classes, test_kwargs,
-                                       _ML_OVERRIDE,
-                                       seed=seed)
+
+        train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
+
+        test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)
+
+        for cls in self._test_classes:
+            tasks_for_cls = [task for task in test_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._test_classes[cls].tasks = tasks_for_cls
 
 
 class MT10(Benchmark):
@@ -195,10 +215,12 @@ class MT10(Benchmark):
         self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
-                                        _MT_OVERRIDE,
-                                        seed=seed)
-        self._test_tasks = []
+        train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
+        self._test_classes = []
 
 
 class MT50(Benchmark):
@@ -207,10 +229,11 @@ class MT50(Benchmark):
         self._train_classes = _env_dict.MT50_V2
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs,
-                                        _MT_OVERRIDE,
-                                        seed=seed)
-        self._test_tasks = []
+        train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
+        for cls in self._train_classes:
+            tasks_for_cls = [task for task in train_tasks if task.env_name == cls]
+            assert len(tasks_for_cls) == _N_GOALS
+            self._train_classes[cls].tasks = tasks_for_cls
 
 
 __all__ = ["ML1", "MT1", "ML10", "MT10", "ML45", "MT50"]

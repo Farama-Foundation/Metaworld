@@ -7,11 +7,10 @@ from gymnasium.spaces import Discrete
 
 import mujoco
 import numpy as np
-
+import sys
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
-
-
+from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set, MujocoEnv
+from gymnasium.utils import seeding
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
@@ -19,9 +18,18 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     mocap_low = np.array([-0.2, 0.5, 0.06])
     mocap_high = np.array([0.2, 0.7, 0.6])
+    metadata = {
+        "render_modes": [
+            "human",
+            "rgb_array",
+            "depth_array",
+        ],
+        "render_fps": 80,
+    }
 
     def __init__(self, model_name, frame_skip=5):
-        MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
+
+        MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)  #, observation_space=observation_space)
         self.reset_mocap_welds()
 
     def get_endeff_pos(self):
@@ -40,14 +48,12 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         return tcp_center
 
     def get_env_state(self):
-        #print("Get env state")
         joint_state = self.sim.get_state()
         mocap_state = self.data.mocap_pos, self.data.mocap_quat
         state = joint_state, mocap_state
         return copy.deepcopy(state)
 
     def set_env_state(self, state):
-        #print("Set Env State")
         joint_state, mocap_state = state
         self.sim.set_state(joint_state)
         mocap_pos, mocap_quat = mocap_state
@@ -65,7 +71,6 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 
     def __setstate__(self, state):
         self.__dict__ = state['state']
-        # self.model = mujoco_py.load_model_from_mjb(state['mjb'])        self.sim = mujoco.MjSim
         self.model = mujoco.MjModel.from_binary_path(state['mjb'])
         self.data = mujoco.MjData(self.model)
         self.set_env_state(state['env_state'])
@@ -117,6 +122,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     TARGET_RADIUS = 0.05
 
+    tasks = None
+    current_task = 0
+
     def __init__(
             self,
             model_name,
@@ -128,7 +136,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             action_scale=1./100,
             action_rot_scale=1.,
     ):
-        super().__init__(model_name, frame_skip=frame_skip)
+        super().__init__(model_name, frame_skip)
+
+
+        self.isV2 = "V2" in type(self).__name__
+
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
@@ -140,9 +152,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
-        self.seeded_rand_vec = True
-        self._freeze_rand_vec = True
+        self.seeded_rand_vec = False
+        self._freeze_rand_vec = False
         self._last_rand_vec = None
+        self.num_resets = 0
+        self.current_seed = None
 
         # We use continuous goal space by default and
         # can discretize the goal space by calling
@@ -163,8 +177,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.isV2 = "V2" in type(self).__name__
         # Technically these observation lengths are different between v1 and v2,
         # but we handle that elsewhere and just stick with v2 numbers here
-        self._obs_obj_max_len = 14 if self.isV2 else 6
-        self._obs_obj_possible_lens = (6, 14)
+        self._obs_obj_max_len = 14
 
         self._set_task_called = False
         self._partially_observable = True
@@ -178,16 +191,26 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
+        self._set_task_called = True
+        self.seeded_rand_vec = True
+
+        '''
+        TODO: check if we can safely remove set_task_called and seeded rand vec logic -> initial and subsequent seeds
+        should be enough  
+        '''
         self._prev_obs = self._get_curr_obs_combined_no_goal()
+
 
 
     def _set_task_inner(self):
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         pass
 
-    def set_task(self, task):
+    def set_task(self):
+        data = self.tasks[self.current_task]
+        data = pickle.loads(data.data)
+        self.current_task = (self.current_task + 1) % len(self.tasks)
         self._set_task_called = True
-        data = pickle.loads(task.data)
         assert isinstance(self, data['env_cls'])
         del data['env_cls']
         self._last_rand_vec = data['rand_vec']
@@ -197,7 +220,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = data['partially_observable']
         del data['partially_observable']
         self._set_task_inner(**data)
-        self.reset()
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -365,21 +387,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         obj_pos = self._get_pos_objects()
         assert len(obj_pos) % 3 == 0
         obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
-        if self.isV2:
-            obj_quat = self._get_quat_objects()
-            assert len(obj_quat) % 4 == 0
-            obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
-            obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
-                np.hstack((pos, quat))
-                for pos, quat in zip(obj_pos_split, obj_quat_split)
-            ])
-            assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
-            return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
-        else:
-            # is a v1 environment
-            obs_obj_padded[:len(obj_pos)] = obj_pos
-            assert(len(obs_obj_padded) in self._obs_obj_possible_lens)
-            return np.hstack((pos_hand, obs_obj_padded))
+
+        obj_quat = self._get_quat_objects()
+        assert len(obj_quat) % 4 == 0
+        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+        obs_obj_padded[:len(obj_pos) + len(obj_quat)] = np.hstack([
+            np.hstack((pos, quat))
+            for pos, quat in zip(obj_pos_split, obj_quat_split)
+        ])
+        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
+
 
     def _get_obs(self):
         """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the
@@ -411,7 +428,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def observation_space(self):
-        obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
+        obs_obj_max_len = 14
 
         obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float64)
         obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float64)
@@ -491,15 +508,25 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # V1 environments don't have to implement it
         raise NotImplementedError
 
-    def reset(self):
-        self.curr_path_length = 0
-        if not self.isV2:
-            return super().reset()
+    def reset(self, seed=None, options=None):
+        if seed is not None:
+            self.seed(seed % (2**32 - 1))
+            self.current_seed = seed
+            self.num_resets = 0
         else:
-            obs = np.float64(super().reset())
-            self._prev_obs = obs[:18].copy()
-            obs[18:36] = self._prev_obs
-            return obs
+            if self.current_seed is None: # if current seed is none, it means that the environment was created 
+                # and no seed has been passed to the environment itself
+                self.np_random, self.current_seed = seeding.np_random(None)
+            self.num_resets += 1
+            if self.num_resets == 50:
+                np.random.seed((self.current_seed % (2**32 - 1)))
+
+        self.curr_path_length = 0
+        obs = np.float64(super().reset(seed, options))
+        self._prev_obs = obs[:18].copy()
+        obs[18:36] = self._prev_obs
+        info = {}
+        return obs, info
 
     def _reset_hand(self, steps=50):
         mocap_id = self.model.body_mocapid[self.data.body("mocap").id]

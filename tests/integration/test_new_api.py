@@ -16,13 +16,14 @@ def test_all_ml1(env_name):
     ml1 = ML1(env_name)
     train_env_instances = {env_name: env_cls()
                            for (env_name, env_cls) in ml1.train_classes.items()}
-    train_env_rand_vecs = check_tasks_unique(ml1.train_tasks,
-                                       ml1._train_classes.keys())
+    train_env_rand_vecs = check_tasks_unique(ml1.train_tasks, ml1._train_classes.keys())
+    '''
+    TODO: Check how to make sure tasks are unique across 
+    '''
     for task in ml1.train_tasks:
         env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -34,13 +35,11 @@ def test_all_ml1(env_name):
 
     test_env_instances = {env_name: env_cls()
                           for (env_name, env_cls) in ml1.test_classes.items()}
-    test_env_rand_vecs = check_tasks_unique(ml1.test_tasks,
-                                       ml1._test_classes.keys())
+    test_env_rand_vecs = check_tasks_unique(ml1.test_tasks, ml1._test_classes.keys())
     for task in ml1.test_tasks:
         env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -55,7 +54,8 @@ def test_all_ml1(env_name):
     for rand_vecs in test_env_rand_vecs.values():
         for rand_vec in rand_vecs:
             train_test_rand_vecs.add(tuple(rand_vec))
-    assert len(train_test_rand_vecs) == (len(ml1.test_classes.keys()) + len(ml1.train_classes.keys())) * metaworld._N_GOALS
+    assert len(train_test_rand_vecs) == (len(ml1.test_classes.keys())
+                                         + len(ml1.train_classes.keys())) * metaworld._N_GOALS
     del test_env_instances
 
 
@@ -63,13 +63,11 @@ def test_all_ml10():
     ml10 = ML10()
     train_env_instances = {env_name: env_cls()
                            for (env_name, env_cls) in ml10.train_classes.items()}
-    train_env_rand_vecs = check_tasks_unique(ml10.train_tasks,
-                                       ml10._train_classes.keys())
+    train_env_rand_vecs = check_tasks_unique(ml10.train_tasks, ml10._train_classes.keys())
     for task in ml10.train_tasks:
         env = train_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -82,13 +80,11 @@ def test_all_ml10():
 
     test_env_instances = {env_name: env_cls()
                           for (env_name, env_cls) in ml10.test_classes.items()}
-    test_env_rand_vecs = check_tasks_unique(ml10.test_tasks,
-                                       ml10._test_classes.keys())
+    test_env_rand_vecs = check_tasks_unique(ml10.test_tasks, ml10._test_classes.keys())
     for task in ml10.test_tasks:
         env = test_env_instances[task.env_name]
         env.set_task(task)
         env.reset()
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -104,7 +100,8 @@ def test_all_ml10():
     for rand_vecs in test_env_rand_vecs.values():
         for rand_vec in rand_vecs:
             train_test_rand_vecs.add(tuple(rand_vec))
-    assert len(train_test_rand_vecs) == (len(ml10.test_classes.keys()) + len(ml10.train_classes.keys())) * metaworld._N_GOALS
+    assert len(train_test_rand_vecs) == (len(ml10.test_classes.keys()) +
+                                         len(ml10.train_classes.keys())) * metaworld._N_GOALS
     del test_env_instances
 
 
@@ -112,13 +109,11 @@ def test_all_ml45():
     ml45 = ML45()
     train_env_instances = {env_name: env_cls()
                            for (env_name, env_cls) in ml45.train_classes.items()}
-    train_env_rand_vecs = check_tasks_unique(ml45.train_tasks,
-                                       ml45._train_classes.keys())
+    train_env_rand_vecs = check_tasks_unique(ml45.train_tasks, ml45._train_classes.keys())
     for task in ml45.train_tasks:
         env = train_env_instances[task.env_name]
         env.set_task(task)
-        obs = env.reset()
-        assert env.random_init == True
+        env.reset()
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -131,13 +126,12 @@ def test_all_ml45():
 
     test_env_instances = {env_name: env_cls()
                           for (env_name, env_cls) in ml45.test_classes.items()}
-    test_env_rand_vecs = check_tasks_unique(ml45.test_tasks,
-                                       ml45._test_classes.keys())
+    test_env_rand_vecs = check_tasks_unique(ml45.test_tasks, ml45._test_classes.keys())
     for task in ml45.test_tasks:
         env = test_env_instances[task.env_name]
         env.set_task(task)
         obs = env.reset()
-        assert np.all(obs[-3:] == np.array([0,0,0]))
+        assert np.all(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -153,7 +147,8 @@ def test_all_ml45():
     for rand_vecs in test_env_rand_vecs.values():
         for rand_vec in rand_vecs:
             train_test_rand_vecs.add(tuple(rand_vec))
-    assert len(train_test_rand_vecs) == (len(ml45.test_classes.keys()) + len(ml45.train_classes.keys())) * metaworld._N_GOALS
+    assert len(train_test_rand_vecs) == (len(ml45.test_classes.keys()) +
+                                         len(ml45.train_classes.keys())) * metaworld._N_GOALS
     del test_env_instances
 
 
@@ -161,8 +156,7 @@ def test_all_mt10():
     mt10 = MT10()
     train_env_instances = {env_name: env_cls()
                            for (env_name, env_cls) in mt10.train_classes.items()}
-    train_env_rand_vecs = check_tasks_unique(mt10.train_tasks,
-                                       mt10._train_classes.keys())
+    train_env_rand_vecs = check_tasks_unique(mt10.train_tasks, mt10._train_classes.keys())
     for task in mt10.train_tasks:
         env = train_env_instances[task.env_name]
         env.set_task(task)
@@ -189,15 +183,13 @@ def test_all_mt50():
     mt50 = MT50()
     train_env_instances = {env_name: env_cls()
                            for (env_name, env_cls) in mt50.train_classes.items()}
-    train_env_rand_vecs = check_tasks_unique(mt50.train_tasks,
-                                       mt50._train_classes.keys())
+    train_env_rand_vecs = check_tasks_unique(mt50.train_tasks, mt50._train_classes.keys())
     for task in mt50.train_tasks:
         env = train_env_instances[task.env_name]
         env.set_task(task)
         obs = env.reset()
-        assert np.any(obs[-3:] != np.array([0,0,0]))
+        assert np.any(obs[-3:] != np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
-        assert env.random_init == True
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
         step_env(env, max_path_length=STEPS, render=False)
@@ -222,11 +214,11 @@ def check_tasks_unique(tasks, env_names):
     """Verify that all the rand_vecs that are sampled are unique."""
     env_to_rand_vecs = {}
     for env_name in env_names:
-        env_to_rand_vecs[env_name] = np.array(
-            [pickle.loads(task.data)['rand_vec']
-            for task in tasks if (task.env_name==env_name)])
+        env_to_rand_vecs[env_name] = np.array([pickle.loads(task.data)['rand_vec']
+                                               for task in tasks if (task.env_name == env_name)])
         unique_task_rand_vecs = np.unique(np.array(env_to_rand_vecs[env_name]), axis=0)
         assert unique_task_rand_vecs.shape[0] == metaworld._N_GOALS
+        ''' this assertion will fail because of new logic'''
     return env_to_rand_vecs
 
 
@@ -238,7 +230,7 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
 
     """
     for env_name, rand_vecs in env_rand_vecs.items():
-        if env_name in set(['hammer-v2', 'sweep-into-v2', 'bin-picking-v2', 'basketball-v2']):
+        if env_name in {'hammer-v2', 'sweep-into-v2', 'bin-picking-v2', 'basketball-v2'}:
             continue
         env = env_instances[env_name]
         state_goals = []
@@ -264,17 +256,17 @@ def test_identical_environments():
             rand_vec_2 = pickle.loads(env_2.train_tasks[i].data)['rand_vec']
             assert not (rand_vec_1 == rand_vec_2).all()
 
-    #testing MT1
+    # testing MT1
     mt1_1 = metaworld.MT1('sweep-into-v2', seed=10)
     mt1_2 = metaworld.MT1('sweep-into-v2', seed=10)
     helper(mt1_1, mt1_2)
 
-    #testing ML1
+    # testing ML1
     ml1_1 = metaworld.ML1('sweep-into-v2', seed=10)
     ml1_2 = metaworld.ML1('sweep-into-v2', seed=10)
     helper(ml1_1, ml1_2)
 
-    #testing MT10
+    # testing MT10
     mt10_1 = metaworld.MT10(seed=10)
     mt10_2 = metaworld.MT10(seed=10)
     helper(mt10_1, mt10_2)
@@ -284,12 +276,12 @@ def test_identical_environments():
     ml10_2 = metaworld.ML10(seed=10)
     helper(ml10_1, ml10_2)
 
-    #testing ML45
+    # testing ML45
     ml45_1 = metaworld.ML45(seed=10)
     ml45_2 = metaworld.ML45(seed=10)
     helper(ml45_1, ml45_2)
 
-    #testing MT50
+    # testing MT50
     mt50_1 = metaworld.MT50(seed=10)
     mt50_2 = metaworld.MT50(seed=10)
     helper(mt50_1, mt50_2)

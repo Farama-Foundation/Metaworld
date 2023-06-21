@@ -29,14 +29,12 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32),
-            'robot_init_qpos': np.array([0.00,  6.00000000e-01, 2.98721632e-02, 1.0, 0.0, 0.0,  0.0], dtype=np.float32)
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32)
         }
         self.goal = np.array([0, 0.9, 0])
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-        self.init_robot_qpos = self.init_config['robot_init_qpos']
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -86,7 +84,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
     def _get_quat_objects(self):
         return self.data.body('bsktball').xquat
-        #return self.data.get_body_xquat('bsktball')
 
     def reset_model(self):
         self._reset_hand()
