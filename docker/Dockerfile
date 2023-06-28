@@ -55,7 +55,7 @@ COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
 WORKDIR $HOME/code/metaworld
 
 # Install metaworld dependencies
-RUN . $HOME/venv/bin/activate && exec pip install -e .[dev]
+RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
 
 # Add code stub last
 COPY --chown=$USER:$USER . $HOME/code/metaworld
