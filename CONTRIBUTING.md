@@ -33,7 +33,13 @@ To be submitted, a pull request must satisfy the following criteria:
 These criteria may be satisfied in any order, but in practice your PR is unlikely to get attention from contributors until 1-3 are satisfied. Maintainer attention is a scarce resource, so generally maintainers wait for a review from a non-maintainer contributor before reviewing your PR.
 
 ## Preparing your repo to make contributions
-After following the standard Meta-World setup steps, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
+First, install the Metaworld locally in editable mode, with testing dependencies:
+
+``` 
+pip install -e .[testing]
+```
+
+Then, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
 
 To setup pre-commit in your repo:
 ```sh
@@ -42,12 +48,10 @@ To setup pre-commit in your repo:
 # pipenv shell
 # poetry shell
 # source venv/bin/activate
-pre-commit install -t pre-commit
-pre-commit install -t pre-push
-pre-commit install -t commit-msg
+pre-commit install
 ```
 
-Once you've installed pre-commit, it will automatically run every time you type `git commit`.
+Once you've installed pre-commit, it will automatically run every time you type `git commit`, or you can run it manually using `pre-commit run --all-files`.
 
 ## Code style
 The Python code in metaworld conforms to the [PEP8](https://www.python.org/dev/peps/pep-0008/) standard. Please read and understand it in detail.
