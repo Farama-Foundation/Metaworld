@@ -22,15 +22,15 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
     for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
         rewards.append(r)
         assert not env.isV2 or set(info.keys()) == {
-            'success',
-            'near_object',
-            'grasp_success',
-            'grasp_reward',
-            'in_place_reward',
-            'obj_to_target',
-            'unscaled_reward'
+            "success",
+            "near_object",
+            "grasp_success",
+            "grasp_reward",
+            "in_place_reward",
+            "obj_to_target",
+            "unscaled_reward",
         }
-        success |= bool(info['success'])
+        success |= bool(info["success"])
         if not success:
             first_success = t
         if (success or done) and end_on_success:
@@ -66,11 +66,12 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
-        o, r, done, info = env.step(a)
+        o, r, terminated, truncated, info = env.step(a)
         assert env.observation_space.contains(o), obs_space_error_text(env, o)
         if render:
             env.render()
 
+        done = terminated or truncated
         yield r, done, info
 
 
@@ -78,5 +79,5 @@ def obs_space_error_text(env, obs):
     return "Obs Out of Bounds\n\tlow: {}, \n\tobs: {}, \n\thigh: {}".format(
         env.observation_space.low[[0, 1, 2, -3, -2, -1]],
         obs[[0, 1, 2, -3, -2, -1]],
-        env.observation_space.high[[0, 1, 2, -3, -2, -1]]
+        env.observation_space.high[[0, 1, 2, -3, -2, -1]],
     )

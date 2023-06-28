@@ -38,33 +38,25 @@ class SawyerBoxCloseV2Policy(Policy):
         pos_box = np.array([*o_d['box_pos'], 0.15]) + np.array([.0, .0, .0])
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
-        if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.02:
-            print('move to puck')
-            print(np.linalg.norm(pos_curr[:2] - pos_lid[:2]))
+        if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.01:
             return np.array([*pos_lid[:2], 0.2])
         # Once XY error is low enough, drop end effector down on top of puck
         elif abs(pos_curr[2] - pos_lid[2]) > 0.05:
-            print('move to lid')
-            print(abs(pos_curr[2] - pos_lid[2]))
             return pos_lid
         # If not at the same Z height as the goal, move up to that plane
-        elif abs(pos_curr[2] - pos_box[2]) > 0.005:
-            print('move up to goal')
-            print(abs(pos_curr[2] - pos_box[2]))
-            return np.array([pos_curr[0], pos_curr[1], pos_box[2]+0.2])
+        elif abs(pos_curr[2] - pos_box[2]) > 0.04:
+            return np.array([pos_curr[0], pos_curr[1], pos_box[2]])
         # Move to the goal
         else:
-            print('move to goal')
-            print(abs(pos_curr[2] - pos_box[2]))
             return pos_box
 
     @staticmethod
     def _grab_effort(o_d):
         pos_curr = o_d['hand_pos']
-        pos_lid = o_d['lid_pos'] + np.array([.0, .0, +.01])
+        pos_lid = o_d['lid_pos'] + np.array([.0, .0, +.02])
 
         if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.01 or abs(pos_curr[2] - pos_lid[2]) > 0.13:
-            return .6
+            return .5
         # While end effector is moving down toward the puck, begin closing the grabber
         else:
             return 1.

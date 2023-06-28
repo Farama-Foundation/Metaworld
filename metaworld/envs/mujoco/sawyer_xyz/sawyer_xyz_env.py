@@ -140,7 +140,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.mocap_low = np.hstack(mocap_low)
         self.mocap_high = np.hstack(mocap_high)
         self.curr_path_length = 0
-        self.seeded_rand_vec = True
+        self.seeded_rand_vec = False
         self._freeze_rand_vec = True
         self._last_rand_vec = None
 
@@ -474,7 +474,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         done = True if int(info['success']) == 1 else False
-        print('sawyer env')
+        # print('sawyer env')
         return self._last_stable_obs, reward, done, False, info
 
     def evaluate_state(self, obs, action):
