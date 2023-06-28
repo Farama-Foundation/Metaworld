@@ -64,7 +64,7 @@ safe = true
 [tool.isort]
 atomic = true
 profile = "black"
-src_paths = ["metaworld", "test"]
+src_paths = ["metaworld", "tests"]
 
 [tool.pyright]
 # add any files/directories with type declaration to include
