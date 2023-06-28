@@ -1,27 +1,25 @@
-"""
-Use this script to control the env with your keyboard.
+"""Use this script to control the env with your keyboard.
+
 For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
 """
 
 import numpy as np
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
-
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
-    # SawyerPickAndPlaceEnv
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
-    # SawyerPushAndReachXYDoublePuckEnv,
-    # SawyerPushAndReachXYZDoublePuckEnv,
-# )
-
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
-# from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import SawyerPegInsertionTopdownEnv
-
-
 from robosuite.devices import SpaceMouse
+
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_peg_insertion_topdown import (
+    SawyerPegInsertionTopdownEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    SawyerPushAndReachXYDoublePuckEnv,
+    SawyerPushAndReachXYZDoublePuckEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
 
 space_mouse = SpaceMouse()
 env = SawyerPegInsertionTopdownEnv()
@@ -56,7 +54,6 @@ while True:
     # print('current', current_z)
     # print('desired', desired_z)
 
-
     # print('diff unclipped', desired_z - current_z)
     # diff = desired_z - current_z
     # print('diff', diff)
@@ -65,7 +62,7 @@ while True:
     if gripper == 1:
         closed = not closed
 
-    obs, reward, done, _ = env.step(np.hstack([dpos/.005, 0, closed]))
+    obs, reward, done, _ = env.step(np.hstack([dpos / 0.005, 0, closed]))
     # print(obs)
 
     # if done:

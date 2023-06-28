@@ -1,17 +1,21 @@
 import abc
 import warnings
+from os import path
 
 import glfw
+import gym
+import numpy as np
 from gym import error
 from gym.utils import seeding
-import numpy as np
-from os import path
-import gym
 
 try:
     import mujoco_py
 except ImportError as e:
-    raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
+    raise error.DependencyNotInstalled(
+        "{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(
+            e
+        )
+    )
 
 
 def _assert_task_is_set(func):
@@ -19,18 +23,18 @@ def _assert_task_is_set(func):
         env = args[0]
         if not env._set_task_called:
             raise RuntimeError(
-                'You must call env.set_task before using env.'
-                + func.__name__
+                "You must call env.set_task before using env." + func.__name__
             )
         return func(*args, **kwargs)
+
     return inner
 
 
 DEFAULT_SIZE = 500
 
+
 class MujocoEnv(gym.Env, abc.ABC):
-    """
-    This is a simplified version of the gym MujocoEnv class.
+    """This is a simplified version of the gym MujocoEnv class.
 
     Some differences are:
      - Do not automatically set the observation/action space.
@@ -40,7 +44,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     def __init__(self, model_path, frame_skip):
         if not path.exists(model_path):
-            raise IOError("File %s does not exist" % model_path)
+            raise OSError("File %s does not exist" % model_path)
 
         self.frame_skip = frame_skip
         self.model = mujoco_py.load_model_from_path(model_path)
@@ -50,8 +54,8 @@ class MujocoEnv(gym.Env, abc.ABC):
         self._viewers = {}
 
         self.metadata = {
-            'render.modes': ['human'],
-            'video.frames_per_second': int(np.round(1.0 / self.dt))
+            "render.modes": ["human"],
+            "video.frames_per_second": int(np.round(1.0 / self.dt)),
         }
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
@@ -70,17 +74,16 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     @abc.abstractmethod
     def reset_model(self):
-        """
-        Reset the robot degrees of freedom (qpos and qvel).
+        """Reset the robot degrees of freedom (qpos and qvel).
+
         Implement this in each subclass.
         """
         pass
 
     def viewer_setup(self):
-        """
-        This method is called when the viewer is initialized and after every reset
-        Optionally implement this method, if you need to tinker with camera position
-        and so forth.
+        """This method is called when the viewer is initialized and after every reset.
+
+        Optionally implement this method, if you need to tinker with camera position and so forth.
         """
         pass
 
@@ -96,8 +99,9 @@ class MujocoEnv(gym.Env, abc.ABC):
     def set_state(self, qpos, qvel):
         assert qpos.shape == (self.model.nq,) and qvel.shape == (self.model.nv,)
         old_state = self.sim.get_state()
-        new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
-                                         old_state.act, old_state.udd_state)
+        new_state = mujoco_py.MjSimState(
+            old_state.time, qpos, qvel, old_state.act, old_state.udd_state
+        )
         self.sim.set_state(new_state)
         self.sim.forward()
 
@@ -106,8 +110,10 @@ class MujocoEnv(gym.Env, abc.ABC):
         return self.model.opt.timestep * self.frame_skip
 
     def do_simulation(self, ctrl, n_frames=None):
-        if getattr(self, 'curr_path_length', 0) > self.max_path_length:
-            raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
+        if getattr(self, "curr_path_length", 0) > self.max_path_length:
+            raise ValueError(
+                "Maximum path length allowed by the benchmark has been exceeded"
+            )
         if self._did_see_sim_exception:
             return
 
@@ -123,17 +129,23 @@ class MujocoEnv(gym.Env, abc.ABC):
                 self._did_see_sim_exception = True
 
     def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
-        assert_string = ("camera_name should be one of ",
-                "corner3, corner, corner2, topview, gripperPOV, behindGripper")
-        assert camera_name in {"corner3", "corner", "corner2", 
-            "topview", "gripperPOV", "behindGripper"}, assert_string
+        assert_string = (
+            "camera_name should be one of ",
+            "corner3, corner, corner2, topview, gripperPOV, behindGripper",
+        )
+        assert camera_name in {
+            "corner3",
+            "corner",
+            "corner2",
+            "topview",
+            "gripperPOV",
+            "behindGripper",
+        }, assert_string
         if not offscreen:
-            self._get_viewer('human').render()
+            self._get_viewer("human").render()
         else:
             return self.sim.render(
-                *resolution,
-                mode='offscreen',
-                camera_name=camera_name
+                *resolution, mode="offscreen", camera_name=camera_name
             )
 
     def close(self):
@@ -144,7 +156,7 @@ class MujocoEnv(gym.Env, abc.ABC):
     def _get_viewer(self, mode):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
-            if mode == 'human':
+            if mode == "human":
                 self.viewer = mujoco_py.MjViewer(self.sim)
             self.viewer_setup()
             self._viewers[mode] = self.viewer

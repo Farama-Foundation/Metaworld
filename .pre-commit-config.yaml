@@ -9,7 +9,7 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --skip=*.css,*.js,*.map,*.scss,*.svg
+          - --skip=*.css,*.js,*.map,*.scss,*.svg,*.ipynb
           - --ignore-words-list=magent
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
@@ -17,7 +17,7 @@ repos:
       - id: flake8
         args:
           - '--per-file-ignores=*/__init__.py:F401'
-          - --extend-ignore=E203
+          - --extend-ignore=E203,W605,F841,E731,E741,F401 # TODO: fix some of these
           - --max-complexity=205
           - --max-line-length=300
           - --show-source

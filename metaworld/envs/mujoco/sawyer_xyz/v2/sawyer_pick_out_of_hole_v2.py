@@ -1,10 +1,12 @@
 import numpy as np
 from gym.spaces import Box
-from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
@@ -25,14 +27,14 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0, 0.6, 0.0]),
-            'obj_init_angle': 0.3,
-            'hand_init_pos': np.array([0., .6, .2]),
+            "obj_init_pos": np.array([0, 0.6, 0.0]),
+            "obj_init_angle": 0.3,
+            "hand_init_pos": np.array([0.0, 0.6, 0.2]),
         }
-        self.goal = np.array([0., 0.6, 0.2])
+        self.goal = np.array([0.0, 0.6, 0.2])
         self.obj_init_pos = None
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_angle = self.init_config["obj_init_angle"]
+        self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -42,7 +44,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_pick_out_of_hole.xml')
+        return full_v2_path_for("sawyer_xyz/sawyer_pick_out_of_hole.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -52,7 +54,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             grasp_success,
             obj_to_target,
             grasp_reward,
-            in_place_reward
+            in_place_reward,
         ) = self.compute_reward(action, obs)
 
         success = float(obj_to_target <= 0.07)
@@ -60,33 +62,33 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         grasp_success = float(grasp_success)
 
         info = {
-            'success': success,
-            'near_object': near_object,
-            'grasp_success': grasp_success,
-            'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward
+            "success": success,
+            "near_object": near_object,
+            "grasp_success": grasp_success,
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
 
         return reward, info
 
     @property
     def _target_site_config(self):
-        l = [('goal', self.init_right_pad)]
+        l = [("goal", self.init_right_pad)]
         if self.obj_init_pos is not None:
-            l[0] = ('goal', self.obj_init_pos)
+            l[0] = ("goal", self.obj_init_pos)
         return l
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return self.unwrapped.model.geom_name2id("objGeom")
 
     def _get_pos_objects(self):
-        return self.get_body_com('obj')
+        return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat('obj')
+        return self.sim.data.get_body_xquat("obj")
 
     def reset_model(self):
         self._reset_hand()
@@ -117,11 +119,15 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         else:
             floor = 0.015 * np.log(radius - threshold) + 0.15
         # prevent the hand from running into cliff edge by staying above floor
-        above_floor = 1.0 if gripper[2] >= floor else reward_utils.tolerance(
-            max(floor - gripper[2], 0.0),
-            bounds=(0.0, 0.01),
-            margin=0.02,
-            sigmoid='long_tail',
+        above_floor = (
+            1.0
+            if gripper[2] >= floor
+            else reward_utils.tolerance(
+                max(floor - gripper[2], 0.0),
+                bounds=(0.0, 0.01),
+                margin=0.02,
+                sigmoid="long_tail",
+            )
         )
         object_grasped = self._gripper_caging_reward(
             action,
@@ -131,13 +137,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             pad_success_thresh=0.02,
             xz_thresh=0.03,
             desired_gripper_effort=0.1,
-            high_density=True
+            high_density=True,
         )
         in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.02),
-            margin=in_place_margin,
-            sigmoid='long_tail'
+            obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail"
         )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
@@ -147,12 +150,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         # Increase reward when properly grabbed obj
         grasp_success = near_object and lifted and not pinched_without_obj
         if grasp_success:
-            reward += 1. + 5. * reward_utils.hamacher_product(
-                in_place, above_floor
-            )
+            reward += 1.0 + 5.0 * reward_utils.hamacher_product(in_place, above_floor)
         # Maximize reward on success
         if obj_to_target < self.TARGET_RADIUS:
-            reward = 10.
+            reward = 10.0
 
         return (
             reward,

@@ -76,6 +76,11 @@ strict = [
 verboseOutput = true
 typeCheckingMode = "basic"
 reportMissingImports = false
+# TODO: fix these
+reportUnboundVariable = false
+reportOptionalMemberAccess = false
+reportGeneralTypeIssues = false
+reportOptionalSubscript = false
 
 [tool.pytest.ini_options]
 norecursedirs = [

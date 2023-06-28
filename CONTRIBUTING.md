@@ -143,7 +143,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
 
 * When using external dependencies, use the `import` statement only to import whole modules, not individual classes or functions.
 
-    This applies to both packages from the standard library and 3rd-party dependencies. If a package has a long or cumbersome full path, or is used very frequently (e.g. `numpy`, `tensorflow`), you may use the keyword `as` to create a file-specific name which makes sense. Additionally, you should always follow the community concensus short names for common dependencies (see below).
+    This applies to both packages from the standard library and 3rd-party dependencies. If a package has a long or cumbersome full path, or is used very frequently (e.g. `numpy`, `tensorflow`), you may use the keyword `as` to create a file-specific name which makes sense. Additionally, you should always follow the community consensus short names for common dependencies (see below).
 
     *Do*
     ```python
@@ -172,7 +172,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     m = MLPModel(output_dim=2)
     ```
 
-    *Known community-concensus imports*
+    *Known community-consensus imports*
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

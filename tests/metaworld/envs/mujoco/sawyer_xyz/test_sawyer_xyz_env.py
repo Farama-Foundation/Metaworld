@@ -1,8 +1,9 @@
-import numpy as np
-
 import random
 
+import numpy as np
+
 import metaworld
+
 
 def test_reset_returns_same_obj_and_goal():
     benchmark = metaworld.MT50()
@@ -13,7 +14,6 @@ def test_reset_returns_same_obj_and_goal():
 
     # Execute rollout for each environment in benchmark.
     for env_name, env_cls in env_dict.items():
-
         # Create environment and set task.
         env = env_cls()
         env_tasks = [t for t in tasks if t.env_name == env_name]
@@ -28,7 +28,7 @@ def test_reset_returns_same_obj_and_goal():
             initial_obj_pos = obs[3:9]
             initial_obj_poses[env_name].append(initial_obj_pos)
 
-# Display initial object positions and find environments with non-unique positions.
+    # Display initial object positions and find environments with non-unique positions.
     violating_envs_obs = []
     for env_name, task_initial_pos in initial_obj_poses.items():
         if len(np.unique(np.array(task_initial_pos), axis=0)) > 1:

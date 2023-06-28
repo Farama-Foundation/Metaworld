@@ -6,12 +6,14 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerPushWallEnvV2(SawyerXYZEnv):
-    """
-    SawyerPushEnvV2 updates SawyerReachPushPickPlaceWallEnv.
+    """SawyerPushEnvV2 updates SawyerReachPushPickPlaceWallEnv.
 
     Env now handles only 'Push' task type from SawyerReachPushPickPlaceWallEnv.
     Observations now include a vector pointing from the objectposition to the
@@ -43,16 +45,16 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_angle': .3,
-            'obj_init_pos': np.array([0, 0.6, 0.02]),
-            'hand_init_pos': np.array([0, .6, .2]),
+            "obj_init_angle": 0.3,
+            "obj_init_pos": np.array([0, 0.6, 0.02]),
+            "hand_init_pos": np.array([0, 0.6, 0.2]),
         }
 
         self.goal = np.array([0.05, 0.8, 0.015])
 
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_angle = self.init_config["obj_init_angle"]
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -64,7 +66,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_push_wall_v2.xml')
+        return full_v2_path_for("sawyer_xyz/sawyer_push_wall_v2.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -80,37 +82,38 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(self.touching_main_object and (tcp_open > 0)
-                              and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
         info = {
-            'success': success,
-            'near_object': near_object,
-            'grasp_success': grasp_success,
-            'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward
+            "success": success,
+            "near_object": near_object,
+            "grasp_success": grasp_success,
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos('objGeom')
+        return self.data.get_geom_xpos("objGeom")
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(
-            self.data.get_geom_xmat('objGeom')
-        ).as_quat()
+        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.get_geom_xpos("objGeom")[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return [adjustedPos[0], adjustedPos[1],self.data.get_geom_xpos('objGeom')[-1]]
+        return [adjustedPos[0], adjustedPos[1], self.data.get_geom_xpos("objGeom")[-1]]
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
-        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
+        self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
         self._target_pos = goal_pos[3:]
@@ -134,23 +137,27 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
         tcp_to_obj = np.linalg.norm(obj - tcp)
 
-        in_place_scaling = np.array([3., 1., 1.])
+        in_place_scaling = np.array([3.0, 1.0, 1.0])
         obj_to_midpoint = np.linalg.norm((obj - midpoint) * in_place_scaling)
-        obj_to_midpoint_init = np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
+        obj_to_midpoint_init = np.linalg.norm(
+            (self.obj_init_pos - midpoint) * in_place_scaling
+        )
 
         obj_to_target = np.linalg.norm(obj - target)
         obj_to_target_init = np.linalg.norm(self.obj_init_pos - target)
 
-        in_place_part1 = reward_utils.tolerance(obj_to_midpoint,
+        in_place_part1 = reward_utils.tolerance(
+            obj_to_midpoint,
             bounds=(0, _TARGET_RADIUS),
             margin=obj_to_midpoint_init,
-            sigmoid='long_tail',
+            sigmoid="long_tail",
         )
 
-        in_place_part2 = reward_utils.tolerance(obj_to_target,
+        in_place_part2 = reward_utils.tolerance(
+            obj_to_target,
             bounds=(0, _TARGET_RADIUS),
             margin=obj_to_target_init,
-            sigmoid='long_tail'
+            sigmoid="long_tail",
         )
 
         object_grasped = self._gripper_caging_reward(
@@ -160,17 +167,17 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             obj_radius=0.015,
             pad_success_thresh=0.05,
             xz_thresh=0.005,
-            high_density=True
+            high_density=True,
         )
         reward = 2 * object_grasped
 
         if tcp_to_obj < 0.02 and tcp_opened > 0:
-            reward = 2 * object_grasped + 1. + 4. * in_place_part1
+            reward = 2 * object_grasped + 1.0 + 4.0 * in_place_part1
             if obj[1] > 0.75:
-                reward = 2 * object_grasped + 1. + 4. + 3. * in_place_part2
+                reward = 2 * object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
 
         if obj_to_target < _TARGET_RADIUS:
-            reward = 10.
+            reward = 10.0
 
         return [
             reward,
@@ -178,5 +185,5 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             tcp_opened,
             np.linalg.norm(obj - target),
             object_grasped,
-            in_place_part2
+            in_place_part2,
         ]

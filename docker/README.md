@@ -73,7 +73,7 @@ or specify the corresponding path through the MJKEY_PATH variable:
 make run-headless RUN_CMD="..." MJKEY_PATH="/home/user/mjkey.txt"
 ```
 
-If you require to pass addtional arguments to the the make commands, you can
+If you require to pass additional arguments to the make commands, you can
 use the variable ADD_ARGS, for example:
 ```
 make build-headless ADD_ARGS="--build-arg MY_VAR=123"
