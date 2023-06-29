@@ -53,9 +53,13 @@ RUN python3 -m venv $HOME/venv
 # dependencies change
 COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
 COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/pyproject.toml
-COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/setup.cfg
 
 WORKDIR $HOME/code/metaworld
+
+# Testing: list out all files
+RUN ls -alh
+RUN pwd
+RUN ls ..
 
 # Install metaworld dependencies
 RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
