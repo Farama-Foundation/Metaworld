@@ -56,11 +56,6 @@ COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/pyproject.toml
 
 WORKDIR $HOME/code/metaworld
 
-# Testing: list out all files
-RUN ls -alh
-RUN pwd
-RUN ls ..
-
 # Install metaworld dependencies
 RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
 
