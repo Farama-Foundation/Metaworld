@@ -1,5 +1,5 @@
-"""
-Use this script to control the env with your keyboard.
+"""Use this script to control the env with your keyboard.
+
 For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
@@ -7,40 +7,32 @@ See/modify `char_to_action` to set the key-to-action mapping.
 import sys
 
 import numpy as np
+import pygame
+from pygame.locals import KEYDOWN, QUIT
 
 from metaworld.envs.mujoco.sawyer_xyz import SawyerPickPlaceEnvV2
-
-
-
-
-
-import pygame
-from pygame.locals import QUIT, KEYDOWN
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
 
 
 char_to_action = {
-    'w': np.array([0, -1, 0, 0]),
-    'a': np.array([1, 0, 0, 0]),
-    's': np.array([0, 1, 0, 0]),
-    'd': np.array([-1, 0, 0, 0]),
-    'q': np.array([1, -1, 0, 0]),
-    'e': np.array([-1, -1, 0, 0]),
-    'z': np.array([1, 1, 0, 0]),
-    'c': np.array([-1, 1, 0, 0]),
-    'k': np.array([0, 0, 1, 0]),
-    'j': np.array([0, 0, -1, 0]),
-    'h': 'close',
-    'l': 'open',
-    'x': 'toggle',
-    'r': 'reset',
-    'p': 'put obj in hand',
+    "w": np.array([0, -1, 0, 0]),
+    "a": np.array([1, 0, 0, 0]),
+    "s": np.array([0, 1, 0, 0]),
+    "d": np.array([-1, 0, 0, 0]),
+    "q": np.array([1, -1, 0, 0]),
+    "e": np.array([-1, -1, 0, 0]),
+    "z": np.array([1, 1, 0, 0]),
+    "c": np.array([-1, 1, 0, 0]),
+    "k": np.array([0, 0, 1, 0]),
+    "j": np.array([0, 0, -1, 0]),
+    "h": "close",
+    "l": "open",
+    "x": "toggle",
+    "r": "reset",
+    "p": "put obj in hand",
 }
-
-import pygame
-
 
 
 env = SawyerPickPlaceEnvV2()
@@ -63,15 +55,15 @@ while True:
             if event.type == QUIT:
                 sys.exit()
             if event.type == KEYDOWN:
-                char = event.dict['key']
+                char = event.dict["key"]
                 new_action = char_to_action.get(chr(char), None)
-                if new_action == 'toggle':
+                if new_action == "toggle":
                     lock_action = not lock_action
-                elif new_action == 'reset':
+                elif new_action == "reset":
                     done = True
-                elif new_action == 'close':
+                elif new_action == "close":
                     action[3] = 1
-                elif new_action == 'open':
+                elif new_action == "open":
                     action[3] = -1
                 elif new_action is not None:
                     action[:3] = new_action[:3]

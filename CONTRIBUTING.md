@@ -33,7 +33,13 @@ To be submitted, a pull request must satisfy the following criteria:
 These criteria may be satisfied in any order, but in practice your PR is unlikely to get attention from contributors until 1-3 are satisfied. Maintainer attention is a scarce resource, so generally maintainers wait for a review from a non-maintainer contributor before reviewing your PR.
 
 ## Preparing your repo to make contributions
-After following the standard Meta-World setup steps, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
+First, install the Metaworld locally in editable mode, with testing dependencies:
+
+``` 
+pip install -e .[dev]
+```
+
+Then, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
 
 To setup pre-commit in your repo:
 ```sh
@@ -42,12 +48,10 @@ To setup pre-commit in your repo:
 # pipenv shell
 # poetry shell
 # source venv/bin/activate
-pre-commit install -t pre-commit
-pre-commit install -t pre-push
-pre-commit install -t commit-msg
+pre-commit install
 ```
 
-Once you've installed pre-commit, it will automatically run every time you type `git commit`.
+Once you've installed pre-commit, it will automatically run every time you type `git commit`, or you can run it manually using `pre-commit run --all-files`.
 
 ## Code style
 The Python code in metaworld conforms to the [PEP8](https://www.python.org/dev/peps/pep-0008/) standard. Please read and understand it in detail.
@@ -143,7 +147,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
 
 * When using external dependencies, use the `import` statement only to import whole modules, not individual classes or functions.
 
-    This applies to both packages from the standard library and 3rd-party dependencies. If a package has a long or cumbersome full path, or is used very frequently (e.g. `numpy`, `tensorflow`), you may use the keyword `as` to create a file-specific name which makes sense. Additionally, you should always follow the community concensus short names for common dependencies (see below).
+    This applies to both packages from the standard library and 3rd-party dependencies. If a package has a long or cumbersome full path, or is used very frequently (e.g. `numpy`, `tensorflow`), you may use the keyword `as` to create a file-specific name which makes sense. Additionally, you should always follow the community consensus short names for common dependencies (see below).
 
     *Do*
     ```python
@@ -172,7 +176,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     m = MLPModel(output_dim=2)
     ```
 
-    *Known community-concensus imports*
+    *Known community-consensus imports*
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

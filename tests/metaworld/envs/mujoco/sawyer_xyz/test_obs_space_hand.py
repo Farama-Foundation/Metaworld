@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
-from metaworld.policies.policy import Policy, move
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.policies.action import Action
+from metaworld.policies.policy import Policy, move
 
 
 class SawyerRandomReachPolicy(Policy):
@@ -13,18 +13,15 @@ class SawyerRandomReachPolicy(Policy):
 
     @staticmethod
     def _parse_obs(obs):
-        return {'hand_pos': obs[:3], 'unused_info': obs[3:]}
+        return {"hand_pos": obs[:3], "unused_info": obs[3:]}
 
     def get_action(self, obs):
         o_d = self._parse_obs(obs)
 
-        action = Action({
-            'delta_pos': np.arange(3),
-            'grab_effort': 3
-        })
+        action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._target, p=25.)
-        action['grab_effort'] = 0.
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._target, p=25.0)
+        action["grab_effort"] = 0.0
 
         return action.array
 
@@ -44,9 +41,9 @@ def sample_spherical(num_points, radius=1.0):
     return points.T * radius
 
 
-@pytest.mark.parametrize('target', sample_spherical(100, 10.0))
+@pytest.mark.parametrize("target", sample_spherical(100, 10.0))
 def test_reaching_limit(target):
-    env = ALL_V2_ENVIRONMENTS['reach-v2']()
+    env = ALL_V2_ENVIRONMENTS["reach-v2"]()
     env._partially_observable = False
     env._freeze_rand_vec = False
     env._set_task_called = True

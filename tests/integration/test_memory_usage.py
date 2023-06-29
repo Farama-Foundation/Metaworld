@@ -1,4 +1,3 @@
-import gym
 import memory_profiler
 import pytest
 
@@ -19,7 +18,7 @@ def build_and_step_all(classes):
         envs += [env]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def mt50_usage():
     profile = {}
     for env_cls in ALL_V1_ENVIRONMENTS.values():
@@ -31,7 +30,7 @@ def mt50_usage():
 
 
 @pytest.mark.skip
-@pytest.mark.parametrize('env_cls', ALL_V1_ENVIRONMENTS.values())
+@pytest.mark.parametrize("env_cls", ALL_V1_ENVIRONMENTS.values())
 def test_max_memory_usage(env_cls, mt50_usage):
     # No env should use more  than 250MB
     #
@@ -52,6 +51,6 @@ def test_avg_memory_usage():
 
 @pytest.mark.skip
 def test_from_task_memory_usage():
-    target = (ALL_V1_ENVIRONMENTS['reach-v1'], (), {})
+    target = (ALL_V1_ENVIRONMENTS["reach-v1"], (), {})
     usage = memory_profiler.memory_usage(target)
     assert max(usage) < 250

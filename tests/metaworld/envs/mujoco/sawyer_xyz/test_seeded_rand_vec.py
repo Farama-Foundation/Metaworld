@@ -1,14 +1,12 @@
 import random
 
-import pytest
 import numpy as np
+import pytest
 
 from metaworld.envs import ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE
 
 
-@pytest.mark.parametrize(
-    'env_name',
-    sorted(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys()))
+@pytest.mark.parametrize("env_name", sorted(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys()))
 def test_observations_match(env_name):
     seed = random.randrange(1000)
     env1 = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](seed=seed)

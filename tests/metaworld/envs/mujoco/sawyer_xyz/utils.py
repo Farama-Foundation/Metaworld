@@ -2,7 +2,8 @@ import numpy as np
 
 
 def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=True):
-    """Tests whether a given policy solves an environment
+    """Tests whether a given policy solves an environment.
+
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policies.Policy): Policy that's supposed to
@@ -19,18 +20,20 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
     first_success = 0
     rewards = []
 
-    for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
+    for t, (r, done, info) in enumerate(
+        trajectory_generator(env, policy, act_noise_pct, render)
+    ):
         rewards.append(r)
         assert not env.isV2 or set(info.keys()) == {
-            'success',
-            'near_object',
-            'grasp_success',
-            'grasp_reward',
-            'in_place_reward',
-            'obj_to_target',
-            'unscaled_reward'
+            "success",
+            "near_object",
+            "grasp_success",
+            "grasp_reward",
+            "in_place_reward",
+            "obj_to_target",
+            "unscaled_reward",
         }
-        success |= bool(info['success'])
+        success |= bool(info["success"])
         if not success:
             first_success = t
         if (success or done) and end_on_success:
@@ -43,7 +46,8 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
 
 
 def trajectory_generator(env, policy, act_noise_pct, render=False):
-    """Tests whether a given policy solves an environment
+    """Tests whether a given policy solves an environment.
+
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
         policy (metaworld.policies.policies.Policy): Policy that's supposed to
@@ -78,5 +82,5 @@ def obs_space_error_text(env, obs):
     return "Obs Out of Bounds\n\tlow: {}, \n\tobs: {}, \n\thigh: {}".format(
         env.observation_space.low[[0, 1, 2, -3, -2, -1]],
         obs[[0, 1, 2, -3, -2, -1]],
-        env.observation_space.high[[0, 1, 2, -3, -2, -1]]
+        env.observation_space.high[[0, 1, 2, -3, -2, -1]],
     )

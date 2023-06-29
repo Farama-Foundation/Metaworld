@@ -1,5 +1,5 @@
 import numpy as np
-import glfw
+
 
 def step_env(env, max_path_length=100, iterations=1, render=True):
     """Step env helper."""
@@ -17,7 +17,7 @@ def step_env(env, max_path_length=100, iterations=1, render=True):
             assert (next_obs[4:7] == internal_obs[:3]).all()
             assert (next_obs[7:11] == internal_quat[:4]).all()
             if internal_obs.shape == (6,):
-                assert internal_quat.shape == (8, )
+                assert internal_quat.shape == (8,)
                 assert (next_obs[11:14] == internal_obs[3:]).all()
                 assert (next_obs[14:18] == internal_quat[4:]).all()
             else:

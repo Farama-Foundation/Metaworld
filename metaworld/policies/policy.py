@@ -5,7 +5,7 @@ import numpy as np
 
 
 def assert_fully_parsed(func):
-    """Decorator function to ensure observations are fully parsed
+    """Decorator function to ensure observations are fully parsed.
 
     Args:
         func (Callable): The function to check
@@ -13,17 +13,19 @@ def assert_fully_parsed(func):
     Returns:
         (Callable): The input function, decorated to assert full parsing
     """
+
     def inner(obs):
         obs_dict = func(obs)
         assert len(obs) == sum(
             [len(i) if isinstance(i, np.ndarray) else 1 for i in obs_dict.values()]
-        ), 'Observation not fully parsed'
+        ), "Observation not fully parsed"
         return obs_dict
+
     return inner
 
 
 def move(from_xyz, to_xyz, p):
-    """Computes action components that help move from 1 position to another
+    """Computes action components that help move from 1 position to another.
 
     Args:
         from_xyz (np.ndarray): The coordinates to move from (usually current position)
@@ -36,14 +38,15 @@ def move(from_xyz, to_xyz, p):
     """
     error = to_xyz - from_xyz
     response = p * error
-    if np.any(np.absolute(response) > 1.):
-        warnings.warn('Constant(s) may be too high. Environments clip response to [-1, 1]')
+    if np.any(np.absolute(response) > 1.0):
+        warnings.warn(
+            "Constant(s) may be too high. Environments clip response to [-1, 1]"
+        )
 
     return response
 
 
 class Policy(abc.ABC):
-
     @staticmethod
     @abc.abstractmethod
     def _parse_obs(obs):
