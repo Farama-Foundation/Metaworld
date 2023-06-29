@@ -52,11 +52,10 @@ RUN python3 -m venv $HOME/venv
 # Copy setup.py first, so that the Docker cache doesn't expire until
 # dependencies change
 COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
-COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/pyproject.toml
 WORKDIR $HOME/code/metaworld
 
 # Install metaworld dependencies
-RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
+RUN . $HOME/venv/bin/activate && exec pip install -e .[dev]
 
 # Add code stub last
 COPY --chown=$USER:$USER . $HOME/code/metaworld

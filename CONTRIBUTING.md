@@ -36,7 +36,7 @@ These criteria may be satisfied in any order, but in practice your PR is unlikel
 First, install the Metaworld locally in editable mode, with testing dependencies:
 
 ``` 
-pip install -e .[testing]
+pip install -e .[dev]
 ```
 
 Then, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
