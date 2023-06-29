@@ -1,9 +1,6 @@
 import numpy as np
 
-from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_door import (
-    SawyerDoorEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_door import SawyerDoorEnv
 
 
 class SawyerDoorCloseEnv(SawyerDoorEnv):

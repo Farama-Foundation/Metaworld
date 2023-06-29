@@ -25,7 +25,7 @@
           <geom type="capsule" fromto="-0.063 -0.063 0.0075 -0.063 -0.063 0.12" contype="2" size="0.005" conaffinity="2" material="light_wood_v2"/>
           <!-- <joint type="slide" range="-0.2 0." axis="0 1 0" name="goal_slidey" pos="0 0 0" damping="1.0"/> -->
         </body>
-        <site name="goal" pos="0 0.6 0.015" size="0.015" 
+        <site name="goal" pos="0 0.6 0.015" size="0.015"
               rgba="0.8 0 0 1"/>
     </worldbody>
 

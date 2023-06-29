@@ -33,7 +33,7 @@
           <site name="pegTop" pos="0 0 0.05" size="0.005" rgba="0 0.8 0 1"/>
         </body>
 
-       
+
     </worldbody>
     <!-- <asset>
       <texture file="metal.png" type="2d" name="tex-metal"/>

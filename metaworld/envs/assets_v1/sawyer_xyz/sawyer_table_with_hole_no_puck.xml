@@ -4,7 +4,7 @@
   <worldbody>
     <include file="sawyer_xyz_base_no_table.xml"></include>
 
-    <site name="goal" pos="0. 0.8 -0.06" size="0.02" 
+    <site name="goal" pos="0. 0.8 -0.06" size="0.02"
               rgba="0 0 0.8 1"/>
 
     <geom name="tableTop" type="plane" pos="0 0.6 -0.1" size="0.4 0.4 0.5"

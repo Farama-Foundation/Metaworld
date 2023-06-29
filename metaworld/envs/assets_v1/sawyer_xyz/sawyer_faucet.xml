@@ -6,14 +6,14 @@
 
         <body name="faucetBase" pos="0 0.8 .05">
         <geom name="base" rgba="0.3 1 0.3 1" size=".03 .03 .05" type="box" margin="0.001"
-                pos="0 0 0" contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002" 
+                pos="0 0 0" contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002"
             />
         </body>
 
         <body name="faucet" pos="0 0.8 .05">
           <!-- <inertial pos="0 0 0" mass="1" diaginertia="8.80012e-4 8.80012e-4 8.80012e-4"/> -->
           <geom name="handle" rgba="0.3 1 0.3 1" size=".015 .05 .015" type="box" margin="0.001"
-                pos="0 -0.05 0.065" contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002" 
+                pos="0 -0.05 0.065" contype="1" conaffinity="1" condim="3" friction="1 0.1 0.002"
             />
           <joint type="hinge" range="-1.5708 1.5708" axis="0 0 1" name="joint" pos="0 0 0.065" damping="1" armature="0" limited="true"/>
           <site name="handleStartOpen" pos="-0.015 -0.1 0.065" size="0.005" rgba="1 1 1 1"/>
@@ -21,9 +21,9 @@
           <site name="handleStartClose" pos="0.015 -0.1 0.065" size="0.005" rgba="0 0 0 1"/>
         </body>
 
-        <site name="goal_open" pos="0.1 0.785 0.115" size="0.005" 
+        <site name="goal_open" pos="0.1 0.785 0.115" size="0.005"
               rgba="0 .8 0 1"/>
-        <site name="goal_close" pos="-0.1 0.785 0.115" size="0.005" 
+        <site name="goal_close" pos="-0.1 0.785 0.115" size="0.005"
               rgba="0 0 0.8 1"/>
 
 <!--         <body name="box" pos="0 0.8 0.05">
