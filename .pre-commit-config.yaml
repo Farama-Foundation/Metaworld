@@ -50,12 +50,3 @@ repos:
           - --add-ignore=D100,D107,D101,D102,D103,D105
         exclude: "__init__.py$|^metaworld.tests|^docs"
         additional_dependencies: ["tomli"]
-  - repo: local
-    hooks:
-      - id: pyright
-        name: pyright
-        entry: pyright
-        language: node
-        pass_filenames: false
-        types: [python]
-        additional_dependencies: ["pyright"]

@@ -1,7 +1,0 @@
-{
-  "reportOptionalMemberAccess": false,
-  "reportGeneralTypeIssues": false,
-  "reportMissingImports": false,
-  "reportOptionalSubscript": false,
-  "reportUnboundVariable": false
-}
