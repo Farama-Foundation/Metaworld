@@ -56,6 +56,10 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = ["metaworld", "metaworld.*"]
 
+[tool.setuptools.dynamic]
+version = {attr = "metaworld.__version__"}
+
+
 # Linters and Test tools #######################################################
 
 [tool.black]
