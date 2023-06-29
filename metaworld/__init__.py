@@ -10,8 +10,6 @@ import metaworld.envs.mujoco.env_dict as _env_dict
 
 EnvName = str
 
-__version__ = "2.0.0"
-
 
 class Task(NamedTuple):
     """All data necessary to describe a single MDP.
