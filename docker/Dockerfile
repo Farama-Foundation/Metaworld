@@ -49,13 +49,20 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$HOME/.mujoco/mujoco210/bin
 
 RUN python3 -m venv $HOME/venv
 
-# Copy setup.py first, so that the Docker cache doesn't expire until
+# Copy setup.py/config.cfg/pyproject.toml first, so that the Docker cache doesn't expire until
 # dependencies change
 COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
+COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/pyproject.toml
+
 WORKDIR $HOME/code/metaworld
 
+# Testing: list out all files
+RUN ls -alh
+RUN pwd
+RUN ls ..
+
 # Install metaworld dependencies
-RUN . $HOME/venv/bin/activate && exec pip install -e .[dev]
+RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
 
 # Add code stub last
 COPY --chown=$USER:$USER . $HOME/code/metaworld
