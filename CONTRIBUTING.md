@@ -12,7 +12,7 @@ Ensure that your task and pull request:
 * [ ] Contains meaningful internal variation (e.g. different object positions, etc.)
 * [ ] Conforms to the action space, observation space, and reward functions conventions used by metaworld environments
 * [ ] Uses existing assets if they exist, and that any new assets added are high-quality
-* [ ] Follows the code qualtiy, style, testing, and documentation guidelines outlined below
+* [ ] Follows the code quality, style, testing, and documentation guidelines outlined below
 * [ ] Provides learning curves which show the task can by solved by PPO and SAC, using the implementations linked below
 
 PPO: https://github.com/rlworkgroup/garage/blob/master/src/garage/tf/algos/ppo.py

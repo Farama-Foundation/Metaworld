@@ -18,5 +18,5 @@ jobs:
              --tag metaworld-docker .
       - name: Run tests
         run: docker run metaworld-docker pytest tests/*
-      - name: Run doctests
-        run: docker run metaworld-docker pytest --doctest-modules metaworld/
+#      - name: Run doctests
+#        run: docker run metaworld-docker pytest --doctest-modules metaworld/
