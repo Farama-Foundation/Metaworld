@@ -5,14 +5,8 @@ import pytest
 
 from metaworld.envs import ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE
 
-
-<<<<<<< HEAD
 @pytest.mark.parametrize("env_name", sorted(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys()))
 def test_observations_match(env_name):
-=======
-def test_observations_match():
-    env_name = list(ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE.keys())[0]
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
     seed = random.randrange(1000)
     env1 = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](seed=seed)
     env1.seeded_rand_vec = True
