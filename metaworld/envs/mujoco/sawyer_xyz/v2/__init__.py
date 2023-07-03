@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_assembly_peg_v2 import (
     SawyerNutAssemblyEnvV2,
 )
@@ -126,6 +127,59 @@ from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_close_v2 import (
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_open_v2 import (
     SawyerWindowOpenEnvV2,
 )
+=======
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_assembly_peg_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_basketball_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_bin_picking_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_box_close_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_button_press_topdown_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_button_press_topdown_wall_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_button_press_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_button_press_wall_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_coffee_button_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_coffee_pull_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_coffee_push_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_dial_turn_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_disassemble_peg_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_close_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_lock_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_unlock_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_drawer_close_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_drawer_open_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_faucet_close_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_faucet_open_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_hammer_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_hand_insert_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_handle_press_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_handle_press_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_handle_pull_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_handle_pull_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_lever_pull_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_peg_insertion_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_peg_unplug_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_pick_out_of_hole_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_pick_place_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_pick_place_wall_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_plate_slide_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_plate_slide_back_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_plate_slide_back_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_plate_slide_side_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_push_back_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_push_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_push_wall_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_reach_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_reach_wall_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_shelf_place_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_soccer_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_stick_pull_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_stick_push_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sweep_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sweep_into_goal_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_close_v2 import *
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_open_v2 import *
+
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
 
 __all__ = [
     "SawyerNutAssemblyEnvV2",

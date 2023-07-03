@@ -1,16 +1,15 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
 
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+import mujoco
 
 class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
-    def __init__(self):
+
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.8, 0.0)
@@ -23,6 +22,9 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.8, 0.0]),
@@ -78,7 +80,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         return self._get_site_pos("handleStartOpen") + np.array([0.0, 0.0, -0.01])
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("faucetBase")
+        return self.data.body('faucetBase').xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -86,9 +88,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         # Compute faucet position
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
-        self.sim.model.body_pos[
-            self.model.body_name2id("faucetBase")
-        ] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'faucetBase')] = self.obj_init_pos
 
         self._target_pos = self.obj_init_pos + np.array(
             [+self._handle_length, 0.0, 0.125]
@@ -137,4 +137,21 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
         reward = 10 if target_to_obj <= self._target_radius else reward
 
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped,
+                in_place)
+
+class TrainFaucetOpenv3(SawyerFaucetOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerFaucetOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestFaucetOpenv3(SawyerFaucetOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerFaucetOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

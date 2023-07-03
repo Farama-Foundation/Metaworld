@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -24,8 +25,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
-
-    def __init__(self):
+    def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -38,6 +38,9 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -56,8 +59,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
-
-        self.num_resets = 0
 
     @property
     def model_name(self):
@@ -84,7 +85,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -109,10 +111,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             self._target_pos = goal_pos[3:]
         self._target_pos = goal_pos[-3:]
         self.obj_init_pos = goal_pos[:3]
-
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
-
+        mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
@@ -134,3 +134,21 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         )
 
         return [10 * in_place, tcp_to_target, in_place]
+
+
+class TrainReachv3(SawyerReachEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerReachEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestReachv3(SawyerReachEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerReachEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

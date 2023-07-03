@@ -1,7 +1,8 @@
+import gymnasium
 import memory_profiler
 import pytest
 
-from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS
+from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 from tests.helpers import step_env
 
 
@@ -21,7 +22,7 @@ def build_and_step_all(classes):
 @pytest.fixture(scope="module")
 def mt50_usage():
     profile = {}
-    for env_cls in ALL_V1_ENVIRONMENTS.values():
+    for env_cls in ALL_V2_ENVIRONMENTS.values():
         target = (build_and_step, [env_cls], {})
         memory_usage = memory_profiler.memory_usage(target)
         profile[env_cls] = max(memory_usage)
@@ -30,7 +31,7 @@ def mt50_usage():
 
 
 @pytest.mark.skip
-@pytest.mark.parametrize("env_cls", ALL_V1_ENVIRONMENTS.values())
+@pytest.mark.parametrize('env_cls', ALL_V2_ENVIRONMENTS.values())
 def test_max_memory_usage(env_cls, mt50_usage):
     # No env should use more  than 250MB
     #

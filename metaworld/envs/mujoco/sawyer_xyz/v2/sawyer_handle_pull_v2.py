@@ -1,20 +1,18 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
 
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+import mujoco
 
 class SawyerHandlePullEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.1, 0.8, -0.001)
-        obj_high = (0.1, 0.9, +0.001)
+        obj_high = (0.1, 0.9, 0.001)
         goal_low = (-0.1, 0.55, 0.04)
         goal_high = (0.1, 0.70, 0.18)
 
@@ -23,6 +21,9 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.9, 0.0]),
@@ -47,22 +48,12 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
-        (
-            reward,
-            tcp_to_obj,
-            tcp_open,
-            obj_to_target,
-            grasp_reward,
-            in_place_reward,
-        ) = self.compute_reward(action, obs)
+        (reward, tcp_to_obj, tcp_open, obj_to_target, grasp_reward, in_place_reward) = self.compute_reward(action, obs)
 
         info = {
             "success": float(obj_to_target <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float(
-                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -92,7 +83,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id("box")] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
         self._set_obj_xyz(-0.1)
         self._target_pos = self._get_site_pos("goalPull")
 
@@ -126,13 +117,24 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
 
         tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-
-        if (
-            tcp_to_obj < 0.035
-            and tcp_opened > 0
-            and obj[2] - 0.01 > self.obj_init_pos[2]
-        ):
+        if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[1] - 0.01 > self.obj_init_pos[2]:
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+class TrainHandlePullv3(SawyerHandlePullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestHandlePullv3(SawyerHandlePullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

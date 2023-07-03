@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.000)
@@ -24,6 +24,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "stick_init_pos": np.array([-0.1, 0.6, 0.02]),
@@ -88,12 +91,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         )
 
     def _get_quat_objects(self):
+        geom_xmat = self.data.body('stick').xmat.reshape(3, 3)
         return np.hstack(
-            (
-                Rotation.from_matrix(self.data.get_body_xmat("stick")).as_quat(),
-                np.array([0.0, 0.0, 0.0, 0.0]),
-            )
-        )
+            (Rotation.from_matrix(geom_xmat).as_quat(), np.array([0., 0., 0., 0., ])))
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -125,9 +125,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-        self._target_pos = np.concatenate(
-            (goal_pos[-3:-1], [self._get_site_pos("insertion")[-1]])
-        )
+        self._target_pos = np.concatenate((goal_pos[-3:-1], [self._get_site_pos('insertion')[-1]]))
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
@@ -283,12 +281,22 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
             if container_to_target <= _TARGET_RADIUS:
                 reward = 10.0
+        return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
 
-        return [
-            reward,
-            tcp_to_stick,
-            tcp_opened,
-            container_to_target,
-            object_grasped,
-            stick_in_place,
-        ]
+
+class TrainStickPushv3(SawyerStickPushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestStickPushv3(SawyerStickPushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -1,16 +1,15 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
 
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+import mujoco
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
-    def __init__(self):
+
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.5, 0.02)
@@ -23,6 +22,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -79,7 +80,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return self.get_body_com("top_link")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("top_link")
+        return self.data.body('top_link').xquat
+        return self.data.body('top_link').xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -94,9 +96,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id("boxbody")] = np.concatenate(
-            (self._target_pos[:2], [box_height])
-        )
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'boxbody')] = np.concatenate((self._target_pos[:2], [box_height]))
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()
@@ -187,3 +187,18 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
+class TrainBoxClosev3(SawyerBoxCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestBoxClosev3(SawyerBoxCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

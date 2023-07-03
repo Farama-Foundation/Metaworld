@@ -1,6 +1,6 @@
 import numpy as np
-from gym.spaces import Box
-
+from gymnasium.spaces import Box
+import mujoco
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -11,8 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerHandInsertEnvV2(SawyerXYZEnv):
     TARGET_RADIUS = 0.05
-
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.05)
@@ -25,6 +24,9 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.05]),
@@ -77,20 +79,19 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id("objGeom")
+        return self.model.geom('objGeom').id
 
     def _get_pos_objects(self):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("obj")
+        return self.data.body('obj').xquat
 
     def reset_model(self):
         self._reset_hand()
         self.prev_obs = self._get_curr_obs_combined_no_goal()
-        self._target_pos = self.goal.copy()
-        self.obj_init_angle = self.init_config["obj_init_angle"]
-        self.objHeight = self.get_body_com("obj")[2]
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.objHeight = self.get_body_com('obj')[2]
 
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.15:
@@ -131,5 +132,28 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         if tcp_to_obj < 0.02 and tcp_opened > 0:
             reward += 1.0 + 7.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            reward = 10.
+        return (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        )
+
+class TrainHandInsertv3(SawyerHandInsertEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandInsertEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestHandInsertv3(SawyerHandInsertEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandInsertEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

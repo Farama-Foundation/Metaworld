@@ -1,16 +1,14 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
-
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+import mujoco
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
-    def __init__(self):
+
+    def __init__(self, tasks=None):
         self.max_dist = 0.03
 
         hand_low = (-0.5, 0.4, 0.05)
@@ -27,6 +25,9 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = None
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.9, 0.28]),
@@ -95,9 +96,9 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[
-            self.model.body_name2id("coffee_machine")
-        ] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'coffee_machine')] \
+            = self.obj_init_pos
+
 
         pos_mug = self.obj_init_pos + np.array([0.0, -0.22, 0.0])
         self._set_obj_xyz(pos_mug)
@@ -134,4 +135,27 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         if tcp_to_obj <= 0.05:
             reward += 8 * button_pressed
 
-        return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+        return (
+            reward,
+            tcp_to_obj,
+            obs[3],
+            obj_to_target,
+            near_button,
+            button_pressed
+        )
+
+class TrainCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
