@@ -21,16 +21,11 @@ class SawyerBoxCloseV2Policy(Policy):
         o_d = self._parse_obs(obs)
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
-
-<<<<<<< HEAD
         action["delta_pos"] = move(
             o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
         )
         action["grab_effort"] = self._grab_effort(o_d)
-=======
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=30.)
-        action['grab_effort'] = self._grab_effort(o_d)
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
+
 
         return action.array
 
@@ -63,7 +58,6 @@ class SawyerBoxCloseV2Policy(Policy):
 
     @staticmethod
     def _grab_effort(o_d):
-<<<<<<< HEAD
         pos_curr = o_d["hand_pos"]
         pos_lid = o_d["lid_pos"] + np.array([0.0, 0.0, +0.02])
 
@@ -72,13 +66,6 @@ class SawyerBoxCloseV2Policy(Policy):
             or abs(pos_curr[2] - pos_lid[2]) > 0.13
         ):
             return 0.5
-=======
-        pos_curr = o_d['hand_pos']
-        pos_lid = o_d['lid_pos'] + np.array([.0, .0, +.01])
-
-        if np.linalg.norm(pos_curr[:2] - pos_lid[:2]) > 0.01 or abs(pos_curr[2] - pos_lid[2]) > 0.13:
-            return .6
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         # While end effector is moving down toward the puck, begin closing the grabber
         else:
             return 1.0

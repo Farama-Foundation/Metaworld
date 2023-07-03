@@ -33,16 +33,10 @@ class SawyerReachWallV2Policy(Policy):
         pos_goal = o_d["goal_pos"]
         # if the hand is going to run into the wall, go up while still moving
         # towards the goal position.
-<<<<<<< HEAD
         if (
             -0.1 <= pos_hand[0] <= 0.3
             and 0.60 <= pos_hand[1] <= 0.80
             and pos_hand[2] < 0.25
         ):
             return pos_goal + np.array([0.0, 0.0, 1.0])
-=======
-        print(pos_hand)
-        if -0.1 <= pos_hand[0] <= 0.3 and 0.60 <= pos_hand[1] <= 0.80 and pos_hand[2] < 0.3:
-            return pos_goal + np.array([0., 0., 1.])
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         return pos_goal

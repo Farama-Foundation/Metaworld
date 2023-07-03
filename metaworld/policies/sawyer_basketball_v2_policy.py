@@ -21,18 +21,10 @@ class SawyerBasketballV2Policy(Policy):
         o_d = self._parse_obs(obs)
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
-
-<<<<<<< HEAD
         action["delta_pos"] = move(
             o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
         )
         action["grab_effort"] = self._grab_effort(o_d)
-
-=======
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=50.)
-        action['grab_effort'] = self._grab_effort(o_d)
-        print(action.array)
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         return action.array
 
     @staticmethod
@@ -42,25 +34,11 @@ class SawyerBasketballV2Policy(Policy):
         # X is given by hoop_pos
         # Y varies between .85 and .9, so we take avg
         # Z is constant at .35
-<<<<<<< HEAD
         pos_hoop = np.array([o_d["hoop_x"], 0.875, 0.35])
 
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > 0.04:
             return pos_ball + np.array([0.0, 0.0, 0.3])
         elif abs(pos_curr[2] - pos_ball[2]) > 0.025:
-=======
-        pos_hoop = np.array([o_d['hoop_x'], .875, .35])
-        print(f'curr {pos_curr}')
-        print(f'ball {pos_ball}')
-        print(f'hoop {pos_hoop}')
-        if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > .04:
-            print('not over ball')
-            return pos_ball + np.array([.0, .0, .3])
-        elif abs(pos_curr[2] - pos_ball[2]) > 0.035:
-            print('not at same level as ball')
-            print(pos_ball)
-            print(abs(pos_curr[2] - pos_ball[2]))
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
             return pos_ball
         elif abs(pos_ball[2] - pos_hoop[2]) > 0.05:
             print('not above hoop')
@@ -73,17 +51,10 @@ class SawyerBasketballV2Policy(Policy):
     def _grab_effort(o_d):
         pos_curr = o_d["hand_pos"]
         pos_ball = o_d["ball_pos"]
-
-<<<<<<< HEAD
         if (
             np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > 0.04
             or abs(pos_curr[2] - pos_ball[2]) > 0.15
         ):
             return -1.0
-=======
-        if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > 0.04 \
-            or abs(pos_curr[2] - pos_ball[2]) > 0.07:
-            return -1.
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         else:
             return 0.6

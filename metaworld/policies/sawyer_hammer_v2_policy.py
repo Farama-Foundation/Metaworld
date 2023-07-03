@@ -19,22 +19,15 @@ class SawyerHammerV2Policy(Policy):
         o_d = self._parse_obs(obs)
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
-
-<<<<<<< HEAD
         action["delta_pos"] = move(
             o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
         )
         action["grab_effort"] = self._grab_effort(o_d)
-=======
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=100.)
-        action['grab_effort'] = self._grab_effort(o_d)
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
 
         return action.array
 
     @staticmethod
     def _desired_pos(o_d):
-<<<<<<< HEAD
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["hammer_pos"] + np.array([-0.04, 0.0, -0.01])
         pos_goal = np.array([0.24, 0.71, 0.11]) + np.array([-0.19, 0.0, 0.05])
@@ -47,19 +40,6 @@ class SawyerHammerV2Policy(Policy):
             return pos_puck + np.array([0.0, 0.0, 0.03])
         # If not at the same X pos as the peg, move over to that plane
         elif np.linalg.norm(pos_curr[[0, 2]] - pos_goal[[0, 2]]) > 0.02:
-=======
-        pos_curr = o_d['hand_pos']
-        pos_puck = o_d['hammer_pos'] + np.array([-.04, .0, -.01])
-        pos_goal = np.array([0.24, 0.71, 0.11]) + np.array([-.19, .0, .05])
-        # If error in the XY plane is greater than 0.02, place end effector above the puck
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.06:
-            return pos_puck + np.array([0., 0., 0.15])
-        # Once XY error is low enough, drop end effector down on top of hammer
-        elif abs(pos_curr[2] - pos_puck[2]) > 0.06 and pos_puck[-1] < 0.03:
-            return pos_puck + np.array([0., 0., -0.01])
-        # If not at the same X pos as the peg, move over to that plane
-        elif np.linalg.norm(pos_curr[[0, 2]] - pos_goal[[0,2]]) > 0.064:
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
             return np.array([pos_goal[0], pos_curr[1], pos_goal[2]])
         # Move to the peg
         else:
@@ -69,17 +49,11 @@ class SawyerHammerV2Policy(Policy):
     def _grab_effort(o_d):
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["hammer_pos"] + np.array([-0.04, 0.0, -0.01])
-
-<<<<<<< HEAD
         if (
             np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04
             or abs(pos_curr[2] - pos_puck[2]) > 0.1
         ):
             return 0.0
-=======
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.059:
-            return 0.
->>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         # While end effector is moving down toward the hammer, begin closing the grabber
         else:
             return 0.85
