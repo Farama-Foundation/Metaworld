@@ -32,9 +32,15 @@ class SawyerPlateSlideBackV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["puck_pos"] + np.array([0.0, -0.065, 0.025])
 
+<<<<<<< HEAD
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.01:
             return pos_puck + np.array([0.0, 0.0, 0.1])
         elif abs(pos_curr[2] - pos_puck[2]) > 0.04:
+=======
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.1:
+            return pos_puck + np.array([.0, .0, .1])
+        elif abs(pos_curr[2] - pos_puck[2]) > 0.1:
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
             return pos_puck
         elif pos_curr[1] > 0.7:
             return pos_curr + np.array([0.0, -0.1, 0.0])

@@ -38,10 +38,15 @@ def move(from_xyz, to_xyz, p):
     """
     error = to_xyz - from_xyz
     response = p * error
+<<<<<<< HEAD
     if np.any(np.absolute(response) > 1.0):
         warnings.warn(
             "Constant(s) may be too high. Environments clip response to [-1, 1]"
         )
+=======
+    if np.any(np.absolute(response) > 1.):
+        warnings.warn('Constant(s) may be too high. Environments clip response to [-1, 1]')
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
 
     return response
 

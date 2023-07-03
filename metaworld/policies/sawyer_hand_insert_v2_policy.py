@@ -35,8 +35,13 @@ class SawyerHandInsertV2Policy(Policy):
         goal_pos = o_d["goal_pos"]
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
+<<<<<<< HEAD
         if np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02:
             return obj_pos + np.array([0.0, 0.0, 0.1])
+=======
+        if np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.015:
+            return obj_pos + np.array([0., 0., 0.1])
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         # Once XY error is low enough, drop end effector down on top of puck
         elif abs(hand_pos[2] - obj_pos[2]) > 0.05:
             return obj_pos + np.array([0.0, 0.0, 0.03])
@@ -51,10 +56,15 @@ class SawyerHandInsertV2Policy(Policy):
         hand_pos = o_d["hand_pos"]
         obj_pos = o_d["obj_pos"]
 
+<<<<<<< HEAD
         if (
             np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02
             or abs(hand_pos[2] - obj_pos[2]) > 0.1
         ):
             return 0.0
+=======
+        if np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02 or abs(hand_pos[2] - obj_pos[2]) > 0.05:
+            return 0.
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         else:
             return 0.65

@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -14,7 +14,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.007
     TARGET_RADIUS = 0.05
 
-    def __init__(self):
+    def __init__(self, tasks=None):
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
         hand_low = (-0.5, 0.40, 0.05)
@@ -27,6 +27,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.8, 0.02]),
@@ -79,19 +82,21 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos("objGeom")
+        return self.data.geom('objGeom').xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom('objGeom').xmat.reshape(3, 3)
+        ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - self.data.get_geom_xpos("objGeom")[:2]
+        diff = self.get_body_com('obj')[:2] - self.data.geom('objGeom').xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1], self.data.get_geom_xpos("objGeom")[-1]]
+        return [adjustedPos[0], adjustedPos[1],self.data.geom('objGeom').xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -103,9 +108,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-            self._target_pos = np.concatenate(
-                (goal_pos[-3:-1], [self.obj_init_pos[-1]])
-            )
+            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
@@ -222,5 +225,29 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            reward = 10.
+        return (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        )
+
+class TrainPushBackv3(SawyerPushBackEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPushBackEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPushBackv3(SawyerPushBackEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPushBackEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

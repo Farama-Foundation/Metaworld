@@ -73,7 +73,6 @@ def _sigmoids(x, value_at_1, sigmoid):
     else:
         raise ValueError(f"Unknown sigmoid type {sigmoid!r}.")
 
-
 def tolerance(
     x,
     bounds=(0.0, 0.0),

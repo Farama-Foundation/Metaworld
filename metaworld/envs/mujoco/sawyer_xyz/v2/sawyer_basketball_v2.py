@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,8 +13,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerBasketballEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
     TARGET_RADIUS = 0.08
-
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.0299)
@@ -26,11 +26,14 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
+        
+        if tasks is not None:
+            self.tasks = tasks
+        
         self.init_config = {
-            "obj_init_angle": 0.3,
-            "obj_init_pos": np.array([0, 0.6, 0.03], dtype=np.float32),
-            "hand_init_pos": np.array((0, 0.6, 0.2), dtype=np.float32),
+            'obj_init_angle': .3,
+            'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
+            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32)
         }
         self.goal = np.array([0, 0.9, 0])
         self.obj_init_pos = self.init_config["obj_init_pos"]
@@ -53,7 +56,6 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
@@ -84,25 +86,19 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         return self.get_body_com("bsktball")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("bsktball")
+        return self.data.body('bsktball').xquat
 
     def reset_model(self):
         self._reset_hand()
         self.prev_obs = self._get_curr_obs_combined_no_goal()
-
-        basket_pos = self.goal.copy()
-        self.sim.model.body_pos[self.model.body_name2id("basket_goal")] = basket_pos
-        self._target_pos = self.data.site_xpos[self.model.site_name2id("goal")]
-
         goal_pos = self._get_state_rand_vec()
         basket_pos = goal_pos[3:]
         while np.linalg.norm(goal_pos[:2] - basket_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             basket_pos = goal_pos[3:]
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.sim.model.body_pos[self.model.body_name2id("basket_goal")] = basket_pos
-        self._target_pos = self.data.site_xpos[self.model.site_name2id("goal")]
-
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'basket_goal')] = basket_pos
+        self._target_pos = self.data.site_xpos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'goal')]
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 
@@ -152,5 +148,28 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            reward = 10.
+        return (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            target_to_obj,
+            object_grasped,
+            in_place
+        )
+
+class TrainBasketballv3(SawyerBasketballEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBasketballEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestBasketballv3(SawyerBasketballEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBasketballEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -1,12 +1,11 @@
 import numpy as np
 
-
 def step_env(env, max_path_length=100, iterations=1, render=True):
     """Step env helper."""
     for _ in range(iterations):
-        obs = env.reset()
+        obs = env.reset()[0]
         for _ in range(max_path_length):
-            next_obs, _, done, info = env.step(env.action_space.sample())
+            next_obs, _, terminated, truncated, info = env.step(env.action_space.sample())
             if env._partially_observable:
                 assert (next_obs[-3:] == np.zeros(3)).all()
             else:
@@ -27,5 +26,5 @@ def step_env(env, max_path_length=100, iterations=1, render=True):
             obs = next_obs
             if render:
                 env.render()
-            if done:
+            if terminated or truncated:
                 break

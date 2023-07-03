@@ -57,7 +57,7 @@ class SawyerPickPlaceWallV2Policy(Policy):
             ):
                 return np.array([pos_goal[0], pos_goal[1], pos_curr[2]])
             # If not at the same Z height as the goal, move up to that plane
-            elif abs(pos_curr[2] - pos_goal[2]) > 0.04:
+            elif abs(pos_curr[2] - pos_goal[2]) > 0.01:
                 return np.array([pos_curr[0], pos_curr[1], pos_goal[2]])
             return pos_goal
 
@@ -66,11 +66,16 @@ class SawyerPickPlaceWallV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["puck_pos"]
 
+<<<<<<< HEAD
         if (
             np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.015
             or abs(pos_curr[2] - pos_puck[2]) > 0.1
         ):
             return 0.0
+=======
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.015 or abs(pos_curr[2] - pos_puck[2]) > 0.05:
+            return 0.
+>>>>>>> 63655f9a8d1b47f289b5bc76c301ee84f35e06ce
         # While end effector is moving down toward the puck, begin closing the grabber
         else:
             return 0.9

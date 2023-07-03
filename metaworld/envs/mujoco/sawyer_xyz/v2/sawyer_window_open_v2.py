@@ -1,13 +1,11 @@
 import numpy as np
-from gym.spaces import Box
+
+from gymnasium.spaces import  Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
-
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+import mujoco
 
 class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     """SawyerWindowOpenEnv.
@@ -22,8 +20,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     """
 
     TARGET_RADIUS = 0.05
-
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.16)
@@ -34,6 +31,9 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": np.array(
@@ -101,11 +101,10 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos + np.array([0.2, 0.0, 0.0])
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'window')] = self.obj_init_pos
 
-        self.sim.model.body_pos[self.model.body_name2id("window")] = self.obj_init_pos
         self.window_handle_pos_init = self._get_pos_objects()
-        self.data.set_joint_qpos("window_slide", 0.0)
-
+        self.data.joint('window_slide').qpos = 0.0
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
@@ -139,4 +138,27 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         object_grasped = reach
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+        return (reward,
+               tcp_to_obj,
+               tcp_opened,
+               target_to_obj,
+               object_grasped,
+               in_place)
+
+
+class TrainWindowOpenv3(SawyerWindowOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestWindowOpenv3(SawyerWindowOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
