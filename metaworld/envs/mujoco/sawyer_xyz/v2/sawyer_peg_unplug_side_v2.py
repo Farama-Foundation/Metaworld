@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -20,6 +20,9 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([-0.225, 0.6, 0.05]),
@@ -131,3 +134,19 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
         return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, float(
             grasp_success)
+
+class TrainPegUnplugSidev3(SawyerPegUnplugSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestPegUnplugSidev3(SawyerPegUnplugSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -19,7 +19,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         - (11/23/20) Updated reward function to new pick-place style
     """
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -34,7 +34,8 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
+        if tasks is not None:
+            self.tasks = task
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([-0.12, 0.7, 0.02]),
@@ -188,3 +189,19 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+
+class TrainBinPickingv3(SawyerBinPickingEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBinPickingEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestBinPickingv3(SawyerBinPickingEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBinPickingEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

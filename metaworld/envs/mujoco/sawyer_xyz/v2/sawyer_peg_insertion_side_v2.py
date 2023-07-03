@@ -25,7 +25,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         - (6/16/20) Used existing goal_low and goal_high values to constrain
             the hole's position, as opposed to hand_low and hand_high
     """
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_init_pos = (0, 0.6, 0.2)
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -40,6 +40,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.6, 0.02]),
@@ -166,3 +169,18 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, collision_boxes, ip_orig]
 
+class TrainPegInsertionSidev3(SawyerPegInsertionSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestPegInsertionSidev3(SawyerPegInsertionSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

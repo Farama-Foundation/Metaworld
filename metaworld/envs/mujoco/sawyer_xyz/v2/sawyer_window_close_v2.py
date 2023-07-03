@@ -18,7 +18,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         - (6/15/20) Increased max_path_length from 150 to 200
     """
     TARGET_RADIUS = 0.05
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -31,6 +31,9 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -145,3 +148,21 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
                target_to_obj,
                object_grasped,
                in_place)
+
+
+class TrainWindowClosev3(SawyerWindowCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestWindowClosev3(SawyerWindowCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

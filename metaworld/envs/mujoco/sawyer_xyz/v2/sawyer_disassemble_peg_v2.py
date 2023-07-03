@@ -9,7 +9,7 @@ import mujoco
 class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0., 0.6, 0.025)
@@ -22,6 +22,9 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -173,3 +176,18 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+class TrainDisassemblev3(SawyerNutDisassembleEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestDisassemblev3(SawyerNutDisassembleEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

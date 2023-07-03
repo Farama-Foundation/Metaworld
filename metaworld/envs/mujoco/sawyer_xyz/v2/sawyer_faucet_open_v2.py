@@ -8,7 +8,7 @@ import mujoco
 
 class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -22,6 +22,9 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.8, 0.0]),
@@ -128,3 +131,19 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped,
                 in_place)
+
+class TrainFaucetOpenv3(SawyerFaucetOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerFaucetOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestFaucetOpenv3(SawyerFaucetOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerFaucetOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

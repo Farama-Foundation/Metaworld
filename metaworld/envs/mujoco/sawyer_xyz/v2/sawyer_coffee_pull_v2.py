@@ -9,7 +9,7 @@ import mujoco
 
 class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -23,6 +23,9 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.75, 0.]),
@@ -146,3 +149,18 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+class TrainCoffeePullv3(SawyerCoffeePullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestCoffeePullv3(SawyerCoffeePullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -8,7 +8,7 @@ import mujoco
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         self.max_dist = 0.03
 
@@ -26,6 +26,9 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = None
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.9, 0.28]),
@@ -141,3 +144,19 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             near_button,
             button_pressed
         )
+
+class TrainCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

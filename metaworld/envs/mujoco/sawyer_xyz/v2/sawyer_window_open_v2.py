@@ -18,7 +18,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
     """
     TARGET_RADIUS = 0.05
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -30,6 +30,9 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': np.array([0.3, ], dtype=np.float32),
@@ -134,3 +137,21 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
                target_to_obj,
                object_grasped,
                in_place)
+
+
+class TrainWindowOpenv3(SawyerWindowOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestWindowOpenv3(SawyerWindowOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

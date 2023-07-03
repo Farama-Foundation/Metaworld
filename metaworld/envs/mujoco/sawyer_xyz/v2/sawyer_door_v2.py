@@ -8,7 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.85, 0.15)
@@ -21,6 +21,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": np.array([0.3]),
@@ -175,3 +178,18 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
+class TrainDoorOpenv3(SawyerDoorEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerDoorEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestDoorOpenv3(SawyerDoorEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerDoorEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

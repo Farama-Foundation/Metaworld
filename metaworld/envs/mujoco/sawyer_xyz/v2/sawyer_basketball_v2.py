@@ -11,7 +11,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
     TARGET_RADIUS = 0.08
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -25,7 +25,10 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
-
+        
+        if tasks is not None:
+            self.tasks = tasks
+        
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0, 0.6, 0.03], dtype=np.float32),
@@ -148,3 +151,19 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+
+class TrainBasketballv3(SawyerBasketballEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBasketballEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestBasketballv3(SawyerBasketballEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBasketballEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

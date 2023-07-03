@@ -28,7 +28,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
@@ -41,6 +41,9 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': .3,
@@ -120,7 +123,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
         return self._get_obs()
 
     def compute_reward(self, action, obs):
@@ -179,3 +181,20 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2
         ]
+
+class TrainPushWallv3(SawyerPushWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPushWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPushWallv3(SawyerPushWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPushWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

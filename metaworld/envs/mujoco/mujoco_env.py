@@ -40,7 +40,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     max_path_length = 500
 
-    def __init__(self, model_path, frame_skip):
+    def __init__(self, model_path, frame_skip=5):
         import mujoco
         if not path.exists(model_path):
             raise IOError("File %s does not exist" % model_path)
@@ -97,6 +97,7 @@ class MujocoEnv(gym.Env, abc.ABC):
             self.seed(seed)
         self._did_see_sim_exception = False
         mujoco.mj_resetData(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
