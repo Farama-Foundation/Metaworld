@@ -9,6 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
     SawyerXYZEnv,
     _assert_task_is_set,
 )
+from gymnasium.utils.ezpickle import EzPickle
 
 
 class SawyerReachEnvV2(SawyerXYZEnv):
@@ -59,6 +60,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
+
 
     @property
     def model_name(self):

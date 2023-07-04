@@ -84,7 +84,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
         np.random.seed(seed)
     tasks = []
     for (env_name, args) in args_kwargs.items():
-        print(env_name, args)
         assert len(args['args']) == 0
         env = classes[env_name]()
         env._freeze_rand_vec = False
@@ -240,14 +239,17 @@ class MT10(Benchmark):
         self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
-
         self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
         for cls in self._train_classes:
             tasks_for_cls = [task for task in self._train_tasks if task.env_name == cls]
             assert len(tasks_for_cls) == _N_GOALS
+            self._train_tasks.extend(tasks_for_cls)
             self._train_classes[cls].tasks = tasks_for_cls
-        self._test_classes = []
+            self._train_classes[cls].cls = self._train_classes[cls]
+            self._train_classes[cls].cls_kwargs = train_kwargs[cls]
+            self._train_classes[cls]._freeze_rand_vec = True
         self._test_tasks = []
+        self._test_classes = []
 
 
 class MT50(Benchmark):
@@ -266,6 +268,7 @@ class MT50(Benchmark):
             self._train_classes[cls].cls = self._train_classes[cls]
             self._train_classes[cls].cls_kwargs = train_kwargs[cls]
             self._train_classes[cls]._freeze_rand_vec = True
+
         self._test_tasks = []
 
 

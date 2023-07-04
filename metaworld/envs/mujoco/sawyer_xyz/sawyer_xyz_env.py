@@ -4,16 +4,18 @@ import pickle
 
 from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
+from gymnasium.utils.ezpickle import EzPickle
 
 import mujoco
 import numpy as np
 import sys
 
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set, MujocoEnv
+from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set
 from gymnasium.utils import seeding
+from gymnasium.envs.mujoco import MujocoEnv as mjenv_gym
 
-class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
+class SawyerMocapBase(mjenv_gym):
     """Provides some commonly-shared functions for Sawyer Mujoco envs that use mocap for XYZ control."""
 
     mocap_low = np.array([-0.2, 0.5, 0.06])
@@ -28,10 +30,10 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     }
 
     def __init__(self, model_name, frame_skip=5):
-
-        MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)  #, observation_space=observation_space)
+        mjenv_gym.__init__(self, model_name, frame_skip=frame_skip, observation_space=self.observation_space)
         self.reset_mocap_welds()
-
+        self.frame_skip = frame_skip
+        print(self.data)
 
     def get_endeff_pos(self):
         return self.data.body('hand').xpos
@@ -51,37 +53,22 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     def get_env_state(self):
         qpos = np.copy(self.data.qpos)
         qvel = np.copy(self.data.qvel)
-        if self.model.na == 0:
-            act = None
-        else:
-            act = np.copy(self.data.act)
-        joint_state = (self.data.time, qpos, qvel, act)
-        mocap_state = self.data.mocap_pos, self.data.mocap_quat
-        state = joint_state, mocap_state
-        return copy.deepcopy(state)
+        return copy.deepcopy((qpos, qvel))
 
     def set_env_state(self, state):
-        joint_state, mocap_state = state
-        self.data.time = joint_state[0]
-        self.data.qpos[:] = np.copy(joint_state[1])
-        self.data.qvel[:] = np.copy(joint_state[2])
-        if self.model.na is not None:
-            self.data.act[:] = np.copy(joint_state[3])
-        mocap_pos, mocap_quat = mocap_state
-        self.data.body('mocap').xpos[:] = mocap_pos
-        self.data.body('mocap').xquat[:] = mocap_quat
-        mujoco.mj_forward(self.model, self.data)
+        mocap_pos, mocap_quat = state
+        self.set_state(mocap_pos, mocap_quat)
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state['model']
-        del state['data']
-        return {'state': state, 'mjb': self.model_name, 'env_state': self.get_env_state()}
+        # del state['model']
+        # del state['data']
+        return {'state': state, 'mjb': self.model_name, 'mocap':self.get_env_state()}
 
     def __setstate__(self, state):
         self.__dict__ = state['state']
-        MujocoEnv.__init__(self, state['mjb']) # , frame_skip=self.frames)
-        self.set_env_state(state['env_state'])
+        mjenv_gym.__init__(self, state['mjb'], frame_skip=self.frame_skip, observation_space=self.observation_space)
+        self.set_env_state(state['mocap'])
 
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
@@ -89,37 +76,9 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
             for i in range(self.model.eq_data.shape[0]):
                 if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
                     self.model.eq_data[i] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
-    
-    def reset_mocap2body_xpos(self):
-        """Resets the position and orientation of the mocap bodies to the same
-        values as the bodies they're welded to.
-        """
-
-        if self.model.eq_type is None or self.model.eq_obj1id is None or self.model.eq_obj2id is None:
-            return
-        for eq_type, obj1_id, obj2_id in zip(
-            self.model.eq_type, self.model.eq_obj1id, self.model.eq_obj2id
-        ):
-            if eq_type != mujoco.mjtEq.mjEQ_WELD:
-                continue
-
-            mocap_id = self.model.body_mocapid[obj1_id]
-            if mocap_id != -1:
-                # obj1 is the mocap, obj2 is the welded body
-                body_idx = obj2_id
-            else:
-                # obj2 is the mocap, obj1 is the welded body
-                mocap_id = self.model.body_mocapid[obj2_id]
-                body_idx = obj1_id
-
-            assert mocap_id != -1
-            self.data.mocap_pos[mocap_id][:] = self.data.xpos[body_idx]
-            self.data.mocap_quat[mocap_id][:] = self.data.xquat[body_idx]
-        
-        mujoco.mj_forward(self.model, self.data)
 
 
-class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
+class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     _HAND_SPACE = Box(
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .7]),
@@ -130,7 +89,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     TARGET_RADIUS = 0.05
 
     current_task = 0
-
+    classes = None
+    classes_kwargs = None
+    tasks = None
     def __init__(
         self,
         model_name,
@@ -142,7 +103,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         action_scale=1.0 / 100,
         action_rot_scale=1.0,
     ):
-        super().__init__(model_name, frame_skip=frame_skip)
+
 
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -168,6 +129,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
+        self._partially_observable = True
+
+        super().__init__(model_name, frame_skip=frame_skip)
+        self._did_see_sim_exception = False
         self.init_left_pad = self.get_body_com("leftpad")
         self.init_right_pad = self.get_body_com("rightpad")
 
@@ -182,7 +147,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._obs_obj_max_len = 14
 
         self._set_task_called = False
-        self._partially_observable = True
+
 
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
@@ -197,9 +162,17 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         self._prev_obs = self._get_curr_obs_combined_no_goal()
         self.current_task = 0
-        self.classes = None
-        self.classes_kwargs = None
-        self.tasks = None
+        EzPickle.__init__(
+            self,
+            model_name,
+            frame_skip,
+            hand_low,
+            hand_high,
+            mocap_low,
+            mocap_high,
+            action_scale,
+            action_rot_scale,
+        )
     @staticmethod
     def _set_task_inner():
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -485,7 +458,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
+        self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -534,20 +507,17 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def reset(self, seed=None, options=None):
-        '''if not self.tasks:
-            self._make_tasks(self.classes, self.classes_kwargs, self._partially_observable, seed=seed)
-        el'''
         if seed is not None:
             self.tasks = self._make_tasks(self.classes, self.cls_kwargs, self._partially_observable, seed=seed)
             self.set_task()
-        elif self.tasks and not self.seeded_rand_vec:
+        elif bool(self.tasks) and not self.seeded_rand_vec:
             self.set_task()
         self.curr_path_length = 0
-
-        obs = np.float64(super().reset(seed, options))
+        obs, info = super().reset()
         self._prev_obs = obs[:18].copy()
         obs[18:36] = self._prev_obs
-        return obs, {}
+        obs = np.float64(obs)
+        return obs, info
 
     def _reset_hand(self, steps=50):
         mocap_id = self.model.body_mocapid[self.data.body("mocap").id]
