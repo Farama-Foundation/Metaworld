@@ -33,7 +33,6 @@ class SawyerMocapBase(mjenv_gym):
         mjenv_gym.__init__(self, model_name, frame_skip=frame_skip, observation_space=self.observation_space)
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
-        print(self.data)
 
     def get_endeff_pos(self):
         return self.data.body('hand').xpos
@@ -60,12 +59,14 @@ class SawyerMocapBase(mjenv_gym):
         self.set_state(mocap_pos, mocap_quat)
 
     def __getstate__(self):
+        print('__getstate__')
         state = self.__dict__.copy()
         # del state['model']
         # del state['data']
         return {'state': state, 'mjb': self.model_name, 'mocap':self.get_env_state()}
 
     def __setstate__(self, state):
+        print('__setstate__')
         self.__dict__ = state['state']
         mjenv_gym.__init__(self, state['mjb'], frame_skip=self.frame_skip, observation_space=self.observation_space)
         self.set_env_state(state['mocap'])
@@ -132,6 +133,9 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self._partially_observable = True
 
         super().__init__(model_name, frame_skip=frame_skip)
+
+        mujoco.mj_forward(self.model, self.data)  # *** DO NOT REMOVE: EZPICKLE WON'T WORK *** #
+
         self._did_see_sim_exception = False
         self.init_left_pad = self.get_body_com("leftpad")
         self.init_right_pad = self.get_body_com("rightpad")
@@ -148,7 +152,6 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._set_task_called = False
 
-
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
@@ -162,6 +165,9 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._prev_obs = self._get_curr_obs_combined_no_goal()
         self.current_task = 0
+
+
+
         EzPickle.__init__(
             self,
             model_name,
@@ -173,6 +179,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             action_scale,
             action_rot_scale,
         )
+
     @staticmethod
     def _set_task_inner():
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.

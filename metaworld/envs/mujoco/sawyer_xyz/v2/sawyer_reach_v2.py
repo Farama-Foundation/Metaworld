@@ -62,7 +62,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
 
-
     @property
     def model_name(self):
         return full_v2_path_for("sawyer_xyz/sawyer_reach_v2.xml")
