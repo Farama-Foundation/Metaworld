@@ -96,7 +96,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')] \
             = self.goal.copy() - np.array([0, 0, 0.3])
-
+        mujoco.mj_forward(self.model, self.data)
         self._target_pos = self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'goal')] + \
                            self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')]
 

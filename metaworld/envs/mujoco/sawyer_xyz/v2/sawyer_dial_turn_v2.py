@@ -71,7 +71,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             np.sin(dial_angle_rad),
             -np.cos(dial_angle_rad),
             0
-        ])
+        ], dtype=object)
         dial_radius = 0.05
 
         offset *= dial_radius

@@ -10,7 +10,8 @@ import numpy as np
 import sys
 from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set, MujocoEnv
-from gymnasium.utils import seeding
+from gymnasium.utils import seeding, EzPickle
+
 class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
     """
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
@@ -136,7 +137,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             action_scale=1./100,
             action_rot_scale=1.,
     ):
-        super().__init__(model_name, frame_skip)
+
 
 
         self.isV2 = "V2" in type(self).__name__
@@ -165,6 +166,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
+        self._partially_observable = True
+
+        super().__init__(model_name, frame_skip)
+
         self.init_left_pad = self.get_body_com('leftpad')
         self.init_right_pad = self.get_body_com('rightpad')
 
@@ -180,7 +185,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._obs_obj_max_len = 14
 
         self._set_task_called = False
-        self._partially_observable = True
+
 
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
@@ -193,13 +198,21 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # very first observation)
         self._set_task_called = True
         self.seeded_rand_vec = True
-
-        '''
-        TODO: check if we can safely remove set_task_called and seeded rand vec logic -> initial and subsequent seeds
-        should be enough  
-        '''
         self._prev_obs = self._get_curr_obs_combined_no_goal()
 
+        mujoco.mj_forward(self.model, self.data)
+
+        EzPickle.__init__(
+            self,
+            model_name,
+            frame_skip,
+            hand_low,
+            hand_high,
+            mocap_low,
+            mocap_high,
+            action_scale,
+            action_rot_scale,
+        )
 
 
     def _set_task_inner(self):

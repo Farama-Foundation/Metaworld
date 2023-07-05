@@ -76,7 +76,6 @@ def _encode_task(env_name, data):
 
 
 def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
-    st0 = None
     if seed is not None:
         st0 = np.random.get_state()
         np.random.seed(seed)
@@ -92,7 +91,7 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
         del kwargs['task_id']
         env._set_task_inner(**kwargs)
         for _ in range(_N_GOALS):
-            env.reset(seed=np.random.randint(0, 1000))
+            env.reset()
             rand_vecs.append(env._last_rand_vec)
         # unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         # assert unique_task_rand_vecs.shape[0] == _N_GOALS, unique_task_rand_vecs.shape[0]
@@ -105,7 +104,6 @@ def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
             tasks.append(_encode_task(env_name, kwargs))
     if seed is not None:
         np.random.set_state(st0)
-        print(st0)
     return tasks
 
 
