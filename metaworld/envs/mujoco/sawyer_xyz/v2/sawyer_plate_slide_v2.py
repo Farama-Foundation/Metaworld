@@ -147,7 +147,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             in_place
         ]
 
-class TrainPlateSlidev3(SawyerPlateSlideEnvV2):
+class TrainPlateSlidev2(SawyerPlateSlideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPlateSlideEnvV2.__init__(self, self.tasks)
@@ -156,7 +156,7 @@ class TrainPlateSlidev3(SawyerPlateSlideEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestPlateSlidev3(SawyerPlateSlideEnvV2):
+class TestPlateSlidev2(SawyerPlateSlideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPlateSlideEnvV2.__init__(self, self.tasks)

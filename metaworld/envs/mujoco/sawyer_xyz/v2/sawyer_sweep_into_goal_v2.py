@@ -215,7 +215,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
-class TrainSweepIntoGoalv3(SawyerSweepIntoGoalEnvV2):
+class TrainSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
     tasks = None
     def __init__(self):
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
@@ -224,7 +224,7 @@ class TrainSweepIntoGoalv3(SawyerSweepIntoGoalEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestSweepIntoGoalv3(SawyerSweepIntoGoalEnvV2):
+class TestSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
     tasks = None
     def __init__(self):
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)

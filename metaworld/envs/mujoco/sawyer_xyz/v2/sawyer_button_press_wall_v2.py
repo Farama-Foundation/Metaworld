@@ -147,7 +147,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
             button_pressed
         )
 
-class TrainButtonPressWallv3(SawyerButtonPressWallEnvV2):
+class TrainButtonPressWallv2(SawyerButtonPressWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerButtonPressWallEnvV2.__init__(self, self.tasks)
@@ -155,7 +155,7 @@ class TrainButtonPressWallv3(SawyerButtonPressWallEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestButtonPressWallv3(SawyerButtonPressWallEnvV2):
+class TestButtonPressWallv2(SawyerButtonPressWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerButtonPressWallEnvV2.__init__(self, self.tasks)

@@ -140,7 +140,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             near_button,
             button_pressed
         )
-class TrainButtonPressv3(SawyerButtonPressEnvV2):
+class TrainButtonPressv2(SawyerButtonPressEnvV2):
     tasks = None
     def __init__(self):
         SawyerButtonPressEnvV2.__init__(self, self.tasks)
@@ -148,7 +148,7 @@ class TrainButtonPressv3(SawyerButtonPressEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestButtonPressv3(SawyerButtonPressEnvV2):
+class TestButtonPressv2(SawyerButtonPressEnvV2):
     tasks = None
     def __init__(self):
         SawyerButtonPressEnvV2.__init__(self, self.tasks)

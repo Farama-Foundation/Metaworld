@@ -169,7 +169,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             lever_engagement,
         )
 
-class TrainLeverPullv3(SawyerLeverPullEnvV2):
+class TrainLeverPullv2(SawyerLeverPullEnvV2):
     tasks = None
     def __init__(self):
         SawyerLeverPullEnvV2.__init__(self, self.tasks)
@@ -177,7 +177,7 @@ class TrainLeverPullv3(SawyerLeverPullEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestLeverPullv3(SawyerLeverPullEnvV2):
+class TestLeverPullv2(SawyerLeverPullEnvV2):
     tasks = None
     def __init__(self):
         SawyerLeverPullEnvV2.__init__(self, self.tasks)

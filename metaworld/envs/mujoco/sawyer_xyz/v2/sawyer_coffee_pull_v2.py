@@ -156,7 +156,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-class TrainCoffeePullv3(SawyerCoffeePullEnvV2):
+class TrainCoffeePullv2(SawyerCoffeePullEnvV2):
     tasks = None
     def __init__(self):
         SawyerCoffeePullEnvV2.__init__(self, self.tasks)
@@ -164,7 +164,7 @@ class TrainCoffeePullv3(SawyerCoffeePullEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestCoffeePullv3(SawyerCoffeePullEnvV2):
+class TestCoffeePullv2(SawyerCoffeePullEnvV2):
     tasks = None
     def __init__(self):
         SawyerCoffeePullEnvV2.__init__(self, self.tasks)

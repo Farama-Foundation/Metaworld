@@ -158,7 +158,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             in_place
         )
 
-class TrainBasketballv3(SawyerBasketballEnvV2):
+class TrainBasketballv2(SawyerBasketballEnvV2):
     tasks = None
     def __init__(self):
         SawyerBasketballEnvV2.__init__(self, self.tasks)
@@ -166,7 +166,7 @@ class TrainBasketballv3(SawyerBasketballEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestBasketballv3(SawyerBasketballEnvV2):
+class TestBasketballv2(SawyerBasketballEnvV2):
     tasks = None
     def __init__(self):
         SawyerBasketballEnvV2.__init__(self, self.tasks)

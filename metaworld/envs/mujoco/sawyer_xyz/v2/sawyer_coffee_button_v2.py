@@ -144,7 +144,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             button_pressed
         )
 
-class TrainCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+class TrainCoffeeButtonv2(SawyerCoffeeButtonEnvV2):
     tasks = None
     def __init__(self):
         SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
@@ -152,7 +152,7 @@ class TrainCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestCoffeeButtonv3(SawyerCoffeeButtonEnvV2):
+class TestCoffeeButtonv2(SawyerCoffeeButtonEnvV2):
     tasks = None
     def __init__(self):
         SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)

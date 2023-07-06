@@ -129,7 +129,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
 
-class TrainDoorLockv3(SawyerDoorLockEnvV2):
+class TrainDoorLockv2(SawyerDoorLockEnvV2):
     tasks = None
     def __init__(self):
         SawyerDoorLockEnvV2.__init__(self, self.tasks)
@@ -137,7 +137,7 @@ class TrainDoorLockv3(SawyerDoorLockEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorLockv3(SawyerDoorLockEnvV2):
+class TestDoorLockv2(SawyerDoorLockEnvV2):
     tasks = None
     def __init__(self):
         SawyerDoorLockEnvV2.__init__(self, self.tasks)

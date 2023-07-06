@@ -176,7 +176,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
-class TrainDisassemblev3(SawyerNutDisassembleEnvV2):
+class TrainDisassemblev2(SawyerNutDisassembleEnvV2):
     tasks = None
     def __init__(self):
         SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
@@ -184,7 +184,7 @@ class TrainDisassemblev3(SawyerNutDisassembleEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDisassemblev3(SawyerNutDisassembleEnvV2):
+class TestDisassemblev2(SawyerNutDisassembleEnvV2):
     tasks = None
     def __init__(self):
         SawyerNutDisassembleEnvV2.__init__(self, self.tasks)

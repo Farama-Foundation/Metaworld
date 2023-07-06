@@ -146,7 +146,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
                in_place)
 
 
-class TrainWindowOpenv3(SawyerWindowOpenEnvV2):
+class TrainWindowOpenv2(SawyerWindowOpenEnvV2):
     tasks = None
     def __init__(self):
         SawyerWindowOpenEnvV2.__init__(self, self.tasks)
@@ -155,7 +155,7 @@ class TrainWindowOpenv3(SawyerWindowOpenEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestWindowOpenv3(SawyerWindowOpenEnvV2):
+class TestWindowOpenv2(SawyerWindowOpenEnvV2):
     tasks = None
     def __init__(self):
         SawyerWindowOpenEnvV2.__init__(self, self.tasks)

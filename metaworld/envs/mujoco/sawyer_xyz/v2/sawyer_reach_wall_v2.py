@@ -126,7 +126,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
         return [10 * in_place, tcp_to_target, in_place]
 
-class TrainReachWallv3(SawyerReachWallEnvV2):
+class TrainReachWallv2(SawyerReachWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerReachWallEnvV2.__init__(self, self.tasks)
@@ -135,7 +135,7 @@ class TrainReachWallv3(SawyerReachWallEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestReachWallv3(SawyerReachWallEnvV2):
+class TestReachWallv2(SawyerReachWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerReachWallEnvV2.__init__(self, self.tasks)

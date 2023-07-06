@@ -284,7 +284,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
 
 
-class TrainStickPushv3(SawyerStickPushEnvV2):
+class TrainStickPushv2(SawyerStickPushEnvV2):
     tasks = None
     def __init__(self):
         SawyerStickPushEnvV2.__init__(self, self.tasks)
@@ -293,7 +293,7 @@ class TrainStickPushv3(SawyerStickPushEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestStickPushv3(SawyerStickPushEnvV2):
+class TestStickPushv2(SawyerStickPushEnvV2):
     tasks = None
     def __init__(self):
         SawyerStickPushEnvV2.__init__(self, self.tasks)

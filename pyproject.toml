@@ -29,6 +29,7 @@ dependencies = [
     "mujoco",
     "numpy>=1.18",
     "scipy>=1.4.1",
+    "imageio"
 ]
 
 [project.optional-dependencies]

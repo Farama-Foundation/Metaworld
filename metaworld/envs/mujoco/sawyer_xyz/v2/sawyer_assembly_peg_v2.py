@@ -188,7 +188,7 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             success,
         )
 
-class TrainAssemblyv3(SawyerNutAssemblyEnvV2):
+class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
     tasks = None
     def __init__(self):
         SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
@@ -196,7 +196,7 @@ class TrainAssemblyv3(SawyerNutAssemblyEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestAssemblyv3(SawyerNutAssemblyEnvV2):
+class TestAssemblyv2(SawyerNutAssemblyEnvV2):
     tasks = None
     def __init__(self):
         SawyerNutAssemblyEnvV2.__init__(self, self.tasks)

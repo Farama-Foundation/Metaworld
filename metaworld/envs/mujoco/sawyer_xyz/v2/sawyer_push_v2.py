@@ -176,7 +176,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             in_place
         )
 
-class TrainPushv3(SawyerPushEnvV2):
+class TrainPushv2(SawyerPushEnvV2):
     tasks = None
     def __init__(self):
         SawyerPushEnvV2.__init__(self, self.tasks)
@@ -185,7 +185,7 @@ class TrainPushv3(SawyerPushEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestPushv3(SawyerPushEnvV2):
+class TestPushv2(SawyerPushEnvV2):
     tasks = None
     def __init__(self):
         SawyerPushEnvV2.__init__(self, self.tasks)

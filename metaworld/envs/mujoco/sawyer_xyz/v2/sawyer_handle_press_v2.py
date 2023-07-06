@@ -129,7 +129,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
-class TrainHandlePressv3(SawyerHandlePressEnvV2):
+class TrainHandlePressv2(SawyerHandlePressEnvV2):
     tasks = None
     def __init__(self):
         SawyerHandlePressEnvV2.__init__(self, self.tasks)
@@ -137,7 +137,7 @@ class TrainHandlePressv3(SawyerHandlePressEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestHandlePressv3(SawyerHandlePressEnvV2):
+class TestHandlePressv2(SawyerHandlePressEnvV2):
     tasks = None
     def __init__(self):
         SawyerHandlePressEnvV2.__init__(self, self.tasks)

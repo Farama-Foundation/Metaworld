@@ -236,7 +236,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             stick_in_place,
         ]
 
-class TrainStickPullv3(SawyerStickPullEnvV2):
+class TrainStickPullv2(SawyerStickPullEnvV2):
     tasks = None
     def __init__(self):
         SawyerStickPullEnvV2.__init__(self, self.tasks)
@@ -245,7 +245,7 @@ class TrainStickPullv3(SawyerStickPullEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestStickPullv3(SawyerStickPullEnvV2):
+class TestStickPullv2(SawyerStickPullEnvV2):
     tasks = None
     def __init__(self):
         SawyerStickPullEnvV2.__init__(self, self.tasks)

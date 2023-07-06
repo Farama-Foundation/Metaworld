@@ -216,7 +216,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
 
-class TrainSweepv3(SawyerSweepEnvV2):
+class TrainSweepv2(SawyerSweepEnvV2):
     tasks = None
     def __init__(self):
         SawyerSweepEnvV2.__init__(self, self.tasks)
@@ -225,7 +225,7 @@ class TrainSweepv3(SawyerSweepEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestSweepv3(SawyerSweepEnvV2):
+class TestSweepv2(SawyerSweepEnvV2):
     tasks = None
     def __init__(self):
         SawyerSweepEnvV2.__init__(self, self.tasks)

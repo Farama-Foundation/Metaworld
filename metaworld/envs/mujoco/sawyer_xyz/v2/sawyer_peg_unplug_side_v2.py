@@ -143,7 +143,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, float(
             grasp_success)
 
-class TrainPegUnplugSidev3(SawyerPegUnplugSideEnvV2):
+class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
@@ -151,7 +151,7 @@ class TrainPegUnplugSidev3(SawyerPegUnplugSideEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestPegUnplugSidev3(SawyerPegUnplugSideEnvV2):
+class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)

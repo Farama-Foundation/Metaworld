@@ -142,7 +142,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             in_place
         )
 
-class TrainHandInsertv3(SawyerHandInsertEnvV2):
+class TrainHandInsertv2(SawyerHandInsertEnvV2):
     tasks = None
     def __init__(self):
         SawyerHandInsertEnvV2.__init__(self, self.tasks)
@@ -150,7 +150,7 @@ class TrainHandInsertv3(SawyerHandInsertEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestHandInsertv3(SawyerHandInsertEnvV2):
+class TestHandInsertv2(SawyerHandInsertEnvV2):
     tasks = None
     def __init__(self):
         SawyerHandInsertEnvV2.__init__(self, self.tasks)

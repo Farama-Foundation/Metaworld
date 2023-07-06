@@ -191,7 +191,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             in_place_part2,
         ]
 
-class TrainPushWallv3(SawyerPushWallEnvV2):
+class TrainPushWallv2(SawyerPushWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerPushWallEnvV2.__init__(self, self.tasks)
@@ -200,7 +200,7 @@ class TrainPushWallv3(SawyerPushWallEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestPushWallv3(SawyerPushWallEnvV2):
+class TestPushWallv2(SawyerPushWallEnvV2):
     tasks = None
     def __init__(self):
         SawyerPushWallEnvV2.__init__(self, self.tasks)

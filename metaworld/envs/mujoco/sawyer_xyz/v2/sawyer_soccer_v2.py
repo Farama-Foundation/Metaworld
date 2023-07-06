@@ -227,7 +227,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainSoccerv3(SawyerSoccerEnvV2):
+class TrainSoccerv2(SawyerSoccerEnvV2):
     tasks = None
     def __init__(self):
         SawyerSoccerEnvV2.__init__(self, self.tasks)
@@ -236,7 +236,7 @@ class TrainSoccerv3(SawyerSoccerEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestSoccerv3(SawyerSoccerEnvV2):
+class TestSoccerv2(SawyerSoccerEnvV2):
     tasks = None
     def __init__(self):
         SawyerSoccerEnvV2.__init__(self, self.tasks)

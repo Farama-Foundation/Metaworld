@@ -187,7 +187,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
-class TrainBoxClosev3(SawyerBoxCloseEnvV2):
+class TrainBoxClosev2(SawyerBoxCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerBoxCloseEnvV2.__init__(self, self.tasks)
@@ -195,7 +195,7 @@ class TrainBoxClosev3(SawyerBoxCloseEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestBoxClosev3(SawyerBoxCloseEnvV2):
+class TestBoxClosev2(SawyerBoxCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerBoxCloseEnvV2.__init__(self, self.tasks)

@@ -153,7 +153,7 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
                object_grasped,
                in_place)
 
-class TrainDrawerClosev3(SawyerDrawerCloseEnvV2):
+class TrainDrawerClosev2(SawyerDrawerCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerDrawerCloseEnvV2.__init__(self, self.tasks)
@@ -161,7 +161,7 @@ class TrainDrawerClosev3(SawyerDrawerCloseEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDrawerClosev3(SawyerDrawerCloseEnvV2):
+class TestDrawerClosev2(SawyerDrawerCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerDrawerCloseEnvV2.__init__(self, self.tasks)

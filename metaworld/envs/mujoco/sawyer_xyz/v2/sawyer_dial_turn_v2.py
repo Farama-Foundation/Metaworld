@@ -140,7 +140,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
                target_to_obj,
                object_grasped,
                in_place)
-class TrainDialTurnv3(SawyerDialTurnEnvV2):
+class TrainDialTurnv2(SawyerDialTurnEnvV2):
     tasks = None
     def __init__(self):
         SawyerDialTurnEnvV2.__init__(self, self.tasks)
@@ -148,7 +148,7 @@ class TrainDialTurnv3(SawyerDialTurnEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDialTurnv3(SawyerDialTurnEnvV2):
+class TestDialTurnv2(SawyerDialTurnEnvV2):
     tasks = None
     def __init__(self):
         SawyerDialTurnEnvV2.__init__(self, self.tasks)

@@ -204,7 +204,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             ip_orig,
         ]
 
-class TrainPegInsertionSidev3(SawyerPegInsertionSideEnvV2):
+class TrainPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
@@ -212,7 +212,7 @@ class TrainPegInsertionSidev3(SawyerPegInsertionSideEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestPegInsertionSidev3(SawyerPegInsertionSideEnvV2):
+class TestPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
     tasks = None
     def __init__(self):
         SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)

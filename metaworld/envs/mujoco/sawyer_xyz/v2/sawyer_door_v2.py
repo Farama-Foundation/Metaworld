@@ -180,7 +180,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
-class TrainDoorOpenv3(SawyerDoorEnvV2):
+class TrainDoorOpenv2(SawyerDoorEnvV2):
     tasks = None
     def __init__(self):
         SawyerDoorEnvV2.__init__(self, self.tasks)
@@ -188,7 +188,7 @@ class TrainDoorOpenv3(SawyerDoorEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorOpenv3(SawyerDoorEnvV2):
+class TestDoorOpenv2(SawyerDoorEnvV2):
     tasks = None
     def __init__(self):
         SawyerDoorEnvV2.__init__(self, self.tasks)

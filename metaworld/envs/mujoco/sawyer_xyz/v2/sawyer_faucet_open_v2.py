@@ -140,7 +140,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped,
                 in_place)
 
-class TrainFaucetOpenv3(SawyerFaucetOpenEnvV2):
+class TrainFaucetOpenv2(SawyerFaucetOpenEnvV2):
     tasks = None
     def __init__(self):
         SawyerFaucetOpenEnvV2.__init__(self, self.tasks)
@@ -148,7 +148,7 @@ class TrainFaucetOpenv3(SawyerFaucetOpenEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestFaucetOpenv3(SawyerFaucetOpenEnvV2):
+class TestFaucetOpenv2(SawyerFaucetOpenEnvV2):
     tasks = None
     def __init__(self):
         SawyerFaucetOpenEnvV2.__init__(self, self.tasks)

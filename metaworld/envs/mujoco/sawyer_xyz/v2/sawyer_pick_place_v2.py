@@ -232,7 +232,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
-class TrainPickPlacev3(SawyerPickPlaceEnvV2):
+class TrainPickPlacev2(SawyerPickPlaceEnvV2):
     tasks = None
     def __init__(self):
         SawyerPickPlaceEnvV2.__init__(self, self.tasks)
@@ -241,7 +241,7 @@ class TrainPickPlacev3(SawyerPickPlaceEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestPickPlacev3(SawyerPickPlaceEnvV2):
+class TestPickPlacev2(SawyerPickPlaceEnvV2):
     tasks = None
     def __init__(self):
         SawyerPickPlaceEnvV2.__init__(self, self.tasks)

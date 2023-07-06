@@ -151,7 +151,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
                in_place)
 
 
-class TrainWindowClosev3(SawyerWindowCloseEnvV2):
+class TrainWindowClosev2(SawyerWindowCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerWindowCloseEnvV2.__init__(self, self.tasks)
@@ -160,7 +160,7 @@ class TrainWindowClosev3(SawyerWindowCloseEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestWindowClosev3(SawyerWindowCloseEnvV2):
+class TestWindowClosev2(SawyerWindowCloseEnvV2):
     tasks = None
     def __init__(self):
         SawyerWindowCloseEnvV2.__init__(self, self.tasks)

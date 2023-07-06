@@ -184,7 +184,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             in_place
         ]
 
-class TrainShelfPlacev3(SawyerShelfPlaceEnvV2):
+class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
     tasks = None
     def __init__(self):
         SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
@@ -193,7 +193,7 @@ class TrainShelfPlacev3(SawyerShelfPlaceEnvV2):
         return super().reset(seed=seed, options=options)
 
 
-class TestShelfPlacev3(SawyerShelfPlaceEnvV2):
+class TestShelfPlacev2(SawyerShelfPlaceEnvV2):
     tasks = None
     def __init__(self):
         SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
