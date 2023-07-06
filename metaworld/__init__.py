@@ -7,7 +7,7 @@ from typing import List, NamedTuple, Type
 import numpy as np
 
 import metaworld.envs.mujoco.env_dict as _env_dict
-
+from memory_profiler import profile
 EnvName = str
 
 
@@ -77,7 +77,7 @@ _N_GOALS = 50
 def _encode_task(env_name, data):
     return Task(env_name=env_name, data=pickle.dumps(data))
 
-
+@profile
 def _make_tasks(classes, args_kwargs, kwargs_override, seed=None):
     if seed is not None:
         st0 = np.random.get_state()
@@ -115,7 +115,6 @@ def _ml1_env_names():
     tasks = list(_env_dict.ML1_V2["train"])
     assert len(tasks) == 50
     return tasks
-
 
 class ML1(Benchmark):
     ENV_NAMES = _ml1_env_names()

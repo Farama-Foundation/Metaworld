@@ -7,7 +7,6 @@ import metaworld
 from metaworld import ML1, ML10, ML45, MT10, MT50
 from tests.helpers import step_env
 STEPS = 3
-
 @pytest.mark.parametrize('env_name', ML1.ENV_NAMES)
 def test_all_ml1(env_name):
     ml1 = ML1(env_name)
@@ -213,6 +212,7 @@ def check_tasks_unique(env_names):
     env_to_rand_vecs = {}
 
     for env_name in env_names:
+        print(env_name)
         env = env_names[env_name]()
         env_to_rand_vecs[env_name] = []
         for i in range(metaworld._N_GOALS):
@@ -220,6 +220,7 @@ def check_tasks_unique(env_names):
             env_to_rand_vecs[env_name].append(env._last_rand_vec.tolist())
         unique_task_rand_vecs = np.unique(np.array(env_to_rand_vecs[env_name]), axis=0)
         assert unique_task_rand_vecs.shape[0] == metaworld._N_GOALS
+        del unique_task_rand_vecs
     return env_to_rand_vecs
 
 
@@ -233,7 +234,7 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
     for env_name, rand_vecs in env_rand_vecs.items():
         if env_name in {'hammer-v2', 'sweep-into-v2', 'bin-picking-v2', 'basketball-v2'}:
             continue
-        env = env_instances[env_name]
+        env = env_instances[env_name]()
         state_goals = []
         for rand_vec in rand_vecs:
             env._last_rand_vec = rand_vec
