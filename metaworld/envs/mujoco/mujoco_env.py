@@ -9,8 +9,6 @@ from gymnasium.utils import seeding
 import numpy as np
 from os import path
 import gymnasium as gym
-from PIL import Image
-import time
 from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
 try:
