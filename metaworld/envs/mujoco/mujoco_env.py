@@ -5,25 +5,24 @@ import warnings
 from os import path
 import glfw
 from gymnasium import error
+from gymnasium.utils import seeding
+import numpy as np
+from os import path
+import gymnasium as gym
+from PIL import Image
+import time
+from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
 try:
-    import mujoco_py
+    import mujoco
 except ImportError as e:
     raise error.DependencyNotInstalled(
-        "{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(
+        "{}. (HINT: you need to install mujoco, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(
             e
         )
     )
 
 
-from gymnasium.utils import seeding
-import numpy as np
-from os import path
-import gymnasium as gym
-import mujoco
-from PIL import Image
-import time
-from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
 
 def _assert_task_is_set(func):
