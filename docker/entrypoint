@@ -4,7 +4,7 @@
 set -ex
 
 # Set up display; otherwise rendering will fail
-Xvfb -screen 0 1024x768x24 &
+xvfb -screen 0 1024x768x24 &
 export DISPLAY=:0
 
 # Wait for the file to come up
