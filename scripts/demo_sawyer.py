@@ -477,7 +477,7 @@ def sample_sawyer_multiple_objects():
         a = np.random.uniform(-1, 1, 5)
         o, r, _, _ = env.step(a)
         if i % 100 == 0:
-            o = env.reset()
+            env.reset()
         # print(i, r)
         # print(o["state_observation"])
         # print(o["state_desired_goal"])

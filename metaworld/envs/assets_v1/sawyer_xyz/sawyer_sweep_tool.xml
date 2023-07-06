@@ -10,15 +10,15 @@
             <inertial pos="0 0 0.04" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="handle" type="box" pos="0 0 0.08" solimp="0.99 0.99 0.01"
                   size="0.01 0.01 0.06" rgba="0 0 0 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4"
             />
             <geom name="clubHead" type="box" pos="-0.02 0.01 0"
                   size="0.03 0.02 0.02" rgba="0 0 1 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4"
             />
             <!-- <geom name="clubHead" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.03 0.005 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4"
             /> -->
             <site name="handleStart" pos="0 0 0.1" size="0.01" />
         </body>
@@ -28,16 +28,16 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objGeom" type="sphere" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02" rgba="0 0 0 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4"
             />
             <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4"
             /> -->
            <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
 
-        <site name="goal" pos="0. 0.95 -0.3" size="0.02" 
+        <site name="goal" pos="0. 0.95 -0.3" size="0.02"
               rgba="0 0 0.8 1"/>
 
   </worldbody>

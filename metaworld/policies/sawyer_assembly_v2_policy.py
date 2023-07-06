@@ -52,12 +52,24 @@ class SawyerAssemblyV2Policy(Policy):
 
     @staticmethod
     def _grab_effort(o_d):
+<<<<<<< HEAD
         pos_curr = o_d['hand_pos']
         pos_wrench = o_d['wrench_pos'] + np.array([-.02, .0, .0])
         pos_peg = o_d['peg_pos'] + np.array([.12, .0, .14])
         print(abs(pos_curr[2] - pos_wrench[2]))
         if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.1:
             return 0.
+=======
+        pos_curr = o_d["hand_pos"]
+        pos_wrench = o_d["wrench_pos"] + np.array([-0.02, 0.0, 0.0])
+        # pos_peg = o_d["peg_pos"] + np.array([0.12, 0.0, 0.14])
+
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02
+            or abs(pos_curr[2] - pos_wrench[2]) > 0.12
+        ):
+            return 0.0
+>>>>>>> 3e385970c (Update CI to follow gymnasium's implementation (#418))
         # Until hovering over peg, keep hold of wrench
         else:
             return 1

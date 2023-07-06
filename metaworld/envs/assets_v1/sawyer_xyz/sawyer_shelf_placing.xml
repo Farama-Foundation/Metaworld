@@ -12,7 +12,7 @@
             />
             <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4"
             /> -->
            <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
@@ -33,7 +33,7 @@
           <site name="goal" pos="0 0 0.3" size="0.02" rgba="0 0.8 0 1"/>
           <!-- <joint type="slide" range="-0.2 0." axis="0 1 0" name="goal_slidey" pos="0 0 0" damping="1.0"/> -->
         </body>
-       
+
     </worldbody>
     <!-- <sensor>
         <touch name='rightclaw_sensor' site='rightEndEffector'/>
@@ -42,6 +42,6 @@
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
-       
+
     </actuator>
 </mujoco>

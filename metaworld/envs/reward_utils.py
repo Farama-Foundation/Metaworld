@@ -176,7 +176,10 @@ def rect_prism_tolerance(curr, zero, one):
         one(np.ndarray): The diagonal opposite corner of one, with reward 1.
             shape is (3,)
     """
-    in_range = lambda a, b, c: float(b <= a <= c) if c >= b else float(c <= a <= b)
+
+    def in_range(a, b, c):
+        return float(b <= a <= c) if c >= b else float(c <= a <= b)
+
     in_prism = (
         in_range(curr[0], zero[0], one[0])
         and in_range(curr[1], zero[1], one[1])

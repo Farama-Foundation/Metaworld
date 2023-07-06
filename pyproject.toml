@@ -25,8 +25,8 @@ classifiers = [
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
 dependencies = [
-    "gym>=0.15.4",
-    "mujoco-py<2.2,>=2.0",
+    "gymnasium>=0.28.0",
+    "mujoco",
     "numpy>=1.18",
     "scipy>=1.4.1",
 ]
@@ -36,18 +36,14 @@ dependencies = [
 testing = [
     "ipdb",
     "memory_profiler",
-    "pylint", # TODO: remove in favor of precommit?
     "pyquaternion==0.9.5",
-    "pytest>=4.4.0",  # Required for pytest-xdist
-    "pytest-xdist",
-    "pytest-cov", #TODO: test this
-    "pre-commit", #TODO: test this
+    "pytest>=4.4.0",
 ]
 
 [project.urls]
 Homepage = "https://farama.org"
 Repository = "https://github.com/Farama-Foundation/Metaworld"
-Documentation = "https://meta-world.github.io/"
+Documentation = "https://metaworld.github.io/"
 "Bug Report" = "https://github.com/Farama-Foundation/Metaworld/issues"
 
 [tool.setuptools]
@@ -65,24 +61,3 @@ safe = true
 atomic = true
 profile = "black"
 src_paths = ["metaworld", "tests"]
-
-[tool.pyright]
-# add any files/directories with type declaration to include
-include = [
-    "metaworld/",
-]
-strict = [
-]
-verboseOutput = true
-typeCheckingMode = "basic"
-reportMissingImports = false
-# TODO: fix these
-reportUnboundVariable = false
-reportOptionalMemberAccess = false
-reportGeneralTypeIssues = false
-reportOptionalSubscript = false
-
-[tool.pytest.ini_options]
-norecursedirs = [
-    "metaworld"
-]

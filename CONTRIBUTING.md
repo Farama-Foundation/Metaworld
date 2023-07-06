@@ -7,7 +7,7 @@ We particularly welcome contributions of additional tasks that thematically fit 
 ### Checklist for adding new tasks
 
 Ensure that your task and pull request:
-* [ ] Can be performed by a real robot arm 
+* [ ] Can be performed by a real robot arm
 * [ ] Is dissimilar from current tasks
 * [ ] Contains meaningful internal variation (e.g. different object positions, etc.)
 * [ ] Conforms to the action space, observation space, and reward functions conventions used by Meta-World environments
@@ -35,7 +35,7 @@ These criteria may be satisfied in any order, but in practice your PR is unlikel
 ## Preparing your repo to make contributions
 First, install the Metaworld locally in editable mode, with testing dependencies:
 
-``` 
+```
 pip install -e .[dev]
 ```
 
@@ -68,7 +68,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
 
 * Add convenience imports in `__init__.py` of a package for shallow first-level repetitive imports, but not for subpackages, even if that subpackage is defined in a single `.py` file.
 
-    For instance, if an import line reads `from 
+    For instance, if an import line reads `from
     .foo.bar import Bar` then you should add `from metaworld.foo.bar import Bar` to `metaworld/foo/__init__.py` so that users may instead write `from metaworld.foo import Bar`. However, if an import line reads `from metaworld.foo.bar.stuff import Baz`, *do not* add `from metaworld.foo.bar.stuff import Baz` to `metaworld/foo/__init__.py`, because that obscures the `stuff` subpackage.
 
     *Do*

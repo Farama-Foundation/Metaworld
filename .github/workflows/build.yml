@@ -1,0 +1,22 @@
+name: build
+on: [pull_request, push]
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+           docker build -f docker/Dockerfile \
+             --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
+             --tag metaworld-docker .
+      - name: Run tests
+        run: docker run metaworld-docker pytest tests/*
+#      - name: Run doctests
+#        run: docker run metaworld-docker pytest --doctest-modules metaworld/

@@ -126,9 +126,9 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             sigmoid="long_tail",
         )
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, in_place
-        )
+        # in_place_and_object_grasped = reward_utils.hamacher_product(
+        #     object_grasped, in_place
+        # )
         reward = 1.5 * object_grasped
 
         if tcp[2] <= 0.03 and tcp_to_obj < 0.07:

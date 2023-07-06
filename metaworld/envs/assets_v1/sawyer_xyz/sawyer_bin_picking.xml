@@ -8,11 +8,11 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 1 0 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4"
             />
             <!-- <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
                   size="0.02 0.02 0.02" rgba="0 0 1 1" solref="0.01 1"
-                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4" 
+                  contype="1" conaffinity="1" friction="2 0.1 0.002" condim="4"
             /> -->
            <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
@@ -44,7 +44,7 @@
           <!-- <joint type="slide" range="-10.3213 10.3" axis="1 0 0" name="goal_slidex" pos="0 0 0" damping="1.0"/> -->
         </body>
 
-       
+
     </worldbody>
     <!-- <sensor>
         <touch name='rightclaw_sensor' site='rightEndEffector'/>
@@ -53,6 +53,6 @@
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
-       
+
     </actuator>
 </mujoco>

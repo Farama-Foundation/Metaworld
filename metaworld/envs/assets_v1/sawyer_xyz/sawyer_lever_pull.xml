@@ -12,7 +12,7 @@
           <site name="leverStart" pos="0 -0.1 0.03" size="0.005" rgba="1 0 0 1"/>
         </body>
 
-        <site name="goal" pos="0. 0.75 -0.12" size="0.02" 
+        <site name="goal" pos="0. 0.75 -0.12" size="0.02"
               rgba=".8 0 0 1"/>
 
 <!--         <body name="box" pos="0 0.8 0.05">
