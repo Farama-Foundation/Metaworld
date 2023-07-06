@@ -59,14 +59,12 @@ class SawyerMocapBase(mjenv_gym):
         self.set_state(mocap_pos, mocap_quat)
 
     def __getstate__(self):
-        print('__getstate__')
         state = self.__dict__.copy()
         # del state['model']
         # del state['data']
         return {'state': state, 'mjb': self.model_name, 'mocap':self.get_env_state()}
 
     def __setstate__(self, state):
-        print('__setstate__')
         self.__dict__ = state['state']
         mjenv_gym.__init__(self, state['mjb'], frame_skip=self.frame_skip, observation_space=self.observation_space)
         self.set_env_state(state['mocap'])

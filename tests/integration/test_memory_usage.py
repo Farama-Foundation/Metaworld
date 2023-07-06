@@ -1,7 +1,6 @@
 import gymnasium
 import memory_profiler
 import pytest
-
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 from tests.helpers import step_env
 
@@ -28,7 +27,6 @@ def mt50_usage():
         profile[env_cls] = max(memory_usage)
 
     return profile
-
 
 @pytest.mark.skip
 @pytest.mark.parametrize('env_cls', ALL_V2_ENVIRONMENTS.values())
