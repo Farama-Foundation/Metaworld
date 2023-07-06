@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get -y update \
     && apt-get install --no-install-recommends -y \
     libglu1-mesa-dev libgl1-mesa-dev libosmesa6-dev \
-    xvfb unzip patchelf ffmpeg cmake swig \
+    xvfb unzip patchelf ffmpeg cmake swig git\
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -16,5 +16,7 @@ COPY . /usr/local/metaworld/
 WORKDIR /usr/local/metaworld/
 
 RUN pip install .[testing]
+RUN git clone https://github.com/reginald-mclean/Gymnasium.git
+RUN pip install -e Gymnasium
 
 ENTRYPOINT ["/usr/local/metaworld/docker/entrypoint"]

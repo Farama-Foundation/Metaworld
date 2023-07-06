@@ -215,7 +215,6 @@ def check_tasks_unique(env_names):
     for env_name in env_names:
         env = env_names[env_name]()
         env_to_rand_vecs[env_name] = []
-        print(len(env.tasks))
         for i in range(metaworld._N_GOALS):
             env.reset()
             env_to_rand_vecs[env_name].append(env._last_rand_vec.tolist())
