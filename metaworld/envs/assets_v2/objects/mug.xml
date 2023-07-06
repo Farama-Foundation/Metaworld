@@ -4,7 +4,7 @@
     <worldbody>
       <body pos="0 .6 .2">
         <freejoint/>
-        
+
         <include file="assets/mug.xml"/>
       </body>
     </worldbody>

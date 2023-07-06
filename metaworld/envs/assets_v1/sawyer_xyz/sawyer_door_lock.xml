@@ -24,9 +24,9 @@
                 <site name="lockStartLock" pos="0.1 -0.04 0.075" size="0.005" rgba="1 1 1 1"/>
                 <site name="lockStartUnlock" pos="0.1 -0.04 0.065" size="0.005" rgba="0 0 0 1"/>
         </body>
-        <site name="goal_lock" pos="0.005 0.81 0.07" size="0.01" 
+        <site name="goal_lock" pos="0.005 0.81 0.07" size="0.01"
               rgba="0 0.8 0 1"/>
-        <site name="goal_unlock" pos="0.1 0.81 0.165" size="0.01" 
+        <site name="goal_unlock" pos="0.1 0.81 0.165" size="0.01"
               rgba="0 0 0.8 1"/>
     </worldbody>
 

@@ -253,7 +253,7 @@
             <geom name="puck-goal-marker" type="sphere" pos="0 0 0" size="0.02"
                   rgba=".9 .1 .1 0" contype="0" conaffinity="8"/>
             <site name="puck-goal-site" pos="0 0 0" size="0.01" rgba="1 0 0 1" />
-            
+
         </body>
     </worldbody>
 

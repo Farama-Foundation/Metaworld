@@ -39,7 +39,7 @@
           <geom rgba="0.3 0.3 1 1" type="capsule" fromto="-0.103 -0.103 0.0075 -0.103 -0.103 0.2" contype="2" size="0.005" conaffinity="2" material="light_wood_v2"/>
           <!-- <joint type="slide" range="-0.2 0." axis="0 1 0" name="goal_slidey" pos="0 0 0" damping="1.0"/> -->
         </body>
-        <site name="goal" pos="0. 0.7 0.05" size="0.02" 
+        <site name="goal" pos="0. 0.7 0.05" size="0.02"
               rgba="0 0.8 0 1"/>
     </worldbody>
 

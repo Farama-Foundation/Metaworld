@@ -86,7 +86,7 @@ Usage:
             cone="elliptic"
     /> -->
 
-    <option timestep='0.0025' iterations="100" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>     
+    <option timestep='0.0025' iterations="100" tolerance="1e-10" solver="Newton" jacobian="dense" cone="elliptic"/>
 
     <!-- <default>
         <joint limited="true"
@@ -128,7 +128,7 @@ Usage:
                user="0"/>
         <geom solref="0.02 1"
               solimp="1 1 0"
-             
+
               />
         <motor ctrllimited="true" ctrlrange="-1 1"/>
         <position ctrllimited="true"/>

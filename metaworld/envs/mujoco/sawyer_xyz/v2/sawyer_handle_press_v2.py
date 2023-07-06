@@ -106,7 +106,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         del actions
 
-        objPos = obs[4:7]
+        # objPos = obs[4:7]
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()

@@ -118,12 +118,12 @@ class SawyerReachEnvV2(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened = obs[3]
+        # obj = obs[4:7]
+        # tcp_opened = obs[3]
         target = self._target_pos
 
         tcp_to_target = np.linalg.norm(tcp - target)
-        obj_to_target = np.linalg.norm(obj - target)
+        # obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = np.linalg.norm(self.hand_init_pos - target)
         in_place = reward_utils.tolerance(

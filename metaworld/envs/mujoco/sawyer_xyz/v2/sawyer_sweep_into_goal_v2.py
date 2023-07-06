@@ -49,7 +49,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        obj = obs[4:7]
+        # obj = obs[4:7]
         (
             reward,
             tcp_to_obj,

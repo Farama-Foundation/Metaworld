@@ -1,65 +1,32 @@
-ARG PARENT_IMAGE=ubuntu:20.04
-FROM $PARENT_IMAGE
+# A Dockerfile that sets up a full Gymnasium install with test dependencies
+ARG PYTHON_VERSION
+FROM python:$PYTHON_VERSION
 
-# apt dependencies
-RUN \
-  apt-get -y -q update && \
-  # Prevents debconf from prompting for user input
-  # See https://github.com/phusion/baseimage-docker/issues/58
-  DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    # Dockerfile deps
-    git \
-    curl \
-    python3 \
-    python3-venv \
-    python3-dev \
-    # mujoco_py
-    # See https://github.com/openai/mujoco-py/blob/master/Dockerfile
-    libglew-dev \
-    libosmesa6-dev \
-    patchelf \
-    # OpenAI baselines
-    libopenmpi-dev \
-    # virtualenv
-    libbz2-dev \
-    libreadline-dev \
-    libssl-dev \
-    libsqlite3-dev \
-    xvfb \
-    pulseaudio && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/* && \
-  mkdir -p -m 1777 /tmp/.X11-unix
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG user=metaworld-user
-ARG uid=999
-RUN groupadd -g $uid $user && \
-    useradd -m -r -u $uid -g $user $user && \
-    chown -R $user:$user /home/$user
-ENV USER $user
-USER $user
-ENV HOME /home/$user
-WORKDIR $HOME
+RUN apt-get -y update \
+    && apt-get install --no-install-recommends -y \
+    libglu1-mesa-dev libgl1-mesa-dev libosmesa6-dev \
+    xvfb unzip patchelf ffmpeg cmake swig \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    # Download mujoco
+    && mkdir /root/.mujoco \
+    && cd /root/.mujoco \
+    && wget -qO- 'https://github.com/deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz' | tar -xzvf -
 
-RUN mkdir -p $HOME/.mujoco && \
-  curl -O https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz && \
-  tar xf mujoco210-linux-x86_64.tar.gz --directory $HOME/.mujoco
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin"
 
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$HOME/.mujoco/mujoco210/bin
+# Build mujoco-py from source. Pypi installs wheel packages and Cython won't recompile old file versions in the Github Actions CI.
+# Thus generating the following error https://github.com/cython/cython/pull/4428
+RUN git clone https://github.com/openai/mujoco-py.git\
+    && cd mujoco-py \
+    && pip install -e .
 
-RUN python3 -m venv $HOME/venv
+COPY . /usr/local/metaworld/
+WORKDIR /usr/local/metaworld/
 
-# Copy setup.py/config.cfg/pyproject.toml first, so that the Docker cache doesn't expire until
-# dependencies change
-COPY --chown=$USER:$USER setup.py $HOME/code/metaworld/setup.py
-COPY --chown=$USER:$USER pyproject.toml $HOME/code/metaworld/pyproject.toml
+RUN pip install .[testing]
 
-WORKDIR $HOME/code/metaworld
-
-# Install metaworld dependencies
-RUN . $HOME/venv/bin/activate && exec pip install -e .[testing]
-
-# Add code stub last
-COPY --chown=$USER:$USER . $HOME/code/metaworld
-
-ENTRYPOINT ["docker/entrypoint-headless.sh"]
+ENTRYPOINT ["/usr/local/metaworld/docker/entrypoint"]

@@ -8,15 +8,15 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objGeom" type="box" pos="0 0 0"
                   size="0.02 0.02 0.02" rgba="0 0 1 1"
-                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3" 
+                  contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3"
             />
            <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
 
 
-        <!-- <site name="goal" pos="0.3 0.9 0.03" size="0.02" 
+        <!-- <site name="goal" pos="0.3 0.9 0.03" size="0.02"
               rgba="1 0.5 0.5 0"/> -->
-        <site name="goal" pos="0.3 0.9 0.05" size="0.02" 
+        <site name="goal" pos="0.3 0.9 0.05" size="0.02"
               rgba="0 0.8 0 1"/>
 
         <!-- <site name="goalSpace" pos="0 0.75 0.02" size="0.02"
@@ -40,7 +40,7 @@
         <site name="goal_m6" pos="-0.17 0.6 0.02" size="0.02"
               rgba="1 0 0 1"/> -->
 
-       
+
     </worldbody>
     <!-- <sensor>
         <touch name='rightclaw_sensor' site='rightEndEffector'/>
@@ -49,6 +49,6 @@
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="rc_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="lc_close" kp="400"  user="1"/>
-       
+
     </actuator>
 </mujoco>

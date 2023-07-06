@@ -2,10 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import _assert_task_is_set
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_door_v2 import SawyerDoorEnvV2
 
 
@@ -67,7 +64,7 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
         target = self._target_pos
 
         tcp_to_target = np.linalg.norm(tcp - target)
-        tcp_to_obj = np.linalg.norm(tcp - obj)
+        # tcp_to_obj = np.linalg.norm(tcp - obj)
         obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
