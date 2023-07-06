@@ -30,7 +30,7 @@ class SawyerMocapBase(mjenv_gym):
     }
 
     def __init__(self, model_name, frame_skip=5):
-        mjenv_gym.__init__(self, model_name, frame_skip=frame_skip, observation_space=self.observation_space)
+        mjenv_gym.__init__(self, model_name, frame_skip=frame_skip, observation_space=self.sawyer_observation_space)
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
 
@@ -66,7 +66,7 @@ class SawyerMocapBase(mjenv_gym):
 
     def __setstate__(self, state):
         self.__dict__ = state['state']
-        mjenv_gym.__init__(self, state['mjb'], frame_skip=self.frame_skip, observation_space=self.observation_space)
+        mjenv_gym.__init__(self, state['mjb'], frame_skip=self.frame_skip, observation_space=self.sawyer_observation_space)
         self.set_env_state(state['mocap'])
 
     def reset_mocap_welds(self):
@@ -444,7 +444,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         )
 
     @property
-    def observation_space(self):
+    def sawyer_observation_space(self):
         obs_obj_max_len = 14
         obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float64)
         obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float64)
@@ -490,8 +490,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self._last_stable_obs = self._get_obs()
 
         self._last_stable_obs = np.clip(self._last_stable_obs,
-                                        a_max=self.observation_space.high,
-                                        a_min=self.observation_space.low,
+                                        a_max=self.sawyer_observation_space.high,
+                                        a_min=self.sawyer_observation_space.low,
                                         dtype=np.float64)
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         done = True if int(info['success']) == 1 else False
