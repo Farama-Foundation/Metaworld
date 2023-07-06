@@ -3,10 +3,8 @@ import copy
 import os.path
 import warnings
 from os import path
-
 import glfw
 from gymnasium import error
-from gym.utils import seeding
 
 try:
     import mujoco_py
