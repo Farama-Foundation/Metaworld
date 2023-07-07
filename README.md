@@ -2,6 +2,27 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Farama-Foundation/metaworld/blob/master/LICENSE)
 ![Build Status](https://github.com/Farama-Foundation/Metaworld/workflows/MetaWorld%20CI/badge.svg)
 
+# This repo is currently undergoing major changes and the master branch may not be 100% functional
+Previous functional versions of Meta-World can be found in the releases section. v2.0.0 is the code before Farama Foundation started updating the repo
+As of right now we have removed the previous API of setting tasks that can be seen in the code examples below. The current API is as follows:
+```python
+import metaworld
+
+ml10 = metaworld.ML10() # Construct the benchmark, sampling tasks
+
+training_envs = []
+for name, env_cls in ml10.train_classes.items():
+  env = env_cls()
+  training_envs.append(env) # an environment's task does not need to be set manually, they will be created and then passed to the environment 
+
+for env in training_envs:
+  obs = env.reset()  # Reset environment (note that a new goal will be sampled for that environment by default)
+  a = env.action_space.sample()  # Sample an action
+  obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+```
+If you do find any bugs/issues please open an issue!
+
+
 __Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.__ We aim to provide task distributions that are sufficiently broad to evaluate meta-RL algorithms' generalization ability to new behaviors.
 
 For more background information, please refer to our [website](https://meta-world.github.io) and the accompanying [conference publication](https://arxiv.org/abs/1910.10897), which **provides baseline results for 8 state-of-the-art meta- and multi-task RL algorithms**.

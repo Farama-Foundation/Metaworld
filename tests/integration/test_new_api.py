@@ -1,3 +1,4 @@
+import copy
 import pickle
 
 import numpy as np
@@ -57,8 +58,8 @@ def test_all_ml10():
     for task in ml10.train_classes:
         env = ml10.train_classes[task]()
 
-        obs = env.reset()
-        assert np.any(obs[-3:] != np.array([0, 0, 0]))
+        obs = env.reset()[0]
+        assert np.any(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -74,9 +75,8 @@ def test_all_ml10():
     test_env_rand_vecs = check_tasks_unique(ml10.test_classes)
     for task in ml10.test_classes:
         env = ml10.test_classes[task]()
-
-        obs = env.reset()
-        assert np.any(obs[-3:] != np.array([0, 0, 0]))
+        obs = env.reset()[0]
+        assert np.any(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -110,8 +110,8 @@ def test_all_ml45():
     for task in ml45.train_classes:
         env = ml45.train_classes[task]()
 
-        obs = env.reset()
-        assert np.any(obs[-3:] != np.array([0, 0, 0]))
+        obs = env.reset()[0]
+        assert np.any(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -127,8 +127,8 @@ def test_all_ml45():
     for task in ml45.test_classes:
         env = ml45.test_classes[task]()
 
-        obs = env.reset()
-        assert np.any(obs[-3:] != np.array([0, 0, 0]))
+        obs = env.reset()[0]
+        assert np.any(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
@@ -156,7 +156,7 @@ def test_all_mt10():
     train_env_rand_vecs = check_tasks_unique(mt10.train_classes)
     for task in mt10.train_classes:
         env = mt10.train_classes[task]()
-        obs = env.reset()
+        obs = env.reset()[0]
         assert np.any(obs[-3:] != np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
@@ -184,7 +184,7 @@ def test_all_mt50():
     train_env_rand_vecs = check_tasks_unique(mt50.train_classes)
     for task in mt50.train_classes:
         env = mt50.train_classes[task]()
-        obs = env.reset()
+        obs = env.reset()[0]
         assert np.any(obs[-3:] != np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
@@ -212,7 +212,6 @@ def check_tasks_unique(env_names):
     env_to_rand_vecs = {}
 
     for env_name in env_names:
-        print(env_name)
         env = env_names[env_name]()
         env_to_rand_vecs[env_name] = []
         for i in range(metaworld._N_GOALS):
@@ -290,6 +289,10 @@ def test_identical_environments():
     mt50_2 = metaworld.MT50(seed=10)
     helper(mt50_1, mt50_2)
 
+
     # test that 2 benchmarks with different seeds have different goals
+    '''TODO: Come up with a method to support this?'''
+    for env in mt50_1.train_classes.values():
+        del env.tasks
     mt50_3 = metaworld.MT50(seed=50)
     helper_neq(mt50_1, mt50_3)

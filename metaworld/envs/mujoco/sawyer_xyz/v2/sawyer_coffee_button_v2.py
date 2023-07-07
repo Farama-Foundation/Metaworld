@@ -27,7 +27,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         )
 
         if tasks is not None:
-            self.tasks = None
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.9, 0.28]),
