@@ -60,19 +60,20 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     env.reset_model()
     o, info = env.reset()
     assert o.shape == env.observation_space.shape
-    print(env, env._partially_observable, o, env.observation_space.low, env.observation_space.high)
     assert env.observation_space.contains(o), obs_space_error_text(env, o)
+
 
     for _ in range(env.max_path_length):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 
         o, r, terminated, truncated, info = env.step(a)
+        done = terminated or truncated
         assert env.observation_space.contains(o), obs_space_error_text(env, o)
+        if done:
+            return r, done, info
         if render:
             env.render()
-
-        yield r, truncated or terminated, info
 
 
 def obs_space_error_text(env, obs):
