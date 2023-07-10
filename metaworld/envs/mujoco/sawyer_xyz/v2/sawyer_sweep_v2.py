@@ -86,7 +86,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_pos = self.init_config["obj_init_pos"]
         self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()

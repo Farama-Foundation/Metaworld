@@ -155,7 +155,9 @@ def env(request):
     return e
 
 
-@pytest.mark.parametrize("env,policy,act_noise_pct,expected_success_rate", test_cases, indirect=["env"])
+@pytest.mark.parametrize(
+    "env,policy,act_noise_pct,expected_success_rate", test_cases, indirect=["env"]
+)
 def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iters=100):
     """Tests whether a given policy solves an environment in a stateless manner
     Args:
@@ -168,9 +170,11 @@ def test_scripted_policy(env, policy, act_noise_pct, expected_success_rate, iter
             must be successful
         iters (int): How many times the policy should be tested
     """
-    assert len(vars(policy)) == 0, "{} has state variable(s)".format(policy.__class__.__name__)
+    assert len(vars(policy)) == 0, f"{policy.__class__.__name__} has state variable(s)"
 
     successes = 0
     for _ in range(iters):
-        successes += float(trajectory_summary(env, policy, act_noise_pct, render=False)[0])
+        successes += float(
+            trajectory_summary(env, policy, act_noise_pct, render=False)[0]
+        )
     assert successes >= expected_success_rate * iters

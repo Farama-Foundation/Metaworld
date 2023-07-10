@@ -204,6 +204,7 @@ class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestAssemblyv2(SawyerNutAssemblyEnvV2):
     tasks = None
 

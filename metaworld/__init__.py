@@ -132,14 +132,15 @@ class ML1(Benchmark):
         self._train_ = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
-        self._train_tasks = _make_tasks(self._train_classes,
-                                        {env_name: args_kwargs},
-                                        _ML_OVERRIDE,
-                                        seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=seed
+        )
         self._test_tasks = _make_tasks(
-            self._test_classes, {env_name: args_kwargs},
+            self._test_classes,
+            {env_name: args_kwargs},
             _ML_OVERRIDE,
-            seed=(seed + 1 if seed is not None else seed))
+            seed=(seed + 1 if seed is not None else seed),
+        )
 
 
 class MT1(Benchmark):
@@ -178,7 +179,6 @@ class ML10(Benchmark):
         )
 
 
-
 class ML45(Benchmark):
     def __init__(self, seed=None):
         super().__init__()
@@ -193,7 +193,6 @@ class ML45(Benchmark):
         self._test_tasks = _make_tasks(
             self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
         )
-
 
 
 class MT10(Benchmark):

@@ -30,7 +30,7 @@ class SawyerDoorCloseV2Policy(Policy):
 
     @staticmethod
     def _desired_pos(o_d):
-        # pos_curr = o_d["hand_pos"]
+        pos_curr = o_d["hand_pos"]
         pos_door = o_d["door_pos"]
         pos_door += np.array([0.05, 0.12, 0.1])
         pos_goal = o_d["goal_pos"]

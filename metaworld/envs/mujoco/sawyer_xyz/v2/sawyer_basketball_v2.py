@@ -14,7 +14,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
     PAD_SUCCESS_MARGIN = 0.06
     TARGET_RADIUS = 0.08
 
-    def __init__(self, tasks=None):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.0299)
@@ -26,6 +26,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
 
         if tasks is not None:

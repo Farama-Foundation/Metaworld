@@ -4,7 +4,9 @@ import time
 import numpy as np
 
 import metaworld
-from metaworld.policies.sawyer_door_lock_v2_policy import SawyerDoorLockV2Policy as policy
+from metaworld.policies.sawyer_door_lock_v2_policy import (
+    SawyerDoorLockV2Policy as policy,
+)
 
 np.set_printoptions(suppress=True)
 

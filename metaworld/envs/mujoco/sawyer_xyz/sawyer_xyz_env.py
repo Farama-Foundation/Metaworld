@@ -28,12 +28,13 @@ class SawyerMocapBase(mjenv_gym):
         "render_fps": 80,
     }
 
-    def __init__(self, model_name, frame_skip=5):
+    def __init__(self, model_name, frame_skip=5, render_mode=None):
         mjenv_gym.__init__(
             self,
             model_name,
             frame_skip=frame_skip,
             observation_space=self.sawyer_observation_space,
+            render_mode=render_mode,
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
@@ -113,6 +114,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         mocap_high=None,
         action_scale=1.0 / 100,
         action_rot_scale=1.0,
+        render_mode=None,
     ):
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -140,7 +142,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._partially_observable = True
 
-        super().__init__(model_name, frame_skip=frame_skip)
+        super().__init__(model_name, frame_skip=frame_skip, render_mode=render_mode)
 
         mujoco.mj_forward(
             self.model, self.data
@@ -193,6 +195,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.observation_space.seed(seed)
         self.goal_space.seed(seed)
         return [seed]
+
     @staticmethod
     def _set_task_inner():
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
@@ -201,15 +204,14 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     def set_task(self, task):
         self._set_task_called = True
         data = pickle.loads(task.data)
-        assert isinstance(self, data['env_cls'])
-        del data['env_cls']
-        self._last_rand_vec = data['rand_vec']
+        assert isinstance(self, data["env_cls"])
+        del data["env_cls"]
+        self._last_rand_vec = data["rand_vec"]
         self._freeze_rand_vec = True
-        self._last_rand_vec = data['rand_vec']
-        del data['rand_vec']
-        self._partially_observable = data['partially_observable']
-        print(self, self._partially_observable, data['partially_observable'])
-        del data['partially_observable']
+        self._last_rand_vec = data["rand_vec"]
+        del data["rand_vec"]
+        self._partially_observable = data["partially_observable"]
+        del data["partially_observable"]
         self._set_task_inner(**data)
 
     def set_xyz_action(self, action):
