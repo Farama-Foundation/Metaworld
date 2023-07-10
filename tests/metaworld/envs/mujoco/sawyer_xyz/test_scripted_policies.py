@@ -1,9 +1,8 @@
 import pytest
 
-from metaworld.envs.mujoco.env_dict import ALL_V1_ENVIRONMENTS, ALL_V2_ENVIRONMENTS
+from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 from metaworld.policies import *
 from tests.metaworld.envs.mujoco.sawyer_xyz.utils import trajectory_summary
-
 
 test_cases_old_nonoise = [
     # This should contain configs where a V2 policy is running in a V1 env.
@@ -220,7 +219,8 @@ test_cases = []
 for row in test_cases_latest_nonoise:
     test_cases.append(pytest.param(*row, marks=pytest.mark.skip))
 for row in test_cases_latest_noisy:
-    test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
+    if 'v1' not in row[0]:
+        test_cases.append(pytest.param(*row, marks=pytest.mark.basic))
 
 ALL_ENVS = {**ALL_V2_ENVIRONMENTS}
 

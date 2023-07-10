@@ -4,7 +4,10 @@ from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerDoorLockEnvV2(SawyerXYZEnv):
@@ -24,7 +27,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
             self.tasks = tasks
 
         self.init_config = {
-            "obj_init_pos": np.array([0, 0.85, 0.15]),
+            "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
             "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0, 0.85, 0.1])
@@ -88,13 +91,12 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         door_pos = self._get_state_rand_vec()
-
         self.model.body("door").pos = door_pos
-        mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
 
+        for _ in range(self.frame_skip):
+            mujoco.mj_step(self.model, self.data)
         self.obj_init_pos = self.data.body("lock_link").xpos
         self._target_pos = self.obj_init_pos + np.array([0.0, -0.04, -0.1])
-
         return self._get_obs()
 
     def compute_reward(self, action, obs):
@@ -127,16 +129,20 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
 
-class TrainDoorLockv3(SawyerDoorLockEnvV2):
+
+class TrainDoorLockv2(SawyerDoorLockEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorLockEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorLockv3(SawyerDoorLockEnvV2):
+
+class TestDoorLockv2(SawyerDoorLockEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorLockEnvV2.__init__(self, self.tasks)
 

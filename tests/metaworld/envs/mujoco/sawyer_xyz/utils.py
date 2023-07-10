@@ -21,14 +21,14 @@ def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=
 
     for t, (r, done, info) in enumerate(trajectory_generator(env, policy, act_noise_pct, render)):
         rewards.append(r)
-        assert not env.isV2 or set(info.keys()) == {
-            "success",
-            "near_object",
-            "grasp_success",
-            "grasp_reward",
-            "in_place_reward",
-            "obj_to_target",
-            "unscaled_reward",
+        assert set(info.keys()) == {
+            'success',
+            'near_object',
+            'grasp_success',
+            'grasp_reward',
+            'in_place_reward',
+            'obj_to_target',
+            'unscaled_reward'
         }
         success |= bool(info["success"])
         if not success:
@@ -55,11 +55,12 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         (float, bool, dict): Reward, Done flag, Info dictionary
     """
     action_space_ptp = env.action_space.high - env.action_space.low
-
+    env._partially_observable = True
     env.reset()
     env.reset_model()
-    o = env.reset()
+    o, info = env.reset()
     assert o.shape == env.observation_space.shape
+    print(env, env._partially_observable, o, env.observation_space.low, env.observation_space.high)
     assert env.observation_space.contains(o), obs_space_error_text(env, o)
 
     for _ in range(env.max_path_length):
@@ -71,8 +72,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         if render:
             env.render()
 
-        done = terminated or truncated
-        yield r, done, info
+        yield r, truncated or terminated, info
 
 
 def obs_space_error_text(env, obs):

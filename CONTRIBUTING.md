@@ -7,7 +7,7 @@ We particularly welcome contributions of additional tasks that thematically fit 
 ### Checklist for adding new tasks
 
 Ensure that your task and pull request:
-* [ ] Can be performed by a real robot arm 
+* [ ] Can be performed by a real robot arm
 * [ ] Is dissimilar from current tasks
 * [ ] Contains meaningful internal variation (e.g. different object positions, etc.)
 * [ ] Conforms to the action space, observation space, and reward functions conventions used by Meta-World environments
@@ -33,7 +33,13 @@ To be submitted, a pull request must satisfy the following criteria:
 These criteria may be satisfied in any order, but in practice your PR is unlikely to get attention from contributors until 1-3 are satisfied. Maintainer attention is a scarce resource, so generally maintainers wait for a review from a non-maintainer contributor before reviewing your PR.
 
 ## Preparing your repo to make contributions
-After following the standard Meta-World setup steps, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
+First, install the Metaworld locally in editable mode, with testing dependencies:
+
+```
+pip install -e .[dev]
+```
+
+Then, make sure to run to install the pre-commit hooks into your repository. pre-commit helps streamline the pull request process by catching basic problems locally before they are checked by the CI.
 
 To setup pre-commit in your repo:
 ```sh
@@ -42,12 +48,10 @@ To setup pre-commit in your repo:
 # pipenv shell
 # poetry shell
 # source venv/bin/activate
-pre-commit install -t pre-commit
-pre-commit install -t pre-push
-pre-commit install -t commit-msg
+pre-commit install
 ```
 
-Once you've installed pre-commit, it will automatically run every time you type `git commit`.
+Once you've installed pre-commit, it will automatically run every time you type `git commit`, or you can run it manually using `pre-commit run --all-files`.
 
 ## Code style
 The Python code in metaworld conforms to the [PEP8](https://www.python.org/dev/peps/pep-0008/) standard. Please read and understand it in detail.
@@ -64,7 +68,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
 
 * Add convenience imports in `__init__.py` of a package for shallow first-level repetitive imports, but not for subpackages, even if that subpackage is defined in a single `.py` file.
 
-    For instance, if an import line reads `from 
+    For instance, if an import line reads `from
     .foo.bar import Bar` then you should add `from metaworld.foo.bar import Bar` to `metaworld/foo/__init__.py` so that users may instead write `from metaworld.foo import Bar`. However, if an import line reads `from metaworld.foo.bar.stuff import Baz`, *do not* add `from metaworld.foo.bar.stuff import Baz` to `metaworld/foo/__init__.py`, because that obscures the `stuff` subpackage.
 
     *Do*
@@ -172,7 +176,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     m = MLPModel(output_dim=2)
     ```
 
-    *Known community-concensus imports*
+    *Known community-consensus imports*
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

@@ -1,18 +1,23 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
+
 
 class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
-    """
+    """SawyerHandlePressSideEnv.
+
     Motivation for V2:
         V1 was very difficult to solve because the end effector's wrist has a
         nub that got caught on the box before pushing the handle all the way
         down. There are a number of ways to fix this, e.g. moving box to right
-        sie of table, extending handle's length, decreasing handle's damping,
+        side of table, extending handle's length, decreasing handle's damping,
         or moving the goal position slightly upward. I just the last one.
     Changelog from V1 to V2:
         - (8/05/20) Updated to new XML
@@ -61,7 +66,14 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        (reward, tcp_to_obj, _, target_to_obj, object_grasped, in_place) = self.compute_reward(action, obs)
+        (
+            reward,
+            tcp_to_obj,
+            _,
+            target_to_obj,
+            object_grasped,
+            in_place,
+        ) = self.compute_reward(action, obs)
 
         info = {
             "success": float(target_to_obj <= self.TARGET_RADIUS),
@@ -97,7 +109,9 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
         self.obj_init_pos = self._get_state_rand_vec()
 
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = self.obj_init_pos
         self._set_obj_xyz(-0.001)
         self._target_pos = self._get_site_pos("goalPress")
         self._handle_init_pos = self._get_pos_objects()
@@ -106,7 +120,6 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
         del actions
-
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()
@@ -140,16 +153,20 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
-class TrainHandlePressSidev3(SawyerHandlePressSideEnvV2):
+
+class TrainHandlePressSidev2(SawyerHandlePressSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestHandlePressSidev3(SawyerHandlePressSideEnvV2):
+
+class TestHandlePressSidev2(SawyerHandlePressSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
 

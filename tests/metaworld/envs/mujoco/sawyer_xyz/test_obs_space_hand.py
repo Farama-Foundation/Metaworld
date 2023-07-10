@@ -55,7 +55,7 @@ def test_reaching_limit(target):
 
     env.reset()
     env.reset_model()
-    o_prev = env.reset()
+    o_prev, info = env.reset()
 
     for _ in range(env.max_path_length):
         a = policy.get_action(o_prev)
@@ -64,4 +64,4 @@ def test_reaching_limit(target):
             break
         o_prev = o
 
-    assert SawyerXYZEnv._HAND_SPACE.contains(o[:3]), SawyerXYZEnv._HAND_SPACE
+    assert SawyerXYZEnv._HAND_SPACE.contains(o[:3])

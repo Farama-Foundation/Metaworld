@@ -114,7 +114,7 @@ Usage:
                                         <body name="right_hand" pos="0 0 0.0245" quat="0.707107 0 0 0.707107">
                                             <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                                             <geom type="mesh" contype="1" conaffinity="1" group="1" rgba="0.5 0.1 0.1 1" pos= "0 0 0.03" mesh="eGripperBase" />
-                                            
+
                                             <geom size="0.035 0.014" pos="0 0 0.015" type="cylinder" rgba="0 0 0 1"/>
                                             <!-- <geom size="0.035 0.015" pos="0 0 0.02" type="cylinder" rgba="0.2 0.2 0.2 0"/> -->
 
@@ -150,8 +150,8 @@ Usage:
                                                 <body name="rightclaw" pos="0 -0.05 0" >
 
                                                     <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015"  rgba="1 1 1 1.0"   />
-                                            
-                                                    <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.04" armature="100" damping="1000" limited="true"  type="slide"/> 
+
+                                                    <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.04" armature="100" damping="1000" limited="true"  type="slide"/>
                                                     <!-- <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true"  type="slide"/>  -->
 
                                                     <!-- <site name="rightEndEffector" pos="0.0 0.005 0" size="0.044 0.008 0.012" type='box' /> -->
@@ -173,7 +173,7 @@ Usage:
                                                     <body name="leftpad" pos ="0 -.003 0" >
                                                         <geom name="leftpad_geom" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.003 0.015" rgba="0 1 1 1.0" solimp="0.99 0.99 0.01" solref="0.01 1"  contype="1" conaffinity="1" friction="1.5 0.1 0.002"/>
                                                     </body>
-                                      
+
                                                 </body>
                                             </body>
 <!--  ================= END GRIPPER ================= /-->

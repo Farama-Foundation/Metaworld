@@ -7,13 +7,13 @@
         <body name="obj" pos="0 0.6 0.02">
             <joint name="objjoint" type="free" limited='false' damping="1" armature="0" />
             <inertial pos="0 0 0" mass=".1" diaginertia=".1 .1 .1"/>
-                <geom name="objGeom" 
-                  mesh="mug_mesh" 
-                  conaffinity="1" 
-                  contype="1" 
+                <geom name="objGeom"
+                  mesh="mug_mesh"
+                  conaffinity="1"
+                  contype="1"
                   friction=".1 .005 .0001"
-                  density="1384.7" 
-                  type="mesh" 
+                  density="1384.7"
+                  type="mesh"
                   material="navy_blue"
                   solimp="0.99 0.99 0.01"
                   solref="0.01 1"

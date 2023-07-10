@@ -36,7 +36,7 @@
           <geom rgba="0.3 0.3 1 1" type="box" contype="1" size="0.0499 0.03 0.2" name="wall_left" conaffinity="1" pos="-0.1501 0 0.23" mass="1000" solimp="0.99 0.99 0.01" solref="0.01 1" friction="1 0.1 0.002" condim="3"/>
           <geom rgba="0.3 0.3 1 1" type="box" contype="1" size="0.0499 0.03 0.2" name="wall_right" conaffinity="1" pos="0.1501 0 0.23" mass="1000" solimp="0.99 0.99 0.01" solref="0.01 1" friction="1 0.1 0.002" condim="3"/>
         </body>
-        <site name="goal" pos="0. 0.7 0.27" size="0.02" 
+        <site name="goal" pos="0. 0.7 0.27" size="0.02"
               rgba="0 0.8 0 1"/>
     </worldbody>
 

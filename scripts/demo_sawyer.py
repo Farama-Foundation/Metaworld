@@ -1,45 +1,64 @@
 #!/usr/bin/env python3
 
+import argparse
 import time
+
 import glfw
 import numpy as np
-import argparse
 
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_multiple_objects import MultiSawyerEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_wsg import (
+    SawyerPickAndPlaceWsgEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import (
+    SawyerPushAndReachXYEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    SawyerPushAndReachXYZDoublePuckEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj import SawyerTwoObjectEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import (
+    SawyerPushAndReachXYEasyEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import (
+    SawyerReachEnv,
+    SawyerReachXYZEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_rope import SawyerRopeEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_assembly_peg import SawyerNutAssemblyEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_bin_picking import SawyerBinPickingEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_box_close import SawyerBoxCloseEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_box_open import SawyerBoxOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_button_press import SawyerButtonPressEnv
-from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_button_press_topdown import SawyerButtonPressTopdownEnv
+from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_button_press_topdown import (
+    SawyerButtonPressTopdownEnv,
+)
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_dial_turn import SawyerDialTurnEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_door import SawyerDoorEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_door_close import SawyerDoorCloseEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_drawer_close import SawyerDrawerCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_drawer_open import SawyerDrawerOpenEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_hammer import SawyerHammerEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_hand_insert import SawyerHandInsertEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_laptop_close import SawyerLaptopCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_lever_pull import SawyerLeverPullEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_multiple_objects import MultiSawyerEnv
-from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_peg_insertion_side import SawyerPegInsertionSideEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place_wsg import SawyerPickAndPlaceWsgEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import SawyerPushAndReachXYEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import SawyerPushAndReachXYZDoublePuckEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj import SawyerTwoObjectEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEasyEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYZEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachEnv
-from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_reach_push_pick_place import SawyerReachPushPickPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_rope import SawyerRopeEnv
+from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_peg_insertion_side import (
+    SawyerPegInsertionSideEnv,
+)
+from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_reach_push_pick_place import (
+    SawyerReachPushPickPlaceEnv,
+)
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_shelf_place import SawyerShelfPlaceEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_stack import SawyerStackEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_stick_pull import SawyerStickPullEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_stick_push import SawyerStickPushEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_sweep import SawyerSweepEnv
-from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_sweep_into_goal import SawyerSweepIntoGoalEnv
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_throw import SawyerThrowEnv
+from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_sweep_into_goal import (
+    SawyerSweepIntoGoalEnv,
+)
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_window_close import SawyerWindowCloseEnv
 from metaworld.envs.mujoco.sawyer_xyz.v1.sawyer_window_open import SawyerWindowOpenEnv
 
@@ -86,8 +105,8 @@ def sample_sawyer_box_close():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(10):
-            env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
-            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.data.set_mocap_pos("mocap", np.array([0, 0.8, 0.25]))
+            env.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
             env.do_simulation([-1, 1], env.frame_skip)
             # self.do_simulation(None, self.frame_skip)
         for _ in range(100):
@@ -115,9 +134,9 @@ def sample_sawyer_box_open():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(10):
-            env.data.set_mocap_pos('mocap', np.array([0, 0.8, 0.25]))
+            env.data.set_mocap_pos("mocap", np.array([0, 0.8, 0.25]))
             # env.data.set_mocap_pos('mocap', np.array([0, 0.6, 0.25]))
-            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
             env.do_simulation([-1, 1], env.frame_skip)
             # self.do_simulation(None, self.frame_skip)
         for _ in range(100):
@@ -150,7 +169,7 @@ def sample_sawyer_button_press_6d0f():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            print(env.data.site_xpos[env.model.site_name2id('buttonStart')])
+            print(env.data.site_xpos[env.model.site_name2id("buttonStart")])
             env.render()
             # env.step(env.action_space.sample())
             # if _ < 10:
@@ -181,7 +200,7 @@ def sample_sawyer_button_press_topdown_6d0f():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            print(env.data.site_xpos[env.model.site_name2id('buttonStart')])
+            print(env.data.site_xpos[env.model.site_name2id("buttonStart")])
             env.render()
             # env.step(env.action_space.sample())
             # if _ < 10:
@@ -212,7 +231,7 @@ def sample_sawyer_dial_turn():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            print(env.data.site_xpos[env.model.site_name2id('dialStart')])
+            print(env.data.site_xpos[env.model.site_name2id("dialStart")])
             env.render()
             # env.step(env.action_space.sample())
             # if _ < 10:
@@ -257,16 +276,6 @@ def sample_sawyer_door_hook():
     close(env)
 
 
-def sample_sawyer_door():
-    env = SawyerDoorEnv()
-    for _ in range(100):
-        env.render()
-        action = env.action_space.sample()
-        env.step(action)
-        time.sleep(0.05)
-    close(env)
-
-
 def sample_sawyer_drawer_close():
     env = SawyerDrawerCloseEnv()
     for _ in range(1):
@@ -278,8 +287,8 @@ def sample_sawyer_drawer_close():
         #     #self.do_simulation(None, self.frame_skip)
         env._set_obj_xyz(np.array([-0.2, 0.8, 0.05]))
         for _ in range(10):
-            env.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.05]))
-            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.data.set_mocap_pos("mocap", np.array([0, 0.5, 0.05]))
+            env.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
             env.do_simulation([-1, 1], env.frame_skip)
             # self.do_simulation(None, self.frame_skip)
         for _ in range(50):
@@ -303,8 +312,8 @@ def sample_sawyer_drawer_open():
         #     #self.do_simulation(None, self.frame_skip)
         env._set_obj_xyz(np.array([-0.2, 0.8, 0.05]))
         for _ in range(10):
-            env.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.05]))
-            env.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            env.data.set_mocap_pos("mocap", np.array([0, 0.5, 0.05]))
+            env.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
             env.do_simulation([-1, 1], env.frame_skip)
         # self.do_simulation(None, self.frame_skip)
         for _ in range(50):
@@ -402,7 +411,7 @@ def sample_sawyer_lever_pull():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            print(env.data.site_xpos[env.model.site_name2id('basesite')])
+            print(env.data.site_xpos[env.model.site_name2id("basesite")])
             env.render()
             # env.step(env.action_space.sample())
             # if _ < 10:
@@ -468,7 +477,7 @@ def sample_sawyer_multiple_objects():
         a = np.random.uniform(-1, 1, 5)
         o, r, _, _ = env.step(a)
         if i % 100 == 0:
-            o = env.reset()
+            env.reset()
         # print(i, r)
         # print(o["state_observation"])
         # print(o["state_desired_goal"])
@@ -540,11 +549,19 @@ def sample_sawyer_peg_insertion_side():
         #     env.do_simulation([-1,1], env.frame_skip)
         #     #self.do_simulation(None, self.frame_skip)
         for _ in range(100):
-            print('Before:', env.sim.model.site_pos[env.model.site_name2id('hole')] + env.sim.model.body_pos[
-                env.model.body_name2id('box')])
-            env.sim.model.body_pos[env.model.body_name2id('box')] = np.array([-0.3, np.random.uniform(0.5, 0.9), 0.05])
-            print("After: ", env.sim.model.site_pos[env.model.site_name2id('hole')] + env.sim.model.body_pos[
-                env.model.body_name2id('box')])
+            print(
+                "Before:",
+                env.sim.model.site_pos[env.model.site_name2id("hole")]
+                + env.sim.model.body_pos[env.model.body_name2id("box")],
+            )
+            env.sim.model.body_pos[env.model.body_name2id("box")] = np.array(
+                [-0.3, np.random.uniform(0.5, 0.9), 0.05]
+            )
+            print(
+                "After: ",
+                env.sim.model.site_pos[env.model.site_name2id("hole")]
+                + env.sim.model.body_pos[env.model.body_name2id("box")],
+            )
             env.render()
             env.step(env.action_space.sample())
             # if _ < 10:
@@ -559,16 +576,6 @@ def sample_sawyer_peg_insertion_side():
             # env.step(np.array([np.random.uniform(low=-1., high=1.), np.random.uniform(low=-1., high=1.), 0.]))
             time.sleep(0.05)
     close(env)
-
-
-def sample_sawyer_pick_and_place():
-    env = SawyerPickAndPlaceEnv()
-    env.reset()
-    for _ in range(200):
-        env.render()
-        env.step(env.action_space.sample())
-        time.sleep(0.05)
-    glfw.destroy_window(env.viewer.window)
 
 
 def sample_sawyer_pick_and_place():
@@ -606,17 +613,8 @@ def sample_sawyer_push_and_reach_two_pucks():
     env.reset()
     for i in range(100):
         env.render()
-        env.set_goal({'state_desired_goal': np.array([1, 1, 1, 1, 1, 1, 1])})
+        env.set_goal({"state_desired_goal": np.array([1, 1, 1, 1, 1, 1, 1])})
         env.step(env.action_space.sample())
-    glfw.destroy_window(env.viewer.window)
-
-
-def sample_sawyer_push_multiobj():
-    env = SawyerTwoObjectEnv()
-    for _ in range(100):
-        env.render()
-        env.step(np.array([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]))
-        time.sleep(0.05)
     glfw.destroy_window(env.viewer.window)
 
 
@@ -636,16 +634,6 @@ def sample_sawyer_push_nips():
         env.render()
         env.step(env.action_space.sample())
         time.sleep(0.05)
-    glfw.destroy_window(env.viewer.window)
-
-
-def sample_sawyer_reach():
-    env = SawyerReachXYZEnv()
-    for i in range(100):
-        if i % 100 == 0:
-            env.reset()
-        env.step(np.array([0, 1, 1]))
-        env.render()
     glfw.destroy_window(env.viewer.window)
 
 
@@ -818,8 +806,10 @@ demos = {
     SawyerWindowOpenEnv: sample_sawyer_window_open,
 }
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run sample test of one specific environment!')
-    parser.add_argument('--env', help='The environment name wanted to be test.')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Run sample test of one specific environment!"
+    )
+    parser.add_argument("--env", help="The environment name wanted to be test.")
     env_cls = globals()[parser.parse_args().env]
     demos[env_cls]()

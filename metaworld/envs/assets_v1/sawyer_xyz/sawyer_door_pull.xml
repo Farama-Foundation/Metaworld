@@ -14,7 +14,7 @@
                 <!--front-->
                 <geom type="box" pos="0.14 -0.075 0.05" size="0.01 0.075 0.02" rgba="0 0 0 1" contype="1" conaffinity="1" material="light_wood"/>
         </body>
-        <site name="goal" pos="-0.2 0.6 0.15" size="0.02" 
+        <site name="goal" pos="-0.2 0.6 0.15" size="0.02"
               rgba="0 0.8 0 1"/>
     </worldbody>
 

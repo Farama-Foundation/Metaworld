@@ -20,11 +20,17 @@ __Table of Contents__
 - [Acknowledgements](#acknowledgements)
 
 ## Join the Community
-Meta-World is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ) 
+<<<<<<< HEAD
+Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ)
+
+## Maintenance Status
+The current roadmap for Meta-World can be found [here](https://github.com/Farama-Foundation/Metaworld/issues/409)
+
 ## Installation
 To install everything, run:
 
-```sh
+
+```
 pip install git+https://github.com/Farama-Foundation/Metaworld.git@master#egg=metaworld
 ```
 
@@ -34,6 +40,11 @@ Alternatively, you can clone the repository and install an editable version loca
 git clone https://github.com/Farama-Foundation/Metaworld.git
 cd Metaworld
 pip install -e .
+```
+
+For users attempting to reproduce results found in the Meta-World paper please use this command:
+```
+pip install git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
 ```
 
 ## Using the benchmark
@@ -63,12 +74,12 @@ You may wish to only access individual environments used in the Metaworld benchm
 
 ### Seeding a Benchmark Instance
 For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
-You can do so in the following way:
+For example, for the ML1 benchmark environment with the 'pick-place-v2' environment, you can do so in the following way:
 ```python
 import metaworld
 
 SEED = 0  # some seed number here
-benchmark = metaworld.BENCHMARK(seed=SEED)
+benchmark = metaworld.ML1('pick-place-v2', seed=SEED)
 ```
 
 ### Running ML1 or MT1
@@ -78,9 +89,9 @@ import random
 
 print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
 
-ml1 = metaworld.ML1('pick-place-v1') # Construct the benchmark, sampling tasks
+ml1 = metaworld.ML1('pick-place-v2') # Construct the benchmark, sampling tasks
 
-env = ml1.train_classes['pick-place-v1']()  # Create an environment with task `pick_place`
+env = ml1.train_classes['pick-place-v2']()  # Create an environment with task `pick_place`
 task = random.choice(ml1.train_tasks)
 env.set_task(task)  # Set task
 
@@ -165,7 +176,7 @@ env2.reset()
 a1 = env1.action_space.sample()  # Sample an action
 a2 = env2.action_space.sample()
 next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
-next_obs2, _, _, _ = env2.step(a2)  
+next_obs2, _, _, _ = env2.step(a2)
 assert (next_obs1[-3:] == next_obs2[-3:]).all() # 2 envs initialized with the same seed will have the same goal
 assert not (next_obs2[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
 
@@ -175,7 +186,8 @@ env3.reset()
 a1 = env1.action_space.sample()  # Sample an action
 a3 = env3.action_space.sample()
 next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
-next_obs3, _, _, _ = env3.step(a3)  
+next_obs3, _, _, _ = env3.step(a3)
+
 
 assert not (next_obs1[-3:] == next_obs3[-3:]).all() # 2 envs initialized with different seeds will have different goals
 assert not (next_obs1[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
@@ -199,7 +211,11 @@ If you use Meta-World for academic research, please kindly cite our CoRL 2019 pa
 ```
 
 ## Accompanying Baselines
-If you're looking for implementations of the baselines algorithms used in the Meta-World conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage). 
+<<<<<<< HEAD
+If you're looking for implementations of the baselines algorithms used in the Meta-World conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage).
+=======
+If you're looking for implementations of the baselines algorithms used in the Metaworld conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage).
+>>>>>>> 3e385970c (Update CI to follow gymnasium's implementation (#418))
 Note that these aren't the exact same baselines that were used in the original conference publication, however they are true to the original baselines.
 
 ## Become a Contributor

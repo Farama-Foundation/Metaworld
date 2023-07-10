@@ -1,0 +1,64 @@
+# Package ######################################################################
+
+[build-system]
+requires = ["setuptools >= 61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metaworld"
+version = "2.0.0"
+description = "Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning."
+readme = "README.md"
+requires-python = ">= 3.8"
+authors = [{ name = "Farama Foundation", email = "contact@farama.org" }]
+license = { text = "MIT License" }
+keywords = ["Reinforcement Learning", "game", "RL", "AI", "gymnasium"]
+classifiers = [
+    "Development Status :: 4 - Beta",  # change to `5 - Production/Stable` when ready
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+]
+dependencies = [
+    "gymnasium>=0.28.0",
+    "mujoco",
+    "numpy>=1.18",
+    "scipy>=1.4.1",
+    "imageio"
+]
+
+[project.optional-dependencies]
+# Update dependencies in `all` if any are added or removed
+testing = [
+    "ipdb",
+    "memory_profiler",
+    "pyquaternion==0.9.5",
+    "pytest>=4.4.0",
+]
+
+[project.urls]
+Homepage = "https://farama.org"
+Repository = "https://github.com/Farama-Foundation/Metaworld"
+Documentation = "https://metaworld.github.io/"
+"Bug Report" = "https://github.com/Farama-Foundation/Metaworld/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["metaworld", "metaworld.*"]
+
+# Linters and Test tools #######################################################
+
+[tool.black]
+safe = true
+
+[tool.isort]
+atomic = true
+profile = "black"
+src_paths = ["metaworld", "tests"]

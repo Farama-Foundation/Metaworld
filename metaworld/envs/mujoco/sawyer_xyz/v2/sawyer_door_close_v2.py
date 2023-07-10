@@ -3,8 +3,11 @@ from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
 from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerDoorCloseEnvV2(SawyerXYZEnv):
@@ -53,7 +56,9 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("handle").xmat.reshape(3, 3)
+        ).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.copy()
@@ -65,12 +70,11 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
         self.objHeight = self.data.geom("handle").xpos[2]
-
         obj_pos = self._get_state_rand_vec()
         self.obj_init_pos = obj_pos
         goal_pos = obj_pos.copy() + np.array([0.2, -0.2, 0.0])
         self._target_pos = goal_pos
-        
+
         self.model.body("door").pos = self.obj_init_pos
         self.model.site("goal").pos = self._target_pos
 
@@ -100,7 +104,7 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         target = self._target_pos
 
         tcp_to_target = np.linalg.norm(tcp - target)
-        tcp_to_obj = np.linalg.norm(tcp - obj)
+        # tcp_to_obj = np.linalg.norm(tcp - obj)
         obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
@@ -126,16 +130,20 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
 
         return [reward, obj_to_target, hand_in_place]
 
-class TrainDoorClosev3(SawyerDoorCloseEnvV2):
+
+class TrainDoorClosev2(SawyerDoorCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorCloseEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorClosev3(SawyerDoorCloseEnvV2):
+
+class TestDoorClosev2(SawyerDoorCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorCloseEnvV2.__init__(self, self.tasks)
 

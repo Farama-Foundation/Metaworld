@@ -22,7 +22,7 @@ def test_reset_returns_same_obj_and_goal():
         # Step through environment for a fixed number of episodes.
         for _ in range(2):
             # Reset environment and extract initial object position.
-            obs = env.reset()
+            obs, info = env.reset()
             goal = obs[-3:]
             goal_poses[env_name].append(goal)
             initial_obj_pos = obs[3:9]
@@ -36,6 +36,7 @@ def test_reset_returns_same_obj_and_goal():
     violating_envs_goals = []
     for env_name, target_pos in goal_poses.items():
         if len(np.unique(np.array(target_pos), axis=0)) > 1:
+            print(env_name, target_pos)
             violating_envs_goals.append(env_name)
     assert not violating_envs_obs
     assert not violating_envs_goals

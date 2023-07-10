@@ -4,7 +4,10 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
@@ -80,7 +83,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("handle").xmat.reshape(3, 3)
+        ).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.copy()
@@ -91,7 +96,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-
         self.objHeight = self.data.geom("handle").xpos[2]
 
         self.obj_init_pos = self._get_state_rand_vec()
@@ -100,7 +104,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.model.body("door").pos = self.obj_init_pos
         self.model.site("goal").pos = self._target_pos
         self._set_obj_xyz(0)
-        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
+        self.maxPullDist = np.linalg.norm(
+            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
+        )
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
         return self._get_obs()
@@ -178,16 +184,21 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
-class TrainDoorOpenv3(SawyerDoorEnvV2):
+
+
+class TrainDoorOpenv2(SawyerDoorEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorOpenv3(SawyerDoorEnvV2):
+
+class TestDoorOpenv2(SawyerDoorEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorEnvV2.__init__(self, self.tasks)
 

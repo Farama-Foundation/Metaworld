@@ -2,17 +2,23 @@ import abc
 import copy
 import os.path
 import warnings
+from os import path
 
 import glfw
-from gymnasium import error
-from gymnasium.utils import seeding
-import numpy as np
-from os import path
 import gymnasium as gym
-import mujoco
-from PIL import Image
-import time
+import numpy as np
+from gymnasium import error
 from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
+from gymnasium.utils import seeding
+
+try:
+    import mujoco
+except ImportError as e:
+    raise error.DependencyNotInstalled(
+        "{}. (HINT: you need to install mujoco, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(
+            e
+        )
+    )
 
 
 def _assert_task_is_set(func):
@@ -20,10 +26,10 @@ def _assert_task_is_set(func):
         env = args[0]
         if not env._set_task_called:
             raise RuntimeError(
-                'You must call env.set_task before using env.'
-                + func.__name__
+                "You must call env.set_task before using env." + func.__name__
             )
         return func(*args, **kwargs)
+
     return inner
 
 
@@ -31,8 +37,7 @@ DEFAULT_SIZE = 500
 
 
 class MujocoEnv(gym.Env, abc.ABC):
-    """
-    This is a simplified version of the gym MujocoEnv class.
+    """This is a simplified version of the gym MujocoEnv class.
 
     Some differences are:
      - Do not automatically set the observation/action space.
@@ -41,9 +46,8 @@ class MujocoEnv(gym.Env, abc.ABC):
     max_path_length = 500
 
     def __init__(self, model_path, frame_skip=5):
-        import mujoco
         if not path.exists(model_path):
-            raise IOError("File %s does not exist" % model_path)
+            raise OSError("File %s does not exist" % model_path)
 
         self.frame_skip = frame_skip
         self.model = mujoco.MjModel.from_xml_path(filename=model_path)
@@ -53,18 +57,16 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.renderer = None
         self.scene = None
         self.metadata = {
-            'render.modes': ['human'],
-            'video.frames_per_second': int(np.round(1.0 / self.dt))
+            "render.modes": ["human"],
+            "video.frames_per_second": int(np.round(1.0 / self.dt)),
         }
 
         self.init_qvel = self.data.qvel.ravel().copy()
         self.init_qpos = self.data.qpos.ravel().copy()
 
         self._did_see_sim_exception = False
-        
-        self.mujoco_renderer = MujocoRenderer(
-            self.model, self.data
-        )
+
+        self.mujoco_renderer = MujocoRenderer(self.model, self.data)
         self.np_random, _ = seeding.np_random(None)
 
     def seed(self, seed):
@@ -77,17 +79,16 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     @abc.abstractmethod
     def reset_model(self):
-        """
-        Reset the robot degrees of freedom (qpos and qvel).
+        """Reset the robot degrees of freedom (qpos and qvel).
+
         Implement this in each subclass.
         """
         pass
 
     def viewer_setup(self):
-        """
-        This method is called when the viewer is initialized and after every reset
-        Optionally implement this method, if you need to tinker with camera position
-        and so forth.
+        """This method is called when the viewer is initialized and after every reset.
+
+        Optionally implement this method, if you need to tinker with camera position and so forth.
         """
         pass
 
@@ -114,8 +115,10 @@ class MujocoEnv(gym.Env, abc.ABC):
         return self.model.opt.timestep * self.frame_skip
 
     def do_simulation(self, ctrl, n_frames=None):
-        if getattr(self, 'curr_path_length', 0) > self.max_path_length:
-            raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
+        if getattr(self, "curr_path_length", 0) > self.max_path_length:
+            raise ValueError(
+                "Maximum path length allowed by the benchmark has been exceeded"
+            )
         if self._did_see_sim_exception:
             return
 
@@ -127,13 +130,8 @@ class MujocoEnv(gym.Env, abc.ABC):
         except mujoco.mjr_getError() as err:
             warnings.warn(str(err), category=RuntimeWarning)
             self._did_see_sim_exception = True
-    
-    def render(
-        self,
-        offscreen=False,
-        camera_id=None,
-        camera_name="gripperPOV"
-    ):
+
+    def render(self, offscreen=False, camera_id=None, camera_name="gripperPOV"):
         """Renders a frame of the simulation in a specific format and camera view.
         Parameters:
             offscreen:
@@ -144,16 +142,15 @@ class MujocoEnv(gym.Env, abc.ABC):
             camera_id: The integer camera id from which to render the frame in the MuJoCo simulation
             camera_name: The string name of the camera from which to render the frame in the MuJoCo simulation. This argument should not be passed if using cameara_id instead and vice versa
 
+
         Returns:
             If render_mode is "rgb_array" or "depth_arra" it returns a numpy array in the specified format. "human" render mode does not return anything.
         """
         if not offscreen:
-            render_mode = 'human'
+            render_mode = "human"
         else:
-            render_mode = 'rgb_array'
-        return self.mujoco_renderer.render(
-            render_mode, camera_id, camera_name
-            )
+            render_mode = "rgb_array"
+        return self.mujoco_renderer.render(render_mode, camera_id, camera_name)
 
     def close(self):
         if self.viewer is not None:
@@ -162,13 +159,14 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     def get_body_com(self, body_name):
         try:
-            return self.data.geom(body_name + '_geom').xpos
+            return self.data.geom(body_name + "_geom").xpos
         except:
             try:
-                return self.data.geom(body_name + 'Geom').xpos
+                return self.data.geom(body_name + "Geom").xpos
             except:
                 try:
                     return self.data.body(body_name).xpos
                 except:
-                    assert 1 == 2, body_name + ' not found. Something is wrong. Please open a PR'
-
+                    assert 1 == 2, (
+                        body_name + " not found. Something is wrong. Please open a PR"
+                    )

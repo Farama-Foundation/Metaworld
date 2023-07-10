@@ -3,11 +3,15 @@ from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerBinPickingEnvV2(SawyerXYZEnv):
-    """
+    """SawyerBinPickingEnv.
+
     Motivation for V2:
         V1 was often unsolvable because the cube could be located outside of
         the starting bin. It could even be near the base of the Sawyer and out
@@ -20,7 +24,6 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
     """
 
     def __init__(self, tasks=None):
-
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.21, 0.65, 0.02)
@@ -37,14 +40,14 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = task
         self.init_config = {
-            'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([-0.12, 0.7, 0.02]),
-            'hand_init_pos': np.array((0, 0.6, 0.2)),
+            "obj_init_angle": 0.3,
+            "obj_init_pos": np.array([-0.12, 0.7, 0.02]),
+            "hand_init_pos": np.array((0, 0.6, 0.2)),
         }
         self.goal = np.array([0.12, 0.7, 0.02])
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        self.hand_init_pos = self.init_config['hand_init_pos']
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.obj_init_angle = self.init_config["obj_init_angle"]
+        self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._target_to_obj_init = None
 
@@ -66,7 +69,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_bin_picking.xml')
+        return full_v2_path_for("sawyer_xyz/sawyer_bin_picking.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -76,17 +79,17 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             grasp_success,
             obj_to_target,
             grasp_reward,
-            in_place_reward
+            in_place_reward,
         ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(obj_to_target <= 0.05),
-            'near_object': float(near_object),
-            'grasp_success': float(grasp_success),
-            'grasp_reward': grasp_reward,
-            'in_place_reward': in_place_reward,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward,
+            "success": float(obj_to_target <= 0.05),
+            "near_object": float(near_object),
+            "grasp_success": float(grasp_success),
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
 
         return reward, info
@@ -96,26 +99,26 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         return []
 
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id('objGeom')
+        return self.unwrapped.model.geom_name2id("objGeom")
 
     def _get_pos_objects(self):
-        return self.get_body_com('obj')
+        return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.data.body('obj').xquat
+        return self.data.body("obj").xquat
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.init_config['obj_init_pos']
-        self.obj_init_angle = self.init_config['obj_init_angle']
-        obj_height = self.get_body_com('obj')[2]
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.obj_init_angle = self.init_config["obj_init_angle"]
+        obj_height = self.get_body_com("obj")[2]
 
         self.obj_init_pos = self._get_state_rand_vec()[:2]
         self.obj_init_pos = np.concatenate((self.obj_init_pos, [obj_height]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self._target_pos = self.get_body_com('bin_goal')
+        self._target_pos = self.get_body_com("bin_goal")
         self._target_to_obj_init = None
 
         return self._get_obs()
@@ -132,28 +135,33 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             target_to_obj,
             bounds=(0, self.TARGET_RADIUS),
             margin=self._target_to_obj_init,
-            sigmoid='long_tail',
+            sigmoid="long_tail",
         )
 
         threshold = 0.03
         radii = [
             np.linalg.norm(hand[:2] - self.obj_init_pos[:2]),
-            np.linalg.norm(hand[:2] - self._target_pos[:2])
+            np.linalg.norm(hand[:2] - self._target_pos[:2]),
         ]
         # floor is a *pair* of 3D funnels centered on (1) the object's initial
         # position and (2) the desired final position
-        floor = min([
-            0.02 * np.log(radius - threshold) + 0.2
-            if radius > threshold else 0.0
-            for radius in radii
-        ])
+        floor = min(
+            [
+                0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0
+                for radius in radii
+            ]
+        )
         # prevent the hand from running into the edge of the bins by keeping
         # it above the "floor"
-        above_floor = 1.0 if hand[2] >= floor else reward_utils.tolerance(
-            max(floor - hand[2], 0.0),
-            bounds=(0.0, 0.01),
-            margin=0.05,
-            sigmoid='long_tail',
+        above_floor = (
+            1.0
+            if hand[2] >= floor
+            else reward_utils.tolerance(
+                max(floor - hand[2], 0.0),
+                bounds=(0.0, 0.01),
+                margin=0.05,
+                sigmoid="long_tail",
+            )
         )
 
         object_grasped = self._gripper_caging_reward(
@@ -174,12 +182,10 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         # Increase reward when properly grabbed obj
         grasp_success = near_object and lifted and not pinched_without_obj
         if grasp_success:
-            reward += 1. + 5. * reward_utils.hamacher_product(
-                above_floor, in_place
-            )
+            reward += 1.0 + 5.0 * reward_utils.hamacher_product(above_floor, in_place)
         # Maximize reward on success
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.
+            reward = 10.0
 
         return (
             reward,
@@ -187,19 +193,23 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             grasp_success,
             target_to_obj,
             object_grasped,
-            in_place
+            in_place,
         )
 
-class TrainBinPickingv3(SawyerBinPickingEnvV2):
+
+class TrainBinPickingv2(SawyerBinPickingEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerBinPickingEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestBinPickingv3(SawyerBinPickingEnvV2):
+
+class TestBinPickingv2(SawyerBinPickingEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerBinPickingEnvV2.__init__(self, self.tasks)
 

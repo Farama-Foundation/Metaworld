@@ -3,7 +3,10 @@ from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
@@ -92,7 +95,6 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-
         self.model.body("door").pos = self._get_state_rand_vec()
         self._set_obj_xyz(1.5708)
 
@@ -142,16 +144,20 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             pushed,
         )
 
-class TrainDoorUnlockv3(SawyerDoorUnlockEnvV2):
+
+class TrainDoorUnlockv2(SawyerDoorUnlockEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
-class TestDoorUnlockv3(SawyerDoorUnlockEnvV2):
+
+class TestDoorUnlockv2(SawyerDoorUnlockEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
 

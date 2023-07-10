@@ -1,7 +1,7 @@
 import os
 
-ENV_ASSET_DIR_V1 = os.path.join(os.path.dirname(__file__), 'assets_v1')
-ENV_ASSET_DIR_V2 = os.path.join(os.path.dirname(__file__), 'assets_v2')
+ENV_ASSET_DIR_V1 = os.path.join(os.path.dirname(__file__), "assets_v1")
+ENV_ASSET_DIR_V2 = os.path.join(os.path.dirname(__file__), "assets_v2")
 
 
 def full_v1_path_for(file_name):

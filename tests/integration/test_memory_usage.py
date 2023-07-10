@@ -1,4 +1,4 @@
-import gymnasium
+import gymnasium as gym
 import memory_profiler
 import pytest
 
@@ -44,14 +44,14 @@ def test_max_memory_usage(env_cls, mt50_usage):
 @pytest.mark.skip
 def test_avg_memory_usage():
     # average usage no greater than 60MB/env
-    target = (build_and_step_all, [ALL_V1_ENVIRONMENTS.values()], {})
+    target = (build_and_step_all, [ALL_V2_ENVIRONMENTS.values()], {})
     usage = memory_profiler.memory_usage(target)
-    average = max(usage) / len(ALL_V1_ENVIRONMENTS)
+    average = max(usage) / len(ALL_V2_ENVIRONMENTS)
     assert average < 60
 
 
 @pytest.mark.skip
 def test_from_task_memory_usage():
-    target = (ALL_V1_ENVIRONMENTS['reach-v1'], (), {})
+    target = (ALL_V2_ENVIRONMENTS['reach-v1'], (), {})
     usage = memory_profiler.memory_usage(target)
     assert max(usage) < 250
