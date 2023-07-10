@@ -4,7 +4,10 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
@@ -80,20 +83,20 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return self.data.body('obj').xquat
 
     def _get_pos_objects(self):
-        return self.get_body_com('obj')
+        return self.data.body("obj").xpos
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config['obj_init_pos']
-        self.objHeight = self.get_body_com('obj')[2]
+        self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()
         self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(self.get_body_com('obj')[:-1] - self._target_pos[:-1])
+        self.maxPushDist = np.linalg.norm(self._get_pos_objects()[:-1] - self._target_pos[:-1])
         self.target_reward = 1000*self.maxPushDist + 1000*2
 
         return self._get_obs()

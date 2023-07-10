@@ -99,7 +99,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
         
-        self.data.body('puck_goal').xpos = self._target_pos
+        self.model.body('puck_goal').pos = self._target_pos
         self._set_obj_xyz(np.zeros(2))
 
         return self._get_obs()
