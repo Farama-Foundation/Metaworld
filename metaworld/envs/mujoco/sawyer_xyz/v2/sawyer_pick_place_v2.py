@@ -24,6 +24,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -99,13 +100,15 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     @property
     def _get_id_main_object(self):
-        return self.data.geom('objGeom').id
+        return self.data.geom("objGeom").id
 
     def _get_pos_objects(self):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.geom('objGeom').xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("objGeom").xmat.reshape(3, 3)
+        ).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not
@@ -131,8 +134,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
         self.obj_init_pos = goal_pos[:3]
         self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
+        self.init_left_pad = self.get_body_com("leftpad")
+        self.init_right_pad = self.get_body_com("rightpad")
 
         self._set_obj_xyz(self.obj_init_pos)
 
@@ -232,8 +235,10 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
+
 class TrainPickPlacev2(SawyerPickPlaceEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickPlaceEnvV2.__init__(self, self.tasks)
 
@@ -243,6 +248,7 @@ class TrainPickPlacev2(SawyerPickPlaceEnvV2):
 
 class TestPickPlacev2(SawyerPickPlaceEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickPlaceEnvV2.__init__(self, self.tasks)
 

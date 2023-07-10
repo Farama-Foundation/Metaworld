@@ -1,10 +1,14 @@
+import mujoco
 import numpy as np
-from gymnasium.spaces import  Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
+
 
 class SawyerWindowCloseEnvV2(SawyerXYZEnv):
     """SawyerWindowCloseEnv.
@@ -18,7 +22,9 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             (for consistency with other environments)
         - (6/15/20) Increased max_path_length from 150 to 200
     """
+
     TARGET_RADIUS = 0.05
+
     def __init__(self, tasks=None):
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -98,12 +104,15 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos.copy()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'window')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "window")
+        ] = self.obj_init_pos
 
-        self.window_handle_pos_init = (self._get_pos_objects()
-            + np.array([0.2, 0., 0.]))
-        self.data.joint('window_slide').qpos = 0.2
-
+        self.window_handle_pos_init = self._get_pos_objects() + np.array(
+            [0.2, 0.0, 0.0]
+        )
+        self.data.joint("window_slide").qpos = 0.2
+        mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
     def _reset_hand(self):
@@ -142,17 +151,13 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         object_grasped = reach
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
-        
-        return (reward,
-               tcp_to_obj,
-               tcp_opened,
-               target_to_obj,
-               object_grasped,
-               in_place)
+
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
 
 class TrainWindowClosev2(SawyerWindowCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerWindowCloseEnvV2.__init__(self, self.tasks)
 
@@ -162,6 +167,7 @@ class TrainWindowClosev2(SawyerWindowCloseEnvV2):
 
 class TestWindowClosev2(SawyerWindowCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerWindowCloseEnvV2.__init__(self, self.tasks)
 

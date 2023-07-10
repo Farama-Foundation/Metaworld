@@ -1,14 +1,17 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
+
 
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
-
     def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
@@ -25,7 +28,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         if tasks is not None:
             self.tasks = tasks
-
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -84,13 +86,13 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.geom('objGeom').xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
@@ -98,21 +100,29 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config['obj_init_pos'])
-        self.obj_init_angle = self.init_config['obj_init_angle']
-
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
+        self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         base_shelf_pos = goal_pos - np.array([0, 0, 0, 0, 0, 0.3])
-        self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
+        self.obj_init_pos = np.concatenate(
+            (base_shelf_pos[:2], [self.obj_init_pos[-1]])
+        )
 
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')] \
-            = base_shelf_pos[-3:]
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")
+        ] = base_shelf_pos[-3:]
         mujoco.mj_forward(self.model, self.data)
-        self._target_pos = self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'goal')] + \
-                           self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')]
+        self._target_pos = (
+            self.model.site_pos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "goal")
+            ]
+            + self.model.body_pos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")
+            ]
+        )
 
         self._set_obj_xyz(self.obj_init_pos)
 
@@ -175,17 +185,12 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return [
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place
-        ]
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
 
 class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
 
@@ -195,6 +200,7 @@ class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
 
 class TestShelfPlacev2(SawyerShelfPlaceEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
 

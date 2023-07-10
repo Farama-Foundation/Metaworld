@@ -1,12 +1,15 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
 
 class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
     """SawyerPickPlaceWallEnv.
@@ -97,26 +100,21 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.geom('objGeom').xpos
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
-            self.data.geom('objGeom').xmat.reshape(3, 3)
+            self.data.geom("objGeom").xmat.reshape(3, 3)
         ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - \
-               self.data.geom('objGeom').xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [
-            adjustedPos[0],
-            adjustedPos[1],
-            self.data.geom('objGeom').xpos[-1]
-        ]
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -204,8 +202,11 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         ]
+
+
 class TrainPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
 
@@ -215,6 +216,7 @@ class TrainPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
 
 class TestPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
 

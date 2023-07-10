@@ -1,6 +1,7 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
-import mujoco
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -10,7 +11,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
-
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -59,13 +59,13 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
         ) = self.compute_reward(action, obs)
 
         info = {
-            'success': float(obj_to_target <= 0.024),
-            'near_object': float(tcp_to_obj <= 0.05),
-            'grasp_success': float(tcp_open > 0),
-            'grasp_reward': near_button,
-            'in_place_reward': button_pressed,
-            'obj_to_target': obj_to_target,
-            'unscaled_reward': reward,
+            "success": float(obj_to_target <= 0.024),
+            "near_object": float(tcp_to_obj <= 0.05),
+            "grasp_success": float(tcp_open > 0),
+            "grasp_reward": near_button,
+            "in_place_reward": button_pressed,
+            "obj_to_target": obj_to_target,
+            "unscaled_reward": reward,
         }
 
         return reward, info
@@ -81,7 +81,7 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
         return self.get_body_com("button") + np.array([0.0, 0.0, 0.193])
 
     def _get_quat_objects(self):
-        return self.data.body('button').xquat
+        return self.data.body("button").xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -96,10 +96,12 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
 
         goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = self.obj_init_pos
         mujoco.mj_forward(self.model, self.data)
 
-        self._target_pos = self._get_site_pos('hole')
+        self._target_pos = self._get_site_pos("hole")
         self._obj_to_target_init = abs(
             self._target_pos[2] - self._get_site_pos("buttonStart")[2]
         )
@@ -133,24 +135,22 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
         if tcp_to_obj <= 0.03:
             reward += 5 * button_pressed
 
-        return (
-            reward,
-            tcp_to_obj,
-            obs[3],
-            obj_to_target,
-            near_button,
-            button_pressed
-        )
+        return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+
+
 class TrainButtonPressTopdownWallv2(SawyerButtonPressTopdownWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestButtonPressTopdownWallv2(SawyerButtonPressTopdownWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
 

@@ -82,21 +82,21 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.geom('objGeom').xpos
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
         return Rotation.from_matrix(
-            self.data.geom('objGeom').xmat.reshape(3, 3)
+            self.data.geom("objGeom").xmat.reshape(3, 3)
         ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com('obj')[:2] - self.data.geom('objGeom').xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],self.data.geom('objGeom').xpos[-1]]
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -108,7 +108,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+            self._target_pos = np.concatenate(
+                (goal_pos[-3:-1], [self.obj_init_pos[-1]])
+            )
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
@@ -225,18 +227,13 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place
-        )
+            reward = 10.0
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
 
 class TrainPushBackv2(SawyerPushBackEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushBackEnvV2.__init__(self, self.tasks)
 
@@ -246,6 +243,7 @@ class TrainPushBackv2(SawyerPushBackEnvV2):
 
 class TestPushBackv2(SawyerPushBackEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushBackEnvV2.__init__(self, self.tasks)
 

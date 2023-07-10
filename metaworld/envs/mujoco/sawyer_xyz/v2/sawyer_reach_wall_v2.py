@@ -24,6 +24,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             points from the end effector to the goal coordinate.
             i.e. (self._target_pos - pos_hand)
     """
+
     def __init__(self, tasks=None):
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
@@ -86,7 +87,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
@@ -126,8 +127,10 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
 
         return [10 * in_place, tcp_to_target, in_place]
 
+
 class TrainReachWallv2(SawyerReachWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerReachWallEnvV2.__init__(self, self.tasks)
 
@@ -137,6 +140,7 @@ class TrainReachWallv2(SawyerReachWallEnvV2):
 
 class TestReachWallv2(SawyerReachWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerReachWallEnvV2.__init__(self, self.tasks)
 

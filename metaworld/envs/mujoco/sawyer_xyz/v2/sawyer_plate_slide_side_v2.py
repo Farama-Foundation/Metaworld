@@ -12,9 +12,8 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
     def __init__(self, tasks=None):
-
-        goal_low = (-0.3, 0.54, 0.)
-        goal_high = (-0.25, 0.66, 0.)
+        goal_low = (-0.3, 0.54, 0.0)
+        goal_high = (-0.25, 0.66, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.6, 0.0)
@@ -75,10 +74,10 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.geom('puck').xpos
+        return self.data.geom("puck").xpos
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('puck').xmat.reshape(3,3)
+        geom_xmat = self.data.geom("puck").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _set_obj_xyz(self, pos):
@@ -96,7 +95,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
         rand_vec = self._get_state_rand_vec()
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
-        self.data.body('puck_goal').xpos = self._target_pos
+        self.data.body("puck_goal").xpos = self._target_pos
         self._set_obj_xyz(np.zeros(2))
 
         return self._get_obs()
@@ -135,17 +134,13 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             reward = 2 + (7 * in_place)
 
         if obj_to_target < _TARGET_RADIUS:
-            reward = 10.
-        return [
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place
-        ]
+            reward = 10.0
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+
 class TrainPlateSlideSidev2(SawyerPlateSlideSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPlateSlideSideEnvV2.__init__(self, self.tasks)
 
@@ -155,6 +150,7 @@ class TrainPlateSlideSidev2(SawyerPlateSlideSideEnvV2):
 
 class TestPlateSlideSidev2(SawyerPlateSlideSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPlateSlideSideEnvV2.__init__(self, self.tasks)
 

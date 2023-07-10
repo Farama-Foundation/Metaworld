@@ -30,9 +30,9 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             self.tasks = tasks
 
         self.init_config = {
-            'obj_init_angle': 0.3,
-            'obj_init_pos': np.array([0, 0.6, 0.02], dtype=np.float32),
-            'hand_init_pos': np.array((0, 0.6, 0.2), dtype=np.float32)
+            "obj_init_angle": 0.3,
+            "obj_init_pos": np.array([0, 0.6, 0.02], dtype=np.float32),
+            "hand_init_pos": np.array((0, 0.6, 0.2), dtype=np.float32),
         }
 
         self.goal = np.array([0.1, 0.8, 0.1], dtype=np.float32)
@@ -78,13 +78,15 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
     def _get_id_main_object(self):
         """TODO: Reggie"""
-        return self.unwrapped.model.geom_name2id('WrenchHandle')
+        return self.unwrapped.model.geom_name2id("WrenchHandle")
 
     def _get_pos_objects(self):
-        return self.data.site_xpos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'RoundNut-8')]
+        return self.data.site_xpos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
+        ]
 
     def _get_quat_objects(self):
-        return self.data.body('RoundNut').xquat
+        return self.data.body("RoundNut").xquat
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -98,10 +100,14 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos[:3]
         self._target_pos = goal_pos[-3:]
-        peg_pos = self._target_pos - np.array([0., 0., 0.05])
+        peg_pos = self._target_pos - np.array([0.0, 0.0, 0.05])
         self._set_obj_xyz(self.obj_init_pos)
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'peg')] = peg_pos
-        self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = self._target_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "peg")
+        ] = peg_pos
+        self.model.site_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "pegTop")
+        ] = self._target_pos
         return self._get_obs()
 
     @staticmethod
@@ -188,8 +194,10 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             success,
         )
 
+
 class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
 
@@ -198,6 +206,7 @@ class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
 
 class TestAssemblyv2(SawyerNutAssemblyEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
 

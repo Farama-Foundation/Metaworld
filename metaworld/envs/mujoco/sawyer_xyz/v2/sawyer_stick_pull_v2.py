@@ -96,9 +96,20 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         )
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.body('stick').xmat.reshape(3, 3)
+        geom_xmat = self.data.body("stick").xmat.reshape(3, 3)
         return np.hstack(
-            (Rotation.from_matrix(geom_xmat).as_quat(), np.array([0., 0., 0., 0.,])))
+            (
+                Rotation.from_matrix(geom_xmat).as_quat(),
+                np.array(
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                    ]
+                ),
+            )
+        )
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -129,10 +140,8 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
-        self.stick_init_pos = np.concatenate(
-            (goal_pos[:2], [self.stick_init_pos[-1]]))
-        self._target_pos = np.concatenate(
-            (goal_pos[-3:-1], [self.stick_init_pos[-1]]))
+        self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
+        self._target_pos = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
@@ -236,8 +245,10 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             stick_in_place,
         ]
 
+
 class TrainStickPullv2(SawyerStickPullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerStickPullEnvV2.__init__(self, self.tasks)
 
@@ -247,6 +258,7 @@ class TrainStickPullv2(SawyerStickPullEnvV2):
 
 class TestStickPullv2(SawyerStickPullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerStickPullEnvV2.__init__(self, self.tasks)
 

@@ -1,6 +1,7 @@
 import mujoco
 import numpy as np
 from gymnasium.spaces import Box
+from gymnasium.utils.ezpickle import EzPickle
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -9,7 +10,6 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
     SawyerXYZEnv,
     _assert_task_is_set,
 )
-from gymnasium.utils.ezpickle import EzPickle
 
 
 class SawyerReachEnvV2(SawyerXYZEnv):
@@ -26,6 +26,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -61,7 +62,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
-
     @property
     def model_name(self):
         return full_v2_path_for("sawyer_xyz/sawyer_reach_v2.xml")
@@ -87,7 +87,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos):
@@ -140,6 +140,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
 class TrainReachv2(SawyerReachEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerReachEnvV2.__init__(self, self.tasks)
 
@@ -149,6 +150,7 @@ class TrainReachv2(SawyerReachEnvV2):
 
 class TestReachv2(SawyerReachEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerReachEnvV2.__init__(self, self.tasks)
 

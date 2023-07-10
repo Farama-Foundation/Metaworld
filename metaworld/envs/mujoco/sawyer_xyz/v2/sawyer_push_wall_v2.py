@@ -102,16 +102,16 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.geom('objGeom').xpos
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
-        diff = self.get_body_com('obj')[:2] - self.data.geom('objGeom').xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return [adjustedPos[0], adjustedPos[1],self.data.geom('objGeom').xpos[-1]]
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -191,8 +191,10 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             in_place_part2,
         ]
 
+
 class TrainPushWallv2(SawyerPushWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushWallEnvV2.__init__(self, self.tasks)
 
@@ -202,6 +204,7 @@ class TrainPushWallv2(SawyerPushWallEnvV2):
 
 class TestPushWallv2(SawyerPushWallEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushWallEnvV2.__init__(self, self.tasks)
 

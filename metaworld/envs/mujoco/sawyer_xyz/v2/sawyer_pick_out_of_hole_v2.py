@@ -92,7 +92,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.data.body('obj').xquat
+        return self.data.body("obj").xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -171,6 +171,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
 class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
 
@@ -180,6 +181,7 @@ class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
 
 class TestPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
 

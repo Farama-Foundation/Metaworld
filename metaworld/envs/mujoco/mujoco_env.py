@@ -3,13 +3,13 @@ import copy
 import os.path
 import warnings
 from os import path
+
 import glfw
-from gymnasium import error
-from gymnasium.utils import seeding
-import numpy as np
-from os import path
 import gymnasium as gym
+import numpy as np
+from gymnasium import error
 from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
+from gymnasium.utils import seeding
 
 try:
     import mujoco
@@ -19,6 +19,7 @@ except ImportError as e:
             e
         )
     )
+
 
 def _assert_task_is_set(func):
     def inner(*args, **kwargs):
@@ -45,7 +46,6 @@ class MujocoEnv(gym.Env, abc.ABC):
     max_path_length = 500
 
     def __init__(self, model_path, frame_skip=5):
-
         if not path.exists(model_path):
             raise OSError("File %s does not exist" % model_path)
 
@@ -65,10 +65,8 @@ class MujocoEnv(gym.Env, abc.ABC):
         self.init_qpos = self.data.qpos.ravel().copy()
 
         self._did_see_sim_exception = False
-        
-        self.mujoco_renderer = MujocoRenderer(
-            self.model, self.data
-        )
+
+        self.mujoco_renderer = MujocoRenderer(self.model, self.data)
         self.np_random, _ = seeding.np_random(None)
 
     def seed(self, seed):
@@ -132,13 +130,8 @@ class MujocoEnv(gym.Env, abc.ABC):
         except mujoco.mjr_getError() as err:
             warnings.warn(str(err), category=RuntimeWarning)
             self._did_see_sim_exception = True
-    
-    def render(
-        self,
-        offscreen=False,
-        camera_id=None,
-        camera_name="gripperPOV"
-    ):
+
+    def render(self, offscreen=False, camera_id=None, camera_name="gripperPOV"):
         """Renders a frame of the simulation in a specific format and camera view.
         Parameters:
             offscreen:
@@ -154,12 +147,10 @@ class MujocoEnv(gym.Env, abc.ABC):
             If render_mode is "rgb_array" or "depth_arra" it returns a numpy array in the specified format. "human" render mode does not return anything.
         """
         if not offscreen:
-            render_mode = 'human'
+            render_mode = "human"
         else:
-            render_mode = 'rgb_array'
-        return self.mujoco_renderer.render(
-            render_mode, camera_id, camera_name
-            )
+            render_mode = "rgb_array"
+        return self.mujoco_renderer.render(render_mode, camera_id, camera_name)
 
     def close(self):
         if self.viewer is not None:
@@ -168,13 +159,14 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     def get_body_com(self, body_name):
         try:
-            return self.data.geom(body_name + '_geom').xpos
+            return self.data.geom(body_name + "_geom").xpos
         except:
             try:
-                return self.data.geom(body_name + 'Geom').xpos
+                return self.data.geom(body_name + "Geom").xpos
             except:
                 try:
                     return self.data.body(body_name).xpos
                 except:
-                    assert 1 == 2, body_name + ' not found. Something is wrong. Please open a PR'
-
+                    assert 1 == 2, (
+                        body_name + " not found. Something is wrong. Please open a PR"
+                    )

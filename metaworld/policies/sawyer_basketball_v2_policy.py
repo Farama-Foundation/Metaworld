@@ -41,10 +41,10 @@ class SawyerBasketballV2Policy(Policy):
         elif abs(pos_curr[2] - pos_ball[2]) > 0.025:
             return pos_ball
         elif abs(pos_ball[2] - pos_hoop[2]) > 0.05:
-            print('not above hoop')
+            print("not above hoop")
             return np.array([pos_curr[0], pos_curr[1], pos_hoop[2]])
         else:
-            print('move to hoop')
+            print("move to hoop")
             return pos_hoop
 
     @staticmethod

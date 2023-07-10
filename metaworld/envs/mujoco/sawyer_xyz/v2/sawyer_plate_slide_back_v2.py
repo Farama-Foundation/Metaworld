@@ -74,10 +74,10 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.geom('puck').xpos
+        return self.data.geom("puck").xpos
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('puck').xmat.reshape(3,3)
+        geom_xmat = self.data.geom("puck").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _set_obj_xyz(self, pos):
@@ -95,7 +95,7 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         rand_vec = self._get_state_rand_vec()
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
-        self.data.body('puck_goal').xpos = self._target_pos
+        self.data.body("puck_goal").xpos = self._target_pos
         self._set_obj_xyz(np.array([0, 0.15]))
 
         return self._get_obs()
@@ -131,18 +131,13 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
             reward = 2 + (7 * in_place)
 
         if obj_to_target < _TARGET_RADIUS:
-            reward = 10.
-        return [
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place
-        ]
+            reward = 10.0
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
 
 class TrainPlateSlideBackv2(SawyerPlateSlideBackEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
 
@@ -152,6 +147,7 @@ class TrainPlateSlideBackv2(SawyerPlateSlideBackEnvV2):
 
 class TestPlateSlideBackv2(SawyerPlateSlideBackEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
 

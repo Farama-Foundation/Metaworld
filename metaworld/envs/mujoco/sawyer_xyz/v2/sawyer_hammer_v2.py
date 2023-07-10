@@ -1,6 +1,7 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
-import mujoco
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -77,10 +78,9 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         )
 
     def _get_quat_objects(self):
-        return np.hstack((
-            self.data.body('hammer').xquat,
-            self.data.body('nail_link').xquat
-        ))
+        return np.hstack(
+            (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
+        )
 
     def _set_hammer_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -93,13 +93,15 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         # Set position of box & nail (these are not randomized)
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = np.array([0.24, 0.85, 0.0])
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = np.array([0.24, 0.85, 0.0])
         # Update _target_pos
         self._target_pos = self._get_site_pos("goal")
 
         # Randomize hammer position
         self.hammer_init_pos = self._get_state_rand_vec()
-        self.nail_init_pos = self._get_site_pos('nailHead')
+        self.nail_init_pos = self._get_site_pos("nailHead")
         self.obj_init_pos = self.hammer_init_pos.copy()
         self._set_hammer_xyz(self.hammer_init_pos)
 
@@ -159,8 +161,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success. We check that reward is above a threshold
         # because this env's success metric could be hacked easily
-        success = self.data.joint('NailSlideJoint').qpos > 0.09
-        if success and reward > 5.:
+        success = self.data.joint("NailSlideJoint").qpos > 0.09
+        if success and reward > 5.0:
             reward = 10.0
 
         return (
@@ -171,16 +173,20 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             success,
         )
 
+
 class TrainHammerv2(SawyerHammerEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerHammerEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestHammerv2(SawyerHammerEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerHammerEnvV2.__init__(self, self.tasks)
 

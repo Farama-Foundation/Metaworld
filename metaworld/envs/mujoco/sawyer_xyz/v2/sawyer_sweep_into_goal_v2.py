@@ -12,6 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
+
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -75,7 +76,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_pos_objects(self):
@@ -215,8 +216,10 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
 
+
 class TrainSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
 
@@ -226,6 +229,7 @@ class TrainSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
 
 class TestSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
 

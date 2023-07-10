@@ -1,11 +1,14 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
 
 class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
     def __init__(self, tasks=None):
@@ -83,7 +86,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         return self.get_body_com("drawer_link") + np.array([0.0, -0.16, 0.0])
 
     def _get_quat_objects(self):
-        return self.data.body('drawer_link').xquat
+        return self.data.body("drawer_link").xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -92,12 +95,15 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         # Compute nightstand position
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'drawer')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "drawer")
+        ] = self.obj_init_pos
 
         # Set _target_pos to current drawer position (closed) minus an offset
         self._target_pos = self.obj_init_pos + np.array(
             [0.0, -0.16 - self.maxDist, 0.09]
         )
+        mujoco.mj_forward(self.model, self.data)
 
         return self._get_obs()
 
@@ -140,16 +146,20 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             reward_for_opening,
         )
 
+
 class TrainDrawerOpenv2(SawyerDrawerOpenEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestDrawerOpenv2(SawyerDrawerOpenEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
 

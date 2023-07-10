@@ -1,9 +1,8 @@
-import random
-
 import numpy as np
 
-import metaworld
+import random
 
+import metaworld
 
 def test_reset_returns_same_obj_and_goal():
     benchmark = metaworld.MT50()
@@ -14,6 +13,7 @@ def test_reset_returns_same_obj_and_goal():
 
     # Execute rollout for each environment in benchmark.
     for env_name, env_cls in env_dict.items():
+
         # Create environment and set task.
         env = env_cls()
         env_tasks = [t for t in tasks if t.env_name == env_name]
@@ -22,13 +22,13 @@ def test_reset_returns_same_obj_and_goal():
         # Step through environment for a fixed number of episodes.
         for _ in range(2):
             # Reset environment and extract initial object position.
-            obs = env.reset()
+            obs, info = env.reset()
             goal = obs[-3:]
             goal_poses[env_name].append(goal)
             initial_obj_pos = obs[3:9]
             initial_obj_poses[env_name].append(initial_obj_pos)
 
-    # Display initial object positions and find environments with non-unique positions.
+# Display initial object positions and find environments with non-unique positions.
     violating_envs_obs = []
     for env_name, task_initial_pos in initial_obj_poses.items():
         if len(np.unique(np.array(task_initial_pos), axis=0)) > 1:
@@ -36,6 +36,7 @@ def test_reset_returns_same_obj_and_goal():
     violating_envs_goals = []
     for env_name, target_pos in goal_poses.items():
         if len(np.unique(np.array(target_pos), axis=0)) > 1:
+            print(env_name, target_pos)
             violating_envs_goals.append(env_name)
     assert not violating_envs_obs
     assert not violating_envs_goals

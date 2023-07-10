@@ -1,7 +1,7 @@
 import numpy as np
-
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -12,6 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerSweepEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
+
     def __init__(self, tasks=None):
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
@@ -77,7 +78,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return self.data.body('obj').xquat
+        return self.data.body("obj").xquat
 
     def _get_pos_objects(self):
         return self.get_body_com("obj")
@@ -218,6 +219,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
 
 class TrainSweepv2(SawyerSweepEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSweepEnvV2.__init__(self, self.tasks)
 
@@ -227,6 +229,7 @@ class TrainSweepv2(SawyerSweepEnvV2):
 
 class TestSweepv2(SawyerSweepEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSweepEnvV2.__init__(self, self.tasks)
 

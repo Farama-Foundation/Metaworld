@@ -1,7 +1,8 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
-import mujoco
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -25,6 +26,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
     """
 
     LEVER_RADIUS = 0.2
+
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -91,19 +93,22 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         return self._get_site_pos("leverStart")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
         self._reset_hand()
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'lever')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "lever")
+        ] = self.obj_init_pos
         self._lever_pos_init = self.obj_init_pos + np.array(
             [0.12, -self.LEVER_RADIUS, 0.25]
         )
         self._target_pos = self.obj_init_pos + np.array(
             [0.12, 0.0, 0.25 + self.LEVER_RADIUS]
         )
+        mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
     def compute_reward(self, action, obs):
@@ -133,7 +138,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         # The skill of the agent should be measured by its ability to get the
         # lever to point straight upward. This means we'll be measuring the
         # current angle of the lever's joint, and comparing with 90deg.
-        lever_angle = -self.data.joint('LeverAxis').qpos
+        lever_angle = -self.data.joint("LeverAxis").qpos
         lever_angle_desired = np.pi / 2.0
 
         lever_error = abs(lever_angle - lever_angle_desired)
@@ -169,16 +174,20 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             lever_engagement,
         )
 
+
 class TrainLeverPullv2(SawyerLeverPullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerLeverPullEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestLeverPullv2(SawyerLeverPullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerLeverPullEnvV2.__init__(self, self.tasks)
 

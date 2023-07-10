@@ -46,7 +46,7 @@ class SawyerDoorCloseV2Policy(Policy):
                 return np.array([pos_door[0] - 0.02, pos_door[1], pos_curr[2]])
         # put end effector on the outer edge of door handle (still above it)
         elif abs(pos_curr[2] - pos_door[2]) > 0.04:
-            return pos_door + np.array([-0.02, 0., 0.])
+            return pos_door + np.array([-0.02, 0.0, 0.0])
         # push from outer edge toward door handle's centroid
         # else:
         return pos_goal

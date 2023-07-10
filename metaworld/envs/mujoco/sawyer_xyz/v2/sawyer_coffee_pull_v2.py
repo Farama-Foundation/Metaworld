@@ -1,15 +1,17 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
 
 class SawyerCoffeePullEnvV2(SawyerXYZEnv):
-
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -81,7 +83,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('mug').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("mug").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _set_obj_xyz(self, pos):
@@ -96,17 +98,15 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
         pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
         while np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2]) < 0.15:
-            pos_mug_init, pos_mug_goal = np.split(
-                self._get_state_rand_vec(),
-                2
-            )
+            pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
 
         self._set_obj_xyz(pos_mug_init)
         self.obj_init_pos = pos_mug_init
 
-
-        pos_machine = pos_mug_init + np.array([.0, .22, .0])
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'coffee_machine')] = pos_machine
+        pos_machine = pos_mug_init + np.array([0.0, 0.22, 0.0])
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "coffee_machine")
+        ] = pos_machine
 
         self._target_pos = pos_mug_goal
         return self._get_obs()
@@ -156,16 +156,21 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
+
+
 class TrainCoffeePullv2(SawyerCoffeePullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerCoffeePullEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestCoffeePullv2(SawyerCoffeePullEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerCoffeePullEnvV2.__init__(self, self.tasks)
 

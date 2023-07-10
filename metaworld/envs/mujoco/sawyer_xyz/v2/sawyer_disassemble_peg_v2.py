@@ -1,11 +1,14 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
 
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
 
 class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
@@ -13,7 +16,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (0., 0.6, 0.025)
+        obj_low = (0.0, 0.6, 0.025)
         obj_high = (0.1, 0.75, 0.02501)
         goal_low = (-0.1, 0.6, 0.1699)
         goal_high = (0.1, 0.75, 0.1701)
@@ -83,7 +86,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         return self._get_site_pos("RoundNut-8")
 
     def _get_quat_objects(self):
-        return self.data.body('RoundNut').xquat
+        return self.data.body("RoundNut").xquat
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -102,12 +105,16 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
         self._target_pos = goal_pos[:3] + np.array([0, 0, 0.15])
 
-        peg_pos = self.obj_init_pos + np.array([0., 0., 0.03])
-        peg_top_pos = self.obj_init_pos + np.array([0., 0., 0.08])
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'peg')] = peg_pos
-        self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'pegTop')] = peg_top_pos
+        peg_pos = self.obj_init_pos + np.array([0.0, 0.0, 0.03])
+        peg_top_pos = self.obj_init_pos + np.array([0.0, 0.0, 0.08])
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "peg")
+        ] = peg_pos
+        self.model.site_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "pegTop")
+        ] = peg_top_pos
+        mujoco.mj_forward(self.model, self.data)
         self._set_obj_xyz(self.obj_init_pos)
-
         return self._get_obs()
 
     @staticmethod
@@ -176,16 +183,21 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+
+
 class TrainDisassemblev2(SawyerNutDisassembleEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestDisassemblev2(SawyerNutDisassembleEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
 

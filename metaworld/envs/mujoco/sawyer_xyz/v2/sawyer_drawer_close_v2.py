@@ -1,6 +1,7 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
-import mujoco
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -11,6 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
     _TARGET_RADIUS = 0.04
+
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -98,7 +100,9 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
 
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'drawer')] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "drawer")
+        ] = self.obj_init_pos
         # Set _target_pos to current drawer position (closed)
         self._target_pos = self.obj_init_pos + np.array([0.0, -0.16, 0.09])
         # Pull drawer out all the way and mark its starting position
@@ -146,23 +150,22 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
 
         reward *= 10
 
-        return (reward,
-               tcp_to_obj,
-               tcp_opened,
-               target_to_obj,
-               object_grasped,
-               in_place)
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
 
 class TrainDrawerClosev2(SawyerDrawerCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDrawerCloseEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestDrawerClosev2(SawyerDrawerCloseEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerDrawerCloseEnvV2.__init__(self, self.tasks)
 

@@ -1,15 +1,20 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _assert_task_is_set
-import mujoco
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
+    SawyerXYZEnv,
+    _assert_task_is_set,
+)
+
 
 class SawyerSoccerEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.013
     TARGET_RADIUS = 0.07
+
     def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -82,7 +87,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         return self.get_body_com("soccer_ball")
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.body('soccer_ball').xmat.reshape(3, 3)
+        geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
@@ -96,7 +101,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'goal_whole')] = self._target_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")
+        ] = self._target_pos
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
@@ -229,6 +236,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
 class TrainSoccerv2(SawyerSoccerEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSoccerEnvV2.__init__(self, self.tasks)
 
@@ -238,6 +246,7 @@ class TrainSoccerv2(SawyerSoccerEnvV2):
 
 class TestSoccerv2(SawyerSoccerEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerSoccerEnvV2.__init__(self, self.tasks)
 

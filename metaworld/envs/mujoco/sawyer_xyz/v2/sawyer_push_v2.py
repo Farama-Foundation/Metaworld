@@ -102,7 +102,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.geom('objGeom').xmat.reshape(3, 3)
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_pos_objects(self):
@@ -167,17 +167,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             reward += 1.0 + reward + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place
-        )
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
 
 class TrainPushv2(SawyerPushEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushEnvV2.__init__(self, self.tasks)
 
@@ -187,6 +182,7 @@ class TrainPushv2(SawyerPushEnvV2):
 
 class TestPushv2(SawyerPushEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPushEnvV2.__init__(self, self.tasks)
 

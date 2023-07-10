@@ -1,6 +1,7 @@
+import mujoco
 import numpy as np
 from gymnasium.spaces import Box
-import mujoco
+
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
@@ -77,7 +78,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         return self._get_site_pos("pegEnd")
 
     def _get_quat_objects(self):
-        return self.data.body('plug1').xquat
+        return self.data.body("plug1").xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -91,7 +92,9 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         pos_box = self._get_state_rand_vec()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = pos_box
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = pos_box
         pos_plug = pos_box + np.array([0.044, 0.0, 0.131])
         self._set_obj_xyz(pos_plug)
         self.obj_init_pos = self._get_site_pos("pegEnd")
@@ -140,19 +143,30 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         if obj_to_target <= 0.05:
             reward = 10.0
 
-        return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, float(
-            grasp_success)
+        return (
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            obj_to_target,
+            object_grasped,
+            in_place,
+            float(grasp_success),
+        )
+
 
 class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
 

@@ -1,6 +1,7 @@
-import gymnasium
+import gymnasium as gym
 import memory_profiler
 import pytest
+
 from metaworld.envs.mujoco.env_dict import ALL_V2_ENVIRONMENTS
 from tests.helpers import step_env
 
@@ -18,7 +19,7 @@ def build_and_step_all(classes):
         envs += [env]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def mt50_usage():
     profile = {}
     for env_cls in ALL_V2_ENVIRONMENTS.values():
@@ -27,6 +28,7 @@ def mt50_usage():
         profile[env_cls] = max(memory_usage)
 
     return profile
+
 
 @pytest.mark.skip
 @pytest.mark.parametrize('env_cls', ALL_V2_ENVIRONMENTS.values())
@@ -42,14 +44,14 @@ def test_max_memory_usage(env_cls, mt50_usage):
 @pytest.mark.skip
 def test_avg_memory_usage():
     # average usage no greater than 60MB/env
-    target = (build_and_step_all, [ALL_V1_ENVIRONMENTS.values()], {})
+    target = (build_and_step_all, [ALL_V2_ENVIRONMENTS.values()], {})
     usage = memory_profiler.memory_usage(target)
-    average = max(usage) / len(ALL_V1_ENVIRONMENTS)
+    average = max(usage) / len(ALL_V2_ENVIRONMENTS)
     assert average < 60
 
 
 @pytest.mark.skip
 def test_from_task_memory_usage():
-    target = (ALL_V1_ENVIRONMENTS["reach-v1"], (), {})
+    target = (ALL_V2_ENVIRONMENTS['reach-v1'], (), {})
     usage = memory_profiler.memory_usage(target)
     assert max(usage) < 250

@@ -22,6 +22,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         - (7/24/20) Added Byron's XML changes
         - (11/23/20) Updated reward function to new pick-place style
     """
+
     def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -104,7 +105,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.data.body('obj').xquat
+        return self.data.body("obj").xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -195,16 +196,20 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             in_place,
         )
 
+
 class TrainBinPickingv2(SawyerBinPickingEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerBinPickingEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
+
 class TestBinPickingv2(SawyerBinPickingEnvV2):
     tasks = None
+
     def __init__(self):
         SawyerBinPickingEnvV2.__init__(self, self.tasks)
 
