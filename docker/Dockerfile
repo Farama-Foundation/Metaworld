@@ -19,4 +19,5 @@ RUN pip install .[testing]
 RUN git clone https://github.com/reginald-mclean/Gymnasium.git
 RUN pip install -e Gymnasium
 
+
 ENTRYPOINT ["/usr/local/metaworld/docker/entrypoint"]

@@ -20,7 +20,7 @@ __Table of Contents__
 - [Acknowledgements](#acknowledgements)
 
 ## Join the Community
-<<<<<<< HEAD
+
 Metaworld is now maintained by the Farama Foundation! You can interact with our community and the new developers in our [Discord server](https://discord.gg/PfR7a79FpQ)
 
 ## Maintenance Status
@@ -176,6 +176,7 @@ env2.reset()
 a1 = env1.action_space.sample()  # Sample an action
 a2 = env2.action_space.sample()
 next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
+
 next_obs2, _, _, _ = env2.step(a2)
 assert (next_obs1[-3:] == next_obs2[-3:]).all() # 2 envs initialized with the same seed will have the same goal
 assert not (next_obs2[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
@@ -187,7 +188,6 @@ a1 = env1.action_space.sample()  # Sample an action
 a3 = env3.action_space.sample()
 next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
 next_obs3, _, _, _ = env3.step(a3)
-
 
 assert not (next_obs1[-3:] == next_obs3[-3:]).all() # 2 envs initialized with different seeds will have different goals
 assert not (next_obs1[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
@@ -211,11 +211,8 @@ If you use Meta-World for academic research, please kindly cite our CoRL 2019 pa
 ```
 
 ## Accompanying Baselines
-<<<<<<< HEAD
 If you're looking for implementations of the baselines algorithms used in the Meta-World conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage).
-=======
-If you're looking for implementations of the baselines algorithms used in the Metaworld conference publication, please look at our sister directory, [Garage](https://github.com/rlworkgroup/garage).
->>>>>>> 3e385970c (Update CI to follow gymnasium's implementation (#418))
+
 Note that these aren't the exact same baselines that were used in the original conference publication, however they are true to the original baselines.
 
 ## Become a Contributor

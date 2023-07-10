@@ -10,6 +10,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 )
 
 
+
 class SawyerDoorCloseEnvV2(SawyerXYZEnv):
     def __init__(self, tasks=None):
         goal_low = (0.2, 0.65, 0.1499)
