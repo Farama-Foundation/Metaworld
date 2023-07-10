@@ -81,13 +81,13 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return self.data.body("obj").xquat
 
     def _get_pos_objects(self):
-        return self.get_body_com("obj")
+        return self.data.body("obj").xpos
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.init_config["obj_init_pos"]
-        self.objHeight = self.get_body_com("obj")[2]
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()
         self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))

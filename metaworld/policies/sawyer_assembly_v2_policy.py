@@ -42,12 +42,10 @@ class SawyerAssemblyV2Policy(Policy):
         elif abs(pos_curr[2] - pos_wrench[2]) > 0.05:
             return pos_wrench + np.array([0.0, 0.0, 0.03])
         # If not at the same Z height as the goal, move up to that plane
-        elif abs(pos_curr[2] - pos_peg[2]) > 0.042:
-            print("Moving up", abs(pos_curr[2] - pos_peg[2]))
+        elif abs(pos_curr[2] - pos_peg[2]) > 0.04:
             return np.array([pos_curr[0], pos_curr[1], pos_peg[2]])
         # If XY error is greater than 0.02, place end effector above the peg
         else:
-            print("Move towards peg")
             return pos_peg
 
     @staticmethod
@@ -63,4 +61,4 @@ class SawyerAssemblyV2Policy(Policy):
             return 0.0
         # Until hovering over peg, keep hold of wrench
         else:
-            return 1
+            return 0.6
