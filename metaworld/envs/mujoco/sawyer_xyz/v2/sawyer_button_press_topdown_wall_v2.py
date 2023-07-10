@@ -8,7 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -20,6 +20,9 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.8, 0.115], dtype=np.float32),
@@ -92,8 +95,9 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')] = self.obj_init_pos
-        self._target_pos = self._get_site_pos('hole')
+        mujoco.mj_forward(self.model, self.data)
 
+        self._target_pos = self._get_site_pos('hole')
         self._obj_to_target_init = abs(
             self._target_pos[2] - self._get_site_pos('buttonStart')[2]
         )
@@ -135,3 +139,18 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
             near_button,
             button_pressed
         )
+class TrainButtonPressTopdownWallv3(SawyerButtonPressTopdownWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestButtonPressTopdownWallv3(SawyerButtonPressTopdownWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

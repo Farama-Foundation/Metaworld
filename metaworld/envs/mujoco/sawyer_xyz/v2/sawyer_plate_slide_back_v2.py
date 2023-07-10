@@ -9,7 +9,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         goal_low = (-0.1, 0.6, 0.015)
         goal_high = (0.1, 0.6, 0.015)
@@ -23,6 +23,9 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -133,3 +136,19 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         ]
+class TrainPlateSlideBackv3(SawyerPlateSlideBackEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPlateSlideBackv3(SawyerPlateSlideBackEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

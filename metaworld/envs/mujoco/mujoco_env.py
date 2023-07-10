@@ -40,7 +40,7 @@ class MujocoEnv(gym.Env, abc.ABC):
 
     max_path_length = 500
 
-    def __init__(self, model_path, frame_skip):
+    def __init__(self, model_path, frame_skip=5):
         import mujoco
         if not path.exists(model_path):
             raise IOError("File %s does not exist" % model_path)
@@ -92,9 +92,12 @@ class MujocoEnv(gym.Env, abc.ABC):
         pass
 
     @_assert_task_is_set
-    def reset(self):
+    def reset(self, seed=None, options=None):
+        if seed is not None:
+            self.seed(seed)
         self._did_see_sim_exception = False
         mujoco.mj_resetData(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
@@ -124,35 +127,18 @@ class MujocoEnv(gym.Env, abc.ABC):
         except mujoco.mjr_getError() as err:
             warnings.warn(str(err), category=RuntimeWarning)
             self._did_see_sim_exception = True
-
-    # def render(self, offscreen=False, camera_name="corner2", resolution=(640, 480)):
-    #     assert_string = ("camera_name should be one of ",
-    #             "corner3, corner, corner2, topview, gripperPOV, behindGripper")
-    #     assert camera_name in {"corner3", "corner", "corner2", 
-    #         "topview", "gripperPOV", "behindGripper"}, assert_string
-        
-        
-    #     if not offscreen:
-    #         if not self.renderer:
-    #             self.renderer = mujoco.Renderer(self.model, 480, 640)
-    #         self.renderer.update_scene(self.data)
-    #         Image.fromarray(self.renderer.render(), 'RGB').show()
-    #         # self._get_viewer('human').render()
-    #     else:
-    #         return self.sim.render(
-    #             *resolution,
-    #             mode='offscreen',
-    #             camera_name=camera_name
-    #         )
     
     def render(
         self,
         offscreen=False,
-        camera_id = None,
-        camera_name = "gripperPOV"
+        camera_id=None,
+        camera_name="gripperPOV"
     ):
         """Renders a frame of the simulation in a specific format and camera view.
-
+        Parameters:
+            offscreen:
+            camera_id:
+            camera_name:
         Args:
             render_mode: The format to render the frame, it can be: "human", "rgb_array", or "depth_array"
             camera_id: The integer camera id from which to render the frame in the MuJoCo simulation
@@ -174,18 +160,6 @@ class MujocoEnv(gym.Env, abc.ABC):
             glfw.destroy_window(self.viewer.window)
             self.viewer = None
 
-    def _get_viewer(self, mode):
-        self.viewer = self._viewers.get(mode)
-        if self.viewer is None:
-            if mode == 'human':
-                print("Huh")
-                #self.viewer = mujoco.MjVisual(mode)
-                # self.viewer = mujoco_py.MjViewer(self.sim)
-            self.viewer_setup()
-            self._viewers[mode] = self.viewer
-        self.viewer_setup()
-        return self.viewer
-
     def get_body_com(self, body_name):
         try:
             return self.data.geom(body_name + '_geom').xpos
@@ -196,6 +170,5 @@ class MujocoEnv(gym.Env, abc.ABC):
                 try:
                     return self.data.body(body_name).xpos
                 except:
-                    print(body_name + ' not found')
-                    assert 1 == 2, "Something is wrong"
+                    assert 1 == 2, body_name + ' not found. Something is wrong. Please open a PR'
 

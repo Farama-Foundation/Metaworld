@@ -21,7 +21,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         - (6/24/20) Separated pick-place-wall into from
           reach-push-pick-place-wall.
     """
-    def __init__(self):
+    def __init__(self, tasks=None):
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -34,6 +34,9 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': .3,
@@ -124,7 +127,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -186,3 +188,19 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2
         ]
+class TrainPickPlaceWallv3(SawyerPickPlaceWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPickPlaceWallv3(SawyerPickPlaceWallEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

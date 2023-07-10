@@ -21,7 +21,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, -0.001)
@@ -32,6 +32,9 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -136,3 +139,19 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         reward = 1 if target_to_obj <= self.TARGET_RADIUS else reward
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+class TrainHandlePressSidev3(SawyerHandlePressSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestHandlePressSidev3(SawyerHandlePressSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

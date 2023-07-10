@@ -12,7 +12,7 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.04
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         goal_low = (-0.1, 0.85, 0.)
         goal_high = (0.1, 0.9, 0.)
@@ -26,6 +26,9 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': 0.3,
@@ -138,3 +141,19 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         ]
+class TrainPlateSlidev3(SawyerPlateSlideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPlateSlideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPlateSlidev3(SawyerPlateSlideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerPlateSlideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -8,7 +8,7 @@ import mujoco
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -22,6 +22,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': .3,
@@ -179,3 +181,18 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
+class TrainBoxClosev3(SawyerBoxCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestBoxClosev3(SawyerBoxCloseEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

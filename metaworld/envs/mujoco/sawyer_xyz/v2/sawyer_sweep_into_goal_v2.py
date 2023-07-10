@@ -11,7 +11,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -25,6 +25,9 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos':np.array([0., 0.6, 0.02]),
@@ -192,3 +195,20 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+class TrainSweepIntoGoalv3(SawyerSweepIntoGoalEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestSweepIntoGoalv3(SawyerSweepIntoGoalEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 import mujoco
 
 class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, 0.0)
@@ -18,6 +18,9 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -131,3 +134,19 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+class TrainHandlePullSidev3(SawyerHandlePullSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestHandlePullSidev3(SawyerHandlePullSideEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

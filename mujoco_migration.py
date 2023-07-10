@@ -1,5 +1,5 @@
 import metaworld
-env_name = 'hammer-v2'
+env_name = 'dial-turn-v2'
 import random
 from gymnasium.wrappers import TimeLimit
 seed = 42
@@ -18,8 +18,5 @@ for x in range(500):
     next_obs, reward, terminated, truncated, info = env.step(a)
     env.render()
     print(terminated, truncated, info)
-    if terminated or truncated:
-        print('env should reset ... ')
-        env.reset()
 
 env.close()

@@ -21,7 +21,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
     """
     LEVER_RADIUS = 0.2
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -33,6 +33,9 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_pos': np.array([0, 0.7, 0.0]),
@@ -163,3 +166,19 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             lever_error,
             lever_engagement
         )
+
+class TrainLeverPullv3(SawyerLeverPullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerLeverPullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestLeverPullv3(SawyerLeverPullEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerLeverPullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

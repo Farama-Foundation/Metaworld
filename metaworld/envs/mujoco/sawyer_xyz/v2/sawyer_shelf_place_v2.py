@@ -9,7 +9,7 @@ import mujoco
 
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -22,6 +22,10 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
+
 
         self.init_config = {
             'obj_init_pos':np.array([0, 0.6, 0.02]),
@@ -95,13 +99,12 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
 
         self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')] \
-            = self.goal.copy() - np.array([0, 0, 0.3])
-
+            = base_shelf_pos[-3:]
+        mujoco.mj_forward(self.model, self.data)
         self._target_pos = self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, 'goal')] + \
                            self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'shelf')]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -158,3 +161,20 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         ]
+
+class TrainShelfPlacev3(SawyerShelfPlaceEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestShelfPlacev3(SawyerShelfPlaceEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

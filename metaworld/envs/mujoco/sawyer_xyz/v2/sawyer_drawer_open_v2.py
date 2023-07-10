@@ -7,7 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 import mujoco
 
 class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -19,6 +19,9 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'obj_init_angle': np.array([0.3, ], dtype=np.float32),
@@ -134,3 +137,19 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             reward_for_caging,
             reward_for_opening
         )
+
+class TrainDrawerOpenv3(SawyerDrawerOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestDrawerOpenv3(SawyerDrawerOpenEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

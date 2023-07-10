@@ -9,7 +9,7 @@ import mujoco
 
 class SawyerCoffeePushEnvV2(SawyerXYZEnv):
 
-    def __init__(self):
+    def __init__(self, tasks=None):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -24,6 +24,8 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
         )
 
+        if tasks is not None:
+            self.tasks = tasks
         self.init_config = {
             'obj_init_angle': 0.3,
             'obj_init_pos': np.array([0., .6, 0.]),
@@ -148,3 +150,18 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+class TrainCoffeePushv3(SawyerCoffeePushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeePushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+class TestCoffeePushv3(SawyerCoffeePushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerCoffeePushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

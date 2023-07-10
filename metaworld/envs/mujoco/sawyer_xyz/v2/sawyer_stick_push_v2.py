@@ -8,7 +8,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv, _asser
 
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.000)
@@ -21,6 +21,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             'stick_init_pos': np.array([-0.1, 0.6, 0.02]),
@@ -244,3 +247,21 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
                 reward = 10.
 
         return [reward, tcp_to_stick, tcp_opened, container_to_target, object_grasped, stick_in_place]
+
+
+class TrainStickPushv3(SawyerStickPushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestStickPushv3(SawyerStickPushEnvV2):
+    tasks = None
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
