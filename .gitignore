@@ -146,3 +146,5 @@ MUJOCO_LOG.TXT
 # tool
 Pipfile
 Pipfile.lock
+
+mujoco_migration.py
