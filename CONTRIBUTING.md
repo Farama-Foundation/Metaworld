@@ -153,7 +153,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     ```python
     import collections
 
-    impot gymnasium.spaces
+    import gymnasium.spaces
 
     from garage.tf.models import MLPModel
 

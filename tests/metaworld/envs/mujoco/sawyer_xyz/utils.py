@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def trajectory_summary(env, policy, act_noise_pct, render=False, end_on_success=True):
+def trajectory_summary(
+    env, policy, act_noise_pct, iters=500, render=False, end_on_success=True
+):
     """Tests whether a given policy solves an environment
     Args:
         env (metaworld.envs.MujocoEnv): Environment to test
@@ -63,7 +65,8 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     o, info = env.reset()
     assert o.shape == env.observation_space.shape
     assert env.observation_space.contains(o), obs_space_error_text(env, o)
-
+    last_info = None
+    print(act_noise_pct * action_space_ptp)
     for _ in range(env.max_path_length):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
@@ -71,10 +74,12 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         o, r, terminated, truncated, info = env.step(a)
         done = terminated or truncated
         assert env.observation_space.contains(o), obs_space_error_text(env, o)
-        if done:
-            return r, done, info
+        last_info = info
         if render:
             env.render()
+        if done:
+            break
+    return last_info
 
 
 def obs_space_error_text(env, obs):

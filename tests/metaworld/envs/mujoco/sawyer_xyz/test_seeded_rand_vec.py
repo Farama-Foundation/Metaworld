@@ -14,7 +14,7 @@ def test_observations_match(env_name):
     env2 = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](seed=seed)
     env2.seeded_rand_vec = True
 
-    (obs1, info1), (obs2, info2) = env1.reset(), env2.reset()
+    (obs1, _), (obs2, _) = env1.reset(), env2.reset()
     assert (obs1 == obs2).all()
 
     for i in range(env1.max_path_length):

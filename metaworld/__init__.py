@@ -124,7 +124,7 @@ class ML1(Benchmark):
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if not env_name in _env_dict.ALL_V2_ENVIRONMENTS:
+        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V2 environment")
         cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])

@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None):
+    def __init__(self, tasks=None, render_mode=None):
         goal_low = (-0.3, 0.54, 0.0)
         goal_high = (-0.25, 0.66, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -23,6 +23,7 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
 
         if tasks is not None:

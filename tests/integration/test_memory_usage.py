@@ -1,4 +1,3 @@
-import gymnasium as gym
 import memory_profiler
 import pytest
 

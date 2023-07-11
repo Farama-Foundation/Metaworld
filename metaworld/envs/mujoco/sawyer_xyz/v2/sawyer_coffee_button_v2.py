@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None):
+    def __init__(self, tasks=None, render_mode=None):
         self.max_dist = 0.03
 
         hand_low = (-0.5, 0.4, 0.05)
@@ -27,6 +27,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
 
         if tasks is not None:
