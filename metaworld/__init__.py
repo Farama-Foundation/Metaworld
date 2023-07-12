@@ -5,7 +5,6 @@ from collections import OrderedDict
 from typing import List, NamedTuple, Type
 
 import numpy as np
-from memory_profiler import profile
 
 import metaworld.envs.mujoco.env_dict as _env_dict
 
