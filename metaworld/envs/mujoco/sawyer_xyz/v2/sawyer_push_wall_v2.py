@@ -1,7 +1,7 @@
 """Version 2 of SawyerPushWallEnv."""
 
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -30,7 +30,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
@@ -42,7 +42,11 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -99,15 +103,16 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos("objGeom")
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
-        diff = self.get_body_com("obj")[:2] - self.data.get_geom_xpos("objGeom")[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return [adjustedPos[0], adjustedPos[1], self.data.get_geom_xpos("objGeom")[-1]]
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -124,7 +129,6 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
         return self._get_obs()
 
     def compute_reward(self, action, obs):
@@ -187,3 +191,23 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         ]
+
+
+class TrainPushWallv2(SawyerPushWallEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPushWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPushWallv2(SawyerPushWallEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPushWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

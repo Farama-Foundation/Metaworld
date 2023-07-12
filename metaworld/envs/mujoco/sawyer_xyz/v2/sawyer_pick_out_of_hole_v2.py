@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,7 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
     _TARGET_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0, 0.75, 0.02)
@@ -24,7 +24,11 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.0]),
@@ -88,7 +92,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("obj")
+        return self.data.body("obj").xquat
 
     def reset_model(self):
         self._reset_hand()
@@ -163,3 +167,23 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
+
+
+class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

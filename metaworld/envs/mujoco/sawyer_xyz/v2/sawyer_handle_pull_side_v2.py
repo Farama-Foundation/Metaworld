@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -10,9 +11,9 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, 0.0)
         obj_high = (-0.25, 0.75, 0.0)
 
@@ -20,7 +21,11 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -48,7 +53,6 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
@@ -93,12 +97,15 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-
-        self.sim.model.body_pos[self.model.body_name2id("box")] = self.obj_init_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = self.obj_init_pos
         self._set_obj_xyz(-0.1)
         self._target_pos = self._get_site_pos("goalPull")
         self.maxDist = np.abs(
-            self.data.site_xpos[self.model.site_name2id("handleStart")][-1]
+            self.data.site_xpos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "handleStart")
+            ][-1]
             - self._target_pos[-1]
         )
         self.target_reward = 1000 * self.maxDist + 1000 * 2
@@ -149,3 +156,23 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+
+class TrainHandlePullSidev2(SawyerHandlePullSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestHandlePullSidev2(SawyerHandlePullSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

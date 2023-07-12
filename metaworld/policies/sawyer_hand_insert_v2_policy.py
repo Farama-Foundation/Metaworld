@@ -50,7 +50,6 @@ class SawyerHandInsertV2Policy(Policy):
     def _grab_effort(o_d):
         hand_pos = o_d["hand_pos"]
         obj_pos = o_d["obj_pos"]
-
         if (
             np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02
             or abs(hand_pos[2] - obj_pos[2]) > 0.1

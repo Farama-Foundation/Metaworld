@@ -1,27 +1,44 @@
-import abc
 import copy
 import pickle
 
-import mujoco_py
+import mujoco
 import numpy as np
-from gym.spaces import Box, Discrete
+from gymnasium.envs.mujoco import MujocoEnv as mjenv_gym
+from gymnasium.spaces import Box, Discrete
+from gymnasium.utils import seeding
+from gymnasium.utils.ezpickle import EzPickle
 
 from metaworld.envs import reward_utils
-from metaworld.envs.mujoco.mujoco_env import MujocoEnv, _assert_task_is_set
+from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set
 
 
-class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
+class SawyerMocapBase(mjenv_gym):
     """Provides some commonly-shared functions for Sawyer Mujoco envs that use mocap for XYZ control."""
 
     mocap_low = np.array([-0.2, 0.5, 0.06])
     mocap_high = np.array([0.2, 0.7, 0.6])
+    metadata = {
+        "render_modes": [
+            "human",
+            "rgb_array",
+            "depth_array",
+        ],
+        "render_fps": 80,
+    }
 
-    def __init__(self, model_name, frame_skip=5):
-        MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
+    def __init__(self, model_name, frame_skip=5, render_mode=None):
+        mjenv_gym.__init__(
+            self,
+            model_name,
+            frame_skip=frame_skip,
+            observation_space=self.sawyer_observation_space,
+            render_mode=render_mode,
+        )
         self.reset_mocap_welds()
+        self.frame_skip = frame_skip
 
     def get_endeff_pos(self):
-        return self.data.get_body_xpos("hand").copy()
+        return self.data.body("hand").xpos
 
     @property
     def tcp_center(self):
@@ -30,53 +47,47 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
         Returns:
             (np.ndarray): 3-element position
         """
-        right_finger_pos = self._get_site_pos("rightEndEffector")
-        left_finger_pos = self._get_site_pos("leftEndEffector")
-        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
+        right_finger_pos = self.data.site("rightEndEffector")
+        left_finger_pos = self.data.site("leftEndEffector")
+        tcp_center = (right_finger_pos.xpos + left_finger_pos.xpos) / 2.0
         return tcp_center
 
     def get_env_state(self):
-        joint_state = self.sim.get_state()
-        mocap_state = self.data.mocap_pos, self.data.mocap_quat
-        state = joint_state, mocap_state
-        return copy.deepcopy(state)
+        qpos = np.copy(self.data.qpos)
+        qvel = np.copy(self.data.qvel)
+        return copy.deepcopy((qpos, qvel))
 
     def set_env_state(self, state):
-        joint_state, mocap_state = state
-        self.sim.set_state(joint_state)
-        mocap_pos, mocap_quat = mocap_state
-        self.data.set_mocap_pos("mocap", mocap_pos)
-        self.data.set_mocap_quat("mocap", mocap_quat)
-        self.sim.forward()
+        mocap_pos, mocap_quat = state
+        self.set_state(mocap_pos, mocap_quat)
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state["model"]
-        del state["sim"]
-        del state["data"]
-        mjb = self.model.get_mjb()
-        return {"state": state, "mjb": mjb, "env_state": self.get_env_state()}
+        # del state['model']
+        # del state['data']
+        return {"state": state, "mjb": self.model_name, "mocap": self.get_env_state()}
 
     def __setstate__(self, state):
         self.__dict__ = state["state"]
-        self.model = mujoco_py.load_model_from_mjb(state["mjb"])
-        self.sim = mujoco_py.MjSim(self.model)
-        self.data = self.sim.data
-        self.set_env_state(state["env_state"])
+        mjenv_gym.__init__(
+            self,
+            state["mjb"],
+            frame_skip=self.frame_skip,
+            observation_space=self.sawyer_observation_space,
+        )
+        self.set_env_state(state["mocap"])
 
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
-        sim = self.sim
-        if sim.model.nmocap > 0 and sim.model.eq_data is not None:
-            for i in range(sim.model.eq_data.shape[0]):
-                if sim.model.eq_type[i] == mujoco_py.const.EQ_WELD:
-                    sim.model.eq_data[i, :] = np.array(
-                        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+        if self.model.nmocap > 0 and self.model.eq_data is not None:
+            for i in range(self.model.eq_data.shape[0]):
+                if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
+                    self.model.eq_data[i] = np.array(
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
                     )
-        sim.forward()
 
 
-class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
+class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     _HAND_SPACE = Box(
         np.array([-0.525, 0.348, -0.0525]),
         np.array([+0.525, 1.025, 0.7]),
@@ -85,6 +96,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     max_path_length = 500
 
     TARGET_RADIUS = 0.05
+
+    current_task = 0
+    classes = None
+    classes_kwargs = None
+    tasks = None
 
     def __init__(
         self,
@@ -96,8 +112,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         mocap_high=None,
         action_scale=1.0 / 100,
         action_rot_scale=1.0,
+        render_mode=None,
     ):
-        super().__init__(model_name, frame_skip=frame_skip)
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
@@ -112,6 +128,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.seeded_rand_vec = False
         self._freeze_rand_vec = True
         self._last_rand_vec = None
+        self.num_resets = 0
+        self.current_seed = None
 
         # We use continuous goal space by default and
         # can discretize the goal space by calling
@@ -120,6 +138,15 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
+        self._partially_observable = True
+
+        super().__init__(model_name, frame_skip=frame_skip, render_mode=render_mode)
+
+        mujoco.mj_forward(
+            self.model, self.data
+        )  # *** DO NOT REMOVE: EZPICKLE WON'T WORK *** #
+
+        self._did_see_sim_exception = False
         self.init_left_pad = self.get_body_com("leftpad")
         self.init_right_pad = self.get_body_com("rightpad")
 
@@ -129,14 +156,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             dtype=np.float64,
         )
 
-        self.isV2 = "V2" in type(self).__name__
         # Technically these observation lengths are different between v1 and v2,
         # but we handle that elsewhere and just stick with v2 numbers here
-        self._obs_obj_max_len = 14 if self.isV2 else 6
-        self._obs_obj_possible_lens = (6, 14)
+        self._obs_obj_max_len = 14
 
         self._set_task_called = False
-        self._partially_observable = True
 
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
@@ -147,9 +171,31 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
+
         self._prev_obs = self._get_curr_obs_combined_no_goal()
 
-    def _set_task_inner(self):
+        EzPickle.__init__(
+            self,
+            model_name,
+            frame_skip,
+            hand_low,
+            hand_high,
+            mocap_low,
+            mocap_high,
+            action_scale,
+            action_rot_scale,
+        )
+
+    def seed(self, seed):
+        assert seed is not None
+        self.np_random, seed = seeding.np_random(seed)
+        self.action_space.seed(seed)
+        self.observation_space.seed(seed)
+        self.goal_space.seed(seed)
+        return [seed]
+
+    @staticmethod
+    def _set_task_inner():
         # Doesn't absorb "extra" kwargs, to ensure nothing's missed.
         pass
 
@@ -165,20 +211,18 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._partially_observable = data["partially_observable"]
         del data["partially_observable"]
         self._set_task_inner(**data)
-        self.reset()
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
         pos_delta = action * self.action_scale
         new_mocap_pos = self.data.mocap_pos + pos_delta[None]
-
         new_mocap_pos[0, :] = np.clip(
             new_mocap_pos[0, :],
             self.mocap_low,
             self.mocap_high,
         )
-        self.data.set_mocap_pos("mocap", new_mocap_pos)
-        self.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
+        self.data.mocap_pos = new_mocap_pos
+        self.data.mocap_quat = np.array([1, 0, 1, 0])
 
     def discretize_goal_space(self, goals):
         assert False
@@ -195,7 +239,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_state(qpos, qvel)
 
     def _get_site_pos(self, siteName):
-        _id = self.model.site_names.index(siteName)
+        _id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, siteName)
         return self.data.site_xpos[_id].copy()
 
     def _set_pos_site(self, name, pos):
@@ -208,7 +252,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         assert isinstance(pos, np.ndarray)
         assert pos.ndim == 1
 
-        self.data.site_xpos[self.model.site_name2id(name)] = pos[:3]
+        _id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, name)
+        self.data.site_xpos[_id] = pos[:3]
 
     @property
     def _target_site_config(self):
@@ -238,8 +283,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             (bool): whether the gripper is touching the object
 
         """
-        leftpad_geom_id = self.unwrapped.model.geom_name2id("leftpad_geom")
-        rightpad_geom_id = self.unwrapped.model.geom_name2id("rightpad_geom")
+
+        leftpad_geom_id = self.data.geom("leftpad_geom").id
+        rightpad_geom_id = self.data.geom("rightpad_geom").id
 
         leftpad_object_contacts = [
             x
@@ -273,7 +319,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @property
     def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id("objGeom")
+        return self.data.geom(
+            "objGeom"
+        ).id  # [mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, 'objGeom')]
 
     def _get_pos_objects(self):
         """Retrieves object position(s) from mujoco properties or instance vars.
@@ -296,10 +344,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
-        if self.isV2:
-            raise NotImplementedError
-        else:
-            return None
+        raise NotImplementedError
 
     def _get_pos_goal(self):
         """Retrieves goal position from mujoco properties or instance vars.
@@ -320,46 +365,35 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             np.ndarray: The flat observation array (18 elements)
 
         """
+
         pos_hand = self.get_endeff_pos()
 
         finger_right, finger_left = (
-            self._get_site_pos("rightEndEffector"),
-            self._get_site_pos("leftEndEffector"),
+            self.data.body("rightclaw"),
+            self.data.body("leftclaw"),
         )
-
         # the gripper can be at maximum about ~0.1 m apart.
         # dividing by 0.1 normalized the gripper distance between
         # 0 and 1. Further, we clip because sometimes the grippers
         # are slightly more than 0.1m apart (~0.00045 m)
         # clipping removes the effects of this random extra distance
         # that is produced by mujoco
-        gripper_distance_apart = np.linalg.norm(finger_right - finger_left)
+
+        gripper_distance_apart = np.linalg.norm(finger_right.xpos - finger_left.xpos)
         gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0.0, 1.0)
 
         obs_obj_padded = np.zeros(self._obs_obj_max_len)
-
         obj_pos = self._get_pos_objects()
         assert len(obj_pos) % 3 == 0
-
         obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
 
-        if self.isV2:
-            obj_quat = self._get_quat_objects()
-            assert len(obj_quat) % 4 == 0
-            obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
-            obs_obj_padded[: len(obj_pos) + len(obj_quat)] = np.hstack(
-                [
-                    np.hstack((pos, quat))
-                    for pos, quat in zip(obj_pos_split, obj_quat_split)
-                ]
-            )
-            assert len(obs_obj_padded) in self._obs_obj_possible_lens
-            return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
-        else:
-            # is a v1 environment
-            obs_obj_padded[: len(obj_pos)] = obj_pos
-            assert len(obs_obj_padded) in self._obs_obj_possible_lens
-            return np.hstack((pos_hand, obs_obj_padded))
+        obj_quat = self._get_quat_objects()
+        assert len(obj_quat) % 4 == 0
+        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+        obs_obj_padded[: len(obj_pos) + len(obj_quat)] = np.hstack(
+            [np.hstack((pos, quat)) for pos, quat in zip(obj_pos_split, obj_quat_split)]
+        )
+        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
 
     def _get_obs(self):
         """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the goal position to form a single flat observation.
@@ -373,10 +407,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             pos_goal = np.zeros_like(pos_goal)
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        if self.isV2:
-            obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
-        else:
-            obs = np.hstack((curr_obs, pos_goal))
+        obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
         self._prev_obs = curr_obs
         return obs
 
@@ -389,54 +420,44 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
 
     @property
-    def observation_space(self):
-        obs_obj_max_len = self._obs_obj_max_len if self.isV2 else 6
-
-        obj_low = np.full(obs_obj_max_len, -np.inf)
-        obj_high = np.full(obs_obj_max_len, +np.inf)
+    def sawyer_observation_space(self):
+        obs_obj_max_len = 14
+        obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float64)
+        obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float64)
         goal_low = np.zeros(3) if self._partially_observable else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable else self.goal_space.high
         gripper_low = -1.0
         gripper_high = +1.0
-
-        return (
-            Box(
-                np.hstack(
-                    (
-                        self._HAND_SPACE.low,
-                        gripper_low,
-                        obj_low,
-                        self._HAND_SPACE.low,
-                        gripper_low,
-                        obj_low,
-                        goal_low,
-                    )
-                ),
-                np.hstack(
-                    (
-                        self._HAND_SPACE.high,
-                        gripper_high,
-                        obj_high,
-                        self._HAND_SPACE.high,
-                        gripper_high,
-                        obj_high,
-                        goal_high,
-                    )
-                ),
-                dtype=np.float64,
-            )
-            if self.isV2
-            else Box(
-                np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-                np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
-                dtype=np.float64,
-            )
+        return Box(
+            np.hstack(
+                (
+                    self._HAND_SPACE.low,
+                    gripper_low,
+                    obj_low,
+                    self._HAND_SPACE.low,
+                    gripper_low,
+                    obj_low,
+                    goal_low,
+                )
+            ),
+            np.hstack(
+                (
+                    self._HAND_SPACE.high,
+                    gripper_high,
+                    obj_high,
+                    self._HAND_SPACE.high,
+                    gripper_high,
+                    obj_high,
+                    goal_high,
+                )
+            ),
+            dtype=np.float64,
         )
 
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
+        self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -464,19 +485,19 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         self._last_stable_obs = np.clip(
             self._last_stable_obs,
-            a_max=self.observation_space.high,
-            a_min=self.observation_space.low,
+            a_max=self.sawyer_observation_space.high,
+            a_min=self.sawyer_observation_space.low,
             dtype=np.float64,
         )
-        if not self.isV2:
-            # v1 environments expect this superclass step() to return only the
-            # most recent observation. they override the rest of the
-            # functionality and end up returning the same sort of tuple that
-            # this does
-            return self._last_stable_obs
-
         reward, info = self.evaluate_state(self._last_stable_obs, action)
-        return self._last_stable_obs, reward, False, info
+        done = True if int(info["success"]) == 1 else False
+        return (
+            np.array(self._last_stable_obs, dtype=np.float64),
+            reward,
+            done,
+            False,
+            info,
+        )
 
     def evaluate_state(self, obs, action):
         """Does the heavy-lifting for `step()` -- namely, calculating reward and populating the `info` dict with training metrics.
@@ -492,35 +513,28 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # V1 environments don't have to implement it
         raise NotImplementedError
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.curr_path_length = 0
-        if not self.isV2:
-            return super().reset()
-        else:
-            obs = np.float64(super().reset())
-            self._prev_obs = obs[:18].copy()
-            obs[18:36] = self._prev_obs
-            return obs
+        obs, info = super().reset()
+        self._prev_obs = obs[:18].copy()
+        obs[18:36] = self._prev_obs
+        obs = np.float64(obs)
+        return obs, info
 
     def _reset_hand(self, steps=50):
+        mocap_id = self.model.body_mocapid[self.data.body("mocap").id]
         for _ in range(steps):
-            self.data.set_mocap_pos("mocap", self.hand_init_pos)
-            self.data.set_mocap_quat("mocap", np.array([1, 0, 1, 0]))
+            self.data.mocap_pos[mocap_id][:] = self.hand_init_pos
+            self.data.mocap_quat[mocap_id][:] = np.array([1, 0, 1, 0])
             self.do_simulation([-1, 1], self.frame_skip)
+        self.init_tcp = self.tcp_center
+
         self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
             return self._last_rand_vec
-        elif self.seeded_rand_vec:
-            rand_vec = self.np_random.uniform(
-                self._random_reset_space.low,
-                self._random_reset_space.high,
-                size=self._random_reset_space.low.size,
-            ).astype(np.float64)
-            self._last_rand_vec = rand_vec
-            return rand_vec
         else:
             rand_vec = np.random.uniform(
                 self._random_reset_space.low,

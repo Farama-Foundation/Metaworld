@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,7 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerSweepEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
@@ -25,7 +25,11 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),
@@ -74,16 +78,16 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return self.data.get_body_xquat("obj")
+        return self.data.body("obj").xquat
 
     def _get_pos_objects(self):
-        return self.get_body_com("obj")
+        return self.data.body("obj").xpos
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config["obj_init_pos"]
-        self.objHeight = self.get_body_com("obj")[2]
+        self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()
         self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
@@ -211,3 +215,23 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+
+class TrainSweepv2(SawyerSweepEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerSweepEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestSweepv2(SawyerSweepEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerSweepEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -25,17 +26,21 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, -0.001)
-        obj_high = (-0.25, 0.75, +0.001)
+        obj_high = (-0.25, 0.75, 0.001)
 
         super().__init__(
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -104,7 +109,10 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id("box")] = self.obj_init_pos
+
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = self.obj_init_pos
         self._set_obj_xyz(-0.001)
         self._target_pos = self._get_site_pos("goalPress")
         self._handle_init_pos = self._get_pos_objects()
@@ -113,8 +121,6 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
         del actions
-
-        # objPos = obs[4:7]
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()
@@ -147,3 +153,23 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         reward = 1 if target_to_obj <= self.TARGET_RADIUS else reward
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+
+class TrainHandlePressSidev2(SawyerHandlePressSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestHandlePressSidev2(SawyerHandlePressSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerHandlePressSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -10,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -22,7 +23,11 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([-0.225, 0.6, 0.05]),
@@ -74,7 +79,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         return self._get_site_pos("pegEnd")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("plug1")
+        return self.data.body("plug1").xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -88,8 +93,9 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         pos_box = self._get_state_rand_vec()
-        self.sim.model.body_pos[self.model.body_name2id("box")] = pos_box
-
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
+        ] = pos_box
         pos_plug = pos_box + np.array([0.044, 0.0, 0.131])
         self._set_obj_xyz(pos_plug)
         self.obj_init_pos = self._get_site_pos("pegEnd")
@@ -147,3 +153,23 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             in_place,
             float(grasp_success),
         )
+
+
+class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

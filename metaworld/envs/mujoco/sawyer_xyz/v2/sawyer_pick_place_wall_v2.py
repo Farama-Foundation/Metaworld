@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -26,7 +26,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
           reach-push-pick-place-wall.
     """
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -38,7 +38,11 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -96,19 +100,21 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos("objGeom")
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("objGeom").xmat.reshape(3, 3)
+        ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - self.data.get_geom_xpos("objGeom")[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1], self.data.get_geom_xpos("objGeom")[-1]]
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
@@ -125,7 +131,6 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -197,3 +202,23 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         ]
+
+
+class TrainPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

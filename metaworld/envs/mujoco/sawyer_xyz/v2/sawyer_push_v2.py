@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -27,7 +27,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS = 0.05
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -39,7 +39,11 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -99,7 +103,8 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_pos_objects(self):
         return self.get_body_com("obj")
@@ -131,7 +136,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -164,5 +168,24 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             reward += 1.0 + reward + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
-
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+
+class TrainPushv2(SawyerPushEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPushv2(SawyerPushEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

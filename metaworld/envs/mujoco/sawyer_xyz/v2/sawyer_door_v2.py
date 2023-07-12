@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.85, 0.15)
@@ -23,14 +23,14 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
 
+        if tasks is not None:
+            self.tasks = tasks
+
         self.init_config = {
-            "obj_init_angle": np.array(
-                [
-                    0.3,
-                ]
-            ),
+            "obj_init_angle": np.array([0.3]),
             "obj_init_pos": np.array([0.1, 0.95, 0.15]),
             "hand_init_pos": np.array([0, 0.6, 0.2]),
         }
@@ -40,7 +40,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self.door_angle_idx = self.model.get_joint_qpos_addr("doorjoint")
+        self.door_qpos_adr = self.model.joint("doorjoint").qposadr.item()
+        self.door_qvel_adr = self.model.joint("doorjoint").dofadr.item()
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -80,31 +81,32 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return []
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos("handle").copy()
+        return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("handle")).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("handle").xmat.reshape(3, 3)
+        ).as_quat()
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.copy()
         qvel = self.data.qvel.copy()
-        qpos[self.door_angle_idx] = pos
-        qvel[self.door_angle_idx] = 0
+        qpos[self.door_qpos_adr] = pos
+        qvel[self.door_qvel_adr] = 0
         self.set_state(qpos.flatten(), qvel.flatten())
 
     def reset_model(self):
         self._reset_hand()
-
-        self.objHeight = self.data.get_geom_xpos("handle")[2]
+        self.objHeight = self.data.geom("handle").xpos[2]
 
         self.obj_init_pos = self._get_state_rand_vec()
         self._target_pos = self.obj_init_pos + np.array([-0.3, -0.45, 0.0])
 
-        self.sim.model.body_pos[self.model.body_name2id("door")] = self.obj_init_pos
-        self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
+        self.model.body("door").pos = self.obj_init_pos
+        self.model.site("goal").pos = self._target_pos
         self._set_obj_xyz(0)
         self.maxPullDist = np.linalg.norm(
-            self.data.get_geom_xpos("handle")[:-1] - self._target_pos[:-1]
+            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
         )
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
@@ -161,7 +163,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return ready_to_open, opened
 
     def compute_reward(self, actions, obs):
-        theta = self.data.get_joint_qpos("doorjoint")
+        theta = self.data.joint("doorjoint").qpos
 
         reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
         reward_steps = SawyerDoorEnvV2._reward_pos(obs, theta)
@@ -174,6 +176,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
 
         # Override reward on success flag
+        reward = reward[0]
         if abs(obs[4] - self._target_pos[0]) <= 0.08:
             reward = 10.0
 
@@ -182,3 +185,23 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
+
+
+class TrainDoorOpenv2(SawyerDoorEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestDoorOpenv2(SawyerDoorEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

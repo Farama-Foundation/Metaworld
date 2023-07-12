@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,7 +13,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.6, 0.025)
@@ -24,7 +25,11 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -82,7 +87,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         return self._get_site_pos("RoundNut-8")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("RoundNut")
+        return self.data.body("RoundNut").xquat
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -103,10 +108,14 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
 
         peg_pos = self.obj_init_pos + np.array([0.0, 0.0, 0.03])
         peg_top_pos = self.obj_init_pos + np.array([0.0, 0.0, 0.08])
-        self.sim.model.body_pos[self.model.body_name2id("peg")] = peg_pos
-        self.sim.model.site_pos[self.model.site_name2id("pegTop")] = peg_top_pos
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "peg")
+        ] = peg_pos
+        self.model.site_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "pegTop")
+        ] = peg_top_pos
+        mujoco.mj_forward(self.model, self.data)
         self._set_obj_xyz(self.obj_init_pos)
-
         return self._get_obs()
 
     @staticmethod
@@ -175,3 +184,23 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+
+
+class TrainDisassemblev2(SawyerNutDisassembleEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestDisassemblev2(SawyerNutDisassembleEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

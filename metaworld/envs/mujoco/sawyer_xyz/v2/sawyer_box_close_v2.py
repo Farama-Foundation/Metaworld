@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -10,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.5, 0.02)
@@ -22,7 +23,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -41,6 +45,8 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
+
+        self.init_obj_quat = None
 
     @property
     def model_name(self):
@@ -79,11 +85,10 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return self.get_body_com("top_link")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("top_link")
+        return self.data.body("top_link").xquat
 
     def reset_model(self):
         self._reset_hand()
-        self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         box_height = self.get_body_com("boxbody")[2]
@@ -94,9 +99,13 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
         self._target_pos = goal_pos[-3:]
 
-        self.sim.model.body_pos[self.model.body_name2id("boxbody")] = np.concatenate(
-            (self._target_pos[:2], [box_height])
-        )
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "boxbody")
+        ] = np.concatenate((self._target_pos[:2], [box_height]))
+
+        for _ in range(self.frame_skip):
+            mujoco.mj_step(self.model, self.data)
+
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()
@@ -187,3 +196,23 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
+
+
+class TrainBoxClosev2(SawyerBoxCloseEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestBoxClosev2(SawyerBoxCloseEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

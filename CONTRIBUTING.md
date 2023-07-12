@@ -10,7 +10,7 @@ Ensure that your task and pull request:
 * [ ] Can be performed by a real robot arm
 * [ ] Is dissimilar from current tasks
 * [ ] Contains meaningful internal variation (e.g. different object positions, etc.)
-* [ ] Conforms to the action space, observation space, and reward functions conventions used by metaworld environments
+* [ ] Conforms to the action space, observation space, and reward functions conventions used by Meta-World environments
 * [ ] Uses existing assets if they exist, and that any new assets added are high-quality
 * [ ] Follows the code quality, style, testing, and documentation guidelines outlined below
 * [ ] Provides learning curves which show the task can by solved by PPO and SAC, using the implementations linked below
@@ -153,12 +153,12 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     ```python
     import collections
 
-    import gym.spaces
+    import gymnasium.spaces
 
     from garage.tf.models import MLPModel
 
     q = collections.deque(10)
-    d = gym.spaces.Discrete(5)
+    d = gymnasium.spaces.Discrete(5)
     m = MLPModel(output_dim=2)
     ```
 
@@ -166,7 +166,7 @@ These are Meta-World specific rules which are not part of the aforementioned sty
     ```python
     from collections import deque
 
-    from gym.spaces import Discrete
+    from gymnasium.spaces import Discrete
     import tensorflow as tf
 
     from garage.tf.models import MLPModel
@@ -239,14 +239,14 @@ Do's and Don'ts for avoiding accidental merge commits and other headaches:
 * *Don't* use `git merge`
 * *Don't* use `git pull` (unless git tells you that your branch can be fast-forwarded)
 * *Don't* make commits in the `master` branch---always use a feature branch
-* *Do* fetch upstream (`rlworkgroup/metaworld`) frequently and keep your `master` branch up-to-date with upstream
+* *Do* fetch upstream (`Farama-Foundation/Metaworld`) frequently and keep your `master` branch up-to-date with upstream
 * *Do* rebase your feature branch on `master` frequently
 * *Do* keep only one or a few commits in your feature branch, and use `git commit --amend` to update your changes. This helps prevent long chains of identical merges during a rebase.
 
 Please see [this guide](https://gist.github.com/markreid/12e7c2203916b93d23c27a263f6091a0) for a tutorial on the workflow. Note: unlike the guide, we don't use separate `develop`/`master` branches, so all PRs should be based on `master` rather than `develop`
 
 ### Commit message format
-metaworld follows the git commit message guidelines documented [here](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53) and [here](https://chris.beams.io/posts/git-commit/). You can also find an in-depth guide to writing great commit messages [here](https://github.com/RomuloOliveira/commit-messages-guide/blob/master/README.md)
+Meta-World follows the git commit message guidelines documented [here](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53) and [here](https://chris.beams.io/posts/git-commit/). You can also find an in-depth guide to writing great commit messages [here](https://github.com/RomuloOliveira/commit-messages-guide/blob/master/README.md)
 
 In short:
 * All commit messages have an informative subject line of 50 characters
@@ -257,20 +257,20 @@ In short:
 
 These recipes assume you are working out of a private GitHub fork.
 
-If you are working directly as a contributor to `rlworkgroup`, you can replace references to `rlworkgroup` with `origin`. You also, of course, do not need to add `rlworkgroup` as a remote, since it will be `origin` in your repository.
+If you are working directly as a contributor to `Farama-Foundation`, you can replace references to `Farama-Foundation` with `origin`. You also, of course, do not need to add `Farama-Foundation` as a remote, since it will be `origin` in your repository.
 
-#### Clone your GitHub fork and setup the rlworkgroup remote
+#### Clone your GitHub fork and setup the Farama-Foundation remote
 ```sh
 git clone git@github.com:<your_github_username>/metaworld.git
 cd metaworld
-git remote add rlworkgroup git@github.com:rlworkgroup/metaworld.git
-git fetch rlworkgroup
+git remote add Farama-Foundation git@github.com:Farama-Foundation/metaworld.git
+git fetch Farama-Foundation
 ```
 
 #### Update your GitHub fork with the latest from upstream
 ```sh
-git fetch rlworkgroup
-git reset --hard master rlworkgroup/master
+git fetch Farama-Foundation
+git reset --hard master Farama-Foundation/master
 git push -f origin master
 ```
 
@@ -287,8 +287,8 @@ git push origin myfeaturebranch
 #### Rebase a feature branch so it's up-to-date with upstream and push it to your fork
 ```sh
 git checkout master
-git fetch rlworkgroup
-git reset --hard rlworkgroup/master
+git fetch Farama-Foundation
+git reset --hard Farama-Foundation/master
 git checkout myfeaturebranch
 git rebase master
 # you may need to manually reconcile merge conflicts here. Follow git's instructions.
@@ -298,4 +298,4 @@ git push -f origin myfeaturebranch # -f is frequently necessary because rebases 
 ## Release
 
 ### Modify CHANGELOG.md
-For each release in metaworld, modify [CHANGELOG.md](https://github.com/rlworkgroup/metaworld/blob/master/CHANGELOG.md) with the most relevant changes from the latest release. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), which adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+For each release in metaworld, modify [CHANGELOG.md](https://github.com/Farama-Foundation/Metaworld/blob/master/CHANGELOG.md) with the most relevant changes from the latest release. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), which adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

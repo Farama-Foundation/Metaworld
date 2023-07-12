@@ -4,7 +4,7 @@ import numpy as np
 def step_env(env, max_path_length=100, iterations=1, render=True):
     """Step env helper."""
     for _ in range(iterations):
-        obs, info = env.reset()
+        obs = env.reset()[0]
         for _ in range(max_path_length):
             next_obs, _, terminated, truncated, info = env.step(
                 env.action_space.sample()
@@ -29,5 +29,5 @@ def step_env(env, max_path_length=100, iterations=1, render=True):
             obs = next_obs
             if render:
                 env.render()
-            if truncated or terminated:
+            if terminated or truncated:
                 break

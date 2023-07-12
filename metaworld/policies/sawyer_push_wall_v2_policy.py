@@ -54,7 +54,6 @@ class SawyerPushWallV2Policy(Policy):
     def grab_effort(o_d):
         pos_curr = o_d["hand_pos"]
         pos_obj = o_d["obj_pos"]
-
         if (
             np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02
             or abs(pos_curr[2] - pos_obj[2]) > 0.1

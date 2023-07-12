@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -10,7 +10,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.15)
@@ -22,7 +22,11 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.85, 0.15]),
@@ -81,7 +85,7 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
         return self._get_site_pos("lockStartUnlock")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("door_link")
+        return self.data.body("door_link").xquat
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -92,12 +96,10 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        door_pos = self._get_state_rand_vec()
-
-        self.sim.model.body_pos[self.model.body_name2id("door")] = door_pos
+        self.model.body("door").pos = self._get_state_rand_vec()
         self._set_obj_xyz(1.5708)
 
-        self.obj_init_pos = self.get_body_com("lock_link")
+        self.obj_init_pos = self.data.body("lock_link").xpos
         self._target_pos = self.obj_init_pos + np.array([0.1, -0.04, 0.0])
 
         return self._get_obs()
@@ -142,3 +144,23 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             ready_to_push,
             pushed,
         )
+
+
+class TrainDoorUnlockv2(SawyerDoorUnlockEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestDoorUnlockv2(SawyerDoorUnlockEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

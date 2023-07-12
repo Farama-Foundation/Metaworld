@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -14,7 +15,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.013
     TARGET_RADIUS = 0.07
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -26,7 +27,11 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.03]),
@@ -83,7 +88,8 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         return self.get_body_com("soccer_ball")
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_body_xmat("soccer_ball")).as_quat()
+        geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def reset_model(self):
         self._reset_hand()
@@ -96,10 +102,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.sim.model.body_pos[
-            self.model.body_name2id("goal_whole")
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")
         ] = self._target_pos
-
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
@@ -228,3 +233,23 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
+
+
+class TrainSoccerv2(SawyerSoccerEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerSoccerEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestSoccerv2(SawyerSoccerEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerSoccerEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

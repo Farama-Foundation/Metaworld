@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -26,7 +27,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         - (6/22/20) Cabinet now sits on ground, instead of .02 units above it
     """
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         goal_low = (-0.05, 0.6, 0.015)
         goal_high = (0.15, 0.6, 0.015)
         hand_low = (-0.5, 0.40, 0.05)
@@ -38,7 +39,11 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -86,10 +91,11 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         return reward, info
 
     def _get_pos_objects(self):
-        return self.data.get_geom_xpos("puck")
+        return self.data.geom("puck").xpos
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("puck")).as_quat()
+        geom_xmat = self.data.geom("puck").xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def _get_obs_dict(self):
         return dict(
@@ -113,9 +119,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         rand_vec = self._get_state_rand_vec()
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
-
-        self.sim.model.body_pos[
-            self.model.body_name2id("puck_goal")
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "puck_goal")
         ] = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.0]))
 
@@ -154,3 +159,23 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+
+class TrainPlateSlideBackSidev2(SawyerPlateSlideBackSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPlateSlideBackSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestPlateSlideBackSidev2(SawyerPlateSlideBackSideEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerPlateSlideBackSideEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

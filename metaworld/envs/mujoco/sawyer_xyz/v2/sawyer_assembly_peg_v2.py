@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -12,7 +13,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
     WRENCH_HANDLE_LENGTH = 0.02
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0, 0.6, 0.02)
@@ -24,13 +25,17 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([0, 0.6, 0.02], dtype=np.float32),
             "hand_init_pos": np.array((0, 0.6, 0.2), dtype=np.float32),
         }
+
         self.goal = np.array([0.1, 0.8, 0.1], dtype=np.float32)
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
@@ -73,13 +78,16 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         return [("pegTop", self._target_pos)]
 
     def _get_id_main_object(self):
+        """TODO: Reggie"""
         return self.unwrapped.model.geom_name2id("WrenchHandle")
 
     def _get_pos_objects(self):
-        return self.data.site_xpos[self.model.site_name2id("RoundNut-8")]
+        return self.data.site_xpos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
+        ]
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("RoundNut")
+        return self.data.body("RoundNut").xquat
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
@@ -88,19 +96,19 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self._target_pos = self.goal.copy()
-
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         self.obj_init_pos = goal_pos[:3]
         self._target_pos = goal_pos[-3:]
-
         peg_pos = self._target_pos - np.array([0.0, 0.0, 0.05])
         self._set_obj_xyz(self.obj_init_pos)
-        self.sim.model.body_pos[self.model.body_name2id("peg")] = peg_pos
-        self.sim.model.site_pos[self.model.site_name2id("pegTop")] = self._target_pos
-
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "peg")
+        ] = peg_pos
+        self.model.site_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "pegTop")
+        ] = self._target_pos
         return self._get_obs()
 
     @staticmethod
@@ -186,3 +194,23 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+
+
+class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestAssemblyv2(SawyerNutAssemblyEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

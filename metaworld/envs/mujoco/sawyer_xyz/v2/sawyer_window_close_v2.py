@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -24,7 +25,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS = 0.05
 
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -35,7 +36,11 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_angle": 0.3,
@@ -100,13 +105,15 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos.copy()
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "window")
+        ] = self.obj_init_pos
 
-        self.sim.model.body_pos[self.model.body_name2id("window")] = self.obj_init_pos
         self.window_handle_pos_init = self._get_pos_objects() + np.array(
             [0.2, 0.0, 0.0]
         )
-        self.data.set_joint_qpos("window_slide", 0.2)
-
+        self.data.joint("window_slide").qpos = 0.2
+        mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
     def _reset_hand(self):
@@ -147,3 +154,23 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+
+class TrainWindowClosev2(SawyerWindowCloseEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestWindowClosev2(SawyerWindowCloseEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

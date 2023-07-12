@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -11,7 +12,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -23,7 +24,11 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -82,12 +87,13 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self):
-        return Rotation.from_matrix(self.data.get_geom_xmat("objGeom")).as_quat()
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
+        return Rotation.from_matrix(geom_xmat).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - self.data.get_geom_xpos("objGeom")[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
@@ -95,13 +101,6 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     def reset_model(self):
         self._reset_hand()
-        self.sim.model.body_pos[
-            self.model.body_name2id("shelf")
-        ] = self.goal.copy() - np.array([0, 0, 0.3])
-        self._target_pos = (
-            self.sim.model.site_pos[self.model.site_name2id("goal")]
-            + self.sim.model.body_pos[self.model.body_name2id("shelf")]
-        )
         self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
@@ -112,14 +111,21 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate(
             (base_shelf_pos[:2], [self.obj_init_pos[-1]])
         )
-        self.sim.model.body_pos[self.model.body_name2id("shelf")] = base_shelf_pos[-3:]
+
+        self.model.body_pos[
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")
+        ] = base_shelf_pos[-3:]
+        mujoco.mj_forward(self.model, self.data)
         self._target_pos = (
-            self.sim.model.site_pos[self.model.site_name2id("goal")]
-            + self.sim.model.body_pos[self.model.body_name2id("shelf")]
+            self.model.site_pos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "goal")
+            ]
+            + self.model.body_pos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")
+            ]
         )
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.num_resets += 1
 
         return self._get_obs()
 
@@ -180,5 +186,24 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+
+class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestShelfPlacev2(SawyerShelfPlaceEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

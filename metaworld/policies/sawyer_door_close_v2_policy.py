@@ -30,23 +30,23 @@ class SawyerDoorCloseV2Policy(Policy):
 
     @staticmethod
     def _desired_pos(o_d):
-        # pos_curr = o_d["hand_pos"]
+        pos_curr = o_d["hand_pos"]
         pos_door = o_d["door_pos"]
         pos_door += np.array([0.05, 0.12, 0.1])
         pos_goal = o_d["goal_pos"]
 
         # # if to the right of door handle///
-        # if pos_curr[0] > pos_door[0]:
-        #     # if below door handle by more than 0.2
-        #     if pos_curr[2] < pos_door[2] + 0.2:
-        #         # rise above door handle by ~0.2
-        #         return np.array([pos_curr[0], pos_curr[1], pos_door[2] + 0.25])
-        #     else:
-        #         # move toward door handle in XY plane
-        #         return np.array([pos_door[0] - 0.02, pos_door[1], pos_curr[2]])
-        # # put end effector on the outer edge of door handle (still above it)
-        # elif abs(pos_curr[2] - pos_door[2]) > 0.04:
-        #     return pos_door + np.array([-0.02, 0., 0.])
-        # # push from outer edge toward door handle's centroid
+        if pos_curr[0] > pos_door[0]:
+            # if below door handle by more than 0.2
+            if pos_curr[2] < pos_door[2] + 0.2:
+                # rise above door handle by ~0.2
+                return np.array([pos_curr[0], pos_curr[1], pos_door[2] + 0.25])
+            else:
+                # move toward door handle in XY plane
+                return np.array([pos_door[0] - 0.02, pos_door[1], pos_curr[2]])
+        # put end effector on the outer edge of door handle (still above it)
+        elif abs(pos_curr[2] - pos_door[2]) > 0.04:
+            return pos_door + np.array([-0.02, 0.0, 0.0])
+        # push from outer edge toward door handle's centroid
         # else:
         return pos_goal

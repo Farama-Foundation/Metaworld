@@ -73,10 +73,10 @@ def test_seeding_observable():
     env2.reset()
     a1 = env1.action_space.sample()  # Sample an action
     a2 = env2.action_space.sample()
-    next_obs1, _, _, _ = env1.step(
+    next_obs1, _, _, _, _ = env1.step(
         a1
     )  # Step the environoment with the sampled random action
-    next_obs2, _, _, _ = env2.step(a2)
+    next_obs2, _, _, _, _ = env2.step(a2)
     assert (
         next_obs1[-3:] == next_obs2[-3:]
     ).all()  # 2 envs initialized with the same seed will have the same goal
@@ -91,10 +91,10 @@ def test_seeding_observable():
     env3.reset()
     a1 = env1.action_space.sample()  # Sample an action
     a3 = env3.action_space.sample()
-    next_obs1, _, _, _ = env1.step(
+    next_obs1, _, _, _, _ = env1.step(
         a1
     )  # Step the environoment with the sampled random action
-    next_obs3, _, _, _ = env3.step(a3)
+    next_obs3, _, _, _, _ = env3.step(a3)
 
     assert not (
         next_obs1[-3:] == next_obs3[-3:]
@@ -116,10 +116,10 @@ def test_seeding_hidden():
     env2.reset()
     a1 = env1.action_space.sample()  # Sample an action
     a2 = env2.action_space.sample()
-    next_obs1, _, _, _ = env1.step(
+    next_obs1, _, _, _, _ = env1.step(
         a1
     )  # Step the environoment with the sampled random action
-    next_obs2, _, _, _ = env2.step(a2)
+    next_obs2, _, _, _, _ = env2.step(a2)
     assert (
         env1._target_pos == env2._target_pos
     ).all()  # 2 envs initialized with the same seed will have the same goal
@@ -134,10 +134,10 @@ def test_seeding_hidden():
     env3.reset()
     a1 = env1.action_space.sample()  # Sample an action
     a3 = env3.action_space.sample()
-    next_obs1, _, _, _ = env1.step(
+    next_obs1, _, _, _, _ = env1.step(
         a1
     )  # Step the environoment with the sampled random action
-    next_obs3, _, _, _ = env3.step(a3)
+    next_obs3, _, _, _, _ = env3.step(a3)
 
     assert not (
         env1._target_pos[-3:] == env3._target_pos[-3:]

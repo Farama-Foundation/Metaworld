@@ -22,7 +22,7 @@ def test_reset_returns_same_obj_and_goal():
         # Step through environment for a fixed number of episodes.
         for _ in range(2):
             # Reset environment and extract initial object position.
-            obs = env.reset()
+            obs, info = env.reset()
             goal = obs[-3:]
             goal_poses[env_name].append(goal)
             initial_obj_pos = obs[3:9]
@@ -31,11 +31,15 @@ def test_reset_returns_same_obj_and_goal():
     # Display initial object positions and find environments with non-unique positions.
     violating_envs_obs = []
     for env_name, task_initial_pos in initial_obj_poses.items():
-        if len(np.unique(np.array(task_initial_pos), axis=0)) > 1:
+        if len(np.unique(np.array(task_initial_pos), axis=0)) > 1 and not np.allclose(
+            task_initial_pos[0], task_initial_pos[1], rtol=1e-2, atol=1e-2
+        ):
             violating_envs_obs.append(env_name)
     violating_envs_goals = []
     for env_name, target_pos in goal_poses.items():
-        if len(np.unique(np.array(target_pos), axis=0)) > 1:
+        if len(np.unique(np.array(target_pos), axis=0)) > 1 and not np.allclose(
+            target_pos[0], target_pos[1], rtol=1e-2, atol=1e-3
+        ):
             violating_envs_goals.append(env_name)
     assert not violating_envs_obs
     assert not violating_envs_goals

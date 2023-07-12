@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerStickPullEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.55, 0.000)
@@ -23,7 +23,11 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "stick_init_pos": np.array([0, 0.6, 0.02]),
@@ -93,10 +97,18 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         )
 
     def _get_quat_objects(self):
+        geom_xmat = self.data.body("stick").xmat.reshape(3, 3)
         return np.hstack(
             (
-                Rotation.from_matrix(self.data.get_body_xmat("stick")).as_quat(),
-                np.array([0.0, 0.0, 0.0, 0.0]),
+                Rotation.from_matrix(geom_xmat).as_quat(),
+                np.array(
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                    ]
+                ),
             )
         )
 
@@ -233,3 +245,23 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             object_grasped,
             stick_in_place,
         ]
+
+
+class TrainStickPullv2(SawyerStickPullEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerStickPullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestStickPullv2(SawyerStickPullEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerStickPullEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

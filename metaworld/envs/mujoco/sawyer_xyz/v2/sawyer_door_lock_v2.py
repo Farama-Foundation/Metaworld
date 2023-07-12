@@ -1,5 +1,6 @@
+import mujoco
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
@@ -10,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerDoorLockEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.15)
@@ -20,10 +21,14 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
 
+        if tasks is not None:
+            self.tasks = tasks
+
         self.init_config = {
-            "obj_init_pos": np.array([0, 0.85, 0.15]),
+            "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
             "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0, 0.85, 0.1])
@@ -82,19 +87,17 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         return self._get_site_pos("lockStartLock")
 
     def _get_quat_objects(self):
-        return self.sim.data.get_body_xquat("door_link")
+        return self.data.body("door_link").xquat
 
     def reset_model(self):
         self._reset_hand()
         door_pos = self._get_state_rand_vec()
+        self.model.body("door").pos = door_pos
 
-        self.sim.model.body_pos[self.model.body_name2id("door")] = door_pos
         for _ in range(self.frame_skip):
-            self.sim.step()
-
-        self.obj_init_pos = self.get_body_com("lock_link")
+            mujoco.mj_step(self.model, self.data)
+        self.obj_init_pos = self.data.body("lock_link").xpos
         self._target_pos = self.obj_init_pos + np.array([0.0, -0.04, -0.1])
-
         return self._get_obs()
 
     def compute_reward(self, action, obs):
@@ -126,3 +129,23 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         reward += 8 * lock_pressed
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
+
+
+class TrainDoorLockv2(SawyerDoorLockEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorLockEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestDoorLockv2(SawyerDoorLockEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerDoorLockEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)

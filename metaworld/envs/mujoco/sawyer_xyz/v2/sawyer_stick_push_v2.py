@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Box
+from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
-    def __init__(self):
+    def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.000)
@@ -23,7 +23,11 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
+            render_mode=render_mode,
         )
+
+        if tasks is not None:
+            self.tasks = tasks
 
         self.init_config = {
             "stick_init_pos": np.array([-0.1, 0.6, 0.02]),
@@ -88,10 +92,18 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         )
 
     def _get_quat_objects(self):
+        geom_xmat = self.data.body("stick").xmat.reshape(3, 3)
         return np.hstack(
             (
-                Rotation.from_matrix(self.data.get_body_xmat("stick")).as_quat(),
-                np.array([0.0, 0.0, 0.0, 0.0]),
+                Rotation.from_matrix(geom_xmat).as_quat(),
+                np.array(
+                    [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                    ]
+                ),
             )
         )
 
@@ -283,7 +295,6 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
             if container_to_target <= _TARGET_RADIUS:
                 reward = 10.0
-
         return [
             reward,
             tcp_to_stick,
@@ -292,3 +303,23 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             object_grasped,
             stick_in_place,
         ]
+
+
+class TrainStickPushv2(SawyerStickPushEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
+
+
+class TestStickPushv2(SawyerStickPushEnvV2):
+    tasks = None
+
+    def __init__(self):
+        SawyerStickPushEnvV2.__init__(self, self.tasks)
+
+    def reset(self, seed=None, options=None):
+        return super().reset(seed=seed, options=options)
