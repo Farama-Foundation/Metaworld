@@ -491,11 +491,11 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             dtype=np.float64,
         )
         reward, info = self.evaluate_state(self._last_stable_obs, action)
-        done = True if int(info["success"]) == 1 else False
+        # step will never return a terminal if there is a success
         return (
             np.array(self._last_stable_obs, dtype=np.float64),
             reward,
-            done,
+            False,
             False,
             info,
         )
