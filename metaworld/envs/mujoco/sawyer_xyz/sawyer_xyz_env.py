@@ -459,6 +459,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         assert len(action) == 4, f"Actions should be size 4, got {len(action)}"
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
+        if getattr(self, 'curr_path_length', 0) > self.max_path_length:
+            raise ValueError('Maximum path length allowed by the benchmark has been exceeded')
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -470,6 +472,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             return (
                 self._last_stable_obs,  # observation just before going unstable
                 0.0,  # reward (penalize for causing instability)
+                False,
                 False,  # termination flag always False
                 {  # info
                     "success": False,
