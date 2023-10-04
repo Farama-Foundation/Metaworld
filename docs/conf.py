@@ -16,9 +16,10 @@
 
 # -- Project information -----------------------------------------------------
 import os
-from typing import Any, Dict
 
-import metaworld
+# import metaworld
+
+# from typing import Any, Dict
 
 
 project = "Metaworld"
