@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
@@ -11,11 +11,11 @@
 <link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Citation" href="../../citation/" /><link rel="prev" title="Installation" href="../installation/" />
         <link rel="canonical" href="https://metaworld.farama.org/introduction/basic_usage.html" />
 
-    <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.1.2 and Furo 2023.05.20.dev1 -->
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.2.6 and Furo 2023.08.19.dev1 -->
         <title>Basic Usage - Metaworld Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=2b6f8eb5452c44539a42dd9ada0a48f56e5f404d" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=5d0deb98f4b2e6cecaee64745957f1068f205919" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=3e7f4c72" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=49cbaffd" />
     
     
 
@@ -277,9 +277,9 @@
           <article role="main">
             
             <section id="basic-usage">
-<h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">#</a></h1>
+<h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">#</a></h1>
 <section id="using-the-benchmark">
-<h2>Using the benchmark<a class="headerlink" href="#using-the-benchmark" title="Permalink to this heading">#</a></h2>
+<h2>Using the benchmark<a class="headerlink" href="#using-the-benchmark" title="Link to this heading">#</a></h2>
 <p>Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://meta-world.github.io/figures/ml1.gif"><strong>ML1</strong></a> is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of <a class="reference external" href="https://meta-world.github.io/figures/ml45-1080p.gif">50 tasks</a> for this benchmark.</p></li>
@@ -288,7 +288,7 @@
 <li><p><a class="reference external" href="https://meta-world.github.io/figures/mt10.gif"><strong>MT10</strong></a>, <strong>MT1</strong>, and <strong>MT50</strong> are multi-task-RL benchmark environments for learning a multi-task policy that perform 10, 1, and 50 training tasks respectively. <strong>MT1</strong> is similar to <strong>ML1</strong> because you can choose to test variation within any of <a class="reference external" href="https://meta-world.github.io/figures/ml45-1080p.gif">50 tasks</a> for this benchmark.  In the original Meta-World experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don’t enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as <a class="reference external" href="https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py">this one</a></p></li>
 </ul>
 <section id="basics">
-<h3>Basics<a class="headerlink" href="#basics" title="Permalink to this heading">#</a></h3>
+<h3>Basics<a class="headerlink" href="#basics" title="Link to this heading">#</a></h3>
 <p>We provide a <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code> API, that allows constructing environments following the <a class="reference external" href="https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/core.py#L21"><code class="docutils literal notranslate"><span class="pre">gymnasium.Env</span></code></a> interface.</p>
 <p>To use a <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code>, first construct it (this samples the tasks allowed for one run of an algorithm on the benchmark).
 Then, construct at least one instance of each environment listed in <code class="docutils literal notranslate"><span class="pre">benchmark.train_classes</span></code> and <code class="docutils literal notranslate"><span class="pre">benchmark.test_classes</span></code>.
@@ -303,7 +303,7 @@ for more details.</p>
 <a class="reference internal" href="#accessing-single-goal-environments"><span class="xref myst">Accessing Single Goal Environments</span></a> for more details.</p>
 </section>
 <section id="seeding-a-benchmark-instance">
-<h3>Seeding a Benchmark Instance<a class="headerlink" href="#seeding-a-benchmark-instance" title="Permalink to this heading">#</a></h3>
+<h3>Seeding a Benchmark Instance<a class="headerlink" href="#seeding-a-benchmark-instance" title="Link to this heading">#</a></h3>
 <p>For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
 For example, for the ML1 benchmark environment with the ‘pick-place-v2’ environment, you can do so in the following way:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
@@ -314,7 +314,7 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 </div>
 </section>
 <section id="running-ml1-or-mt1">
-<h3>Running ML1 or MT1<a class="headerlink" href="#running-ml1-or-mt1" title="Permalink to this heading">#</a></h3>
+<h3>Running ML1 or MT1<a class="headerlink" href="#running-ml1-or-mt1" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
 <span class="kn">import</span> <span class="nn">random</span>
 
@@ -334,7 +334,7 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 <p><strong>MT1</strong> can be run the same way except that it does not contain any <code class="docutils literal notranslate"><span class="pre">test_tasks</span></code></p>
 </section>
 <section id="running-a-benchmark">
-<h3>Running a benchmark<a class="headerlink" href="#running-a-benchmark" title="Permalink to this heading">#</a></h3>
+<h3>Running a benchmark<a class="headerlink" href="#running-a-benchmark" title="Link to this heading">#</a></h3>
 <p>Create an environment with train tasks (ML10, MT10, ML45, or MT50):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -378,7 +378,7 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 </section>
 </section>
 <section id="accessing-single-goal-environments">
-<h2>Accessing Single Goal Environments<a class="headerlink" href="#accessing-single-goal-environments" title="Permalink to this heading">#</a></h2>
+<h2>Accessing Single Goal Environments<a class="headerlink" href="#accessing-single-goal-environments" title="Link to this heading">#</a></h2>
 <p>You may wish to only access individual environments used in the Meta-World benchmark for your research.
 We provide constructors for creating environments where the goal has been hidden (by zeroing out the goal in
 the observation) and environments where the goal is observable. They are called GoalHidden and GoalObservable
@@ -531,9 +531,9 @@ environments respectively.</p>
     
     
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=62892134"></script>
+    <script src="../../_static/documentation_options.js?v=b59dc8fc"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=7660844c"></script>
     
     <script>
