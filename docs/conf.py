@@ -20,7 +20,6 @@ from typing import Any, Dict
 
 import metaworld
 
-
 project = "Metaworld"
 copyright = "2023 Farama Foundation"
 author = "Farama Foundation"
