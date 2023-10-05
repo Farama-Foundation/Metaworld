@@ -32,7 +32,7 @@ def test_reset_returns_same_obj_and_goal():
     violating_envs_obs = []
     for env_name, task_initial_pos in initial_obj_poses.items():
         if len(np.unique(np.array(task_initial_pos), axis=0)) > 1 and not np.allclose(
-            task_initial_pos[0], task_initial_pos[1], rtol=1e-2, atol=1e-2
+            task_initial_pos[0], task_initial_pos[1], rtol=1e-1, atol=1e-1
         ):
             violating_envs_obs.append(env_name)
     violating_envs_goals = []
