@@ -496,10 +496,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         # step will never return a terminate==True if there is a success
         # but we can return truncate=True if the current path length == max path length
-
-
         truncate = False
-        print(self.curr_path_length)
         if self.curr_path_length == self.max_path_length:
             truncate = True
         return (
