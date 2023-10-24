@@ -45,6 +45,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2 import (
     SawyerPushEnvV2,
     SawyerPushWallEnvV2,
     SawyerReachEnvV2,
+    SawyerReachGoalAsObjEnvV2,
     SawyerReachWallEnvV2,
     SawyerShelfPlaceEnvV2,
     SawyerSoccerEnvV2,
@@ -89,7 +90,6 @@ ALL_V2_ENVIRONMENTS = OrderedDict(
         ("peg-insert-side-v2", SawyerPegInsertionSideEnvV2),
         ("pick-place-wall-v2", SawyerPickPlaceWallEnvV2),
         ("pick-out-of-hole-v2", SawyerPickOutOfHoleEnvV2),
-        ("reach-v2", SawyerReachEnvV2),
         ("push-back-v2", SawyerPushBackEnvV2),
         ("push-v2", SawyerPushEnvV2),
         ("pick-place-v2", SawyerPickPlaceEnvV2),
@@ -106,6 +106,7 @@ ALL_V2_ENVIRONMENTS = OrderedDict(
         ("push-v2", SawyerPushEnvV2),
         ("reach-wall-v2", SawyerReachWallEnvV2),
         ("reach-v2", SawyerReachEnvV2),
+        ("reach-goal-as-obj-v2", SawyerReachGoalAsObjEnvV2),
         ("shelf-place-v2", SawyerShelfPlaceEnvV2),
         ("sweep-into-v2", SawyerSweepIntoGoalEnvV2),
         ("sweep-v2", SawyerSweepEnvV2),
@@ -369,7 +370,7 @@ def create_hidden_goal_envs():
     for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
         d = {}
 
-        def initialize(env, seed=None):
+        def initialize(env, seed=None, render_mode=None):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
@@ -377,6 +378,7 @@ def create_hidden_goal_envs():
             env._partially_observable = True
             env._freeze_rand_vec = False
             env._set_task_called = True
+            env.render_mode = render_mode
             env.reset()
             env._freeze_rand_vec = True
             if seed is not None:

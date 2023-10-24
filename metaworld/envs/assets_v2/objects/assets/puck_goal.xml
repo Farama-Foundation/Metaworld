@@ -6,11 +6,15 @@
         <geom class="puck_col" mesh="net2_col" pos="0.0 0.0 0" type="mesh" />
         <geom class="puck_col" mesh="net3_col" pos="0.0 0.0 0" type="mesh" />
         <geom class="puck_col" mesh="net4_col" pos="0.0 0.0 0" type="mesh" />
-        <geom class="puck_col" euler="1.571 0.0 0.0" pos="-0.1 0.004 0.009" size="0.008 0.073" type="capsule" />
-        <geom class="puck_col" euler="1.571 0.0 0.0" pos="0.1 0.004 0.009" size="0.008 0.073" type="capsule" />
+        <geom class="puck_col" euler="1.571 0.0 0.0" pos="-0.1 0.004 0.009" size="0.008 0.073"
+            type="capsule" />
+        <geom class="puck_col" euler="1.571 0.0 0.0" pos="0.1 0.004 0.009" size="0.008 0.073"
+            type="capsule" />
         <geom class="puck_col" pos="-0.1 -0.0685 0.091" size="0.008 0.082" type="capsule" />
         <geom class="puck_col" pos="0.1 -0.0685 0.091" size="0.008 0.082" type="capsule" />
-        <geom class="puck_col" euler="0.0 1.571 0.0" pos="0.0 -0.0685 0.174" size="0.008 0.1" type="capsule" />
-        <geom class="puck_col" euler="0.0 1.571 0.0" pos="0.0 0.077 0.009" size="0.008 0.1" type="capsule" />
+        <geom class="puck_col" euler="0.0 1.571 0.0" pos="0.0 -0.0685 0.174" size="0.008 0.1"
+            type="capsule" />
+        <geom class="puck_col" euler="0.0 1.571 0.0" pos="0.0 0.077 0.009" size="0.008 0.1"
+            type="capsule" />
     </body>
 </mujocoinclude>

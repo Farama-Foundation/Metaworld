@@ -1,0 +1,17 @@
+<mujocoinclude>
+    <actuator>
+        <motor joint="right_j0" name="right_j0" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j1" name="right_j1" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j2" name="right_j2" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j3" name="right_j3" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j4" name="right_j4" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j5" name="right_j5" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="right_j6" name="right_j6" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="r_close" name="r_close" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <motor joint="l_close" name="l_close" ctrllimited="true" ctrlrange="-1 1" gear="100" />
+        <!-- <position name="r_close" ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"
+        user="1"/> -->
+        <!-- <position name="l_close" ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"
+        user="1"/> -->
+    </actuator>
+</mujocoinclude>

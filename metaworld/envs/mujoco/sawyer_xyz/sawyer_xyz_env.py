@@ -38,7 +38,7 @@ class SawyerMocapBase(mjenv_gym):
         self.frame_skip = frame_skip
 
     def get_endeff_pos(self):
-        return self.data.body("hand").xpos
+        return np.hstack((self.data.body("hand").xpos, self.data.body("hand").xquat))
 
     @property
     def tcp_center(self):
@@ -89,8 +89,42 @@ class SawyerMocapBase(mjenv_gym):
 
 class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     _HAND_SPACE = Box(
-        np.array([-0.525, 0.348, -0.0525]),
-        np.array([+0.525, 1.025, 0.7]),
+        np.array(
+            [
+                -0.525,
+                0.348,
+                -0.0525,
+                -1,
+                -1,
+                -1,
+                -1,
+                -3.05,
+                -3.8,
+                -3.04,
+                -3.04,
+                -2.98,
+                -2.98,
+                -4.71,
+            ]
+        ),
+        np.array(
+            [
+                +0.525,
+                1.025,
+                0.7,
+                1,
+                1,
+                1,
+                1,
+                3.05,
+                -0.5,
+                3.04,
+                3.04,
+                2.98,
+                2.98,
+                4.71,
+            ]
+        ),
         dtype=np.float64,
     )
     max_path_length = 500
@@ -151,8 +185,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.init_right_pad = self.get_body_com("rightpad")
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([+1, +1, +1, +1]),
+            np.ones(8) * -1,
+            np.ones(8),
             dtype=np.float64,
         )
 
@@ -222,7 +256,6 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             self.mocap_high,
         )
         self.data.mocap_pos = new_mocap_pos
-        self.data.mocap_quat = np.array([1, 0, 1, 0])
 
     def discretize_goal_space(self, goals):
         assert False
@@ -367,6 +400,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         """
 
         pos_hand = self.get_endeff_pos()
+        qpos = self.data.qpos.flat.copy()[:7]
 
         finger_right, finger_left = (
             self.data.body("rightclaw"),
@@ -393,7 +427,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         obs_obj_padded[: len(obj_pos) + len(obj_quat)] = np.hstack(
             [np.hstack((pos, quat)) for pos, quat in zip(obj_pos_split, obj_quat_split)]
         )
-        return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
+        return np.hstack((pos_hand, qpos, gripper_distance_apart, obs_obj_padded))
 
     def _get_obs(self):
         """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the goal position to form a single flat observation.
@@ -456,11 +490,14 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
     @_assert_task_is_set
     def step(self, action):
-        assert len(action) == 4, f"Actions should be size 4, got {len(action)}"
-        self.set_xyz_action(action[:3])
+        assert len(action) == 8, f"Actions should be size 8, got {len(action)}"
+        # self.set_xyz_action(action[:3])
+        # self.set_rotation_action(action[3:7])
         if self.curr_path_length >= self.max_path_length:
             raise ValueError("You must reset the env manually once truncate==True")
-        self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
+        action = np.clip(action, -1, 1)
+        parsed_action = np.hstack((action, -action[-1]))
+        self.do_simulation(parsed_action, n_frames=self.frame_skip)
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -493,7 +530,20 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             a_min=self.sawyer_observation_space.low,
             dtype=np.float64,
         )
-        reward, info = self.evaluate_state(self._last_stable_obs, action)
+
+        def parse_obs(obs: np.ndarray):
+            return np.hstack((obs[:3], obs[14:32], obs[43:]))
+
+        def parse_action(action: np.ndarray):
+            return np.hstack((np.empty(3), action[-1]))
+
+        # reward, info = self.evaluate_state(self._last_stable_obs, action)
+        reward, info = self.evaluate_state(
+            parse_obs(self._last_stable_obs), parse_action(action)
+        )
+        action_norm = np.linalg.norm(action)
+        reward -= 0.5 * action_norm
+
         # step will never return a terminate==True if there is a success
         # but we can return truncate=True if the current path length == max path length
         truncate = False
@@ -524,18 +574,18 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     def reset(self, seed=None, options=None):
         self.curr_path_length = 0
         obs, info = super().reset()
-        self._prev_obs = obs[:18].copy()
-        obs[18:36] = self._prev_obs
+        obs_dim = self._HAND_SPACE.low.size + 1 + self._obs_obj_max_len
+        self._prev_obs = obs[:obs_dim].copy()
+        obs[obs_dim : obs_dim * 2] = self._prev_obs
         obs = np.float64(obs)
         return obs, info
 
-    def _reset_hand(self, steps=50):
-        mocap_id = self.model.body_mocapid[self.data.body("mocap").id]
+    def _reset_hand(self, steps: int = 50):
+        init_qpos = np.array([1.56, -1.47, -0.0609, 2.65, -0.09, 0.387, -1.74, 0, 0])
         for _ in range(steps):
-            self.data.mocap_pos[mocap_id][:] = self.hand_init_pos
-            self.data.mocap_quat[mocap_id][:] = np.array([1, 0, 1, 0])
-            self.do_simulation([-1, 1], self.frame_skip)
-        self.init_tcp = self.tcp_center
+            for i in range(9):
+                self.data.qpos[i] = init_qpos[i]
+            self.do_simulation(np.zeros(9), n_frames=self.frame_skip)
 
         self.init_tcp = self.tcp_center
 
@@ -683,3 +733,28 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             caging_and_gripping = (caging_and_gripping + reach) / 2
 
         return caging_and_gripping
+
+    def render(self):
+        """Returns rendering as uint8 in range [0...255]"""
+        # return self._env.render()
+
+        ### Method 1 ###
+        ### Set camera using camera_id (0-5)
+        # self._env.camera_id=1
+        # return self._env.render()
+
+        ### Method 2 ###
+        ### Set camera config from mujoco_renderer
+        ### https://mujoco.readthedocs.io/en/latest/XMLreference.html?highlight=#visual-global
+        # Cam Params
+        cam_config = {
+            "azimuth": 40,
+            "elevation": -35,
+            "distance": 2,
+            "lookat": [0, 0.6, 0],  # Tuple and list are both legal
+        }
+
+        if self.mujoco_renderer._viewers == {}:
+            self.mujoco_renderer.default_cam_config = cam_config
+
+        return self.mujoco_renderer.render(self.render_mode)
