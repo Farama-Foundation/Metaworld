@@ -3,61 +3,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from metaworld.envs.mujoco.sawyer_xyz.v2 import (
-    SawyerBasketballEnvV2,
-    SawyerBinPickingEnvV2,
-    SawyerBoxCloseEnvV2,
-    SawyerButtonPressEnvV2,
-    SawyerButtonPressTopdownEnvV2,
-    SawyerButtonPressTopdownWallEnvV2,
-    SawyerButtonPressWallEnvV2,
-    SawyerCoffeeButtonEnvV2,
-    SawyerCoffeePullEnvV2,
-    SawyerCoffeePushEnvV2,
-    SawyerDialTurnEnvV2,
-    SawyerDoorCloseEnvV2,
-    SawyerDoorEnvV2,
-    SawyerDoorLockEnvV2,
-    SawyerDoorUnlockEnvV2,
-    SawyerDrawerCloseEnvV2,
-    SawyerDrawerOpenEnvV2,
-    SawyerFaucetCloseEnvV2,
-    SawyerFaucetOpenEnvV2,
-    SawyerHammerEnvV2,
-    SawyerHandInsertEnvV2,
-    SawyerHandlePressEnvV2,
-    SawyerHandlePressSideEnvV2,
-    SawyerHandlePullEnvV2,
-    SawyerHandlePullSideEnvV2,
-    SawyerLeverPullEnvV2,
-    SawyerNutAssemblyEnvV2,
-    SawyerNutDisassembleEnvV2,
-    SawyerPegInsertionSideEnvV2,
-    SawyerPegUnplugSideEnvV2,
-    SawyerPickOutOfHoleEnvV2,
-    SawyerPickPlaceEnvV2,
-    SawyerPickPlaceWallEnvV2,
-    SawyerPlateSlideBackEnvV2,
-    SawyerPlateSlideBackSideEnvV2,
-    SawyerPlateSlideEnvV2,
-    SawyerPlateSlideSideEnvV2,
-    SawyerPushBackEnvV2,
-    SawyerPushEnvV2,
-    SawyerPushWallEnvV2,
-    SawyerReachEnvV2,
-    SawyerReachGoalAsObjEnvV2,
-    SawyerReachWallEnvV2,
-    SawyerShelfPlaceEnvV2,
-    SawyerSoccerEnvV2,
-    SawyerStickPullEnvV2,
-    SawyerStickPushEnvV2,
-    SawyerSweepEnvV2,
-    SawyerSweepIntoGoalEnvV2,
-    SawyerWindowCloseEnvV2,
-    SawyerWindowOpenEnvV2,
-)
+from metaworld.envs.mujoco.sawyer_xyz.v2 import *
+from metaworld.envs.mujoco.jaco.v2 import *
 
-ALL_V2_ENVIRONMENTS = OrderedDict(
+SAWYER_ENVIRONMENTS = OrderedDict(
     (
         ("assembly-v2", SawyerNutAssemblyEnvV2),
         ("basketball-v2", SawyerBasketballEnvV2),
@@ -115,8 +64,66 @@ ALL_V2_ENVIRONMENTS = OrderedDict(
     )
 )
 
+JACO_ENVIRONMENTS = OrderedDict(
+    (
+        ("assembly-v2", JacoNutAssemblyEnvV2),
+        ("basketball-v2", JacoBasketballEnvV2),
+        ("bin-picking-v2", JacoBinPickingEnvV2),
+        ("box-close-v2", JacoBoxCloseEnvV2),
+        ("button-press-topdown-v2", JacoButtonPressTopdownEnvV2),
+        ("button-press-topdown-wall-v2", JacoButtonPressTopdownWallEnvV2),
+        ("button-press-v2", JacoButtonPressEnvV2),
+        ("button-press-wall-v2", JacoButtonPressWallEnvV2),
+        ("coffee-button-v2", JacoCoffeeButtonEnvV2),
+        ("coffee-pull-v2", JacoCoffeePullEnvV2),
+        ("coffee-push-v2", JacoCoffeePushEnvV2),
+        ("dial-turn-v2", JacoDialTurnEnvV2),
+        ("disassemble-v2", JacoNutDisassembleEnvV2),
+        ("door-close-v2", JacoDoorCloseEnvV2),
+        ("door-lock-v2", JacoDoorLockEnvV2),
+        ("door-open-v2", JacoDoorEnvV2),
+        ("door-unlock-v2", JacoDoorUnlockEnvV2),
+        ("hand-insert-v2", JacoHandInsertEnvV2),
+        ("drawer-close-v2", JacoDrawerCloseEnvV2),
+        ("drawer-open-v2", JacoDrawerOpenEnvV2),
+        ("faucet-open-v2", JacoFaucetOpenEnvV2),
+        ("faucet-close-v2", JacoFaucetCloseEnvV2),
+        ("hammer-v2", JacoHammerEnvV2),
+        ("handle-press-side-v2", JacoHandlePressSideEnvV2),
+        ("handle-press-v2", JacoHandlePressEnvV2),
+        ("handle-pull-side-v2", JacoHandlePullSideEnvV2),
+        ("handle-pull-v2", JacoHandlePullEnvV2),
+        ("lever-pull-v2", JacoLeverPullEnvV2),
+        ("peg-insert-side-v2", JacoPegInsertionSideEnvV2),
+        ("pick-place-wall-v2", JacoPickPlaceWallEnvV2),
+        ("pick-out-of-hole-v2", JacoPickOutOfHoleEnvV2),
+        ("push-back-v2", JacoPushBackEnvV2),
+        ("push-v2", JacoPushEnvV2),
+        ("pick-place-v2", JacoPickPlaceEnvV2),
+        ("plate-slide-v2", JacoPlateSlideEnvV2),
+        ("plate-slide-side-v2", JacoPlateSlideSideEnvV2),
+        ("plate-slide-back-v2", JacoPlateSlideBackEnvV2),
+        ("plate-slide-back-side-v2", JacoPlateSlideBackSideEnvV2),
+        ("peg-insert-side-v2", JacoPegInsertionSideEnvV2),
+        ("peg-unplug-side-v2", JacoPegUnplugSideEnvV2),
+        ("soccer-v2", JacoSoccerEnvV2),
+        ("stick-push-v2", JacoStickPushEnvV2),
+        ("stick-pull-v2", JacoStickPullEnvV2),
+        ("push-wall-v2", JacoPushWallEnvV2),
+        ("push-v2", JacoPushEnvV2),
+        ("reach-wall-v2", JacoReachWallEnvV2),
+        ("reach-v2", JacoReachEnvV2),
+        ("reach-goal-as-obj-v2", JacoReachGoalAsObjEnvV2),
+        ("shelf-place-v2", JacoShelfPlaceEnvV2),
+        ("sweep-into-v2", JacoSweepIntoGoalEnvV2),
+        ("sweep-v2", JacoSweepEnvV2),
+        ("window-open-v2", JacoWindowOpenEnvV2),
+        ("window-close-v2", JacoWindowCloseEnvV2),
+    )
+)
 
-_NUM_METAWORLD_ENVS = len(ALL_V2_ENVIRONMENTS)
+
+_NUM_METAWORLD_ENVS = len(SAWYER_ENVIRONMENTS)
 # V2 DICTS
 
 MT10_V2 = OrderedDict(
@@ -136,7 +143,7 @@ MT10_V2 = OrderedDict(
 
 
 MT10_V2_ARGS_KWARGS = {
-    key: dict(args=[], kwargs={"task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={"task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MT10_V2.items()
 }
 
@@ -182,14 +189,14 @@ ml10_train_args_kwargs = {
     key: dict(
         args=[],
         kwargs={
-            "task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key),
+            "task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key),
         },
     )
     for key, _ in ML10_V2["train"].items()
 }
 
 ml10_test_args_kwargs = {
-    key: dict(args=[], kwargs={"task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={"task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key)})
     for key, _ in ML10_V2["test"].items()
 }
 
@@ -198,13 +205,13 @@ ML10_ARGS_KWARGS = dict(
     test=ml10_test_args_kwargs,
 )
 
-ML1_V2 = OrderedDict((("train", ALL_V2_ENVIRONMENTS), ("test", ALL_V2_ENVIRONMENTS)))
+ML1_V2 = OrderedDict((("train", SAWYER_ENVIRONMENTS), ("test", SAWYER_ENVIRONMENTS)))
 
 ML1_args_kwargs = {
     key: dict(
         args=[],
         kwargs={
-            "task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key),
+            "task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key),
         },
     )
     for key, _ in ML1_V2["train"].items()
@@ -268,7 +275,7 @@ MT50_V2 = OrderedDict(
 )
 
 MT50_V2_ARGS_KWARGS = {
-    key: dict(args=[], kwargs={"task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={"task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key)})
     for key, _ in MT50_V2.items()
 }
 
@@ -348,14 +355,14 @@ ml45_train_args_kwargs = {
     key: dict(
         args=[],
         kwargs={
-            "task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key),
+            "task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key),
         },
     )
     for key, _ in ML45_V2["train"].items()
 }
 
 ml45_test_args_kwargs = {
-    key: dict(args=[], kwargs={"task_id": list(ALL_V2_ENVIRONMENTS.keys()).index(key)})
+    key: dict(args=[], kwargs={"task_id": list(SAWYER_ENVIRONMENTS.keys()).index(key)})
     for key, _ in ML45_V2["test"].items()
 }
 
@@ -365,9 +372,9 @@ ML45_ARGS_KWARGS = dict(
 )
 
 
-def create_hidden_goal_envs():
+def create_hidden_goal_envs(arm_name, all_env_dict):
     hidden_goal_envs = {}
-    for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
+    for env_name, env_cls in all_env_dict.items():
         d = {}
 
         def initialize(env, seed=None, render_mode=None):
@@ -386,6 +393,7 @@ def create_hidden_goal_envs():
                 np.random.set_state(st0)
 
         d["__init__"] = initialize
+        env_name = f"{arm_name}-{env_name}"
         hg_env_name = re.sub(
             r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name
         )
@@ -398,9 +406,9 @@ def create_hidden_goal_envs():
     return OrderedDict(hidden_goal_envs)
 
 
-def create_observable_goal_envs():
+def create_observable_goal_envs(arm_name, all_env_dict):
     observable_goal_envs = {}
-    for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
+    for env_name, env_cls in all_env_dict.items():
         d = {}
 
         def initialize(env, seed=None, render_mode=None):
@@ -420,11 +428,11 @@ def create_observable_goal_envs():
                 np.random.set_state(st0)
 
         d["__init__"] = initialize
+        env_name = f"{arm_name}-{env_name}"
         og_env_name = re.sub(
             r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name
         )
         og_env_name = og_env_name.replace("-", "")
-
         og_env_key = f"{env_name}-goal-observable"
         og_env_name = f"{og_env_name}GoalObservable"
         ObservableGoalEnvCls = type(og_env_name, (env_cls,), d)
@@ -433,5 +441,26 @@ def create_observable_goal_envs():
     return OrderedDict(observable_goal_envs)
 
 
-ALL_V2_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs()
-ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs()
+SAWYER_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("sawyer", SAWYER_ENVIRONMENTS)
+SAWYER_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
+    "sawyer", SAWYER_ENVIRONMENTS
+)
+
+JACO_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("jaco", JACO_ENVIRONMENTS)
+JACO_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
+    "jaco", JACO_ENVIRONMENTS
+)
+
+ALL_ENVIRONMENTS_GOAL_HIDDEN = OrderedDict(
+    list(SAWYER_ENVIRONMENTS_GOAL_HIDDEN.items())
+    + list(JACO_ENVIRONMENTS_GOAL_HIDDEN.items())
+)
+ALL_ENVIRONMENTS_GOAL_OBSERVABLE = OrderedDict(
+    list(SAWYER_ENVIRONMENTS_GOAL_OBSERVABLE.items())
+    + list(JACO_ENVIRONMENTS_GOAL_OBSERVABLE.items())
+)
+
+ALL_ENVIRONMENTS = OrderedDict(
+    list(ALL_ENVIRONMENTS_GOAL_HIDDEN.items())
+    + list(ALL_ENVIRONMENTS_GOAL_OBSERVABLE.items())
+)

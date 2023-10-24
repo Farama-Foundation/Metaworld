@@ -1,0 +1,45 @@
+<mujocoinclude>
+  <compiler inertiafromgeom='true' angle="radian" />
+
+  <!-- <option integrator="RK4" solver="PGS" timestep="0.001" gravity="0 0 0" iterations="50" /> -->
+
+  <asset>
+    <mesh file="../objects/meshes/jaco/jaco_link_base.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_1.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_2.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_3.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_4.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_5.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_hand.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_finger_1.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_finger_2.stl" />
+    <mesh file="../objects/meshes/jaco/jaco_link_finger_3.stl" />
+
+
+    <texture type="skybox" builtin="gradient" rgb1=".2 .3 .4" rgb2="1 1 1"
+      width="100" height="100" />
+    <texture name="groundplane" type="2d" builtin="checker" rgb1=".25 .26 .25"
+      rgb2=".22 .22 .22" width="100" height="100" mark="none" markrgb=".8 .8 .8" />
+    <texture name="greenground" type="2d" builtin="gradient" rgb1="0.19 0.28 0.23"
+      rgb2="0 0 0" width="100" height="100" mark="none" markrgb=".8 .8 .8" />
+    <material name="MatViz" specular="1" shininess=".1" reflectance="0.5" rgba=".07 .07 .1 1" />
+    <material name="MatGnd" texture="groundplane" texrepeat="5 5" specular="1" shininess="0"
+      reflectance="0" />
+
+  </asset>
+
+  <default>
+    <geom contype='1' conaffinity='1' condim='3' margin="0.001" />
+
+    <joint limited="false" damping="0" armature=".01" />
+
+    <default class="vizNcoll">
+      <geom material="MatViz" type="mesh" condim="3" contype="1" conaffinity="1" margin="0.001" />
+      <joint pos="0 0 0" type="hinge" />
+    </default>
+    <default class="ground">
+      <geom type="plane" margin="0.001" contype="1" />
+    </default>
+  </default>
+
+</mujocoinclude>
