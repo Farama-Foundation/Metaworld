@@ -560,12 +560,13 @@ class JacoEnv(JacoMocapBase, EzPickle):
             return np.hstack((obs[:3], obs[16:34], obs[47:]))
 
         def parse_action(action: np.ndarray):
-            return np.hstack((np.empty(3), action[-1]))
+            grab_effort = np.mean(action[-3:])
+            return np.hstack((np.empty(3), grab_effort))
 
         # reward, info = self.evaluate_state(self._last_stable_obs, action)
         reward, info = self.evaluate_state(
-            parse_obs(self._last_stable_obs), None
-        )  # TODO: define action for reward
+            parse_obs(self._last_stable_obs), parse_action(action)
+        )
         action_norm = np.linalg.norm(action)
         reward -= 0.5 * action_norm
 
