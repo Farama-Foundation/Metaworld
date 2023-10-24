@@ -1,0 +1,154 @@
+<!-- ======================================================
+
+  This model has been modified and also include:
+  - position and velocity actuators
+  - multiple cameras
+  - virtual target
+
+  Author    :: Feryal M P Behbahani
+
+  Original model from: http://mujoco.org/forum/index.php?resources/kinova-arms.12/
+
+    This file is part of MuJoCo.
+    Copyright 2009-2016 Roboti LLC.
+
+    Model     :: Jaco Arm from Kinova Robotics
+      Source    : www.github.com/Kinovarobotics
+      Downloaded  : July 25, 2015
+
+    Mujoco    :: Advanced physics simulation engine
+      Source    : www.roboti.us
+      Version   : 1.31
+      Released  : 23Apr16
+
+    Author    :: Vikash Kumar
+      Contacts  : kumar@roboti.us
+      Last edits  : 30Apr16, 30Nov15, 26Sept'15, 26July'15
+
+====================================================== -->
+
+<mujocoinclude>
+  <body name="jaco" pos="0 0.14 0">
+
+    <!-- <light cutoff="200" diffuse="1.2 1.2 1.2" dir="-0 0 -1.3" directional="true" exponent="1"
+    pos="0 0 1.3" specular=".1 .1 .1"/> -->
+
+    <camera name="view1" pos="0 0 2.0" zaxis="0 0 1" fovy="45" ipd="0.068" />
+    <camera name="view2" pos="1.0 0.7 0.3" xyaxes="-1 1 0 0 0 1" fovy="45" ipd="0.068" />
+
+
+    <!-- <geom name="ground" class="ground" type='plane' pos="0 0 0" rgba="0.19 0.30 0.23 1" size="2
+    2 1"/> -->
+
+    <body name="jaco_link_base" childclass="vizNcoll" pos="0 0 0.25">
+      <inertial pos="-3.14012e-008 0.000451919 0.0770704"
+        quat="1 -0.000920048 6.51183e-006 5.62643e-005" mass="0.787504"
+        diaginertia="0.00187445 0.00186316 0.000676952" />
+      <geom mesh="jaco_link_base" />
+      <geom type="capsule" pos="0 0 -0.125" size=".045 0.125" contype="1" conaffinity="1" condim="3" />
+
+
+      <body name="jaco_link_1" childclass="vizNcoll" pos="0 0 0.1535" quat="0 0 1 0">
+        <inertial pos="-1.14317e-006 0.0102141 -0.0637045"
+          quat="0.702792 0.0778988 -0.0778994 0.702813" mass="0.613151"
+          diaginertia="0.00149348 0.00144012 0.000401632" />
+        <joint name="jaco_joint_1" axis="0 0 -1" limited="true" range="-1.57 4.71" damping="10" />
+        <geom mesh="jaco_link_1" contype="1" conaffinity="1" condim="3" />
+
+
+        <body name="jaco_link_2" pos="0 0 -0.1185" quat="0 0 0.707107 0.707107">
+          <inertial pos="0.206657 -1.55187e-007 -0.030675"
+            quat="8.97411e-006 0.707331 5.06696e-006 0.706883" mass="1.85031"
+            diaginertia="0.0402753 0.0398125 0.00121953" />
+          <joint name="jaco_joint_2" axis="0 0 1" limited="true" range="-4.04 0.895" damping="10" />
+          <geom mesh="jaco_link_2" contype="1" conaffinity="1" condim="3" />
+
+
+          <body name="jaco_link_3" pos="0.41 0 0" quat="0 0.707107 0.707107 0">
+            <inertial pos="0.0847979 -1.18469e-007 -0.020283"
+              quat="2.33799e-005 0.694869 1.96996e-005 0.719136" mass="0.70372"
+              diaginertia="0.00386732 0.00373181 0.000358773" />
+            <joint name="jaco_joint_3" axis="0 0 -1" limited="true" range="-3.14 3.14" damping="10" />
+            <geom mesh="jaco_link_3" contype="1" conaffinity="1" condim="3" />
+
+
+            <body name="jaco_link_4" pos="0.207 0 -0.01125" quat="0 0.707107 0 -0.707107">
+              <inertial pos="0.00914824 4.53141e-008 -0.0370941"
+                quat="0.971237 -1.92989e-005 -0.238115 3.23646e-005" mass="0.227408"
+                diaginertia="0.000176463 0.00017225 0.000108303" />
+              <joint name="jaco_joint_4" axis="0 0 -1" limited="true" range="-1.57 4.71"
+                damping="10" />
+              <geom mesh="jaco_link_4" contype="1" conaffinity="1" condim="3" />
+
+
+              <body name="jaco_link_5" pos="0.0343 0 -0.06588" quat="0.887011 0 -0.461749 0">
+                <inertial pos="0.00914824 4.53141e-008 -0.0370941"
+                  quat="0.971237 -1.92989e-005 -0.238115 3.23646e-005" mass="0.227408"
+                  diaginertia="0.000176463 0.00017225 0.000108303" />
+                <joint name="jaco_joint_5" axis="0 0 -1" limited="true" range="-3.14 3.14"
+                  damping="10" />
+                <geom mesh="jaco_link_5" contype="1" conaffinity="1" condim="3" />
+
+
+                <body name="hand" pos="0.0343 0 -0.06588"
+                  quat="0.627211 -0.326506 -0.326506 0.627211">
+                  <inertial pos="0.0036132 -6.2241e-005 -0.0583749"
+                    quat="0.669114 -0.237618 -0.23799 0.66271" mass="0.58074"
+                    diaginertia="0.000817146 0.000671192 0.000606807" />
+                  <joint name="jaco_joint_6" axis="0 0 -1" limited="true" range="-3.14 3.14"
+                    damping="10" />
+                  <geom mesh="jaco_link_hand" rgba=".13 .13 .13 1" contype="1" conaffinity="1"
+                    condim="3" />
+
+
+                  <body name="jaco_link_finger_1" pos="-0.03978 0 -0.10071"
+                    quat="-0.414818 -0.329751 -0.663854 0.52772">
+                    <inertial pos="0.0485761 -0.000715511 2.09499e-008"
+                      quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077"
+                      diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                    <joint name="jaco_joint_finger_1" limited="true" axis="0 0 1" range="0 0.698132" />
+                    <geom mesh="jaco_link_finger_1" margin="0.001" contype='1' conaffinity='1'
+                      condim='3' />
+                    <site name="finger_1_tip" pos="0.11 -0.005 0" size="0.01"
+                      rgba="1 0 0 1" />
+                  </body>
+
+
+                  <body name="jaco_link_finger_2" pos="0.03569 -0.0216 -0.10071"
+                    quat="0.625248 -0.567602 0.434845 0.312735">
+                    <inertial pos="0.0485761 -0.000715511 2.09499e-008"
+                      quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077"
+                      diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                    <joint name="jaco_joint_finger_2" limited="true" axis="0 0 1" range="0 0.698132" />
+                    <geom mesh="jaco_link_finger_2" margin="0.001" contype='1' conaffinity='1'
+                      condim='3' />
+                    <site name="finger_2_tip" pos="0.11 -0.005 0" size="0.01"
+                      rgba="1 0 0 1" />
+                  </body>
+
+
+                  <body name="jaco_link_finger_3" pos="0.03569 0.0216 -0.10071"
+                    quat="0.561254 -0.620653 0.321748 0.443014">
+                    <inertial pos="0.0485761 -0.000715511 2.09499e-008"
+                      quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077"
+                      diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                    <joint name="jaco_joint_finger_3" limited="true" axis="0 0 1" range="0 0.698132" />
+                    <geom mesh="jaco_link_finger_3" margin="0.001" contype='1' conaffinity='1'
+                      condim='3' />
+                    <site name="finger_3_tip" pos="0.11 -0.005 0" size="0.01"
+                      rgba="1 0 0 1" />
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="pole" pos="0 0 0">
+      <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001 0.0001 0.0001" />
+      <geom type="cylinder" size="0.06 0.4565" pos="0 0 -0.4565" rgba="0.2 0.2 0.2 1" />
+    </body>
+  </body>
+</mujocoinclude>

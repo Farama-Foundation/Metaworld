@@ -1,0 +1,7 @@
+<mujoco model="jaco">
+    <include file="assets/jaco_dependencies.xml" />
+    <worldbody>
+        <include file="assets/jaco.xml" />
+    </worldbody>
+    <include file="assets/jaco_motor.xml" />
+</mujoco>
