@@ -1,0 +1,89 @@
+<!-- =================================================
+	Copyright 2016 Vikash Kumar
+	Model   :: Fetch (MuJoCoV2.0)
+	Author  :: Vikash Kumar (vikashplus@gmail.com)
+	Details :: https://github.com/vikashplus/fetch_sim
+	License :: Under Apache License, Version 2.0 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in
+writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.
+====================================================== -©vk© -->
+
+<mujocoinclude>
+
+	<compiler angle="radian" />
+
+	<asset>
+		<mesh name="base_link" file="../objects/meshes/fetch/base_link_collision.stl" />
+		<mesh name="r_wheel_link" file="../objects/meshes/fetch/r_wheel_link_collision.stl" />
+		<mesh name="l_wheel_link" file="../objects/meshes/fetch/l_wheel_link_collision.stl" />
+		<mesh name="torso_lift_link" file="../objects/meshes/fetch/torso_lift_link_collision.stl" />
+		<mesh name="head_pan_link" file="../objects/meshes/fetch/head_pan_link_collision.stl" />
+		<mesh name="head_tilt_link" file="../objects/meshes/fetch/head_tilt_link_collision.stl" />
+		<mesh name="shoulder_pan_link"
+			file="../objects/meshes/fetch/shoulder_pan_link_collision.stl" />
+		<mesh name="shoulder_lift_link"
+			file="../objects/meshes/fetch/shoulder_lift_link_collision.stl" />
+		<mesh name="upperarm_roll_link"
+			file="../objects/meshes/fetch/upperarm_roll_link_collision.stl" />
+		<mesh name="elbow_flex_link" file="../objects/meshes/fetch/elbow_flex_link_collision.stl" />
+		<mesh name="forearm_roll_link"
+			file="../objects/meshes/fetch/forearm_roll_link_collision.stl" />
+		<mesh name="wrist_flex_link" file="../objects/meshes/fetch/wrist_flex_link_collision.stl" />
+		<mesh name="wrist_roll_link" file="../objects/meshes/fetch/wrist_roll_link_collision.stl" />
+		<mesh name="gripper_link" file="../objects/meshes/fetch/gripper_link.stl" />
+		<mesh name="r_gripper_finger_link" file="../objects/meshes/fetch/r_gripper_finger_link.stl" />
+		<mesh name="l_gripper_finger_link" file="../objects/meshes/fetch/l_gripper_finger_link.stl" />
+		<mesh name="bellows_link" file="../objects/meshes/fetch/bellows_link_collision.stl" />
+		<mesh name="estop_link" file="../objects/meshes/fetch/estop_link.stl" />
+		<mesh name="laser_link" file="../objects/meshes/fetch/laser_link.stl" />
+		<mesh name="torso_fixed_link" file="../objects/meshes/fetch/torso_fixed_link.stl" />
+		<texture name="texgeom" type="cube" builtin="flat" rgb1="1 1 1" rgb2="1 1 1" mark="random"
+			markrgb=".3 .3 .4" random="0.05" width="512" height="512" />
+		<material name="geomMat" texture="texgeom" specular="0.75" shininess=".03" />
+	</asset>
+
+	<!-- <equality>
+		<weld body1="mocap" body2="gripper_link" solref="0.01 1" solimp=".02 .1 0.050"/>
+	</equality> -©vk©-->
+
+	<contact>
+		<exclude body1="r_gripper_finger_link" body2="l_gripper_finger_link" />
+		<exclude body1="shoulder_lift_link" body2="torso_lift_link" />
+		<exclude body1="shoulder_pan_link" body2="torso_lift_link" />
+	</contact>
+
+	<default>
+		<default class="fetch">
+			<geom solref="0.008 1" solimp="0.93 0.97 0.001" margin="0.001" user="0" type="mesh"
+				rgba="1 1 1 1" material="geomMat" />
+			<joint damping="50" stiffness="0" armature="1" limited="true" />
+			<default class="fetchGrey">
+				<geom rgba="0.356 0.361 0.376 1" />
+			</default>
+			<default class="fetchBlue">
+				<geom rgba="0.086 0.506 0.767 1" />
+			</default>
+			<default class="fetchGripper">
+				<geom solref="0.008 1" solimp="0.93 0.97 0.01" margin="0.001" user="0"
+					rgba="0.356 0.361 0.376 1" condim="4" />
+				<joint solreflimit="0.006 1" solimplimit="0.99 0.999 0.001" damping="50"
+					type="slide" limited="true" />
+			</default>
+		</default>
+	</default>
+
+	<sensor>
+		<jointpos name="shoulder_pan_jp" joint="shoulder_pan_joint" />
+		<jointpos name="shoulder_lift_jp" joint="shoulder_lift_joint" />
+		<jointpos name="upperarm_roll_jp" joint="upperarm_roll_joint" />
+		<jointpos name="elbow_flex_jp" joint="elbow_flex_joint" />
+		<jointpos name="forearm_roll_jp" joint="forearm_roll_joint" />
+		<jointpos name="wrist_flex_jp" joint="wrist_flex_joint" />
+		<jointpos name="wrist_roll_jp" joint="wrist_roll_joint" />
+		<jointpos name="r_gripper_finger_jp" joint="r_gripper_finger_joint" />
+		<jointpos name="l_gripper_finger_jp" joint="l_gripper_finger_joint" />
+	</sensor>
+</mujocoinclude>

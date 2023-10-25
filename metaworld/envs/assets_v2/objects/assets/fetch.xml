@@ -1,0 +1,166 @@
+<!-- =================================================
+	Copyright 2016 Vikash Kumar
+	Model   :: Fetch (MuJoCoV2.0)
+	Author  :: Vikash Kumar (vikashplus@gmail.com)
+	Details :: https://github.com/vikashplus/fetch_sim
+	License :: Under Apache License, Version 2.0 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in
+writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.
+====================================================== -©vk©-->
+<mujocoinclude>
+	<body childclass="fetch" name="base_link" pos="0 0 -0.913" euler="0 0 1.57">
+		<inertial pos="-0.0036 0 0.0014" quat="0.760522 -0.0132765 -0.00610742 0.649147"
+			mass="70.1294" diaginertia="1.2869 1.2236 0.986794" />
+		<geom class="fetchGrey" mesh="base_link" />
+
+		<body name="torso_lift_link" pos="-0.086875 0 0.913">
+			<inertial pos="-0.0013 -0.0009 0.2935" quat="0.999265 -0.000621225 0.0335581 0.0184986"
+				mass="10.7796" diaginertia="0.33649 0.3354 0.09431" />
+			<!-- <joint damping="1000" name="torso_lift_joint" axis="0 0 1" type="slide"
+				range="0 0.000038615" /> -->
+			<geom mesh="torso_lift_link" />
+			<body name="head_pan_link" pos="0.053125 0 0.603001">
+				<inertial pos="0.0321 0.0161 0.039" quat="0.514814 0.545129 -0.452957 0.482318"
+					mass="2.2556" diaginertia="0.0184878 0.0128242 0.00948808" />
+				<!-- <joint name="head_pan_joint" axis="0 0 1" range="-1.57 1.57" /> -->
+				<geom class="fetchGrey" mesh="head_pan_link" />
+				<body name="head_tilt_link" pos="0.14253 0 0.057999">
+					<inertial pos="0.0081 0.0025 0.0113" quat="0.645806 0.659961 -0.274048 0.268857"
+						mass="0.9087" diaginertia="0.00630102 0.00590111 0.00139787" />
+					<!-- <joint name="head_tilt_joint" axis="0 1 0" range="-0.76 1.45" /> -->
+					<geom class="fetchBlue" mesh="head_tilt_link" />
+					<body name="head_camera_link" pos="0.055 0 0.0225">
+						<inertial pos="0.055 0 0.0225" mass="0" diaginertia="0 0 0" />
+						<body name="head_camera_rgb_frame" pos="0 0.02 0">
+							<inertial pos="0 0.02 0" mass="0" diaginertia="0 0 0" />
+							<body pos="0 0 0" name="head_camera_rgb_optical_frame"
+								quat="0.5 -0.5 0.5 -0.5">
+								<inertial pos="0 0 0" quat="0.5 -0.5 0.5 -0.5" mass="0"
+									diaginertia="0 0 0" />
+								<camera name="head_camera_rgb" euler="3 0 0" fovy="40" />
+							</body>
+						</body>
+						<body name="head_camera_depth_frame" pos="0 0.045 0">
+							<inertial pos="0 0.045 0" mass="0" diaginertia="0 0 0" />
+							<body pos="0 0 0" name="head_camera_depth_optical_frame"
+								quat="0.5 -0.5 0.5 -0.5">
+								<inertial pos="0 0 0" quat="0.5 -0.5 0.5 -0.5" mass="0"
+									diaginertia="0 0 0" />
+							</body>
+						</body>
+					</body>
+				</body>
+			</body>
+			<body name="shoulder_pan_link" pos="0.119525 0 0.34858">
+				<inertial pos="0.0927 -0.0056 0.0564" quat="-0.136432 0.762398 -0.156155 0.612985"
+					mass="2.5587" diaginertia="0.00896934 0.00864854 0.00408212" />
+				<joint name="shoulder_pan_joint" axis="0 0 1" range="-1.6056 1.6056" damping="10" />
+				<geom mesh="shoulder_pan_link" />
+				<body name="shoulder_lift_link" pos="0.117 0 0.06">
+					<inertial pos="0.1432 0.0072 -0.0001" quat="0.438152 0.438152 0.554998 0.554998"
+						mass="2.6615" diaginertia="0.0116011 0.0112 0.00229892" />
+					<joint name="shoulder_lift_joint" axis="0 1 0" range="-1.221 1.518" />
+					<geom class="fetchBlue" mesh="shoulder_lift_link" />
+					<body name="upperarm_roll_link" pos="0.219 0 0">
+						<inertial pos="0.1165 0.0014 0"
+							quat="-0.0135706 0.706977 0.0135706 0.706977" mass="2.3311"
+							diaginertia="0.0047 0.00450384 0.00189616" />
+						<joint limited='true' name="upperarm_roll_joint" axis="1 0 0"
+							range='-3.14 3.14' />
+						<geom mesh="upperarm_roll_link" />
+						<body name="elbow_flex_link" pos="0.133 0 0">
+							<inertial pos="0.1279 0.0073 0" quat="0.43318 0.43318 0.558888 0.558888"
+								mass="2.1299" diaginertia="0.0086121 0.0084 0.0019879" />
+							<joint name="elbow_flex_joint" axis="0 1 0" range="-2.251 2.251" />
+							<geom class="fetchBlue" mesh="elbow_flex_link" />
+							<body name="forearm_roll_link" pos="0.197 0 0">
+								<inertial pos="0.1097 -0.0266 0"
+									quat="-0.0714533 0.703487 0.0714533 0.703487" mass="1.6563"
+									diaginertia="0.0035 0.00306158 0.00153842" />
+								<joint limited='true' name="forearm_roll_joint" axis="1 0 0"
+									range='-3.14 3.14' />
+								<geom mesh="forearm_roll_link" />
+								<body name="wrist_flex_link" pos="0.1245 0 0">
+									<inertial pos="0.0882 0.0009 -0.0001"
+										quat="0.4895 0.4895 0.510284 0.510284" mass="1.725"
+										diaginertia="0.00420416 0.0042 0.00179584" />
+									<joint name="wrist_flex_joint" axis="0 1 0" range="-2.16 2.16" />
+									<geom class="fetchBlue" mesh="wrist_flex_link" />
+									<body name="wrist_roll_link" pos="0.1385 0 0">
+										<inertial pos="0.0095 0.0004 -0.0002" mass="0.1354"
+											diaginertia="0.0001 0.0001 0.0001" />
+										<joint limited='true' name="wrist_roll_joint" axis="1 0 0"
+											range='-3.14 3.14' />
+										<geom mesh="wrist_roll_link" />
+										<body name="hand" pos="0.16645 0 0">
+											<inertial pos="-0.09 -0.0001 -0.0017"
+												quat="0 0.707107 0 0.707107" mass="1.5175"
+												diaginertia="0.0024 0.0019 0.0013" />
+											<geom mesh="gripper_link" />
+											<site name="grip" rgba='1. 0. 0. 1.' size=".02 .02 .02"
+												group="3" />
+											<body name="r_gripper_finger_link" pos="0 0.0159 0.0"
+												childclass="fetchGripper">
+												<inertial pos="-0.01 0 0" mass="0.0798"
+													diaginertia="0.002 0.002 0.002" />
+												<joint name="r_gripper_finger_joint" axis="0 1 0"
+													range="0 0.05" />
+												<!--geom
+												pos="0 0.101425 0"
+												mesh="r_gripper_finger_link"/-©vk©-->
+												<geom pos="-.05 -.008 0" type="box"
+													size="0.082 0.008 0.03" />
+												<site name="rightEndEffector" pos="0.032 -0.008 0"
+													size="0.01" rgba="1.0 0.0 0.0 1.0" />
+											</body>
+											<body name="l_gripper_finger_link" pos="0 -0.0159 0.0"
+												childclass="fetchGripper">
+												<inertial pos="-0.01 0 0" mass="0.0798"
+													diaginertia="0.002 0.002 0.002" />
+												<joint name="l_gripper_finger_joint" axis="0 -1 0"
+													range="0 0.05" />
+												<!--<geom
+												pos="0 -0.101425 0" mesh="l_gripper_finger_link"
+												rgba=".1 .1 .2 1"/>-©vk©-->
+												<geom pos="-.05 .008 0" type="box"
+													size="0.082 0.008 0.03" rgba="0.32 0.32 0.376 1" />
+												<site name="leftEndEffector" pos="0.032 0.008 0"
+													size="0.01" rgba="1.0 0.0 0.0 1.0" />
+											</body>
+										</body>
+									</body>
+								</body>
+							</body>
+						</body>
+					</body>
+				</body>
+			</body>
+		</body>
+
+		<body name="estop_link" pos="-0.12465 0.23892 0.31127" quat="0.707105 0.707108 0 0">
+			<inertial pos="0.00243451 -0.00330608 0.00665139"
+				quat="0.37738 -0.18136 0.137509 0.897655" mass="0.0019613"
+				diaginertia="3.39072e-07 2.83252e-07 2.02321e-07" />
+			<geom rgba="0.8 0 0 1" mesh="estop_link" />
+		</body>
+
+		<body name="laser_link" pos="0.235 0 0.2878" quat="0 1 0 0">
+			<inertial pos="-0.0306229 0.000709168 0.0551974"
+				quat="0.587803 0.537813 -0.457796 0.394548" mass="0.00833635"
+				diaginertia="1.30487e-06 1.00323e-06 5.03316e-07" />
+			<geom rgba="0.792157 0.819608 0.933333 1" mesh="laser_link" />
+			<camera name="lidar" euler="1.55 -1.55 3.14" pos="0 0 0.02" fovy="25" />
+		</body>
+
+		<body name="connection" pos="-0.155 0 0.65">
+			<geom rgba="0.792157 0.819608 0.933333 1" type="box" size="0.1 0.16 0.3" contype="0"
+				conaffinity="0" />
+		</body>
+
+	</body>
+
+
+</mujocoinclude>

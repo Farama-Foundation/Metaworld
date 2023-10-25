@@ -5,6 +5,7 @@ import numpy as np
 
 from metaworld.envs.mujoco.sawyer_xyz.v2 import *
 from metaworld.envs.mujoco.jaco.v2 import *
+from metaworld.envs.mujoco.fetch.v2 import *
 
 SAWYER_ENVIRONMENTS = OrderedDict(
     (
@@ -122,6 +123,63 @@ JACO_ENVIRONMENTS = OrderedDict(
     )
 )
 
+FETCH_ENVIRONMENTS = OrderedDict(
+    (
+        ("assembly-v2", FetchNutAssemblyEnvV2),
+        ("basketball-v2", FetchBasketballEnvV2),
+        ("bin-picking-v2", FetchBinPickingEnvV2),
+        ("box-close-v2", FetchBoxCloseEnvV2),
+        ("button-press-topdown-v2", FetchButtonPressTopdownEnvV2),
+        ("button-press-topdown-wall-v2", FetchButtonPressTopdownWallEnvV2),
+        ("button-press-v2", FetchButtonPressEnvV2),
+        ("button-press-wall-v2", FetchButtonPressWallEnvV2),
+        ("coffee-button-v2", FetchCoffeeButtonEnvV2),
+        ("coffee-pull-v2", FetchCoffeePullEnvV2),
+        ("coffee-push-v2", FetchCoffeePushEnvV2),
+        ("dial-turn-v2", FetchDialTurnEnvV2),
+        ("disassemble-v2", FetchNutDisassembleEnvV2),
+        ("door-close-v2", FetchDoorCloseEnvV2),
+        ("door-lock-v2", FetchDoorLockEnvV2),
+        ("door-open-v2", FetchDoorEnvV2),
+        ("door-unlock-v2", FetchDoorUnlockEnvV2),
+        ("hand-insert-v2", FetchHandInsertEnvV2),
+        ("drawer-close-v2", FetchDrawerCloseEnvV2),
+        ("drawer-open-v2", FetchDrawerOpenEnvV2),
+        ("faucet-open-v2", FetchFaucetOpenEnvV2),
+        ("faucet-close-v2", FetchFaucetCloseEnvV2),
+        ("hammer-v2", FetchHammerEnvV2),
+        ("handle-press-side-v2", FetchHandlePressSideEnvV2),
+        ("handle-press-v2", FetchHandlePressEnvV2),
+        ("handle-pull-side-v2", FetchHandlePullSideEnvV2),
+        ("handle-pull-v2", FetchHandlePullEnvV2),
+        ("lever-pull-v2", FetchLeverPullEnvV2),
+        ("peg-insert-side-v2", FetchPegInsertionSideEnvV2),
+        ("pick-place-wall-v2", FetchPickPlaceWallEnvV2),
+        ("pick-out-of-hole-v2", FetchPickOutOfHoleEnvV2),
+        ("push-back-v2", FetchPushBackEnvV2),
+        ("push-v2", FetchPushEnvV2),
+        ("pick-place-v2", FetchPickPlaceEnvV2),
+        ("plate-slide-v2", FetchPlateSlideEnvV2),
+        ("plate-slide-side-v2", FetchPlateSlideSideEnvV2),
+        ("plate-slide-back-v2", FetchPlateSlideBackEnvV2),
+        ("plate-slide-back-side-v2", FetchPlateSlideBackSideEnvV2),
+        ("peg-insert-side-v2", FetchPegInsertionSideEnvV2),
+        ("peg-unplug-side-v2", FetchPegUnplugSideEnvV2),
+        ("soccer-v2", FetchSoccerEnvV2),
+        ("stick-push-v2", FetchStickPushEnvV2),
+        ("stick-pull-v2", FetchStickPullEnvV2),
+        ("push-wall-v2", FetchPushWallEnvV2),
+        ("push-v2", FetchPushEnvV2),
+        ("reach-wall-v2", FetchReachWallEnvV2),
+        ("reach-v2", FetchReachEnvV2),
+        ("reach-goal-as-obj-v2", FetchReachGoalAsObjEnvV2),
+        ("shelf-place-v2", FetchShelfPlaceEnvV2),
+        ("sweep-into-v2", FetchSweepIntoGoalEnvV2),
+        ("sweep-v2", FetchSweepEnvV2),
+        ("window-open-v2", FetchWindowOpenEnvV2),
+        ("window-close-v2", FetchWindowCloseEnvV2),
+    )
+)
 
 _NUM_METAWORLD_ENVS = len(SAWYER_ENVIRONMENTS)
 # V2 DICTS
@@ -451,13 +509,21 @@ JACO_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
     "jaco", JACO_ENVIRONMENTS
 )
 
+FETCH_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("fetch", FETCH_ENVIRONMENTS)
+FETCH_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
+    "fetch", FETCH_ENVIRONMENTS
+)
+
+
 ALL_ENVIRONMENTS_GOAL_HIDDEN = OrderedDict(
     list(SAWYER_ENVIRONMENTS_GOAL_HIDDEN.items())
     + list(JACO_ENVIRONMENTS_GOAL_HIDDEN.items())
+    + list(FETCH_ENVIRONMENTS_GOAL_HIDDEN.items())
 )
 ALL_ENVIRONMENTS_GOAL_OBSERVABLE = OrderedDict(
     list(SAWYER_ENVIRONMENTS_GOAL_OBSERVABLE.items())
     + list(JACO_ENVIRONMENTS_GOAL_OBSERVABLE.items())
+    + list(FETCH_ENVIRONMENTS_GOAL_OBSERVABLE.items())
 )
 
 ALL_ENVIRONMENTS = OrderedDict(

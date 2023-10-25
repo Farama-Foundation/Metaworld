@@ -1,0 +1,7 @@
+<mujoco model="fetch">
+    <include file="assets/fetch_dependencies.xml" />
+    <worldbody>
+        <include file="assets/fetch.xml" />
+    </worldbody>
+    <include file="assets/fetch_motor.xml" />
+</mujoco>
