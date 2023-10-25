@@ -499,34 +499,51 @@ def create_observable_goal_envs(arm_name, all_env_dict):
     return OrderedDict(observable_goal_envs)
 
 
-SAWYER_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("sawyer", SAWYER_ENVIRONMENTS)
-SAWYER_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
-    "sawyer", SAWYER_ENVIRONMENTS
-)
+def create_observable_random_goal_envs(arm_name, all_env_dict):
+    observable_goal_envs = {}
+    for env_name, env_cls in all_env_dict.items():
+        d = {}
 
-JACO_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("jaco", JACO_ENVIRONMENTS)
-JACO_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
-    "jaco", JACO_ENVIRONMENTS
-)
+        def initialize(env, seed=None, render_mode=None):
+            if seed is not None:
+                st0 = np.random.get_state()
+                np.random.seed(seed)
+            super(type(env), env).__init__()
 
-FETCH_ENVIRONMENTS_GOAL_HIDDEN = create_hidden_goal_envs("fetch", FETCH_ENVIRONMENTS)
-FETCH_ENVIRONMENTS_GOAL_OBSERVABLE = create_observable_goal_envs(
-    "fetch", FETCH_ENVIRONMENTS
-)
+            env._partially_observable = False
+            env._freeze_rand_vec = False
+            env._set_task_called = True
+            env.render_mode = render_mode
+            env.reset()
+            # env._freeze_rand_vec = True
+            if seed is not None:
+                env.seed(seed)
+                np.random.set_state(st0)
+
+        d["__init__"] = initialize
+        env_name = f"{arm_name}-{env_name}"
+        og_env_name = re.sub(
+            r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name
+        )
+        og_env_name = og_env_name.replace("-", "")
+        og_env_key = f"{env_name}-random"
+        og_env_name = f"{og_env_name}Random"
+        ObservableGoalEnvCls = type(og_env_name, (env_cls,), d)
+        observable_goal_envs[og_env_key] = ObservableGoalEnvCls
+
+    return OrderedDict(observable_goal_envs)
 
 
-ALL_ENVIRONMENTS_GOAL_HIDDEN = OrderedDict(
-    list(SAWYER_ENVIRONMENTS_GOAL_HIDDEN.items())
-    + list(JACO_ENVIRONMENTS_GOAL_HIDDEN.items())
-    + list(FETCH_ENVIRONMENTS_GOAL_HIDDEN.items())
-)
-ALL_ENVIRONMENTS_GOAL_OBSERVABLE = OrderedDict(
-    list(SAWYER_ENVIRONMENTS_GOAL_OBSERVABLE.items())
-    + list(JACO_ENVIRONMENTS_GOAL_OBSERVABLE.items())
-    + list(FETCH_ENVIRONMENTS_GOAL_OBSERVABLE.items())
-)
+ARMS = ["sawyer", "jaco", "fetch"]
+ARM_ENVS = [SAWYER_ENVIRONMENTS, JACO_ENVIRONMENTS, FETCH_ENVIRONMENTS]
+ENV_CONSTRUCTORS = [
+    create_hidden_goal_envs,
+    create_observable_goal_envs,
+    create_observable_random_goal_envs,
+]
 
-ALL_ENVIRONMENTS = OrderedDict(
-    list(ALL_ENVIRONMENTS_GOAL_HIDDEN.items())
-    + list(ALL_ENVIRONMENTS_GOAL_OBSERVABLE.items())
-)
+ALL_ENVIRONMENTS = OrderedDict()
+for env_constructor in ENV_CONSTRUCTORS:
+    for arm, arm_envs in zip(ARMS, ARM_ENVS):
+        arm_envs_goal = env_constructor(arm, arm_envs)
+        ALL_ENVIRONMENTS.update(arm_envs_goal)
