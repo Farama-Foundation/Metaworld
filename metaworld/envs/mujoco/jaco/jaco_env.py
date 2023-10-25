@@ -4,18 +4,24 @@ from gymnasium.spaces import Box
 from metaworld.envs.mujoco.arm_env import ArmEnv
 from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set
 
+import mujoco
+
 
 class JacoEnv(ArmEnv):
-    _ACTION_DIM = 9
+    _ACTION_DIM = 10
     _QPOS_SPACE = Box(
         np.array(
             [
-                -1.57,
-                -4.04,
                 -3.14,
-                -1.57,
+                0.82,
                 -3.14,
+                0.524,
                 -3.14,
+                1.13,
+                -3.14,
+                0,
+                0,
+                0,
                 0,
                 0,
                 0,
@@ -23,15 +29,19 @@ class JacoEnv(ArmEnv):
         ),
         np.array(
             [
-                4.71,
-                0.896,
-                3.17,
-                4.77,
-                3.21,
-                3.22,
-                0.716,
-                0.716,
-                0.709,
+                3.14,
+                5.46,
+                3.14,
+                5.76,
+                3.14,
+                5.15,
+                3.14,
+                1.51,
+                2,
+                1.51,
+                2,
+                1.51,
+                2,
             ]
         ),
         dtype=np.float64,
@@ -40,35 +50,57 @@ class JacoEnv(ArmEnv):
     def __init__(
         self,
         model_name,
-        frame_skip=5,
         hand_low=...,
         hand_high=...,
         mocap_low=None,
         mocap_high=None,
-        action_scale=1 / 100,
-        action_rot_scale=1,
         render_mode=None,
     ):
         super().__init__(
-            model_name,
-            frame_skip,
-            hand_low,
-            hand_high,
-            mocap_low,
-            mocap_high,
-            action_scale,
-            action_rot_scale,
-            render_mode,
+            model_name=model_name,
+            hand_low=hand_low,
+            hand_high=hand_high,
+            mocap_low=mocap_low,
+            mocap_high=mocap_high,
+            render_mode=render_mode,
         )
 
-        self.hand_init_qpos = np.array([1.6, 0.03, 1.57, 1.63, 0.135, -0.05, 0, 0, 0])
-        self.init_finger_1 = self.get_body_com("jaco_link_finger_1")
-        self.init_finger_2 = self.get_body_com("jaco_link_finger_2")
-        self.init_finger_3 = self.get_body_com("jaco_link_finger_3")
+        self.hand_init_qpos = np.array(
+            [0, 3.680, 0.000, 1.170, 0.050, 3.760, 0, 0.5, 0, 0.5, 0, 0.5, 0]
+        )
+        # self.init_finger_1 = self.get_body_com("jaco_link_finger_1")
+        # self.init_finger_2 = self.get_body_com("jaco_link_finger_2")
+        # self.init_finger_3 = self.get_body_com("jaco_link_finger_3")
 
         self.action_space = Box(
-            np.ones(self._ACTION_DIM) * -1,
-            np.ones(self._ACTION_DIM),
+            np.array(
+                [
+                    -30.5,
+                    -30.5,
+                    -30.5,
+                    -30.5,
+                    -30.5,
+                    -6.8,
+                    -6.8,
+                    0,
+                    0,
+                    0,
+                ]
+            ),
+            np.array(
+                [
+                    30.5,
+                    30.5,
+                    30.5,
+                    30.5,
+                    30.5,
+                    6.8,
+                    6.8,
+                    1.51,
+                    1.51,
+                    1.51,
+                ]
+            ),
             dtype=np.float64,
         )
 
@@ -80,9 +112,9 @@ class JacoEnv(ArmEnv):
             (np.ndarray): 3-element position
         """
         finger_1, finger_2, finger_3 = (
-            self.data.site("finger_1_tip"),
-            self.data.site("finger_2_tip"),
-            self.data.site("finger_3_tip"),
+            self.data.body("pinky_distal"),
+            self.data.body("index_distal"),
+            self.data.body("thumb_distal"),
         )
         tcp_center = (finger_1.xpos + finger_2.xpos + finger_3.xpos) / 3.0
         return tcp_center

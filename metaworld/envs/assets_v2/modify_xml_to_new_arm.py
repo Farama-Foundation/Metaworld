@@ -1,7 +1,6 @@
 from glob import glob
 import re
 import os
-from tqdm import tqdm
 
 # xyz_base_dependencies.xml => jaco_dependencies.xml
 # xyz_base.xml => jaco.xml
@@ -10,7 +9,7 @@ from tqdm import tqdm
 
 def main(assets_dir, arm="jaco"):
     xmls = glob(os.path.join(assets_dir, "sawyer_xyz", "*.xml"))
-    for xml in tqdm(xmls):
+    for xml in xmls:
         with open(xml, "r") as f:
             xml_str = f.read()
         xml_str = re.sub(

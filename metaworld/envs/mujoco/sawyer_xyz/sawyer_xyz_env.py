@@ -11,52 +11,27 @@ class SawyerXYZEnv(ArmEnv):
         np.array(
             [
                 -3.05,
-                -3.8,
+                -3.81,
                 -3.04,
                 -3.04,
                 -2.98,
                 -2.98,
                 -4.71,
-                0,
-                -0.03,
+                -0.0115,
+                -0.0208,
             ]
         ),
         np.array(
             [
                 3.05,
-                -0.5,
+                2.27,
                 3.04,
                 3.04,
                 2.98,
                 2.98,
                 4.71,
-                0.04,
-                0,
-            ]
-        ),
-        dtype=np.float64,
-    )
-    _HAND_SPACE = Box(
-        np.array(
-            [
-                -0.525,
-                0.348,
-                -0.0525,
-                -1,
-                -1,
-                -1,
-                -1,
-            ]
-        ),
-        np.array(
-            [
-                +0.525,
-                1.025,
-                0.7,
-                1,
-                1,
-                1,
-                1,
+                0.0208,
+                0.0115,
             ]
         ),
         dtype=np.float64,
@@ -65,36 +40,30 @@ class SawyerXYZEnv(ArmEnv):
     def __init__(
         self,
         model_name,
-        frame_skip=5,
         hand_low=...,
         hand_high=...,
         mocap_low=None,
         mocap_high=None,
-        action_scale=1 / 100,
-        action_rot_scale=1,
         render_mode=None,
     ):
         super().__init__(
-            model_name,
-            frame_skip,
-            hand_low,
-            hand_high,
-            mocap_low,
-            mocap_high,
-            action_scale,
-            action_rot_scale,
-            render_mode,
+            model_name=model_name,
+            hand_low=hand_low,
+            hand_high=hand_high,
+            mocap_low=mocap_low,
+            mocap_high=mocap_high,
+            render_mode=render_mode,
         )
 
         self.hand_init_qpos = np.array(
-            [1.56, -1.47, -0.0609, 2.65, -0.09, 0.387, -1.74, 0, 0]
+            [0, -1.18, 0, 2.18, 0, 0.57, 3.3161, 0.0208, -0.0208]
         )
-        self.init_left_pad = self.get_body_com("leftpad")
-        self.init_right_pad = self.get_body_com("rightpad")
+        self.init_left_pad = self.get_body_com("l_finger_tip")
+        self.init_right_pad = self.get_body_com("r_finger_tip")
 
         self.action_space = Box(
-            np.ones(self._ACTION_DIM) * -1,
-            np.ones(self._ACTION_DIM),
+            np.array([-80, -80, -40, -40, -9, -9, -9, -0.0115]),
+            np.array([80, 80, 40, 40, 9, 9, 9, 0.020833]),
             dtype=np.float64,
         )
 
@@ -105,9 +74,9 @@ class SawyerXYZEnv(ArmEnv):
         Returns:
             (np.ndarray): 3-element position
         """
-        right_finger_pos = self.data.site("rightEndEffector")
-        left_finger_pos = self.data.site("leftEndEffector")
-        tcp_center = (right_finger_pos.xpos + left_finger_pos.xpos) / 2.0
+        right_finger_pos = self.data.body("r_finger_tip").xpos
+        left_finger_pos = self.data.body("l_finger_tip").xpos
+        tcp_center = (right_finger_pos + left_finger_pos) / 2.0
         return tcp_center
 
     # @property

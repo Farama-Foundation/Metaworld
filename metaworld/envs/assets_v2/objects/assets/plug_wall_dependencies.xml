@@ -3,7 +3,7 @@
     <asset>
         <texture name="T_plug_met" type="cube" file="../textures/metal1.png" />
 
-        <material name="plug_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+        <material name="plug_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
         <material name="plug_green" rgba="0 .5 0 1" shininess="1" reflectance=".7" specular=".5" />
         <material name="plug_black" rgba=".25 .25 .25 1" shininess="1" reflectance=".7"
             specular=".5" />
@@ -24,7 +24,7 @@
                 <geom condim="4" type="mesh" />
             </default>
             <default class="plug_col">
-                <geom conaffinity="1" condim="3" contype="1" group="4" material="plug_col"
+                <geom conaffinity="1" condim="3" contype="1" group="0" material="plug_col"
                     solimp="0.99 0.99 0.01" solref="0.01 1" />
             </default>
         </default>

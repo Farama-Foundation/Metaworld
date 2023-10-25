@@ -1,10 +1,10 @@
 <mujocoinclude>
-    <compiler angle="radian" inertiafromgeom="auto" inertiagrouprange="4 5" />
+    <!-- <compiler angle="radian" inertiafromgeom="auto" inertiagrouprange="4 5" /> -->
     <asset>
         <texture name="T_dl_met" type="cube" file="../textures/metal1.png" />
         <texture name="T_dl_met2" type="cube" file="../textures/metal2.png" />
 
-        <material name="dl_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+        <material name="dl_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
         <material name="dl_metal" rgba=".75 .75 .75 1" texture="T_dl_met" texuniform="true"
             shininess="1" reflectance="1" specular="1" />
         <material name="dl_metal2" rgba=".3 .32 .35 1" texture="T_dl_met2" texuniform="true"
@@ -21,7 +21,7 @@
                 <geom condim="4" type="mesh" />
             </default>
             <default class="dl_col">
-                <geom conaffinity="1" condim="3" contype="1" group="4" material="dl_col"
+                <geom conaffinity="1" condim="3" contype="1" group="0" material="dl_col"
                     solimp="0.99 0.99 0.01" solref="0.01 1" />
             </default>
         </default>

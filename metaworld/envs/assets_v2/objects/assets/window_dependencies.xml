@@ -1,8 +1,7 @@
 <mujocoinclude>
-  <compiler angle="radian" inertiafromgeom="auto" inertiagrouprange="4 5" />
   <asset>
 
-    <material name="window_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+    <material name="window_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
     <material name="window_white" rgba=".65 .65 .65 1" shininess="1" reflectance=".7" specular=".5" />
     <material name="window_red" rgba=".36 .26 .27 1" shininess="1" reflectance=".7" specular=".5" />
     <material name="window_green" rgba=".51 .58 .55 1" shininess="1" reflectance=".7" specular=".5" />
@@ -19,7 +18,7 @@
         <geom condim="4" type="mesh" />
       </default>
       <default class="window_col">
-        <geom conaffinity="1" condim="3" contype="1" group="4" material="window_col"
+        <geom conaffinity="1" condim="3" contype="1" group="0" material="window_col"
           solimp="0.99 0.99 0.01" solref="0.01 1" />
       </default>
     </default>

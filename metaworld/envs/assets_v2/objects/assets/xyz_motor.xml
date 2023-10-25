@@ -1,17 +1,21 @@
 <mujocoinclude>
     <actuator>
-        <motor joint="right_j0" name="right_j0" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j1" name="right_j1" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j2" name="right_j2" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j3" name="right_j3" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j4" name="right_j4" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j5" name="right_j5" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="right_j6" name="right_j6" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="r_close" name="r_close" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <motor joint="l_close" name="l_close" ctrllimited="true" ctrlrange="-1 1" gear="100" />
-        <!-- <position name="r_close" ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"
-        user="1"/> -->
-        <!-- <position name="l_close" ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"
-        user="1"/> -->
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="right_j0" name="torq_right_j0" />
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="right_j1" name="torq_right_j1" />
+        <motor ctrllimited="true" ctrlrange="-40.0 40.0" joint="right_j2" name="torq_right_j2" />
+        <motor ctrllimited="true" ctrlrange="-40.0 40.0" joint="right_j3" name="torq_right_j3" />
+        <motor ctrllimited="true" ctrlrange="-9.0 9.0" joint="right_j4" name="torq_right_j4" />
+        <motor ctrllimited="true" ctrlrange="-9.0 9.0" joint="right_j5" name="torq_right_j5" />
+        <motor ctrllimited="true" ctrlrange="-9.0 9.0" joint="right_j6" name="torq_right_j6" />
+
+        <position ctrllimited="true" ctrlrange="-0.0115 0.020833" joint="r_finger_joint" kp="1000"
+            name="gripper_r_finger_joint" forcelimited="true" forcerange="-20 20" />
+        <position ctrllimited="true" ctrlrange="-0.020833 0.0115" joint="l_finger_joint" kp="1000"
+            name="gripper_l_finger_joint" forcelimited="true" forcerange="-20 20" />
     </actuator>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame" />
+        <torque name="torque_ee" site="ft_frame" />
+    </sensor>
 </mujocoinclude>

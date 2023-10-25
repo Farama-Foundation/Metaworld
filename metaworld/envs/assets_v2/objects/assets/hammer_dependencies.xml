@@ -4,7 +4,7 @@
         <texture name="T_hmr_met" type="cube" file="../textures/metal1.png" />
         <texture name="T_hmr_wood" type="cube" file="../textures/wood1.png" />
 
-        <material name="hmr_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+        <material name="hmr_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
         <material name="hmr_red" rgba=".65 0 0 1" shininess="1" reflectance=".7" specular=".5" />
         <material name="hmr_metal" texture="T_hmr_met" rgba=".65 .65 .65 1" shininess="1"
             reflectance=".7" specular=".5" />
@@ -21,7 +21,7 @@
                 <geom condim="4" type="mesh" />
             </default>
             <default class="hmr_col">
-                <geom conaffinity="1" condim="3" contype="1" group="4" material="hmr_col"
+                <geom conaffinity="1" condim="3" contype="1" group="0" material="hmr_col"
                     solimp="0.99 0.99 0.01" solref="0.01 1" />
             </default>
         </default>

@@ -1,19 +1,61 @@
 <mujocoinclude>
     <actuator>
-        <motor joint='jaco_joint_1' name='Ajaco_joint_1' gear="50" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_2' name='Ajaco_joint_2' gear="100" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_3' name='Ajaco_joint_3' gear="100" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_4' name='Ajaco_joint_4' gear="50" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_5' name='Ajaco_joint_5' gear="50" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_6' name='Ajaco_joint_6' gear="50" ctrlrange='-1 1'
-            ctrllimited='true' />
-        <motor joint='jaco_joint_finger_1' name='Ajaco_joint_finger_1' gear='10' />
-        <motor joint='jaco_joint_finger_2' name='Ajaco_joint_finger_2' gear='10' />
-        <motor joint='jaco_joint_finger_3' name='Ajaco_joint_finger_3' gear='10' />
+        <!-- Physical limits of the actuator. Pulled from raw actuator spec sheet, see:
+        https://www.kinovarobotics.com/sites/default/files/AS-ACT-KA58-KA75-SP-INT-EN%20201804-1.2%20%28KINOVA%E2%84%A2%20Actuator%20series%20KA75%2B%20KA-58%20Specifications%29.pdf -->
+        <motor ctrllimited="true" ctrlrange="-30.5 30.5" joint="j2s7s300_joint_1" name="torq_j1" />
+        <motor ctrllimited="true" ctrlrange="-30.5 30.5" joint="j2s7s300_joint_2" name="torq_j2" />
+        <motor ctrllimited="true" ctrlrange="-30.5 30.5" joint="j2s7s300_joint_3" name="torq_j3" />
+        <motor ctrllimited="true" ctrlrange="-30.5 30.5" joint="j2s7s300_joint_4" name="torq_j4" />
+        <motor ctrllimited="true" ctrlrange="-30.5 30.5" joint="j2s7s300_joint_5" name="torq_j5" />
+        <motor ctrllimited="true" ctrlrange="-6.8 6.8" joint="j2s7s300_joint_6" name="torq_j6" />
+        <motor ctrllimited="true" ctrlrange="-6.8 6.8" joint="j2s7s300_joint_7" name="torq_j7" />
+
+        <position name='thumb' ctrllimited="true" kp="20" joint='joint_thumb' ctrlrange='0 1.51'
+            forcelimited="true" forcerange="-0.3 0.3" />
+        <position name='index' ctrllimited="true" kp="20" joint='joint_index' ctrlrange='0 1.51'
+            forcelimited="true" forcerange="-0.3 0.3" />
+        <position name='pinky' ctrllimited="true" kp="20" joint='joint_pinky' ctrlrange='0 1.51'
+            forcelimited="true" forcerange="-0.3 0.3" />
     </actuator>
+
+    <tendon>
+        <!--Middlefinger
+        tendons-->
+        <fixed name="thumb_cpl" range="-5 5" stiffness="3.0" springlength="0.2" frictionloss="0.4"
+            limited="true">
+            <joint joint="joint_thumb" coef="0.4" />
+            <joint joint="joint_thumb_distal" coef="-0.4" />
+        </fixed>
+
+        <!--finger2
+        tendons-->
+        <fixed name="index_12_cpl" range="-5 5" stiffness="3.0" springlength="0.2"
+            frictionloss="0.4" limited="true">
+            <joint joint="joint_index" coef="0.4" />
+            <joint joint="joint_index_distal" coef="-0.4" />
+        </fixed>
+
+        <!--Finger1
+        tendons-->
+        <fixed name="pinky_12_cpl" range="-5 5" stiffness="3.0" springlength="0.2"
+            frictionloss="0.4" limited="true">
+            <joint joint="joint_pinky" coef="0.4" />
+            <joint joint="joint_pinky_distal" coef="-0.4" />
+        </fixed>
+    </tendon>
+
+    <equality>
+        <!-- GRIPPER Couplings -->
+        <tendon name="thumb_cpl" tendon1="thumb_cpl" />
+
+        <tendon name="index_12_cpl" tendon1="index_12_cpl" />
+
+        <tendon name="pinky_12_cpl" tendon1="pinky_12_cpl" />
+    </equality>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame" />
+        <torque name="torque_ee" site="ft_frame" />
+    </sensor>
+
 </mujocoinclude>

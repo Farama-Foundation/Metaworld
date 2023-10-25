@@ -4,7 +4,7 @@
         <texture name="T_table" type="cube" file="../textures/wood1.png" />
 
         <material name="table_wood" texture="T_table" shininess=".3" specular="0.5" />
-        <material name="collision_blue" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0.5" />
+        <material name="collision_blue" rgba="0.3 0.3 1.0 0" shininess="0" specular="0.5" />
 
         <mesh file="../objects/meshes/table/tablebody.stl" name="tablebody" />
         <mesh file="../objects/meshes/table/tabletop.stl" name="tabletop" />
@@ -20,7 +20,7 @@
                 solref=".02 1" type="mesh" />
         </default>
         <default class="collision">
-            <geom conaffinity="1" condim="3" contype="1" group="4" material="collision_blue"
+            <geom conaffinity="1" condim="3" contype="1" group="0" material="collision_blue"
                 solimp=".08 .09 .01" solref=".02 1" />
         </default>
     </default>

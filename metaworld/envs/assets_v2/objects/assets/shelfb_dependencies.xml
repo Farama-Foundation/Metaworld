@@ -3,7 +3,7 @@
   <asset>
     <texture name="T_shelf_wood" type="cube" file="../textures/wood4.png" />
 
-    <material name="shelfb_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+    <material name="shelfb_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
     <material name="shelfb_white" rgba=".85 .85 .85 1" shininess="1" reflectance=".7" specular=".5" />
     <material name="shelfb_wood" texture="T_shelf_wood" shininess="1" reflectance="1" specular=".5" />
 
@@ -18,7 +18,7 @@
         <geom condim="4" type="mesh" />
       </default>
       <default class="shelfb_col">
-        <geom conaffinity="1" condim="3" contype="0" group="4" material="shelfb_col"
+        <geom conaffinity="1" condim="3" contype="0" group="0" material="shelfb_col"
           solimp="0.99 0.99 0.01" solref="0.01 1" />
       </default>
     </default>

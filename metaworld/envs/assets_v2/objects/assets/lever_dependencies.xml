@@ -3,7 +3,7 @@
     <asset>
         <texture name="T_lever_met" type="cube" file="../textures/metal1.png" />
 
-        <material name="lever_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+        <material name="lever_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
         <material name="lever_blue" rgba="0 0 .5 1" shininess="1" reflectance="1" specular="1" />
         <material name="lever_metal0" rgba=".65 .65 .65 1" texture="T_lever_met" shininess="1"
             reflectance=".7" specular=".5" />
@@ -21,7 +21,7 @@
                 <geom condim="4" type="mesh" />
             </default>
             <default class="lever_col">
-                <geom conaffinity="1" condim="3" contype="1" group="4" material="lever_col"
+                <geom conaffinity="1" condim="3" contype="1" group="0" material="lever_col"
                     solimp="0.99 0.99 0.01" solref="0.01 1" />
             </default>
         </default>

@@ -23,7 +23,7 @@ class MocapBase(mjenv_gym):
             "rgb_array",
             "depth_array",
         ],
-        "render_fps": 80,
+        "render_fps": 40,
     }
 
     def __init__(self, model_name, frame_skip=5, render_mode=None):
@@ -91,17 +91,13 @@ class ArmEnv(MocapBase, EzPickle):
     def __init__(
         self,
         model_name,
-        frame_skip=5,
+        frame_skip=10,
         hand_low=(-0.2, 0.55, 0.05),
         hand_high=(0.2, 0.75, 0.3),
         mocap_low=None,
         mocap_high=None,
-        action_scale=1.0 / 100,
-        action_rot_scale=1.0,
         render_mode=None,
     ):
-        self.action_scale = action_scale
-        self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
         self.hand_high = np.array(hand_high)
         if mocap_low is None:
@@ -140,7 +136,7 @@ class ArmEnv(MocapBase, EzPickle):
 
         self._set_task_called = False
 
-        self.action_cost_coff = 0.5
+        self.action_cost_coff = 0.01
         self.init_left_pad = None  # OVERRIDE ME
         self.init_right_pad = None  # OVERRIDE ME
         self.hand_init_qpos = None  # OVERRIDE ME
@@ -164,8 +160,6 @@ class ArmEnv(MocapBase, EzPickle):
             hand_high,
             mocap_low,
             mocap_high,
-            action_scale,
-            action_rot_scale,
         )
 
     def seed(self, seed):
@@ -486,7 +480,12 @@ class ArmEnv(MocapBase, EzPickle):
         if self.curr_path_length >= self.max_path_length:
             raise ValueError("You must reset the env manually once truncate==True")
 
-        action = np.clip(action, -1, 1)
+        action = np.clip(
+            action,
+            a_max=self.action_space.high,
+            a_min=self.action_space.low,
+            dtype=np.float64,
+        )
         self.set_action(action)
 
         self.curr_path_length += 1
@@ -565,14 +564,13 @@ class ArmEnv(MocapBase, EzPickle):
         obs = np.float64(obs)
         return obs, info
 
-    def _reset_hand(self, steps: int = 50):
+    def _reset_hand(self):
         assert self.hand_init_qpos is not None
-        for _ in range(steps):
-            for i, qpos in enumerate(self.hand_init_qpos):
-                self.data.qpos[i] = qpos
-            self.do_simulation(
-                np.zeros(self._QPOS_SPACE.low.size), n_frames=self.frame_skip
-            )
+
+        for i, qpos in enumerate(self.hand_init_qpos):
+            self.data.qpos[i] = qpos
+        mujoco.mj_forward(self.model, self.data)
+
         self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):

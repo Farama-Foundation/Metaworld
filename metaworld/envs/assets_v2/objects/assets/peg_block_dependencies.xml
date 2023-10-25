@@ -3,7 +3,7 @@
   <asset>
     <texture name="T_peg_block_wood" type="cube" file="../textures/wood1.png" />
 
-    <material name="peg_block_col" rgba="0.3 0.3 1.0 0.5" shininess="0" specular="0" />
+    <material name="peg_block_col" rgba="0.3 0.3 1.0 0" shininess="0" specular="0" />
     <material name="peg_block_wood" texture="T_peg_block_wood" shininess="1" reflectance=".7"
       specular=".5" />
     <material name="peg_block_red" rgba=".55 0 0 1" shininess="1" reflectance=".7" specular=".5" />
@@ -19,7 +19,7 @@
         <geom condim="4" type="mesh" />
       </default>
       <default class="peg_block_col">
-        <geom conaffinity="1" condim="3" contype="1" group="4" material="peg_block_col"
+        <geom conaffinity="1" condim="3" contype="1" group="0" material="peg_block_col"
           solimp="0.99 0.99 0.01" solref="0.01 1" />
       </default>
     </default>
