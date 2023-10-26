@@ -40,13 +40,16 @@ print(ALL_ENV)
 DOF = 7
 Joints = 9
 
-- Observation space: 49
-  - current, previous: 23 x 2
-    - joint qpos: 9
-    - object1 xyz: 3
-    - object1 quat: 4
-    - object2 xyz: 3
-    - object2 quat: 4
+- Observation space: 51
+  - joint qpos cos: 9
+  - joint qpos sin: 9
+  - joint qvel: 9
+  - end effector pos: 3
+  - end effector quat: 4
+  - object1 xyz: 3
+  - object1 quat: 4
+  - object2 xyz: 3
+  - object2 quat: 4
   - goal pos: 3
 - Action space: 8
   - joint torque: 7
@@ -54,20 +57,23 @@ Joints = 9
 
 ### Jaco
 
-DOF = 6
-Joints = 9
+DOF = 7
+Joints = 13
 
-- Observation space: 49
-  - current, previous: 23 x 2
-    - joint qpos: 9
-    - object1 xyz: 3
-    - object1 quat: 4
-    - object2 xyz: 3
-    - object2 quat: 4
+- Observation space: 63
+  - joint qpos cos: 13
+  - joint qpos sin: 13
+  - joint qvel: 13
+  - end effector pos: 3
+  - end effector quat: 4
+  - object1 xyz: 3
+  - object1 quat: 4
+  - object2 xyz: 3
+  - object2 quat: 4
   - goal pos: 3
-- Action space: 9
-  - joint torque: 6
-  - gripper torque: 3
+- Action space: 8
+  - joint torque: 7
+  - gripper torque: 1
 
 ### Fetch
 

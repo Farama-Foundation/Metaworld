@@ -37,9 +37,6 @@ class MocapBase(mjenv_gym):
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
 
-    def get_endeff_pos(self):
-        return np.hstack((self.data.body("hand").xpos, self.data.body("hand").xquat))
-
     def get_env_state(self):
         qpos = np.copy(self.data.qpos)
         qvel = np.copy(self.data.qvel)
@@ -143,14 +140,17 @@ class ArmEnv(MocapBase, EzPickle):
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
         self.action_space = None  # OVERRIDE ME
+        self.arm_col = None  # OVERRIDE ME
+
+        self.env_col = [
+            "table_col",
+            "wall_col_1",
+            "wall_col_2",
+            "wall_col_3",
+            "wall_col_4",
+        ]
 
         self._last_stable_obs = None
-        # Note: It is unlikely that the positions and orientations stored
-        # in this initiation of _prev_obs are correct. That being said, it
-        # doesn't seem to matter (it will only effect frame-stacking for the
-        # very first observation)
-
-        self._prev_obs = self._get_curr_obs_combined_no_goal()
 
         EzPickle.__init__(
             self,
@@ -365,28 +365,82 @@ class ArmEnv(MocapBase, EzPickle):
         # return np.hstack((pos_hand, qpos, gripper_distance_apart, obs_obj_padded))
         # 7 + _QPOS_SPACE.low.size + 1 + _obs_obj_max_len
 
-    def _get_obs(self):
-        """Frame stacks `_get_curr_obs_combined_no_goal()` and concatenates the goal position to form a single flat observation.
+    @property
+    def joint_pos(self):
+        return np.array(
+            [self.data.qpos[x] for x in range(self._QPOS_SPACE.low.size)],
+        )
 
-        Returns:
-            np.ndarray: The flat observation array (39 elements)
-        """
-        # do frame stacking
+    @property
+    def joint_vel(self):
+        return np.array([self.data.qvel[x] for x in range(self._QPOS_SPACE.low.size)])
+
+    @property
+    def endeff_pos(self):
+        return self.data.body("hand").xpos
+
+    @property
+    def endeff_quat(self):
+        return self.data.body("hand").xquat
+
+    @property
+    def endeff_lin_vel(self):
+        return self.data.body("hand").subtree_linvel
+
+    @property
+    def endeff_ang_mom(self):
+        return self.data.body("hand").subtree_angmom
+
+    @property
+    def obs_obj_padded(self):
+        obs_obj_padded = np.zeros(self._obs_obj_max_len)
+        obj_pos = self._get_pos_objects()
+        assert len(obj_pos) % 3 == 0
+        obj_pos_split = np.split(obj_pos, len(obj_pos) // 3)
+
+        obj_quat = self._get_quat_objects()
+        assert len(obj_quat) % 4 == 0
+        obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
+        obs_obj_padded[: len(obj_pos) + len(obj_quat)] = np.hstack(
+            [np.hstack((pos, quat)) for pos, quat in zip(obj_pos_split, obj_quat_split)]
+        )
+        return obs_obj_padded
+
+    def _get_obs(self):
+        qpos = self.joint_pos
+        qpos_cos = np.cos(qpos)
+        qpos_sin = np.sin(qpos)
+        qvel = self.joint_vel
+
+        endeff_pos = self.endeff_pos
+        endeff_quat = self.endeff_quat
+
+        obs_obj_padded = self.obs_obj_padded
+
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
-        curr_obs = self._get_curr_obs_combined_no_goal()
-        # do frame stacking
-        obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
-        self._prev_obs = curr_obs
-        return obs
+
+        return np.hstack(
+            (
+                qpos_cos,  # nq
+                qpos_sin,  # nq
+                qvel,  # nq
+                endeff_pos,  # 3
+                endeff_quat,  # 4
+                obs_obj_padded,  # 14
+                pos_goal,  # 3
+            )  # 3 * nq + 24
+        ), np.hstack(
+            (endeff_pos, obs_obj_padded)
+        )  # for metaworld
 
     def _get_obs_dict(self):
         obs = self._get_obs()
         return dict(
             state_observation=obs,
             state_desired_goal=self._get_pos_goal(),
-            state_achieved_goal=obs[3:-3],
+            state_achieved_goal=None,
         )
 
     @property
@@ -401,31 +455,33 @@ class ArmEnv(MocapBase, EzPickle):
         obj_high = np.full(obs_obj_max_len, +np.inf, dtype=np.float64)
         goal_low = np.zeros(3) if self._partially_observable else self.goal_space.low
         goal_high = np.zeros(3) if self._partially_observable else self.goal_space.high
-        gripper_low = 0
-        gripper_high = +1.0
+        sin_low = np.full(self._QPOS_SPACE.low.size, -1.0, dtype=np.float64)
+        sin_high = np.full(self._QPOS_SPACE.high.size, +1.0, dtype=np.float64)
+        qvel_low = np.full(self._QPOS_SPACE.low.size, -np.inf, dtype=np.float64)
+        qvel_high = np.full(self._QPOS_SPACE.high.size, +np.inf, dtype=np.float64)
+        pos_low = np.full(3, -np.inf, dtype=np.float64)
+        pos_high = np.full(3, +np.inf, dtype=np.float64)
+        quat_low = np.full(4, -np.inf, dtype=np.float64)
+        quat_high = np.full(4, +np.inf, dtype=np.float64)
         return Box(
             np.hstack(
                 (
-                    # self._HAND_SPACE.low,
-                    self._QPOS_SPACE.low,
-                    # gripper_low,
-                    obj_low,
-                    # self._HAND_SPACE.low,
-                    self._QPOS_SPACE.low,
-                    # gripper_low,
+                    sin_low,
+                    sin_low,
+                    qvel_low,
+                    pos_low,
+                    quat_low,
                     obj_low,
                     goal_low,
                 )
             ),
             np.hstack(
                 (
-                    # self._HAND_SPACE.high,
-                    self._QPOS_SPACE.high,
-                    # gripper_high,
-                    obj_high,
-                    # self._HAND_SPACE.high,
-                    self._QPOS_SPACE.high,
-                    # gripper_high,
+                    sin_high,
+                    sin_high,
+                    qvel_high,
+                    pos_high,
+                    quat_high,
                     obj_high,
                     goal_high,
                 )
@@ -454,10 +510,10 @@ class ArmEnv(MocapBase, EzPickle):
             np.ndarray: The parsed observation
         """
 
-        pos_hand = self.get_endeff_pos()[:3]
-        nq = self._QPOS_SPACE.low.size
+        pos_hand = self.endeff_pos[:3]
+        obs_obj_padded = self.obs_obj_padded
 
-        return np.hstack((pos_hand, obs[nq : nq + 14]))
+        return np.hstack((pos_hand, obs_obj_padded))
 
     def parse_action(self, action: np.ndarray):
         """Parses the action into a format of Metaworld.
@@ -470,6 +526,26 @@ class ArmEnv(MocapBase, EzPickle):
         """
 
         return np.hstack((np.zeros(3), self.gripper_effort_from_action(action)))
+
+    def check_contact_table(self):
+        assert self.arm_col is not None
+
+        ncon = self.data.ncon
+        contact = False
+        for coni in range(ncon):
+            con = self.data.contact[coni]
+            geom1 = self.model.geom(con.geom1).name
+            geom2 = self.model.geom(con.geom2).name
+
+            if (geom1 in self.env_col and geom2 in self.arm_col) or (
+                geom2 in self.env_col and geom1 in self.arm_col
+            ):
+                contact = True
+                break
+        return contact
+
+    def get_action_penalty(self, action):
+        raise NotImplementedError
 
     @_assert_task_is_set
     def step(self, action):
@@ -512,7 +588,7 @@ class ArmEnv(MocapBase, EzPickle):
                 },
             )
 
-        self._last_stable_obs = self._get_obs()
+        self._last_stable_obs, parsed_obs = self._get_obs()
 
         self._last_stable_obs = np.clip(
             self._last_stable_obs,
@@ -522,11 +598,9 @@ class ArmEnv(MocapBase, EzPickle):
         )
 
         # reward, info = self.evaluate_state(self._last_stable_obs, action)
-        reward, info = self.evaluate_state(
-            self.parse_obs(self._last_stable_obs), self.parse_action(action)
-        )
-        action_norm = np.linalg.norm(action)
-        reward -= self.action_cost_coff * action_norm
+        reward, info = self.evaluate_state(parsed_obs, self.parse_action(action))
+        action_penalty = self.get_action_penalty(action)
+        reward -= action_penalty
 
         # step will never return a terminate==True if there is a success
         # but we can return truncate=True if the current path length == max path length
@@ -557,10 +631,8 @@ class ArmEnv(MocapBase, EzPickle):
 
     def reset(self, seed=None, options=None):
         self.curr_path_length = 0
-        obs, info = super().reset()
-        obs_dim = (self.observation_space.low.size - 3) // 2
-        self._prev_obs = obs[:obs_dim].copy()
-        obs[obs_dim : obs_dim * 2] = self._prev_obs
+        _, info = super().reset()
+        obs, _ = self._get_obs()
         obs = np.float64(obs)
         return obs, info
 

@@ -67,6 +67,19 @@ class SawyerXYZEnv(ArmEnv):
             dtype=np.float64,
         )
 
+        self.arm_col = [
+            "link0_collision",
+            "link1_collision",
+            "link2_collision",
+            "link3_collision",
+            "link4_collision",
+            "link5_collision",
+            "link6_collision",
+            "right_l1_2",
+            "right_l2_2",
+            "right_l4_2",
+        ]
+
     @property
     def tcp_center(self):
         """The COM of the gripper's 2 fingers.
@@ -109,3 +122,15 @@ class SawyerXYZEnv(ArmEnv):
 
     def gripper_effort_from_action(self, action):
         return action[-1]
+
+    def get_action_penalty(self, action):
+        action_cost_coff = 1e-3
+
+        action_norm = np.linalg.norm(action)
+        contact = self.check_contact_table()
+
+        penalty = action_cost_coff * action_norm
+        if contact:
+            penalty = 5
+
+        return penalty

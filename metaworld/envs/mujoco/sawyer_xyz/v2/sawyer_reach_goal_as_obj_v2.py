@@ -85,6 +85,13 @@ class SawyerReachGoalAsObjEnvV2(SawyerXYZEnv):
 
         return reward, info
 
+    def _get_pos_goal(self):
+        return np.random.uniform(
+            self._random_reset_space.low[-3:],
+            self._random_reset_space.high[-3:],
+            size=(3,),
+        )
+
     def _get_pos_objects(self):
         # return self.get_body_com("obj")
         if self._target_pos is not None:
@@ -126,7 +133,7 @@ class SawyerReachGoalAsObjEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
-        _TARGET_RADIUS = 0.03
+        _TARGET_RADIUS = 0.0
         tcp = self.tcp_center
         # obj = obs[4:7]
         # tcp_opened = obs[3]

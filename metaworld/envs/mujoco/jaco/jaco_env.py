@@ -4,11 +4,9 @@ from gymnasium.spaces import Box
 from metaworld.envs.mujoco.arm_env import ArmEnv
 from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set
 
-import mujoco
-
 
 class JacoEnv(ArmEnv):
-    _ACTION_DIM = 10
+    _ACTION_DIM = 8
     _QPOS_SPACE = Box(
         np.array(
             [
@@ -83,8 +81,6 @@ class JacoEnv(ArmEnv):
                     -6.8,
                     -6.8,
                     0,
-                    0,
-                    0,
                 ]
             ),
             np.array(
@@ -97,12 +93,21 @@ class JacoEnv(ArmEnv):
                     6.8,
                     6.8,
                     1.51,
-                    1.51,
-                    1.51,
                 ]
             ),
             dtype=np.float64,
         )
+
+        self.arm_col = [
+            "ah1_collision",
+            "ah2_collision",
+            "f_collision",
+            "ws1_collision",
+            "ws2_collision",
+            "right_l1_2",
+            "right_l2_2",
+            "right_l4_2",
+        ]
 
     @property
     def tcp_center(self):
@@ -126,7 +131,20 @@ class JacoEnv(ArmEnv):
             action (np.ndarray): 9-element array of actions
         """
 
-        self.do_simulation(action, n_frames=self.frame_skip)
+        parsed_action = np.hstack((action, action[-1], action[-1]))
+        self.do_simulation(parsed_action, n_frames=self.frame_skip)
 
     def gripper_effort_from_action(self, action):
-        return np.mean(action[-3:])
+        return action[-1]
+
+    def get_action_penalty(self, action):
+        action_cost_coff = 1e-3
+
+        action_norm = np.linalg.norm(action)
+        contact = self.check_contact_table()
+
+        penalty = action_cost_coff * action_norm
+        if contact:
+            penalty = 5
+
+        return penalty
