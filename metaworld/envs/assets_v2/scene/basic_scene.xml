@@ -55,22 +55,22 @@
                         conaffinity="0"
                         contype="0" />
                   <geom material="table_col" group="4" pos="0.0 0.0 -0.46" size="0.7 0.4 0.46"
-                        type="box" conaffinity="1"
+                        type="box" conaffinity="1" name="table_col"
                         contype="0" />
             </body>
 
             <body name="RetainingWall" pos="0.0 0.6 0.06">
                   <geom material="wall_metal" type="box" size=".7 .01 .06" pos="0. -0.39 0."
-                        conaffinity="1" condim="3"
+                        conaffinity="1" condim="3" name="wall_col_1"
                         contype="0" />
                   <geom material="wall_metal" type="box" size=".7 .01 .06" pos="0. 0.39 0."
-                        conaffinity="1" condim="3"
+                        conaffinity="1" condim="3" name="wall_col_2"
                         contype="0" />
                   <geom material="wall_metal" type="box" size=".01 .38 .06" pos="-.69 0. 0."
-                        conaffinity="1" condim="3"
+                        conaffinity="1" condim="3" name="wall_col_3"
                         contype="0" />
                   <geom material="wall_metal" type="box" size=".01 .38 .06" pos=".69 0. 0."
-                        conaffinity="1" condim="3"
+                        conaffinity="1" condim="3" name="wall_col_4"
                         contype="0" />
             </body>
 

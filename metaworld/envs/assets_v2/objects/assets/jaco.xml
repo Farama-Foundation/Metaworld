@@ -4,7 +4,7 @@
     <camera mode="fixed" name="robotview" pos="1.0 0 0.4" quat="0.653 0.271 0.271 0.653" />
     <inertial diaginertia="0 0 0" mass="0" pos="0 0 0" />
     <!-- mount attached here -->
-    <body name="mount" pos="0 0 0.01">
+    <body name="mount" pos="0 0 0.01" euler="0 0 3.1415926">
       <body name="controller_box" pos="0 0 0">
         <inertial diaginertia="1.71363 1.27988 0.809981" mass="46.64" pos="-0.325 0 -0.38" />
         <geom pos="-0.325 0 -0.38" size="0.11 0.2 0.265" type="box"

@@ -1,0 +1,7 @@
+<mujoco model="ur5e">
+    <include file="assets/ur5e_dependencies.xml" />
+    <worldbody>
+        <include file="assets/ur5e.xml" />
+    </worldbody>
+    <include file="assets/ur5e_motor.xml" />
+</mujoco>

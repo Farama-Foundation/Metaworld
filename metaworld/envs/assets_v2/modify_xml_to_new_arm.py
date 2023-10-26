@@ -7,7 +7,7 @@ import os
 # xyz_motor.xml => jaco_motor.xml
 
 
-def main(assets_dir, arm="jaco"):
+def main(assets_dir, arm="ur5e"):
     xmls = glob(os.path.join(assets_dir, "sawyer_xyz", "*.xml"))
     for xml in xmls:
         with open(xml, "r") as f:

@@ -1,0 +1,43 @@
+<mujocoinclude>
+    <actuator>
+        <!-- Physical limits of the actuator. -->
+        <!-- Values taken from
+        https://www.universal-robots.com/articles/ur-articles/max-joint-torques/ -->
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="shoulder_pan_joint" name="torq_j1" />
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="shoulder_lift_joint"
+            name="torq_j2" />
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="elbow_joint" name="torq_j3" />
+        <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="wrist_1_joint" name="torq_j4" />
+        <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="wrist_2_joint" name="torq_j5" />
+        <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="wrist_3_joint" name="torq_j6" />
+
+        <position name='finger_1' ctrllimited="true" kp="20" joint='finger_joint' ctrlrange='0 0.8' />
+        <position name='finger_2' ctrllimited="true" kp="20" joint='right_outer_knuckle_joint'
+            ctrlrange='0 0.8' />
+    </actuator>
+
+    <tendon>
+        <!--finger2
+        tendons-->
+        <fixed name="finger2_12_cpl" range="-1 1" stiffness="0.4" springlength="0.001"
+            limited="true">
+            <joint joint="finger_joint" coef="1" />
+            <joint joint="left_inner_finger_joint" coef="-3" />
+            <joint joint="left_inner_knuckle_joint" coef="1" />
+        </fixed>
+
+        <!--Finger1
+        tendons-->
+        <fixed name="finger1_12_cpl" range="-1 1" stiffness="0.4" springlength="0.001"
+            limited="true">
+            <joint joint="right_outer_knuckle_joint" coef="1" />
+            <joint joint="right_inner_finger_joint" coef="-3" />
+            <joint joint="right_inner_knuckle_joint" coef="1" />
+        </fixed>
+    </tendon>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame" />
+        <torque name="torque_ee" site="ft_frame" />
+    </sensor>
+</mujocoinclude>
