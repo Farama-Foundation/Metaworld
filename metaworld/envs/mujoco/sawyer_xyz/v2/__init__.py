@@ -208,6 +208,11 @@ from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_reach_goal_as_obj_v2 import (
     TestReachGoalAsObjv2,
     TrainReachGoalAsObjv2,
 )
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_reach_top_approach_v2 import (
+    SawyerReachTopApproachEnvV2,
+    TestReachGoalAsObjv2,
+    TrainReachGoalAsObjv2,
+)
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_reach_wall_v2 import (
     SawyerReachWallEnvV2,
     TestReachWallv2,
@@ -297,6 +302,7 @@ __all__ = [
     "SawyerPushWallEnvV2",
     "SawyerReachEnvV2",
     "SawyerReachGoalAsObjEnvV2",
+    "SawyerReachTopApproachEnvV2",
     "SawyerReachWallEnvV2",
     "SawyerShelfPlaceEnvV2",
     "SawyerSoccerEnvV2",

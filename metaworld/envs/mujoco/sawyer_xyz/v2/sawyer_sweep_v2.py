@@ -64,7 +64,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             in_place,
         ) = self.compute_reward(action, obs)
 
-        grasp_success = float(self.touching_main_object and (tcp_opened > 0))
+        grasp_success = float(self.touching_main_object and tcp_opened)
 
         info = {
             "success": float(target_to_obj <= 0.05),
@@ -102,13 +102,13 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
-        pad_success_margin = 0.05
+        pad_success_margin = 0.04
         grip_success_margin = obj_radius + 0.01
         x_z_success_margin = 0.005
 
         tcp = self.tcp_center
-        left_pad = self.get_body_com("leftpad")
-        right_pad = self.get_body_com("rightpad")
+        left_pad = self.left_pad
+        right_pad = self.right_pad
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(
@@ -171,8 +171,8 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         )
 
         assert right_caging >= 0 and right_caging <= 1
-        gripper_closed = min(max(0, action[-1]), 1)
-        assert gripper_closed >= 0 and gripper_closed <= 1
+        # gripper_closed = min(max(0, action[-1]), 1)
+        # assert gripper_closed >= 0 and gripper_closed <= 1
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
         assert caging >= 0 and caging <= 1
 
@@ -191,7 +191,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
-        tcp_opened = obs[3]
+        tcp_opened = self.gripper_opened
         target = self._target_pos
 
         obj_to_target = np.linalg.norm(obj - target)

@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 )
 
 
-class SawyerReachGoalAsObjEnvV2(SawyerXYZEnv):
+class SawyerReachTopApproachEnvV2(SawyerXYZEnv):
     """SawyerReachEnv.
 
     Motivation for V2:
@@ -142,6 +142,28 @@ class SawyerReachGoalAsObjEnvV2(SawyerXYZEnv):
         tcp_to_target = np.linalg.norm(tcp - target)
         # obj_to_target = np.linalg.norm(obj - target)
 
+        # top approach
+        threshold = 0.12
+        # floor is a 3D funnel centered on the door handle
+        radius = np.linalg.norm(tcp[:2] - target[:2])
+        if radius <= threshold:
+            floor = 0.0
+        else:
+            floor = 0.04 * np.log(radius - threshold) + 0.4
+        # prevent the hand from running into the handle prematurely by keeping
+        # it above the "floor"
+        above_floor = (
+            1.0
+            if tcp[2] >= floor
+            else reward_utils.tolerance(
+                floor - tcp[2],
+                bounds=(0.0, 0.01),
+                margin=floor / 2.0,
+                sigmoid="long_tail",
+            )
+        )
+
+        # in place
         in_place_margin = np.linalg.norm(self.hand_init_pos - target)
         in_place = reward_utils.tolerance(
             tcp_to_target,
@@ -150,31 +172,36 @@ class SawyerReachGoalAsObjEnvV2(SawyerXYZEnv):
             sigmoid="long_tail",
         )
 
+        # shake
         VEL_MARGIN = 0.5
         joint_vel_norm = np.linalg.norm(self.joint_vel)
-        shake_bonus = np.clip(joint_vel_norm, 0, VEL_MARGIN) / VEL_MARGIN
-        # ic(joint_vel_norm, shake_bonus)
+        shake = np.clip(joint_vel_norm, 0, VEL_MARGIN) / VEL_MARGIN
 
-        in_place_with_shake = reward_utils.hamacher_product(in_place, shake_bonus)
+        top_approach_with_in_place = reward_utils.hamacher_product(
+            above_floor, in_place
+        )
+        in_place_with_shake = reward_utils.hamacher_product(
+            top_approach_with_in_place, shake
+        )
 
         return [10 * in_place_with_shake, tcp_to_target, in_place]
 
 
-class TrainReachGoalAsObjv2(SawyerReachGoalAsObjEnvV2):
+class TrainReachGoalAsObjv2(SawyerReachTopApproachEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerReachGoalAsObjEnvV2.__init__(self, self.tasks)
+        SawyerReachTopApproachEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestReachGoalAsObjv2(SawyerReachGoalAsObjEnvV2):
+class TestReachGoalAsObjv2(SawyerReachTopApproachEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerReachGoalAsObjEnvV2.__init__(self, self.tasks)
+        SawyerReachTopApproachEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
