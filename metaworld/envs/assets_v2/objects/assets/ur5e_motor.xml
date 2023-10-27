@@ -11,9 +11,11 @@
         <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="wrist_2_joint" name="torq_j5" />
         <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="wrist_3_joint" name="torq_j6" />
 
-        <position name='finger_1' ctrllimited="true" kp="20" joint='finger_joint' ctrlrange='0 0.8' />
-        <position name='finger_2' ctrllimited="true" kp="20" joint='right_outer_knuckle_joint'
+        <position name='finger_1_pos' ctrllimited="true" kp="20" joint='finger_joint' ctrlrange='0 0.8' />
+        <position name='finger_2_pos' ctrllimited="true" kp="20" joint='right_outer_knuckle_joint'
             ctrlrange='0 0.8' />
+        <!-- <motor ctrllimited="true" ctrlrange="0 2.5" joint="finger_joint" name="finger_1" />
+        <motor ctrllimited="true" ctrlrange="0 2.5" joint="right_outer_knuckle_joint" name="finger_2" /> -->
     </actuator>
 
     <tendon>

@@ -9,9 +9,8 @@ from tqdm import tqdm
 # sawyer => jaco
 
 
-def main(mujoco_dir, arm="jaco"):
+def main(mujoco_dir, arm="ur5e", arm_upper="UR5e"):
     envs = glob(os.path.join(mujoco_dir, "sawyer_xyz", "v2", "*.py"))
-    arm_upper = f"{arm[0].upper()}{arm[1:]}"
     for env in tqdm(envs):
         with open(env, "r") as f:
             env_str = f.read()

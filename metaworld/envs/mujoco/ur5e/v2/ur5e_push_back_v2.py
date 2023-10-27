@@ -1,27 +1,26 @@
-import mujoco
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
+from metaworld.envs.mujoco.ur5e.ur5e_env import (
+    UR5eEnv,
     _assert_task_is_set,
 )
 
 
-class SawyerSoccerEnvV2(SawyerXYZEnv):
-    OBJ_RADIUS = 0.013
-    TARGET_RADIUS = 0.07
+class UR5ePushBackEnvV2(UR5eEnv):
+    OBJ_RADIUS = 0.007
+    TARGET_RADIUS = 0.05
 
     def __init__(self, tasks=None, render_mode=None):
-        goal_low = (-0.1, 0.8, 0.0)
-        goal_high = (0.1, 0.9, 0.0)
+        goal_low = (-0.1, 0.6, 0.0199)
+        goal_high = (0.1, 0.7, 0.0201)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.03)
-        obj_high = (0.1, 0.7, 0.03)
+        obj_low = (-0.1, 0.8, 0.02)
+        obj_high = (0.1, 0.85, 0.02)
 
         super().__init__(
             self.model_name,
@@ -34,11 +33,11 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             self.tasks = tasks
 
         self.init_config = {
-            "obj_init_pos": np.array([0, 0.6, 0.03]),
+            "obj_init_pos": np.array([0, 0.8, 0.02]),
             "obj_init_angle": 0.3,
-            "hand_init_pos": np.array([0.0, 0.6, 0.2]),
+            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
         }
-        self.goal = np.array([0.0, 0.9, 0.03])
+        self.goal = np.array([0.0, 0.6, 0.02])
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
@@ -51,7 +50,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for("sawyer_xyz/sawyer_soccer.xml")
+        return full_v2_path_for("ur5e/ur5e_push_back_v2.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -81,45 +80,52 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             "obj_to_target": target_to_obj,
             "unscaled_reward": reward,
         }
-
         return reward, info
 
     def _get_pos_objects(self):
-        return self.get_body_com("soccer_ball")
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
-        geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("objGeom").xmat.reshape(3, 3)
+        ).as_quat()
+
+    def adjust_initObjPos(self, orig_init_pos):
+        # This is to account for meshes for the geom and object are not aligned
+        # If this is not done, the object could be initialized in an extreme position
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
+        adjustedPos = orig_init_pos[:2] + diff
+
+        # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
-        self._target_pos = goal_pos[3:]
+        self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-            self._target_pos = goal_pos[3:]
+            self._target_pos = np.concatenate(
+                (goal_pos[-3:-1], [self.obj_init_pos[-1]])
+            )
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")
-        ] = self._target_pos
+
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
 
         return self._get_obs()
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.05
-        grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
+        grip_success_margin = obj_radius + 0.003
+        x_z_success_margin = 0.01
 
         tcp = self.tcp_center
-        left_pad = self.get_body_com("l_finger_tip")
-        right_pad = self.get_body_com("r_finger_tip")
+        left_pad = self.get_body_com("leftpad")
+        right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(
@@ -201,10 +207,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
     def compute_reward(self, action, obs):
         obj = obs[4:7]
         tcp_opened = obs[3]
-        x_scaling = np.array([3.0, 1.0, 1.0])
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        target_to_obj = np.linalg.norm((obj - self._target_pos) * x_scaling)
-        target_to_obj_init = np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
+        target_to_obj = np.linalg.norm(obj - self._target_pos)
+        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -212,44 +217,36 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             margin=target_to_obj_init,
             sigmoid="long_tail",
         )
-
-        goal_line = self._target_pos[1] - 0.1
-        if obj[1] > goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
-            in_place = np.clip(
-                in_place - 2 * ((obj[1] - goal_line) / (1 - goal_line)), 0.0, 1.0
-            )
-
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
-        reward = (3 * object_grasped) + (6.5 * in_place)
+        reward = reward_utils.hamacher_product(object_grasped, in_place)
 
+        if (
+            (tcp_to_obj < 0.01)
+            and (0 < tcp_opened < 0.55)
+            and (target_to_obj_init - target_to_obj > 0.01)
+        ):
+            reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            np.linalg.norm(obj - self._target_pos),
-            object_grasped,
-            in_place,
-        )
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
 
-class TrainSoccerv2(SawyerSoccerEnvV2):
+class TrainPushBackv2(UR5ePushBackEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5ePushBackEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestSoccerv2(SawyerSoccerEnvV2):
+class TestPushBackv2(UR5ePushBackEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5ePushBackEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)

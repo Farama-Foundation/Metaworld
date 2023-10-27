@@ -4,14 +4,14 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
+from metaworld.envs.mujoco.ur5e.ur5e_env import (
+    UR5eEnv,
     _assert_task_is_set,
 )
 
 
-class SawyerPushEnvV2(SawyerXYZEnv):
-    """SawyerPushEnv.
+class UR5ePushEnvV2(UR5eEnv):
+    """UR5ePushEnv.
 
     Motivation for V2:
         V1 was very difficult to solve because the observation didn't say where
@@ -57,10 +57,10 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        # self.action_space = Box(
-        #     np.array([-1, -1, -1, -1]),
-        #     np.array([+1, +1, +1, +1]),
-        # )
+        self.action_space = Box(
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
+        )
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
@@ -71,7 +71,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for("sawyer_xyz/sawyer_push_v2.xml")
+        return full_v2_path_for("ur5e/ur5e_push_v2.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -141,18 +141,10 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
-        tcp_opened = self.gripper_opened
+        tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
         target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
-
-        approach_object = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, 0.03),
-            margin=target_to_obj_init,
-            sigmoid="long_tail",
-        )
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -172,30 +164,28 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         )
         reward = 2 * object_grasped
 
-        if tcp_to_obj < 0.02 and tcp_opened:
+        if tcp_to_obj < 0.02 and tcp_opened > 0:
             reward += 1.0 + reward + 5.0 * in_place
-
-        # override reward
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
 
-class TrainPushv2(SawyerPushEnvV2):
+class TrainPushv2(UR5ePushEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
+        UR5ePushEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestPushv2(SawyerPushEnvV2):
+class TestPushv2(UR5ePushEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
+        UR5ePushEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)

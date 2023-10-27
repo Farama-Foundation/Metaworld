@@ -6,6 +6,7 @@ import numpy as np
 from metaworld.envs.mujoco.sawyer_xyz.v2 import *
 from metaworld.envs.mujoco.jaco.v2 import *
 from metaworld.envs.mujoco.fetch.v2 import *
+from metaworld.envs.mujoco.ur5e.v2 import *
 
 SAWYER_ENVIRONMENTS = OrderedDict(
     (
@@ -57,6 +58,7 @@ SAWYER_ENVIRONMENTS = OrderedDict(
         ("reach-wall", SawyerReachWallEnvV2),
         ("reach", SawyerReachEnvV2),
         ("reach-goal-as-obj", SawyerReachGoalAsObjEnvV2),
+        ("reach-top-approach", SawyerReachTopApproachEnvV2),
         ("shelf-place", SawyerShelfPlaceEnvV2),
         ("sweep-into", SawyerSweepIntoGoalEnvV2),
         ("sweep", SawyerSweepEnvV2),
@@ -178,6 +180,64 @@ FETCH_ENVIRONMENTS = OrderedDict(
         ("sweep", FetchSweepEnvV2),
         ("window-open", FetchWindowOpenEnvV2),
         ("window-close", FetchWindowCloseEnvV2),
+    )
+)
+
+UR5E_ENVIRONMENTS = OrderedDict(
+    (
+        ("assembly", UR5eNutAssemblyEnvV2),
+        ("basketball", UR5eBasketballEnvV2),
+        ("bin-picking", UR5eBinPickingEnvV2),
+        ("box-close", UR5eBoxCloseEnvV2),
+        ("button-press-topdown", UR5eButtonPressTopdownEnvV2),
+        ("button-press-topdown-wall", UR5eButtonPressTopdownWallEnvV2),
+        ("button-press", UR5eButtonPressEnvV2),
+        ("button-press-wall", UR5eButtonPressWallEnvV2),
+        ("coffee-button", UR5eCoffeeButtonEnvV2),
+        ("coffee-pull", UR5eCoffeePullEnvV2),
+        ("coffee-push", UR5eCoffeePushEnvV2),
+        ("dial-turn", UR5eDialTurnEnvV2),
+        ("disassemble", UR5eNutDisassembleEnvV2),
+        ("door-close", UR5eDoorCloseEnvV2),
+        ("door-lock", UR5eDoorLockEnvV2),
+        ("door-open", UR5eDoorEnvV2),
+        ("door-unlock", UR5eDoorUnlockEnvV2),
+        ("hand-insert", UR5eHandInsertEnvV2),
+        ("drawer-close", UR5eDrawerCloseEnvV2),
+        ("drawer-open", UR5eDrawerOpenEnvV2),
+        ("faucet-open", UR5eFaucetOpenEnvV2),
+        ("faucet-close", UR5eFaucetCloseEnvV2),
+        ("hammer", UR5eHammerEnvV2),
+        ("handle-press-side", UR5eHandlePressSideEnvV2),
+        ("handle-press", UR5eHandlePressEnvV2),
+        ("handle-pull-side", UR5eHandlePullSideEnvV2),
+        ("handle-pull", UR5eHandlePullEnvV2),
+        ("lever-pull", UR5eLeverPullEnvV2),
+        ("peg-insert-side", UR5ePegInsertionSideEnvV2),
+        ("pick-place-wall", UR5ePickPlaceWallEnvV2),
+        ("pick-out-of-hole", UR5ePickOutOfHoleEnvV2),
+        ("push-back", UR5ePushBackEnvV2),
+        ("push", UR5ePushEnvV2),
+        ("pick-place", UR5ePickPlaceEnvV2),
+        ("plate-slide", UR5ePlateSlideEnvV2),
+        ("plate-slide-side", UR5ePlateSlideSideEnvV2),
+        ("plate-slide-back", UR5ePlateSlideBackEnvV2),
+        ("plate-slide-back-side", UR5ePlateSlideBackSideEnvV2),
+        ("peg-insert-side", UR5ePegInsertionSideEnvV2),
+        ("peg-unplug-side", UR5ePegUnplugSideEnvV2),
+        ("soccer", UR5eSoccerEnvV2),
+        ("stick-push", UR5eStickPushEnvV2),
+        ("stick-pull", UR5eStickPullEnvV2),
+        ("push-wall", UR5ePushWallEnvV2),
+        ("push", UR5ePushEnvV2),
+        ("reach-wall", UR5eReachWallEnvV2),
+        ("reach", UR5eReachEnvV2),
+        ("reach-goal-as-obj", UR5eReachGoalAsObjEnvV2),
+        ("shelf-place", UR5eShelfPlaceEnvV2),
+        ("sweep-into", UR5eSweepIntoGoalEnvV2),
+        ("sweep", UR5eSweepEnvV2),
+        ("window-open", UR5eWindowOpenEnvV2),
+        ("window-close", UR5eWindowCloseEnvV2),
     )
 )
 
@@ -534,8 +594,13 @@ def create_observable_random_goal_envs(arm_name, all_env_dict):
     return OrderedDict(observable_goal_envs)
 
 
-ARMS = ["sawyer", "jaco", "fetch"]
-ARM_ENVS = [SAWYER_ENVIRONMENTS, JACO_ENVIRONMENTS, FETCH_ENVIRONMENTS]
+ARMS = ["sawyer", "jaco", "fetch", "ur5e"]
+ARM_ENVS = [
+    SAWYER_ENVIRONMENTS,
+    JACO_ENVIRONMENTS,
+    FETCH_ENVIRONMENTS,
+    UR5E_ENVIRONMENTS,
+]
 ENV_CONSTRUCTORS = [
     create_hidden_goal_envs,
     create_observable_goal_envs,

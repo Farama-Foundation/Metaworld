@@ -1,21 +1,24 @@
+"""Version 2 of UR5ePushWallEnv."""
+
 import numpy as np
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
+from metaworld.envs.mujoco.ur5e.ur5e_env import (
+    UR5eEnv,
     _assert_task_is_set,
 )
 
 
-class SawyerPushEnvV2(SawyerXYZEnv):
-    """SawyerPushEnv.
+class UR5ePushWallEnvV2(UR5eEnv):
+    """UR5ePushEnvV2 updates UR5eReachPushPickPlaceWallEnv.
 
-    Motivation for V2:
-        V1 was very difficult to solve because the observation didn't say where
-        to move after reaching the puck.
+    Env now handles only 'Push' task type from UR5eReachPushPickPlaceWallEnv.
+    Observations now include a vector pointing from the objectposition to the
+    goal position. Allows for scripted policy.
+
     Changelog from V1 to V2:
         - (7/7/20) Removed 3 element vector. Replaced with 3 element position
             of the goal (for consistency with other environments)
@@ -25,15 +28,15 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    TARGET_RADIUS = 0.05
+    OBJ_RADIUS = 0.02
 
     def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
-        obj_high = (0.1, 0.7, 0.02)
-        goal_low = (-0.1, 0.8, 0.01)
-        goal_high = (0.1, 0.9, 0.02)
+        obj_low = (-0.05, 0.6, 0.015)
+        obj_high = (0.05, 0.65, 0.015)
+        goal_low = (-0.05, 0.85, 0.01)
+        goal_high = (0.05, 0.9, 0.02)
 
         super().__init__(
             self.model_name,
@@ -47,84 +50,74 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             "obj_init_angle": 0.3,
-            "obj_init_pos": np.array([0.0, 0.6, 0.02]),
-            "hand_init_pos": np.array([0.0, 0.6, 0.2]),
+            "obj_init_pos": np.array([0, 0.6, 0.02]),
+            "hand_init_pos": np.array([0, 0.6, 0.2]),
         }
 
-        self.goal = np.array([0.1, 0.8, 0.02])
+        self.goal = np.array([0.05, 0.8, 0.015])
 
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
-
-        # self.action_space = Box(
-        #     np.array([-1, -1, -1, -1]),
-        #     np.array([+1, +1, +1, +1]),
-        # )
 
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
         self.num_resets = 0
 
     @property
     def model_name(self):
-        return full_v2_path_for("sawyer_xyz/sawyer_push_v2.xml")
+        return full_v2_path_for("ur5e/ur5e_push_wall_v2.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         obj = obs[4:7]
-
         (
             reward,
             tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place,
+            tcp_open,
+            obj_to_target,
+            grasp_reward,
+            in_place_reward,
         ) = self.compute_reward(action, obs)
 
+        success = float(obj_to_target <= 0.07)
+        near_object = float(tcp_to_obj <= 0.03)
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
         info = {
-            "success": float(target_to_obj <= self.TARGET_RADIUS),
-            "near_object": float(tcp_to_obj <= 0.03),
-            "grasp_success": float(
-                self.touching_main_object
-                and (tcp_opened > 0)
-                and (obj[2] - 0.02 > self.obj_init_pos[2])
-            ),
-            "grasp_reward": object_grasped,
-            "in_place_reward": in_place,
-            "obj_to_target": target_to_obj,
+            "success": success,
+            "near_object": near_object,
+            "grasp_success": grasp_success,
+            "grasp_reward": grasp_reward,
+            "in_place_reward": in_place_reward,
+            "obj_to_target": obj_to_target,
             "unscaled_reward": reward,
         }
-
         return reward, info
+
+    def _get_pos_objects(self):
+        return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self):
         geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
-    def _get_pos_objects(self):
-        return self.get_body_com("obj")
-
-    def fix_extreme_obj_pos(self, orig_init_pos):
-        # This is to account for meshes for the geom and object are not
-        # aligned. If this is not done, the object could be initialized in an
-        # extreme position
-        diff = self.get_body_com("obj")[:2] - self.get_body_com("obj")[:2]
-        adjusted_pos = orig_init_pos[:2] + diff
-        # The convention we follow is that body_com[2] is always 0,
-        # and geom_pos[2] is the object height
-        return [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
+    def adjust_initObjPos(self, orig_init_pos):
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
+        adjustedPos = orig_init_pos[:2] + diff
+        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = np.array(
-            self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
-        )
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -136,28 +129,38 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
-
         return self._get_obs()
 
     def compute_reward(self, action, obs):
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
         obj = obs[4:7]
-        tcp_opened = self.gripper_opened
-        tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.tcp_center)
-        target_to_obj = np.linalg.norm(obj - self._target_pos)
-        target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
+        tcp_opened = obs[3]
+        midpoint = np.array([-0.05, 0.77, obj[2]])
+        target = self._target_pos
 
-        approach_object = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, 0.03),
-            margin=target_to_obj_init,
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+
+        in_place_scaling = np.array([3.0, 1.0, 1.0])
+        obj_to_midpoint = np.linalg.norm((obj - midpoint) * in_place_scaling)
+        obj_to_midpoint_init = np.linalg.norm(
+            (self.obj_init_pos - midpoint) * in_place_scaling
+        )
+
+        obj_to_target = np.linalg.norm(obj - target)
+        obj_to_target_init = np.linalg.norm(self.obj_init_pos - target)
+
+        in_place_part1 = reward_utils.tolerance(
+            obj_to_midpoint,
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_midpoint_init,
             sigmoid="long_tail",
         )
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=target_to_obj_init,
+        in_place_part2 = reward_utils.tolerance(
+            obj_to_target,
+            bounds=(0, _TARGET_RADIUS),
+            margin=obj_to_target_init,
             sigmoid="long_tail",
         )
 
@@ -172,30 +175,39 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         )
         reward = 2 * object_grasped
 
-        if tcp_to_obj < 0.02 and tcp_opened:
-            reward += 1.0 + reward + 5.0 * in_place
+        if tcp_to_obj < 0.02 and tcp_opened > 0:
+            reward = 2 * object_grasped + 1.0 + 4.0 * in_place_part1
+            if obj[1] > 0.75:
+                reward = 2 * object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
 
-        # override reward
-        if target_to_obj < self.TARGET_RADIUS:
+        if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+
+        return [
+            reward,
+            tcp_to_obj,
+            tcp_opened,
+            np.linalg.norm(obj - target),
+            object_grasped,
+            in_place_part2,
+        ]
 
 
-class TrainPushv2(SawyerPushEnvV2):
+class TrainPushWallv2(UR5ePushWallEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
+        UR5ePushWallEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestPushv2(SawyerPushEnvV2):
+class TestPushWallv2(UR5ePushWallEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
+        UR5ePushWallEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)

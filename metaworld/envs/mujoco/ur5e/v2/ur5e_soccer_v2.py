@@ -5,13 +5,13 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
+from metaworld.envs.mujoco.ur5e.ur5e_env import (
+    UR5eEnv,
     _assert_task_is_set,
 )
 
 
-class SawyerSoccerEnvV2(SawyerXYZEnv):
+class UR5eSoccerEnvV2(UR5eEnv):
     OBJ_RADIUS = 0.013
     TARGET_RADIUS = 0.07
 
@@ -51,7 +51,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for("sawyer_xyz/sawyer_soccer.xml")
+        return full_v2_path_for("ur5e/ur5e_soccer.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -118,8 +118,8 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         x_z_success_margin = 0.005
 
         tcp = self.tcp_center
-        left_pad = self.get_body_com("l_finger_tip")
-        right_pad = self.get_body_com("r_finger_tip")
+        left_pad = self.get_body_com("leftpad")
+        right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(
@@ -235,21 +235,21 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainSoccerv2(SawyerSoccerEnvV2):
+class TrainSoccerv2(UR5eSoccerEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5eSoccerEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestSoccerv2(SawyerSoccerEnvV2):
+class TestSoccerv2(UR5eSoccerEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5eSoccerEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)

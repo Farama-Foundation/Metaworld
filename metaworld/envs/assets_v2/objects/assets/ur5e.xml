@@ -39,7 +39,7 @@
     <body name="shoulder_link" pos="0 0 0.163">
       <inertial pos="0 0 0" mass="3.7" diaginertia="0.0102675 0.0102675 0.00666" />
       <joint name="shoulder_pan_joint" pos="0 0 0" axis="0 0 1" limited="true"
-        range="-6.28319 6.28319" damping="0.001" frictionloss="0.01" armature="5.0" />
+        range="-1.57 1.57" damping="0.001" frictionloss="0.01" armature="5.0" />
       <geom mesh="shoulder_vis_0" material="URBlue" type="mesh" contype="0" conaffinity="0"
         group="1" />
       <geom mesh="shoulder_vis_1" material="Black" type="mesh" contype="0" conaffinity="0" group="1" />
@@ -50,7 +50,7 @@
       <body name="upper_arm_link" pos="0 0.138 0" quat="0.707107 0 0.707107 0">
         <inertial pos="0 0 0.2125" mass="8.393" diaginertia="0.133886 0.133886 0.0151074" />
         <joint name="shoulder_lift_joint" pos="0 0 0" axis="0 1 0" limited="true"
-          range="-6.28319 6.28319" damping="0.001" frictionloss="0.01" armature="2.5" />
+          range="-3.14 3.14" damping="0.001" frictionloss="0.01" armature="2.5" />
         <geom mesh="upperarm_vis_0" material="LinkGrey" type="mesh" contype="0" conaffinity="0"
           group="1" />
         <geom mesh="upperarm_vis_1" material="Black" type="mesh" contype="0" conaffinity="0"
@@ -119,7 +119,7 @@
                     <site name="ft_frame" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1"
                       type="sphere" group="1" />
                     <!-- This site was added for visualization. -->
-                    <body name="eef" pos="0 0 0.145" quat="0.707105 0 0 -0.707105">
+                    <body name="hand" pos="0 0 0.145" quat="0.707105 0 0 -0.707105">
                       <site name="grip_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 0.5"
                         type="sphere" group="1" />
                       <site name="ee_x" pos="0.1 0 0" size="0.005 .1" quat="0.707105  0 0.707108 0 "

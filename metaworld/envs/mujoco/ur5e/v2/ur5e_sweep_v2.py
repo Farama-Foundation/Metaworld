@@ -1,27 +1,25 @@
-import mujoco
 import numpy as np
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
+from metaworld.envs.mujoco.ur5e.ur5e_env import (
+    UR5eEnv,
     _assert_task_is_set,
 )
 
 
-class SawyerSoccerEnvV2(SawyerXYZEnv):
-    OBJ_RADIUS = 0.013
-    TARGET_RADIUS = 0.07
+class UR5eSweepEnvV2(UR5eEnv):
+    OBJ_RADIUS = 0.02
 
     def __init__(self, tasks=None, render_mode=None):
-        goal_low = (-0.1, 0.8, 0.0)
-        goal_high = (0.1, 0.9, 0.0)
+        init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.03)
-        obj_high = (0.1, 0.7, 0.03)
+        hand_high = (0.5, 1.0, 0.5)
+        obj_low = (-0.1, 0.6, 0.02)
+        obj_high = (0.1, 0.7, 0.02)
+        goal_low = (0.49, 0.6, 0.00)
+        goal_high = (0.51, 0.7, 0.02)
 
         super().__init__(
             self.model_name,
@@ -34,28 +32,29 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             self.tasks = tasks
 
         self.init_config = {
-            "obj_init_pos": np.array([0, 0.6, 0.03]),
+            "obj_init_pos": np.array([0.0, 0.6, 0.02]),
             "obj_init_angle": 0.3,
             "hand_init_pos": np.array([0.0, 0.6, 0.2]),
         }
-        self.goal = np.array([0.0, 0.9, 0.03])
+        self.goal = np.array([0.5, 0.65, 0.01])
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
+        self.init_puck_z = init_puck_z
+
         self._random_reset_space = Box(
-            np.hstack((obj_low, goal_low)),
-            np.hstack((obj_high, goal_high)),
+            np.array(obj_low),
+            np.array(obj_high),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
     def model_name(self):
-        return full_v2_path_for("sawyer_xyz/sawyer_soccer.xml")
+        return full_v2_path_for("ur5e/ur5e_sweep_v2.xml")
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
-        obj = obs[4:7]
         (
             reward,
             tcp_to_obj,
@@ -65,50 +64,40 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             in_place,
         ) = self.compute_reward(action, obs)
 
-        success = float(target_to_obj <= 0.07)
-        near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(
-            self.touching_object
-            and (tcp_opened > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_opened > 0))
+
         info = {
-            "success": success,
-            "near_object": near_object,
-            "grasp_success": grasp_success,
+            "success": float(target_to_obj <= 0.05),
+            "near_object": float(tcp_to_obj <= 0.03),
             "grasp_reward": object_grasped,
+            "grasp_success": grasp_success,
             "in_place_reward": in_place,
             "obj_to_target": target_to_obj,
             "unscaled_reward": reward,
         }
-
         return reward, info
 
-    def _get_pos_objects(self):
-        return self.get_body_com("soccer_ball")
-
     def _get_quat_objects(self):
-        geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return self.data.body("obj").xquat
+
+    def _get_pos_objects(self):
+        return self.data.body("obj").xpos
 
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_angle = self.init_config["obj_init_angle"]
+        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.objHeight = self._get_pos_objects()[2]
 
-        goal_pos = self._get_state_rand_vec()
-        self._target_pos = goal_pos[3:]
-        while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
-            goal_pos = self._get_state_rand_vec()
-            self._target_pos = goal_pos[3:]
-        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")
-        ] = self._target_pos
+        obj_pos = self._get_state_rand_vec()
+        self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
+        self._target_pos[1] = obj_pos.copy()[1]
+
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
+            self.get_body_com("obj")[:-1] - self._target_pos[:-1]
         )
+        self.target_reward = 1000 * self.maxPushDist + 1000 * 2
 
         return self._get_obs()
 
@@ -118,8 +107,8 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         x_z_success_margin = 0.005
 
         tcp = self.tcp_center
-        left_pad = self.get_body_com("l_finger_tip")
-        right_pad = self.get_body_com("r_finger_tip")
+        left_pad = self.get_body_com("leftpad")
+        right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(
@@ -199,57 +188,50 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         return caging_and_gripping
 
     def compute_reward(self, action, obs):
+        _TARGET_RADIUS = 0.05
+        tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
-        x_scaling = np.array([3.0, 1.0, 1.0])
-        tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        target_to_obj = np.linalg.norm((obj - self._target_pos) * x_scaling)
-        target_to_obj_init = np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
+        target = self._target_pos
+
+        obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_obj = np.linalg.norm(obj - tcp)
+        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=target_to_obj_init,
+            obj_to_target,
+            bounds=(0, _TARGET_RADIUS),
+            margin=in_place_margin,
             sigmoid="long_tail",
         )
 
-        goal_line = self._target_pos[1] - 0.1
-        if obj[1] > goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
-            in_place = np.clip(
-                in_place - 2 * ((obj[1] - goal_line) / (1 - goal_line)), 0.0, 1.0
-            )
-
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-
-        reward = (3 * object_grasped) + (6.5 * in_place)
-
-        if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            np.linalg.norm(obj - self._target_pos),
-            object_grasped,
-            in_place,
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, in_place
         )
 
+        reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
 
-class TrainSoccerv2(SawyerSoccerEnvV2):
+        if obj_to_target < _TARGET_RADIUS:
+            reward = 10.0
+        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+
+class TrainSweepv2(UR5eSweepEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5eSweepEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestSoccerv2(SawyerSoccerEnvV2):
+class TestSweepv2(UR5eSweepEnvV2):
     tasks = None
 
     def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
+        UR5eSweepEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
