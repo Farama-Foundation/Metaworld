@@ -375,6 +375,10 @@ class ArmEnv(MocapBase, EzPickle):
         )
         return obs_obj_padded
 
+    @property
+    def gripper_distance_apart(self):
+        raise NotImplementedError
+
     def _get_obs(self):
         qpos = self.joint_pos
         qpos_cos = np.cos(qpos)
@@ -401,7 +405,7 @@ class ArmEnv(MocapBase, EzPickle):
                 pos_goal,  # 3
             )  # 3 * nq + 24
         ), np.hstack(
-            (endeff_pos, 0, obs_obj_padded)
+            (endeff_pos, self.gripper_distance_apart, obs_obj_padded)
         )  # for metaworld
 
     def _get_obs_dict(self):

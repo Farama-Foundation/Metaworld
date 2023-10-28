@@ -81,6 +81,8 @@ class SawyerXYZEnv(ArmEnv):
             "right_l4_2",
         ]
 
+        self.action_cost_coff = 1e-3
+
     @property
     def tcp_center(self):
         """The COM of the gripper's 2 fingers.
@@ -141,16 +143,22 @@ class SawyerXYZEnv(ArmEnv):
         return effort
 
     def get_action_penalty(self, action):
-        action_cost_coff = 1e-3
-
         action_norm = np.linalg.norm(action)
         contact = self.check_contact_table()
 
-        penalty = action_cost_coff * action_norm
+        penalty = self.action_cost_coff * action_norm
         if contact:
             penalty = 5
 
         return penalty
+
+    @property
+    def gripper_distance_apart(self):
+        gripper_distance_apart = np.linalg.norm(self.left_pad - self.right_pad)
+        # ic(self.left_pad, self.right_pad, gripper_distance_apart)
+        gripper_distance_apart = (gripper_distance_apart - 0.0308) / (0.0775 - 0.0308)
+        gripper_distance_apart = np.clip(gripper_distance_apart, 0.0, 1.0)
+        return gripper_distance_apart
 
     def touching_object(self, object_geom_id):
         """Determines whether the gripper is touching the object with given id.
@@ -280,6 +288,15 @@ class SawyerXYZEnv(ArmEnv):
             for i in range(2)
         ]
         caging_y = reward_utils.hamacher_product(*caging_lr)
+        # ic(
+        #     pad_y_lr,
+        #     obj_pos[1],
+        #     pad_to_obj_lr,
+        #     pad_to_objinit_lr,
+        #     caging_lr_margin,
+        #     caging_lr,
+        #     caging_y,
+        # )
 
         # MARK: X-Z gripper information for caging reward-----------------------
         tcp = self.tcp_center

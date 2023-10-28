@@ -278,7 +278,7 @@
                                                 <geom size="0.029 0.05" quat="0 0 0.707107 0.707107"
                                                     type="cylinder" group="0"
                                                     name="gripper_base_col" pos="0.004 0.0 0.04"
-                                                    rgba="0.3 0.3 0.3 0" />
+                                                    rgba="0.5 0.5 0.5 0" />
                                                 <!-- This site was added for visualization. -->
                                                 <body name="hand" pos="0 0 0.109"
                                                     quat="0.707105 0 0 -0.707105">
@@ -312,30 +312,33 @@
                                                         material="finger_mat" />
                                                     <geom size="0.005 0.00675 0.0375"
                                                         pos="0 0.01725 0.04" quat="0 0 0 -1"
-                                                        type="box" group="0" name="l_finger_g0"
-                                                        friction="0 0 0" rgba="0.3 0.3 0.3 0" />
+                                                        type="box" group="0" conaffinity="1"
+                                                        contype="0" name="l_finger_g0"
+                                                        friction="0 0 0" rgba="0.5 0.5 0.5 0" />
                                                     <geom size="0.005 0.025 0.0085"
                                                         pos="-0.005 -0.003 0.0083" quat="0 0 0 -1"
-                                                        type="box" group="0" name="l_finger_g1"
-                                                        friction="0 0 0" rgba="0.3 0.3 0.3 0" />
+                                                        type="box" group="0" conaffinity="1"
+                                                        contype="0" name="l_finger_g1"
+                                                        friction="0 0 0" rgba="0.5 0.5 0.5 0" />
                                                     <body name="l_finger_tip" pos="0 0.01725 0.075">
                                                         <inertial pos="0 0 0" quat="0 0 0 1"
                                                             mass="0.01" diaginertia="0.01 0.01 0.01" />
                                                         <geom name="l_fingertip_g0_vis"
                                                             quat="0 0 0 1" type="mesh" contype="0"
-                                                            conaffinity="0" group="1"
+                                                            conaffinity="1" group="1"
                                                             mesh="half_round_tip"
                                                             material="finger_mat" />
 
                                                         <geom size="0.004 0.004 0.0185"
                                                             pos="0 -0.0045 -0.015" quat="0 0 0 -1"
-                                                            type="box" group="0"
-                                                            name="l_fingertip_g0"
-                                                            friction="0 0 0" rgba="0.3 0.3 0.3 0" />
+                                                            type="box" group="0" conaffinity="1"
+                                                            contype="0" name="l_fingertip_g0"
+                                                            friction="0 0 0" rgba="0.5 0.5 0.5 0" />
                                                         <geom size="0.0035 0.004 0.0165"
                                                             pos="0 -0.0047 -0.017" type="box"
+                                                            conaffinity="1" contype="1"
                                                             name="l_fingerpad_g0" friction="0 0 0"
-                                                            rgba="0.3 0.3 0.3 0" />
+                                                            rgba="0.5 0.5 0.5 0" />
                                                     </body>
                                                 </body>
                                                 <body name="r_finger" pos="0 -0.01 0.0444">
@@ -350,13 +353,14 @@
                                                         mesh="standard_narrow" material="finger_mat" />
                                                     <geom size="0.005 0.00675 0.0375"
                                                         pos="0 -0.01725 0.04" type="box" group="0"
+                                                        conaffinity="1" contype="0"
                                                         name="r_finger_g0" friction="0 0 0"
-                                                        rgba="0.3 0.3 0.3 0" />
+                                                        rgba="0.5 0.5 0.5 0" />
                                                     <geom size="0.005 0.025 0.0085"
                                                         pos="0.005 0.003 0.0083" type="box"
-                                                        group="0"
+                                                        group="0" conaffinity="1" contype="0"
                                                         name="r_finger_g1" friction="0 0 0"
-                                                        rgba="0.3 0.3 0.3 0" />
+                                                        rgba="0.5 0.5 0.5 0" />
                                                     <body name="r_finger_tip" pos="0 -0.01725 0.075">
                                                         <inertial pos="0 0 0" mass="0.01"
                                                             diaginertia="0.01 0.01 0.01" />
@@ -366,14 +370,14 @@
                                                             material="finger_mat" />
                                                         <geom size="0.004 0.004 0.0185"
                                                             pos="0 0.0045 -0.015" type="box"
-                                                            group="0"
+                                                            group="0" conaffinity="1" contype="0"
                                                             name="r_fingertip_g0" friction="0 0 0"
-                                                            rgba="0.3 0.3 0.3 0" />
+                                                            rgba="0.5 0.5 0.5 0" />
                                                         <geom size="0.0035 0.004 0.0165"
                                                             pos="0 0.0047 -0.017" type="box"
-                                                            conaffinity="1" contype="0"
+                                                            conaffinity="1" contype="1"
                                                             name="r_fingerpad_g0" friction="0 0 0"
-                                                            rgba="0.3 0.3 0.3 0" />
+                                                            rgba="0.5 0.5 0.5 0" />
                                                     </body>
                                                 </body>
                                             </body>
