@@ -644,7 +644,7 @@ class ArmEnv(MocapBase, EzPickle):
     ):
         raise NotImplementedError
 
-    def render(self, mode=None):
+    def render(self, mode=None, camera_name=None):
         """Returns rendering as uint8 in range [0...255]"""
 
         if mode is None:
@@ -661,4 +661,4 @@ class ArmEnv(MocapBase, EzPickle):
         if self.mujoco_renderer._viewers == {}:
             self.mujoco_renderer.default_cam_config = cam_config
 
-        return self.mujoco_renderer.render(mode)
+        return self.mujoco_renderer.render(mode, camera_name=camera_name)

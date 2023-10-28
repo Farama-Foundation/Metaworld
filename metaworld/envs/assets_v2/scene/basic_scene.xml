@@ -38,6 +38,12 @@
       </visual>
 
       <worldbody>
+            <camera name="front" pos="0 2.270 1.469" xyaxes="-1.000 0 0 0 -0.658 0.753" />
+            <camera name="left" pos="-1.317 -0.835 0.771"
+                  xyaxes="0.763 -0.647 0.000 0.257 0.303 0.918" />
+            <camera name="right" pos="0.883 -0.984 0.754"
+                  xyaxes="0.872 0.489 -0.000 -0.184 0.328 0.927" />
+
             <light castshadow="false" directional='true' diffuse='.3 .3 .3' specular='0.3 0.3 0.3'
                   pos='-1 -1 1'
                   dir='1 1 -1' />
