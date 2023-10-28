@@ -248,6 +248,11 @@ from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_sweep_v2 import (
     TestSweepv2,
     TrainSweepv2,
 )
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_grip_v2 import (
+    SawyerGripEnvV2,
+    TestGripv2,
+    TrainGripv2,
+)
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_window_close_v2 import (
     SawyerWindowCloseEnvV2,
     TestWindowClosev2,
@@ -309,6 +314,7 @@ __all__ = [
     "SawyerStickPullEnvV2",
     "SawyerStickPushEnvV2",
     "SawyerSweepEnvV2",
+    "SawyerGripEnvV2",
     "SawyerSweepIntoGoalEnvV2",
     "SawyerWindowCloseEnvV2",
     "SawyerWindowOpenEnvV2",

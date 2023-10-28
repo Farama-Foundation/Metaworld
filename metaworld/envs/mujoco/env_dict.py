@@ -62,6 +62,7 @@ SAWYER_ENVIRONMENTS = OrderedDict(
         ("shelf-place", SawyerShelfPlaceEnvV2),
         ("sweep-into", SawyerSweepIntoGoalEnvV2),
         ("sweep", SawyerSweepEnvV2),
+        ("grip", SawyerGripEnvV2),
         ("window-open", SawyerWindowOpenEnvV2),
         ("window-close", SawyerWindowCloseEnvV2),
     )

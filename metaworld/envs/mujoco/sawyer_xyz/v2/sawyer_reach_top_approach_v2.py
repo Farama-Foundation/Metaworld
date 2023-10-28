@@ -30,7 +30,7 @@ class SawyerReachTopApproachEnvV2(SawyerXYZEnv):
         # goal_low = (-0.1, 0.8, 0.05)
         # goal_high = (0.1, 0.9, 0.3)
         goal_low = (-0.6, 0.35, 0.0)
-        goal_high = (0.6, 0.95, 0.4)
+        goal_high = (0.6, 0.95, 0.1)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -133,7 +133,7 @@ class SawyerReachTopApproachEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
-        _TARGET_RADIUS = 0.05
+        _TARGET_RADIUS = 0.0
         tcp = self.tcp_center
         # obj = obs[4:7]
         # tcp_opened = obs[3]
@@ -173,18 +173,18 @@ class SawyerReachTopApproachEnvV2(SawyerXYZEnv):
         )
 
         # shake
-        VEL_MARGIN = 0.5
-        joint_vel_norm = np.linalg.norm(self.joint_vel)
-        shake = np.clip(joint_vel_norm, 0, VEL_MARGIN) / VEL_MARGIN
+        # VEL_MARGIN = 0.5
+        # joint_vel_norm = np.linalg.norm(self.joint_vel)
+        # shake = np.clip(joint_vel_norm, 0, VEL_MARGIN) / VEL_MARGIN
 
         top_approach_with_in_place = reward_utils.hamacher_product(
             above_floor, in_place
         )
-        in_place_with_shake = reward_utils.hamacher_product(
-            top_approach_with_in_place, shake
-        )
+        # in_place_with_shake = reward_utils.hamacher_product(
+        #     top_approach_with_in_place, shake
+        # )
 
-        return [10 * in_place_with_shake, tcp_to_target, in_place]
+        return [10 * top_approach_with_in_place, tcp_to_target, in_place]
 
 
 class TrainReachGoalAsObjv2(SawyerReachTopApproachEnvV2):
