@@ -59,7 +59,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         ) = self.compute_reward(action, obs)
 
         info = {
-            "success": float(obj_to_target <= 0.02),
+            "success": float(obj_to_target <= 0.03),
             "near_object": float(tcp_to_obj <= 0.05),
             "grasp_success": float(tcp_open > 0),
             "grasp_reward": near_button,
@@ -84,10 +84,11 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         return self.data.body("button").xquat
 
     def _set_obj_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9] = pos
-        qvel[9] = 0
+        qpos[arm_nqpos] = pos
+        qvel[arm_nqpos] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -117,8 +118,9 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         tcp_to_obj = np.linalg.norm(obj - tcp)
         tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
         obj_to_target = abs(self._target_pos[1] - obj[1])
+        # ic(obj_to_target)  # 0.0248
 
-        tcp_closed = max(obs[3], 0.0)
+        tcp_opened = max(obs[3], 0.0)
         near_button = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, 0.05),
@@ -127,12 +129,12 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         )
         button_pressed = reward_utils.tolerance(
             obj_to_target,
-            bounds=(0, 0.005),
+            bounds=(0, 0.02),
             margin=self._obj_to_target_init,
             sigmoid="long_tail",
         )
 
-        reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
+        reward = 2 * reward_utils.hamacher_product(tcp_opened, near_button)
         if tcp_to_obj <= 0.05:
             reward += 8 * button_pressed
 

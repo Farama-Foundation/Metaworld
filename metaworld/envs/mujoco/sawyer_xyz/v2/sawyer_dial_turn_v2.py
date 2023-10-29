@@ -64,9 +64,9 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             "success": float(target_to_obj <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.01),
             "grasp_success": 1.0,
-            "grasp_reward": object_grasped,
-            "in_place_reward": in_place,
-            "obj_to_target": target_to_obj,
+            "grasp_reward": float(object_grasped),
+            "in_place_reward": float(in_place),
+            "obj_to_target": float(target_to_obj),
             "unscaled_reward": reward,
         }
 

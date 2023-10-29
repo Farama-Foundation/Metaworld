@@ -103,7 +103,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
     def compute_reward(self, action, obs):
         del action
         obj = obs[4:7]
-        tcp = self.get_body_com("leftpad")
+        tcp = self.left_pad
 
         scale = np.array([0.25, 1.0, 0.5])
         tcp_to_obj = np.linalg.norm((obj - tcp) * scale)

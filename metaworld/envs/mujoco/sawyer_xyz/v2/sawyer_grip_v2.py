@@ -13,13 +13,12 @@ class SawyerGripEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
 
     def __init__(self, tasks=None, render_mode=None):
-        init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
-        obj_high = (0.1, 0.7, 0.02)
-        goal_low = (0.49, 0.6, 0.00)
-        goal_high = (0.51, 0.7, 0.02)
+        obj_low = (-0.3, 0.5, 0.02)
+        obj_high = (0.3, 0.7, 0.02)
+        goal_low = (-0.3, 0.5, 0.00)
+        goal_high = (0.3, 0.7, 0.2)
 
         super().__init__(
             self.model_name,
@@ -40,8 +39,7 @@ class SawyerGripEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
-
-        self.init_puck_z = init_puck_z
+        self.obj_z_noise = 0
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -79,7 +77,16 @@ class SawyerGripEnvV2(SawyerXYZEnv):
         return self.data.body("obj").xquat
 
     def _get_pos_objects(self):
-        return self.data.body("obj").xpos
+        pos = self.data.body("obj").xpos.copy()
+        pos[2] += self.obj_z_noise
+        return pos
+
+    def _get_pos_goal(self):
+        return np.random.uniform(
+            self.goal_space.low,
+            self.goal_space.high,
+            size=(3,),
+        )
 
     def reset_model(self):
         self._reset_hand()
@@ -92,6 +99,7 @@ class SawyerGripEnvV2(SawyerXYZEnv):
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
+        self.obj_z_noise = np.random.uniform(-0.005, 0.005)
         self.maxPushDist = np.linalg.norm(
             self.get_body_com("obj")[:-1] - self._target_pos[:-1]
         )
@@ -102,7 +110,7 @@ class SawyerGripEnvV2(SawyerXYZEnv):
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.04
         grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
+        x_z_success_margin = 0.001
 
         tcp = self.tcp_center
         left_pad = self.left_pad
@@ -189,8 +197,9 @@ class SawyerGripEnvV2(SawyerXYZEnv):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
+        obj[2] -= self.obj_z_noise
         tcp_opened = self.gripper_opened
-        target = self._target_pos
+        # target = self._target_pos
 
         # obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)

@@ -91,3 +91,46 @@ Joints = 9
 - Action space: 8
   - joint torque: 7
   - gripper torque: 1
+
+## Environments
+
+- reach
+- button-press-topdown
+- button-press
+- drawer-close
+- drawer-open
+- window-close
+- window-open
+- plate-slide
+- sweep
+
+### Sawyer Environments
+
+Worked:
+
+- button-press-topdown
+- button-press-topdown-wall
+- button-press
+- button-press-wall
+- dial-turn: quite hard
+- door-open: crowded
+- door-lock
+- drawer-close
+- drawer-open
+
+- handle-press
+- handle-pull
+- reach
+- plate-slide
+- window-close
+- window-open
+
+Failed:
+
+- coffee: XML aqpos order
+- assembly: too hard
+- basketball: too hard
+- bin-picking: too hard
+- box-close: too hard
+- disassemble: too hard
+- door-close: conflict initial position
