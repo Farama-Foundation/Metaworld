@@ -1,0 +1,7 @@
+<mujoco model="panda">
+    <include file="assets/panda_dependencies.xml" />
+    <worldbody>
+        <include file="assets/panda.xml" />
+    </worldbody>
+    <include file="assets/panda_motor.xml" />
+</mujoco>

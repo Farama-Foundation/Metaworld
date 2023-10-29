@@ -7,6 +7,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2 import *
 from metaworld.envs.mujoco.jaco.v2 import *
 from metaworld.envs.mujoco.fetch.v2 import *
 from metaworld.envs.mujoco.ur5e.v2 import *
+from metaworld.envs.mujoco.panda.v2 import *
 
 SAWYER_ENVIRONMENTS = OrderedDict(
     (
@@ -239,6 +240,64 @@ UR5E_ENVIRONMENTS = OrderedDict(
         ("sweep", UR5eSweepEnvV2),
         ("window-open", UR5eWindowOpenEnvV2),
         ("window-close", UR5eWindowCloseEnvV2),
+    )
+)
+
+PANDA_ENVIRONMENTS = OrderedDict(
+    (
+        ("assembly", PandaNutAssemblyEnvV2),
+        ("basketball", PandaBasketballEnvV2),
+        ("bin-picking", PandaBinPickingEnvV2),
+        ("box-close", PandaBoxCloseEnvV2),
+        ("button-press-topdown", PandaButtonPressTopdownEnvV2),
+        ("button-press-topdown-wall", PandaButtonPressTopdownWallEnvV2),
+        ("button-press", PandaButtonPressEnvV2),
+        ("button-press-wall", PandaButtonPressWallEnvV2),
+        ("coffee-button", PandaCoffeeButtonEnvV2),
+        ("coffee-pull", PandaCoffeePullEnvV2),
+        ("coffee-push", PandaCoffeePushEnvV2),
+        ("dial-turn", PandaDialTurnEnvV2),
+        ("disassemble", PandaNutDisassembleEnvV2),
+        ("door-close", PandaDoorCloseEnvV2),
+        ("door-lock", PandaDoorLockEnvV2),
+        ("door-open", PandaDoorEnvV2),
+        ("door-unlock", PandaDoorUnlockEnvV2),
+        ("hand-insert", PandaHandInsertEnvV2),
+        ("drawer-close", PandaDrawerCloseEnvV2),
+        ("drawer-open", PandaDrawerOpenEnvV2),
+        ("faucet-open", PandaFaucetOpenEnvV2),
+        ("faucet-close", PandaFaucetCloseEnvV2),
+        ("hammer", PandaHammerEnvV2),
+        ("handle-press-side", PandaHandlePressSideEnvV2),
+        ("handle-press", PandaHandlePressEnvV2),
+        ("handle-pull-side", PandaHandlePullSideEnvV2),
+        ("handle-pull", PandaHandlePullEnvV2),
+        ("lever-pull", PandaLeverPullEnvV2),
+        ("peg-insert-side", PandaPegInsertionSideEnvV2),
+        ("pick-place-wall", PandaPickPlaceWallEnvV2),
+        ("pick-out-of-hole", PandaPickOutOfHoleEnvV2),
+        ("push-back", PandaPushBackEnvV2),
+        ("push", PandaPushEnvV2),
+        ("pick-place", PandaPickPlaceEnvV2),
+        ("plate-slide", PandaPlateSlideEnvV2),
+        ("plate-slide-side", PandaPlateSlideSideEnvV2),
+        ("plate-slide-back", PandaPlateSlideBackEnvV2),
+        ("plate-slide-back-side", PandaPlateSlideBackSideEnvV2),
+        ("peg-insert-side", PandaPegInsertionSideEnvV2),
+        ("peg-unplug-side", PandaPegUnplugSideEnvV2),
+        ("soccer", PandaSoccerEnvV2),
+        ("stick-push", PandaStickPushEnvV2),
+        ("stick-pull", PandaStickPullEnvV2),
+        ("push-wall", PandaPushWallEnvV2),
+        ("push", PandaPushEnvV2),
+        ("reach-wall", PandaReachWallEnvV2),
+        ("reach", PandaReachEnvV2),
+        ("reach-goal-as-obj", PandaReachGoalAsObjEnvV2),
+        ("shelf-place", PandaShelfPlaceEnvV2),
+        ("sweep-into", PandaSweepIntoGoalEnvV2),
+        ("sweep", PandaSweepEnvV2),
+        ("window-open", PandaWindowOpenEnvV2),
+        ("window-close", PandaWindowCloseEnvV2),
     )
 )
 
@@ -595,12 +654,13 @@ def create_observable_random_goal_envs(arm_name, all_env_dict):
     return OrderedDict(observable_goal_envs)
 
 
-ARMS = ["sawyer", "jaco", "fetch", "ur5e"]
+ARMS = ["sawyer", "jaco", "fetch", "ur5e", "panda"]
 ARM_ENVS = [
     SAWYER_ENVIRONMENTS,
     JACO_ENVIRONMENTS,
     FETCH_ENVIRONMENTS,
     UR5E_ENVIRONMENTS,
+    PANDA_ENVIRONMENTS,
 ]
 ENV_CONSTRUCTORS = [
     create_hidden_goal_envs,

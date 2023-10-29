@@ -1,0 +1,22 @@
+<mujocoinclude>
+    <actuator>
+        <!-- Physical limits of the actuator. -->
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="joint1" name="torq_j1" />
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="joint2" name="torq_j2" />
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="joint3" name="torq_j3" />
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="joint4" name="torq_j4" />
+        <motor ctrllimited="true" ctrlrange="-80.0 80.0" joint="joint5" name="torq_j5" />
+        <motor ctrllimited="true" ctrlrange="-12.0 12.0" joint="joint6" name="torq_j6" />
+        <motor ctrllimited="true" ctrlrange="-12.0 12.0" joint="joint7" name="torq_j7" />
+
+        <position ctrllimited="true" ctrlrange="0.0 0.04" joint="finger_joint1" kp="1000"
+            name="gripper_finger_joint1" forcelimited="true" forcerange="-20 20" />
+        <position ctrllimited="true" ctrlrange="-0.04 0.0" joint="finger_joint2" kp="1000"
+            name="gripper_finger_joint2" forcelimited="true" forcerange="-20 20" />
+    </actuator>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame" />
+        <torque name="torque_ee" site="ft_frame" />
+    </sensor>
+</mujocoinclude>

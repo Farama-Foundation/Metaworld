@@ -1,0 +1,196 @@
+<mujocoinclude>
+  <compiler angle="radian" inertiafromgeom="auto" inertiagrouprange="0 0" />
+
+  <asset>
+    <!-- Mount material and mesh -->
+    <mesh file="../objects/meshes/rethink_mount/pedestal.stl" name="pedestal" />
+
+    <!-- panda -->
+    <mesh name="link0" file="../objects/meshes/panda/link0.stl" />
+    <mesh name="link1" file="../objects/meshes/panda/link1.stl" />
+    <mesh name="link2" file="../objects/meshes/panda/link2.stl" />
+    <mesh name="link3" file="../objects/meshes/panda/link3.stl" />
+    <mesh name="link4" file="../objects/meshes/panda/link4.stl" />
+    <mesh name="link5" file="../objects/meshes/panda/link5.stl" />
+    <mesh name="link6" file="../objects/meshes/panda/link6.stl" />
+    <mesh name="link7" file="../objects/meshes/panda/link7.stl" />
+
+    <!-- link 0 material and mesh -->
+    <material name="Face636_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Part__Feature017_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature018_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature019_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature022_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Part__Feature023_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Shell001_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Shell002_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Shell003_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Shell009_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Shell010_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Shell_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <mesh name="link0_vis_0" file="../objects/obj_meshes/panda/link0_vis/link0_vis_0.obj" />
+    <mesh name="link0_vis_1" file="../objects/obj_meshes/panda/link0_vis/link0_vis_1.obj" />
+    <mesh name="link0_vis_2" file="../objects/obj_meshes/panda/link0_vis/link0_vis_2.obj" />
+    <mesh name="link0_vis_3" file="../objects/obj_meshes/panda/link0_vis/link0_vis_3.obj" />
+    <mesh name="link0_vis_4" file="../objects/obj_meshes/panda/link0_vis/link0_vis_4.obj" />
+    <mesh name="link0_vis_5" file="../objects/obj_meshes/panda/link0_vis/link0_vis_5.obj" />
+    <mesh name="link0_vis_6" file="../objects/obj_meshes/panda/link0_vis/link0_vis_6.obj" />
+    <mesh name="link0_vis_7" file="../objects/obj_meshes/panda/link0_vis/link0_vis_7.obj" />
+    <mesh name="link0_vis_8" file="../objects/obj_meshes/panda/link0_vis/link0_vis_8.obj" />
+    <mesh name="link0_vis_9" file="../objects/obj_meshes/panda/link0_vis/link0_vis_9.obj" />
+    <mesh name="link0_vis_10" file="../objects/obj_meshes/panda/link0_vis/link0_vis_10.obj" />
+    <mesh name="link0_vis_11" file="../objects/obj_meshes/panda/link0_vis/link0_vis_11.obj" />
+
+    <!-- link 1 material and mesh -->
+    <material name="Part__Feature_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <mesh name="link1_vis" file="../objects/obj_meshes/panda/link1_vis/link1_vis.obj" />
+
+
+    <!-- link 2 material and mesh -->
+    <material name="Part__Feature024" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <mesh name="link2_vis" file="../objects/obj_meshes/panda/link2_vis/link2_vis.obj" />
+
+    <!-- link 3 material and mesh -->
+    <material name="Part__Feature001_010_001_002" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature002_007_001_002" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature003_004_001_002" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature_001_001_001_002" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <mesh name="link3_vis_0" file="../objects/obj_meshes/panda/link3_vis/link3_vis_0.obj" />
+    <mesh name="link3_vis_1" file="../objects/obj_meshes/panda/link3_vis/link3_vis_1.obj" />
+    <mesh name="link3_vis_2" file="../objects/obj_meshes/panda/link3_vis/link3_vis_2.obj" />
+    <mesh name="link3_vis_3" file="../objects/obj_meshes/panda/link3_vis/link3_vis_3.obj" />
+
+
+    <!-- link 4 material and mesh -->
+    <material name="Part__Feature001_001_003_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature002_001_003_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Feature003_001_003_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Feature_002_003_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <mesh name="link4_vis_0" file="../objects/obj_meshes/panda/link4_vis/link4_vis_0.obj" />
+    <mesh name="link4_vis_1" file="../objects/obj_meshes/panda/link4_vis/link4_vis_1.obj" />
+    <mesh name="link4_vis_2" file="../objects/obj_meshes/panda/link4_vis/link4_vis_2.obj" />
+    <mesh name="link4_vis_3" file="../objects/obj_meshes/panda/link4_vis/link4_vis_3.obj" />
+
+    <!-- link 5 material and mesh -->
+    <material name="Part__Feature_002_004_003" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell001_001_001_003" specular="0.5" shininess="0.45"
+      rgba="0.250000 0.250000 0.250000 1.000000" />
+    <material name="Shell_001_001_003" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <mesh name="link5_vis_0" file="../objects/obj_meshes/panda/link5_vis/link5_vis_0.obj" />
+    <mesh name="link5_vis_1" file="../objects/obj_meshes/panda/link5_vis/link5_vis_1.obj" />
+    <mesh name="link5_vis_2" file="../objects/obj_meshes/panda/link5_vis/link5_vis_2.obj" />
+
+    <!-- link 6 material and mesh -->
+    <material name="Face064_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 0.000000 0.000000 1.000000" />
+    <material name="Face065_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.000000 1.000000 0.000000 1.000000" />
+    <material name="Face374_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Face539_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Feature001_009_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Feature002_006_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Shell002_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell003_002_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell004_001_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell005_001_001_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell006_003_002_001" specular="0.5" shininess="0.45"
+      rgba="0.901961 0.921569 0.929412 1.000000" />
+    <material name="Shell007_002_002_001" specular="0.5" shininess="0.45"
+      rgba="0.250000 0.250000 0.250000 1.000000" />
+    <material name="Shell011_002_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell012_002_002_001" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Shell_003_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Union001_001_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.039216 0.541176 0.780392 1.000000" />
+    <material name="Union_001_001_002_001" specular="0.5" shininess="0.45"
+      rgba="0.039216 0.541176 0.780392 1.000000" />
+    <mesh name="link6_vis_0" file="../objects/obj_meshes/panda/link6_vis/link6_vis_0.obj" />
+    <mesh name="link6_vis_1" file="../objects/obj_meshes/panda/link6_vis/link6_vis_1.obj" />
+    <mesh name="link6_vis_2" file="../objects/obj_meshes/panda/link6_vis/link6_vis_2.obj" />
+    <mesh name="link6_vis_3" file="../objects/obj_meshes/panda/link6_vis/link6_vis_3.obj" />
+    <mesh name="link6_vis_4" file="../objects/obj_meshes/panda/link6_vis/link6_vis_4.obj" />
+    <mesh name="link6_vis_5" file="../objects/obj_meshes/panda/link6_vis/link6_vis_5.obj" />
+    <mesh name="link6_vis_6" file="../objects/obj_meshes/panda/link6_vis/link6_vis_6.obj" />
+    <mesh name="link6_vis_7" file="../objects/obj_meshes/panda/link6_vis/link6_vis_7.obj" />
+    <mesh name="link6_vis_8" file="../objects/obj_meshes/panda/link6_vis/link6_vis_8.obj" />
+    <mesh name="link6_vis_9" file="../objects/obj_meshes/panda/link6_vis/link6_vis_9.obj" />
+    <mesh name="link6_vis_10" file="../objects/obj_meshes/panda/link6_vis/link6_vis_10.obj" />
+    <mesh name="link6_vis_11" file="../objects/obj_meshes/panda/link6_vis/link6_vis_11.obj" />
+    <mesh name="link6_vis_12" file="../objects/obj_meshes/panda/link6_vis/link6_vis_12.obj" />
+    <mesh name="link6_vis_13" file="../objects/obj_meshes/panda/link6_vis/link6_vis_13.obj" />
+    <mesh name="link6_vis_14" file="../objects/obj_meshes/panda/link6_vis/link6_vis_14.obj" />
+    <mesh name="link6_vis_15" file="../objects/obj_meshes/panda/link6_vis/link6_vis_15.obj" />
+    <mesh name="link6_vis_16" file="../objects/obj_meshes/panda/link6_vis/link6_vis_16.obj" />
+
+    <!-- link 7 material and mesh -->
+    <material name="Part__Mirroring001_004_002" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring002_004_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring003_004_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring004_004_002" specular="0.5" shininess="0.45"
+      rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="Part__Mirroring005_004_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring006_004_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring007_004_001" specular="0.5" shininess="0.45"
+      rgba="0.250980 0.250980 0.250980 1.000000" />
+    <material name="Part__Mirroring_004_001" specular="0.5" shininess="0.45"
+      rgba="0.898039 0.917647 0.929412 1.000000" />
+
+    <mesh name="link7_vis_0" file="../objects/obj_meshes/panda/link7_vis/link7_vis_0.obj" />
+    <mesh name="link7_vis_1" file="../objects/obj_meshes/panda/link7_vis/link7_vis_1.obj" />
+    <mesh name="link7_vis_2" file="../objects/obj_meshes/panda/link7_vis/link7_vis_2.obj" />
+    <mesh name="link7_vis_3" file="../objects/obj_meshes/panda/link7_vis/link7_vis_3.obj" />
+    <mesh name="link7_vis_4" file="../objects/obj_meshes/panda/link7_vis/link7_vis_4.obj" />
+    <mesh name="link7_vis_5" file="../objects/obj_meshes/panda/link7_vis/link7_vis_5.obj" />
+    <mesh name="link7_vis_6" file="../objects/obj_meshes/panda/link7_vis/link7_vis_6.obj" />
+    <mesh name="link7_vis_7" file="../objects/obj_meshes/panda/link7_vis/link7_vis_7.obj" />
+
+
+    <!-- gripper -->
+    <mesh name="hand" file="../objects/meshes/panda_gripper/hand.stl" />
+    <mesh name="hand_vis" file="../objects/meshes/panda_gripper/hand_vis.stl" />
+    <mesh name="finger" file="../objects/meshes/panda_gripper/finger.stl" />
+    <mesh name="finger_vis" file="../objects/meshes/panda_gripper/finger_vis.stl" />
+    <mesh name="finger_vis2" file="../objects/meshes/panda_gripper/finger_longer.stl" />
+
+  </asset>
+</mujocoinclude>

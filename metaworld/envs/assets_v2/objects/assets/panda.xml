@@ -1,0 +1,323 @@
+<mujocoinclude>
+    <body name="base" pos="0 0 0" euler="0 0 1.5707963267948966">
+        <!-- robot view -->
+        <camera mode="fixed" name="robotview" pos="1.0 0 0.4" quat="0.653 0.271 0.271 0.653" />
+        <inertial diaginertia="0 0 0" mass="0" pos="0 0 0" />
+        <!-- mount attached here -->
+        <body name="mount" pos="0 0 0.01">
+            <body name="controller_box" pos="0 0 0">
+                <inertial diaginertia="1.71363 1.27988 0.809981" mass="46.64" pos="-0.325 0 -0.38" />
+                <geom pos="-0.325 0 -0.38" size="0.11 0.2 0.265" type="box"
+                    name="controller_box_col"
+                    rgba="0.3 0.3 0.3 0" />
+            </body>
+            <body name="pedestal_feet" pos="0 0 0">
+                <inertial diaginertia="8.16095 9.59375 15.0785" mass="167.09" pos="-0.1225 0 -0.758" />
+                <geom pos="-0.1225 0 -0.758" size="0.385 0.35 0.155" type="box"
+                    name="pedestal_feet_col"
+                    rgba="0.3 0.3 0.3 0" />
+            </body>
+            <body name="torso" pos="0 0 0">
+                <inertial diaginertia="1e-08 1e-08 1e-08" mass="0.0001" pos="0 0 0" />
+                <geom conaffinity="0" contype="0" group="1" pos="0 0 -0.05" size="0.05 0.05 0.05"
+                    type="box" name="torso_vis" rgba="0.2 0.2 0.2 0" />
+            </body>
+            <body name="pedestal" pos="0 0 0">
+                <inertial diaginertia="6.0869 5.81635 4.20915" mass="60.864" pos="0 0 0"
+                    quat="0.659267 -0.259505 -0.260945 0.655692" />
+                <geom conaffinity="0" contype="0" group="1" mesh="pedestal" type="mesh"
+                    name="pedestal_vis" rgba="0.2 0.2 0.2 1" />
+                <geom pos="-0.02 0 -0.29" rgba="0.2 0.2 0.2 0" size="0.18 0.31" type="cylinder"
+                    name="pedestal_col" />
+            </body>
+        </body>
+        <!-- ============================ -->
+        <body name="link0" pos="0 0 0">
+            <inertial pos="0 0 0.05" mass="4" diaginertia="0.4 0.4 0.4" />
+            <geom mesh="link0_vis_0" material="Shell010_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_1" material="Shell009_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_2" material="Shell003_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_3" material="Shell_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_4" material="Shell002_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_5" material="Shell001_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_6" material="Face636_001" type="mesh" contype="0" conaffinity="0"
+                group="1" />
+            <geom mesh="link0_vis_7" material="Part__Feature018_001" type="mesh" contype="0"
+                conaffinity="0" group="1" />
+            <geom mesh="link0_vis_8" material="Part__Feature019_001" type="mesh" contype="0"
+                conaffinity="0" group="1" />
+            <geom mesh="link0_vis_9" material="Part__Feature023_001" type="mesh" contype="0"
+                conaffinity="0" group="1" />
+            <geom mesh="link0_vis_10" material="Part__Feature022_001" type="mesh" contype="0"
+                conaffinity="0" group="1" />
+            <geom mesh="link0_vis_11" material="Part__Feature017_001" type="mesh" contype="0"
+                conaffinity="0" group="1" />
+
+            <geom type="mesh" group="0" mesh="link0" name="link0_collision" rgba="0.5 0.5 0.5 0" />
+            <body name="link1" pos="0 0 0.333">
+                <inertial pos="0 0 -0.07" mass="3" diaginertia="0.3 0.3 0.3" />
+                <joint name="joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973"
+                    damping="0.1" frictionloss="0.1" armature="5.0" />
+                <geom material="Part__Feature_001" mesh="link1_vis" type="mesh" contype="0"
+                    conaffinity="0" group="1" />
+
+                <geom type="mesh" group="0" mesh="link1" name="link1_collision" rgba="0.5 0.5 0.5 0" />
+                <body name="link2" pos="0 0 0" quat="0.707107 -0.707107 0 0">
+                    <inertial pos="0 -0.1 0" mass="3" diaginertia="0.3 0.3 0.3" />
+                    <joint name="joint2" pos="0 0 0" axis="0 0 1" limited="true"
+                        range="-1.7628 1.7628" damping="0.1" frictionloss="0.1" armature="2.5" />
+                    <geom material="Part__Feature024" mesh="link2_vis" type="mesh" contype="0"
+                        conaffinity="0" group="1" />
+
+                    <geom type="mesh" group="0" mesh="link2" name="link2_collision"
+                        rgba="0.5 0.5 0.5 0" />
+                    <body name="link3" pos="0 -0.316 0" quat="0.707107 0.707107 0 0">
+                        <inertial pos="0.04 0 -0.05" mass="2" diaginertia="0.2 0.2 0.2" />
+                        <joint name="joint3" pos="0 0 0" axis="0 0 1" limited="true"
+                            range="-2.8973 2.8973" damping="0.1" frictionloss="0.1" armature="1.667" />
+                        <geom mesh="link3_vis_0" material="Part__Feature003_004_001_002" type="mesh"
+                            contype="0" conaffinity="0" group="1" />
+                        <geom mesh="link3_vis_1" material="Part__Feature002_007_001_002" type="mesh"
+                            contype="0" conaffinity="0" group="1" />
+                        <geom mesh="link3_vis_2" material="Part__Feature001_010_001_002" type="mesh"
+                            contype="0" conaffinity="0" group="1" />
+                        <geom mesh="link3_vis_3" material="Part__Feature_001_001_001_002"
+                            type="mesh" contype="0" conaffinity="0" group="1" />
+                        <geom type="mesh" group="0" mesh="link3" name="link3_collision"
+                            rgba="0.5 0.5 0.5 0" />
+                        <body name="link4" pos="0.0825 0 0" quat="0.707107 0.707107 0 0">
+                            <inertial pos="-0.04 0.05 0" mass="2" diaginertia="0.2 0.2 0.2" />
+                            <joint name="joint4" pos="0 0 0" axis="0 0 1" limited="true"
+                                range="-3.0718 -0.0698" damping="0.1" frictionloss="0.1"
+                                armature="1.25" />
+                            <geom mesh="link4_vis_0" material="Part__Feature001_001_003_001"
+                                type="mesh" contype="0" conaffinity="0" group="1" />
+                            <geom mesh="link4_vis_1" material="Part__Feature003_001_003_001"
+                                type="mesh" contype="0" conaffinity="0" group="1" />
+                            <geom mesh="link4_vis_2" material="Part__Feature002_001_003_001"
+                                type="mesh" contype="0" conaffinity="0" group="1" />
+                            <geom mesh="link4_vis_3" material="Part__Feature_002_003_001"
+                                type="mesh" contype="0" conaffinity="0" group="1" />
+
+                            <geom type="mesh" group="0" mesh="link4" name="link4_collision"
+                                rgba="0.5 0.5 0.5 0" />
+                            <body name="link5" pos="-0.0825 0.384 0" quat="0.707107 -0.707107 0 0">
+                                <inertial pos="0 0 -0.15" mass="2" diaginertia="0.2 0.2 0.2" />
+                                <joint name="joint5" pos="0 0 0" axis="0 0 1" limited="true"
+                                    range="-2.8973 2.8973" damping="0.1" frictionloss="0.1"
+                                    armature="1.0" />
+                                <geom mesh="link5_vis_0" material="Shell001_001_001_003" type="mesh"
+                                    contype="0" conaffinity="0" group="1" />
+                                <geom mesh="link5_vis_1" material="Shell_001_001_003" type="mesh"
+                                    contype="0" conaffinity="0" group="1" />
+                                <geom mesh="link5_vis_2" material="Part__Feature_002_004_003"
+                                    type="mesh" contype="0" conaffinity="0" group="1" />
+
+                                <geom type="mesh" group="0" mesh="link5" name="link5_collision"
+                                    rgba="0.5 0.5 0.5 0" />
+                                <body name="link6" pos="0 0 0" quat="0.707107 0.707107 0 0">
+                                    <inertial pos="0.06 0 0" mass="1.5" diaginertia="0.1 0.1 0.1" />
+                                    <joint name="joint6" pos="0 0 0" axis="0 0 1" limited="true"
+                                        range="-0.0175 3.7525" damping="0.01" frictionloss="0.1"
+                                        armature="0.8333" />
+                                    <geom mesh="link6_vis_0" material="Shell006_003_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_1" material="Shell011_002_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_2" material="Shell007_002_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_3" material="Shell005_001_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_4" material="Shell004_001_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_5" material="Shell003_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_6" material="Shell002_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_7" material="Union001_001_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_8" material="Union_001_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_9" material="Face539_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_10" material="Shell_003_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_11" material="Face374_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_12" material="Face065_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_13" material="Face064_002_001_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_14"
+                                        material="Part__Feature002_006_001_002_001" type="mesh"
+                                        contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_15"
+                                        material="Part__Feature001_009_001_002_001" type="mesh"
+                                        contype="0" conaffinity="0" group="1" />
+                                    <geom mesh="link6_vis_16" material="Shell012_002_002_001"
+                                        type="mesh" contype="0" conaffinity="0" group="1" />
+
+                                    <geom type="mesh" group="0" mesh="link6" name="link6_collision"
+                                        rgba="0.5 0.5 0.5 0" />
+                                    <body name="link7" pos="0.088 0 0" quat="0.707107 0.707107 0 0">
+                                        <inertial pos="0 0 0.08" mass="0.5"
+                                            diaginertia="0.05 0.05 0.05" />
+                                        <joint name="joint7" pos="0 0 0" axis="0 0 1" limited="true"
+                                            range="-2.8973 2.8973" damping="0.01" frictionloss="0.1"
+                                            armature="0.714" />
+                                        <geom mesh="link7_vis_0"
+                                            material="Part__Mirroring004_004_002" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_1"
+                                            material="Part__Mirroring001_004_002" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_2"
+                                            material="Part__Mirroring007_004_001" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_3"
+                                            material="Part__Mirroring006_004_001" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_4"
+                                            material="Part__Mirroring005_004_001" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_5"
+                                            material="Part__Mirroring003_004_001" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_6"
+                                            material="Part__Mirroring002_004_001" type="mesh"
+                                            contype="0" conaffinity="0" group="1" />
+                                        <geom mesh="link7_vis_7" material="Part__Mirroring_004_001"
+                                            type="mesh" contype="0" conaffinity="0" group="1" />
+                                        <!-- rotate 135deg to align physically to the tool-->
+                                        <geom type="mesh" group="0" mesh="link7"
+                                            name="link7_collision" rgba="0.5 0.5 0.5 0" />
+                                        <body name="right_hand" pos="0 0 0.1065"
+                                            quat="0.924 0 0 -0.383">
+                                            <inertial pos="0 0 0" mass="0.5"
+                                                diaginertia="0.05 0.05 0.05" />
+                                            <!-- This camera points out from the eef. -->
+                                            <camera mode="fixed" name="eye_in_hand" pos="0.05 0 0"
+                                                quat="0 0.707108 0.707108 0" fovy="75" />
+                                            <!-- to add gripper -->
+                                            <body name="gripper">
+                                                <body name="right_gripper" pos="0 0 0"
+                                                    quat="0.707107 0 0 -0.707107">
+                                                    <site name="ft_frame" pos="0 0 0"
+                                                        size="0.01 0.01 0.01" rgba="1 0 0 1"
+                                                        type="sphere" group="1" />
+                                                    <inertial pos="0 0 0.17"
+                                                        quat="0.707107 0.707107 0 0" mass="0.3"
+                                                        diaginertia="0.09 0.07 0.05" />
+                                                    <geom pos="0 0 0." quat="0.707107 0 0 0.707107"
+                                                        type="mesh" contype="0" conaffinity="0"
+                                                        group="1" mesh="hand_vis" name="hand_visual"
+                                                        rgba="1 1 1 1" />
+                                                    <geom pos="0 0 0." quat="0.707107 0 0 0.707107"
+                                                        type="mesh" mesh="hand" group="0"
+                                                        name="hand_collision" rgba="0.5 0.5 0.5 0" />
+                                                    <!-- This site was added for visualization. -->
+                                                    <body name="hand" pos="0 0 0.097" quat="1 0 0 0">
+                                                        <site name="grip_site" pos="0 0 0"
+                                                            size="0.01 0.01 0.01" rgba="1 0 0 0.5"
+                                                            type="sphere" group="1" />
+                                                        <site name="ee_x" pos="0.1 0 0"
+                                                            size="0.005 .1"
+                                                            quat="0.707105  0 0.707108 0 "
+                                                            rgba="1 0 0 0" type="cylinder" group="1" />
+                                                        <site name="ee_y" pos="0 0.1 0"
+                                                            size="0.005 .1"
+                                                            quat="0.707105 0.707108 0 0"
+                                                            rgba="0 1 0 0" type="cylinder" group="1" />
+                                                        <site name="ee_z" pos="0 0 0.1"
+                                                            size="0.005 .1" quat="1 0 0 0"
+                                                            rgba="0 0 1 0" type="cylinder" group="1" />
+                                                        <!-- This site was added for visualization. -->
+                                                        <site name="grip_site_cylinder" pos="0 0 0"
+                                                            size="0.005 10" rgba="0 1 0 0.3"
+                                                            type="cylinder" group="1" />
+                                                    </body>
+                                                    <body name="leftfinger" pos="0 0 0.0524"
+                                                        quat="0.707107 0 0 0.707107">
+                                                        <inertial pos="0 0 0.05" mass="0.1"
+                                                            diaginertia="0.01 0.01 0.005" />
+                                                        <joint name="finger_joint1" pos="0 0 0"
+                                                            axis="0 1 0" type="slide" limited="true"
+                                                            range="0.0 0.04" damping="100"
+                                                            armature="1.0" frictionloss="1.0" />
+                                                        <geom type="mesh" contype="0"
+                                                            conaffinity="0" group="1"
+                                                            mesh="finger_vis" name="finger1_visual"
+                                                            rgba="0.499 0.499 0.499 1" />
+                                                        <geom type="mesh" group="0" conaffinity="1"
+                                                            contype="0" solref="0.02 1"
+                                                            friction="1 0.005 0.0001" condim="4"
+                                                            mesh="finger" name="finger1_collision"
+                                                            rgba="0.5 0.5 0.5 0" />
+                                                        <body name="finger_joint1_tip"
+                                                            pos="0 0.0085 0.056">
+                                                            <inertial pos="0 0 0" quat="0 0 0 1"
+                                                                mass="0.01"
+                                                                diaginertia="0.01 0.01 0.01" />
+                                                            <geom size="0.008 0.004 0.008"
+                                                                pos="0 -0.005 -0.015" quat="0 0 0 1"
+                                                                type="box" group="0"
+                                                                solref="0.01 0.5"
+                                                                friction="2 0.05 0.0001"
+                                                                conaffinity="1" contype="1"
+                                                                name="finger1_pad_collision"
+                                                                rgba="0.5 0.5 0.5 0" />
+                                                        </body>
+                                                    </body>
+                                                    <body name="rightfinger" pos="0 0 0.0524"
+                                                        quat="0.707107 0 0 0.707107">
+                                                        <inertial pos="0 0 0.05" mass="0.1"
+                                                            diaginertia="0.01 0.01 0.005" />
+                                                        <joint name="finger_joint2" pos="0 0 0"
+                                                            axis="0 1 0" type="slide" limited="true"
+                                                            range="-0.04 0.0" damping="100"
+                                                            armature="1.0" frictionloss="1.0" />
+                                                        <geom quat="0 0 0 1" type="mesh" contype="0"
+                                                            conaffinity="0" group="1"
+                                                            mesh="finger_vis" name="finger2_visual"
+                                                            rgba="0.499 0.499 0.499 1" />
+                                                        <geom quat="0 0 0 1" type="mesh" group="0"
+                                                            conaffinity="1" contype="0"
+                                                            solref="0.02 1"
+                                                            friction="1 0.005 0.0001" condim="4"
+                                                            mesh="finger" name="finger2_collision"
+                                                            rgba="0.5 0.5 0.5 0" />
+                                                        <body name="finger_joint2_tip"
+                                                            pos="0 -0.0085 0.056">
+                                                            <inertial pos="0 0 0" quat="0 0 0 1"
+                                                                mass="0.01"
+                                                                diaginertia="0.01 0.01 0.01" />
+                                                            <geom size="0.008 0.004 0.008"
+                                                                pos="0 0.005 -0.015" quat="0 0 0 1"
+                                                                type="box" group="0"
+                                                                solref="0.01 0.5"
+                                                                friction="2 0.05 0.0001"
+                                                                conaffinity="1" contype="1"
+                                                                name="finger2_pad_collision"
+                                                                rgba="0.5 0.5 0.5 0" />
+                                                        </body>
+                                                    </body>
+                                                </body>
+                                            </body>
+                                            <!-- ================================================== -->
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </body>
+</mujocoinclude>
