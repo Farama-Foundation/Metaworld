@@ -57,7 +57,17 @@ class PandaEnv(ArmEnv):
         )
 
         self.hand_init_qpos = np.array(
-            [0, np.pi / 16.0, 0.00, -np.pi / 2.0 - np.pi / 3.0, 0.00, np.pi - 0.2, np.pi / 4, 0.04, -0.04]
+            [
+                0,
+                np.pi / 16.0,
+                0.00,
+                -np.pi / 2.0 - np.pi / 3.0,
+                0.00,
+                np.pi - 0.2,
+                np.pi / 4,
+                0.04,
+                -0.04,
+            ]
         )
         self.init_left_pad = self.left_pad
         self.init_right_pad = self.right_pad
@@ -155,7 +165,7 @@ class PandaEnv(ArmEnv):
     def gripper_distance_apart(self):
         gripper_distance_apart = np.linalg.norm(self.left_pad - self.right_pad)
         # ic(self.left_pad, self.right_pad, gripper_distance_apart)
-        gripper_distance_apart = (gripper_distance_apart - 0.0308) / (0.0775 - 0.0308)
+        gripper_distance_apart = (gripper_distance_apart - 0.018) / (0.096 - 0.018)
         gripper_distance_apart = np.clip(gripper_distance_apart, 0.0, 1.0)
         return gripper_distance_apart
 
@@ -170,8 +180,10 @@ class PandaEnv(ArmEnv):
 
         """
 
-        leftpad_geom_id = self.data.geom("finger_joint1_tip").id
-        rightpad_geom_id = self.data.geom("finger_joint2_tip").id
+        # 'finger1_collision', 'finger1_pad_collision', 'finger1_visual'
+        # 'finger2_collision', 'finger2_pad_collision', 'finger2_visual'
+        leftpad_geom_id = self.data.geom("finger1_pad_collision").id
+        rightpad_geom_id = self.data.geom("finger2_pad_collision").id
 
         leftpad_object_contacts = [
             x

@@ -118,10 +118,16 @@ Worked:
 - drawer-close
 - drawer-open
 
+- faucet-open
+- faucet-close
 - handle-press
 - handle-pull
 - reach
 - plate-slide
+- plate-slide-side
+- plate-slide-back
+- plate-slide-back-side
+- sweep
 - window-close
 - window-open
 

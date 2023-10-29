@@ -409,12 +409,31 @@ class ArmEnv(MocapBase, EzPickle):
         )  # for metaworld
 
     def _get_obs_dict(self):
-        obs = self._get_obs()
+        obs, _ = self._get_obs()
         return dict(
-            state_observation=obs,
-            state_desired_goal=self._get_pos_goal(),
-            state_achieved_goal=None,
+            joint_qpos_cos=obs[: self._QPOS_SPACE.low.size],
+            joint_qpos_sin=obs[
+                self._QPOS_SPACE.low.size : 2 * self._QPOS_SPACE.low.size
+            ],
+            joint_qvel=obs[
+                2 * self._QPOS_SPACE.low.size : 3 * self._QPOS_SPACE.low.size
+            ],
+            endeff_pos=obs[
+                3 * self._QPOS_SPACE.low.size : 3 * self._QPOS_SPACE.low.size + 3
+            ],
+            endeff_quat=obs[
+                3 * self._QPOS_SPACE.low.size + 3 : 3 * self._QPOS_SPACE.low.size + 7
+            ],
+            obs_obj_padded=obs[
+                3 * self._QPOS_SPACE.low.size + 7 : 3 * self._QPOS_SPACE.low.size + 21
+            ],
+            pos_goal=obs[
+                3 * self._QPOS_SPACE.low.size + 21 : 3 * self._QPOS_SPACE.low.size + 24
+            ],
         )
+
+    def get_obs_dict(self):
+        return self._get_obs_dict()
 
     @property
     def arm_observation_space(self):
