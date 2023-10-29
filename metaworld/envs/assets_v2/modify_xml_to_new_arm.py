@@ -2,6 +2,8 @@ from glob import glob
 import re
 import os
 
+import argparse
+
 # xyz_base_dependencies.xml => jaco_dependencies.xml
 # xyz_base.xml => jaco.xml
 # xyz_motor.xml => jaco_motor.xml
@@ -24,6 +26,15 @@ def main(assets_dir, arm="ur5e"):
             f.write(xml_str)
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--assets_dir", type=str, default="./")
+    parser.add_argument("--arm", type=str, default="jaco")
+    parser.add_argument("--arm_upper", type=str, default="Jaco")
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
-    assets_dir = "./"
-    main(assets_dir)
+    args = get_args()
+    main(**vars(args))

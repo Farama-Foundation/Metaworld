@@ -86,10 +86,11 @@ class JacoButtonPressWallEnvV2(JacoEnv):
         return self.data.body("button").xquat
 
     def _set_obj_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9] = pos
-        qvel[9] = 0
+        qpos[arm_nqpos] = pos
+        qvel[arm_nqpos] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -130,7 +131,7 @@ class JacoButtonPressWallEnvV2(JacoEnv):
         )
         button_pressed = reward_utils.tolerance(
             obj_to_target,
-            bounds=(0, 0.005),
+            bounds=(0, 0.02),
             margin=self._obj_to_target_init,
             sigmoid="long_tail",
         )

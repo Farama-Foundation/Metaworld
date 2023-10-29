@@ -29,8 +29,8 @@ class JacoReachGoalAsObjEnvV2(JacoEnv):
     def __init__(self, tasks=None, render_mode=None):
         # goal_low = (-0.1, 0.8, 0.05)
         # goal_high = (0.1, 0.9, 0.3)
-        goal_low = (-0.6, 0.35, 0.05)
-        goal_high = (0.6, 0.95, 0.45)
+        goal_low = (-0.6, 0.35, 0.0)
+        goal_high = (0.6, 0.95, 0.4)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -133,7 +133,7 @@ class JacoReachGoalAsObjEnvV2(JacoEnv):
         return self._get_obs()
 
     def compute_reward(self, actions, obs):
-        _TARGET_RADIUS = 0.0
+        _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         # obj = obs[4:7]
         # tcp_opened = obs[3]
@@ -150,7 +150,14 @@ class JacoReachGoalAsObjEnvV2(JacoEnv):
             sigmoid="long_tail",
         )
 
-        return [10 * in_place, tcp_to_target, in_place]
+        VEL_MARGIN = 0.5
+        joint_vel_norm = np.linalg.norm(self.joint_vel)
+        shake_bonus = np.clip(joint_vel_norm, 0, VEL_MARGIN) / VEL_MARGIN
+        # ic(joint_vel_norm, shake_bonus)
+
+        in_place_with_shake = reward_utils.hamacher_product(in_place, shake_bonus)
+
+        return [10 * in_place_with_shake, tcp_to_target, in_place]
 
 
 class TrainReachGoalAsObjv2(JacoReachGoalAsObjEnvV2):

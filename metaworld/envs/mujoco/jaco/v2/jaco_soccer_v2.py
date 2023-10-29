@@ -118,8 +118,8 @@ class JacoSoccerEnvV2(JacoEnv):
         x_z_success_margin = 0.005
 
         tcp = self.tcp_center
-        left_pad = self.get_body_com("leftpad")
-        right_pad = self.get_body_com("rightpad")
+        left_pad = self.left_pad
+        right_pad = self.right_pad
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(

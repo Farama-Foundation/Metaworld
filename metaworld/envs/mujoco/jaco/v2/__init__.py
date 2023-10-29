@@ -208,6 +208,11 @@ from metaworld.envs.mujoco.jaco.v2.jaco_reach_goal_as_obj_v2 import (
     TestReachGoalAsObjv2,
     TrainReachGoalAsObjv2,
 )
+from metaworld.envs.mujoco.jaco.v2.jaco_reach_top_approach_v2 import (
+    JacoReachTopApproachEnvV2,
+    TestReachGoalAsObjv2,
+    TrainReachGoalAsObjv2,
+)
 from metaworld.envs.mujoco.jaco.v2.jaco_reach_wall_v2 import (
     JacoReachWallEnvV2,
     TestReachWallv2,
@@ -242,6 +247,11 @@ from metaworld.envs.mujoco.jaco.v2.jaco_sweep_v2 import (
     JacoSweepEnvV2,
     TestSweepv2,
     TrainSweepv2,
+)
+from metaworld.envs.mujoco.jaco.v2.jaco_grip_v2 import (
+    JacoGripEnvV2,
+    TestGripv2,
+    TrainGripv2,
 )
 from metaworld.envs.mujoco.jaco.v2.jaco_window_close_v2 import (
     JacoWindowCloseEnvV2,
@@ -297,12 +307,14 @@ __all__ = [
     "JacoPushWallEnvV2",
     "JacoReachEnvV2",
     "JacoReachGoalAsObjEnvV2",
+    "JacoReachTopApproachEnvV2",
     "JacoReachWallEnvV2",
     "JacoShelfPlaceEnvV2",
     "JacoSoccerEnvV2",
     "JacoStickPullEnvV2",
     "JacoStickPushEnvV2",
     "JacoSweepEnvV2",
+    "JacoGripEnvV2",
     "JacoSweepIntoGoalEnvV2",
     "JacoWindowCloseEnvV2",
     "JacoWindowOpenEnvV2",

@@ -16,10 +16,10 @@ class JacoHammerEnvV2(JacoEnv):
     def __init__(self, tasks=None, render_mode=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.4, 0.0)
-        obj_high = (0.1, 0.5, 0.0)
-        goal_low = (0.2399, 0.7399, 0.109)
-        goal_high = (0.2401, 0.7401, 0.111)
+        obj_low = (-0.1, 0.5, 0.0)
+        obj_high = (0.1, 0.6, 0.0)
+        goal_low = (0.2399, 0.7499, 0.109)
+        goal_high = (0.2401, 0.7501, 0.111)
 
         super().__init__(
             self.model_name,
@@ -43,6 +43,8 @@ class JacoHammerEnvV2(JacoEnv):
 
         self._random_reset_space = Box(np.array(obj_low), np.array(obj_high))
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        
+        self.action_cost_coff = 0.0
 
     @property
     def model_name(self):
@@ -83,11 +85,20 @@ class JacoHammerEnvV2(JacoEnv):
             (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
         )
 
+    # def _set_hammer_xyz(self, pos):
+    #     qpos = self.data.qpos.flat.copy()
+    #     qvel = self.data.qvel.flat.copy()
+    #     qpos[9:12] = pos.copy()
+    #     qvel[9:15] = 0
+    #     self.set_state(qpos, qvel)
+
     def _set_hammer_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
+        # freejoint qpos: x, y, z qvel: vx, vy, vz, ax, ay, az
+        qpos[arm_nqpos : arm_nqpos + 3] = pos.copy()
+        qvel[arm_nqpos : arm_nqpos + 6] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -153,7 +164,7 @@ class JacoHammerEnvV2(JacoEnv):
             hammer_threshed,
             object_reach_radius=0.01,
             obj_radius=0.015,
-            pad_success_thresh=0.02,
+            pad_success_thresh=0.03,
             xz_thresh=0.01,
             high_density=True,
         )

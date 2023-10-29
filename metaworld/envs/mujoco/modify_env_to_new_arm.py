@@ -3,6 +3,8 @@ import re
 import os
 from tqdm import tqdm
 
+import argparse
+
 # SawyerXYZEnv => JacoEnv
 # sawyer_xyz => jaco
 # Sawyer => Jaco
@@ -41,6 +43,15 @@ def main(mujoco_dir, arm="ur5e", arm_upper="UR5e"):
             f.write(env_str)
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mujoco_dir", type=str, default="./")
+    parser.add_argument("--arm", type=str, default="jaco")
+    parser.add_argument("--arm_upper", type=str, default="Jaco")
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == "__main__":
-    mujoco_dir = "./"
-    main(mujoco_dir)
+    args = get_args()
+    main(**vars(args))

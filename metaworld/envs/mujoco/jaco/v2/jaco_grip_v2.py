@@ -9,17 +9,16 @@ from metaworld.envs.mujoco.jaco.jaco_env import (
 )
 
 
-class JacoSweepEnvV2(JacoEnv):
+class JacoGripEnvV2(JacoEnv):
     OBJ_RADIUS = 0.02
 
     def __init__(self, tasks=None, render_mode=None):
-        init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
-        obj_high = (0.1, 0.7, 0.02)
-        goal_low = (0.49, 0.6, 0.00)
-        goal_high = (0.51, 0.7, 0.02)
+        obj_low = (-0.3, 0.5, 0.02)
+        obj_high = (0.3, 0.7, 0.02)
+        goal_low = (-0.3, 0.5, 0.00)
+        goal_high = (0.3, 0.7, 0.2)
 
         super().__init__(
             self.model_name,
@@ -40,8 +39,7 @@ class JacoSweepEnvV2(JacoEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
-
-        self.init_puck_z = init_puck_z
+        self.obj_z_noise = 0
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -59,20 +57,18 @@ class JacoSweepEnvV2(JacoEnv):
             reward,
             tcp_to_obj,
             tcp_opened,
-            target_to_obj,
             object_grasped,
-            in_place,
         ) = self.compute_reward(action, obs)
 
-        grasp_success = float(self.touching_main_object and tcp_opened > 0)
+        grasp_success = float(self.touching_main_object and tcp_opened)
 
         info = {
-            "success": float(target_to_obj <= 0.05),
+            "success": float(reward > 0.97),
             "near_object": float(tcp_to_obj <= 0.03),
             "grasp_reward": object_grasped,
             "grasp_success": grasp_success,
-            "in_place_reward": in_place,
-            "obj_to_target": target_to_obj,
+            "in_place_reward": -1,
+            "obj_to_target": -1,
             "unscaled_reward": reward,
         }
         return reward, info
@@ -81,7 +77,16 @@ class JacoSweepEnvV2(JacoEnv):
         return self.data.body("obj").xquat
 
     def _get_pos_objects(self):
-        return self.data.body("obj").xpos
+        pos = self.data.body("obj").xpos.copy()
+        pos[2] += self.obj_z_noise
+        return pos
+
+    def _get_pos_goal(self):
+        return np.random.uniform(
+            self.goal_space.low,
+            self.goal_space.high,
+            size=(3,),
+        )
 
     def reset_model(self):
         self._reset_hand()
@@ -94,6 +99,7 @@ class JacoSweepEnvV2(JacoEnv):
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
+        self.obj_z_noise = np.random.uniform(-0.005, 0.005)
         self.maxPushDist = np.linalg.norm(
             self.get_body_com("obj")[:-1] - self._target_pos[:-1]
         )
@@ -104,7 +110,7 @@ class JacoSweepEnvV2(JacoEnv):
     def _gripper_caging_reward(self, action, obj_position, obj_radius):
         pad_success_margin = 0.04
         grip_success_margin = obj_radius + 0.01
-        x_z_success_margin = 0.005
+        x_z_success_margin = 0.001
 
         tcp = self.tcp_center
         left_pad = self.left_pad
@@ -171,8 +177,8 @@ class JacoSweepEnvV2(JacoEnv):
         )
 
         assert right_caging >= 0 and right_caging <= 1
-        gripper_closed = min(max(0, action[-1]), 1)
-        assert gripper_closed >= 0 and gripper_closed <= 1
+        # gripper_closed = min(max(0, action[-1]), 1)
+        # assert gripper_closed >= 0 and gripper_closed <= 1
         caging = reward_utils.hamacher_product(y_caging, x_z_caging)
         assert caging >= 0 and caging <= 1
 
@@ -191,47 +197,49 @@ class JacoSweepEnvV2(JacoEnv):
         _TARGET_RADIUS = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
-        tcp_opened = obs[3]
-        target = self._target_pos
+        obj[2] -= self.obj_z_noise
+        tcp_opened = self.gripper_opened
+        # target = self._target_pos
 
-        obj_to_target = np.linalg.norm(obj - target)
+        # obj_to_target = np.linalg.norm(obj - target)
         tcp_to_obj = np.linalg.norm(obj - tcp)
-        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+        # in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
+        # in_place = reward_utils.tolerance(
+        #     obj_to_target,
+        #     bounds=(0, _TARGET_RADIUS),
+        #     margin=in_place_margin,
+        #     sigmoid="long_tail",
+        # )
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, in_place
-        )
+        # in_place_and_object_grasped = reward_utils.hamacher_product(
+        #     object_grasped, in_place
+        # )
 
-        reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
+        # reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
+        reward = object_grasped * 10
 
-        if obj_to_target < _TARGET_RADIUS:
-            reward = 10.0
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        # if obj_to_target < _TARGET_RADIUS:
+        #     reward = 10.0
+        return [reward, tcp_to_obj, tcp_opened, object_grasped]
 
 
-class TrainSweepv2(JacoSweepEnvV2):
+class TrainGripv2(JacoGripEnvV2):
     tasks = None
 
     def __init__(self):
-        JacoSweepEnvV2.__init__(self, self.tasks)
+        JacoGripEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)
 
 
-class TestSweepv2(JacoSweepEnvV2):
+class TestGripv2(JacoGripEnvV2):
     tasks = None
 
     def __init__(self):
-        JacoSweepEnvV2.__init__(self, self.tasks)
+        JacoGripEnvV2.__init__(self, self.tasks)
 
     def reset(self, seed=None, options=None):
         return super().reset(seed=seed, options=options)

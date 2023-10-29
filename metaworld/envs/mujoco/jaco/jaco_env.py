@@ -1,6 +1,6 @@
 import numpy as np
 from gymnasium.spaces import Box
-
+from metaworld.envs import reward_utils
 from metaworld.envs.mujoco.arm_env import ArmEnv
 from metaworld.envs.mujoco.mujoco_env import _assert_task_is_set
 
@@ -66,6 +66,7 @@ class JacoEnv(ArmEnv):
         self.hand_init_qpos = np.array(
             [0, 3.680, 0.000, 1.170, 0.050, 3.760, 0, 0.5, 0, 0.5, 0, 0.5, 0]
         )
+        # TODO
         # self.init_finger_1 = self.get_body_com("jaco_link_finger_1")
         # self.init_finger_2 = self.get_body_com("jaco_link_finger_2")
         # self.init_finger_3 = self.get_body_com("jaco_link_finger_3")
@@ -109,6 +110,8 @@ class JacoEnv(ArmEnv):
             "right_l4_2",
         ]
 
+        self.action_cost_coff = 1e-3
+
     @property
     def tcp_center(self):
         """The COM of the gripper's 3 fingers.
@@ -135,16 +138,39 @@ class JacoEnv(ArmEnv):
         self.do_simulation(parsed_action, n_frames=self.frame_skip)
 
     def gripper_effort_from_action(self, action):
+        # TODO
         return action[-1]
 
     def get_action_penalty(self, action):
-        action_cost_coff = 1e-3
-
         action_norm = np.linalg.norm(action)
         contact = self.check_contact_table()
 
-        penalty = action_cost_coff * action_norm
+        penalty = self.action_cost_coff * action_norm
         if contact:
             penalty = 5
 
         return penalty
+
+    @property
+    def gripper_distance_apart(self):
+        # TODO
+        return 0
+
+    def touching_object(self, object_geom_id):
+        # TODO
+        return False
+
+    def _gripper_caging_reward(  # TODO
+        self,
+        action,
+        obj_pos,
+        obj_radius,
+        pad_success_thresh,
+        object_reach_radius,
+        xz_thresh,
+        desired_gripper_effort=1.0,
+        high_density=False,
+        medium_density=False,
+    ):
+        # TODO
+        return 0

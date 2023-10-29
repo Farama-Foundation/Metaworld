@@ -137,6 +137,7 @@ class SawyerXYZEnv(ArmEnv):
         self.do_simulation(parsed_action, n_frames=self.frame_skip)
 
     def gripper_effort_from_action(self, action):
+        # TODO
         # -0.01115~0.020833 -> 0~1
         margin = 0.020833 + 0.01115
         effort = (action[-1] + 0.01115) / margin

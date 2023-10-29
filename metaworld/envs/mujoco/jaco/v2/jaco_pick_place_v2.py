@@ -135,8 +135,8 @@ class JacoPickPlaceEnvV2(JacoEnv):
         self._target_pos = goal_pos[-3:]
         self.obj_init_pos = goal_pos[:3]
         self.init_tcp = self.tcp_center
-        self.init_left_pad = self.get_body_com("leftpad")
-        self.init_right_pad = self.get_body_com("rightpad")
+        self.init_left_pad = self.left_pad
+        self.init_right_pad = self.right_pad
 
         self._set_obj_xyz(self.obj_init_pos)
 
@@ -147,8 +147,8 @@ class JacoPickPlaceEnvV2(JacoEnv):
         x_z_success_margin = 0.005
         obj_radius = 0.015
         tcp = self.tcp_center
-        left_pad = self.get_body_com("leftpad")
-        right_pad = self.get_body_com("rightpad")
+        left_pad = self.left_pad
+        right_pad = self.right_pad
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
         right_caging_margin = abs(
