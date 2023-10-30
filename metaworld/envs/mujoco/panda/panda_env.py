@@ -59,12 +59,12 @@ class PandaEnv(ArmEnv):
         self.hand_init_qpos = np.array(
             [
                 0,
-                np.pi / 16.0,
+                0.196,
                 0.00,
-                -np.pi / 2.0 - np.pi / 3.0,
+                -2.618,
                 0.00,
-                np.pi - 0.2,
-                np.pi / 4,
+                2.94,
+                -0.782,
                 0.04,
                 -0.04,
             ]
