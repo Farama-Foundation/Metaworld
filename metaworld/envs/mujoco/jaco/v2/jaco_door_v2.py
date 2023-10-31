@@ -69,7 +69,7 @@ class JacoDoorEnvV2(JacoEnv):
             "near_object": reward_ready,
             "grasp_success": reward_grab >= 0.5,
             "grasp_reward": reward_grab,
-            "in_place_reward": reward_success,
+            "in_place_reward": float(reward_success),
             "obj_to_target": 0,
             "unscaled_reward": reward,
         }

@@ -82,11 +82,12 @@ class JacoPegUnplugSideEnvV2(JacoEnv):
         return self.data.body("plug1").xquat
 
     def _set_obj_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9:12] = pos
-        qpos[12:16] = np.array([1.0, 0.0, 0.0, 0.0])
-        qvel[9:12] = 0
+        qpos[arm_nqpos : arm_nqpos + 3] = pos.copy()
+        qpos[arm_nqpos + 3 : arm_nqpos + 7] = np.array([1.0, 0.0, 0.0, 0.0])
+        qvel[arm_nqpos : arm_nqpos + 3] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):

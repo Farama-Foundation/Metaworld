@@ -105,9 +105,10 @@ class JacoPlateSlideBackSideEnvV2(JacoEnv):
         )
 
     def _set_obj_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9:11] = pos
+        qpos[arm_nqpos : arm_nqpos + 2] = pos
         self.set_state(qpos, qvel)
 
     def reset_model(self):

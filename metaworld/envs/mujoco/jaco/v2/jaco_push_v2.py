@@ -141,18 +141,10 @@ class JacoPushEnvV2(JacoEnv):
 
     def compute_reward(self, action, obs):
         obj = obs[4:7]
-        tcp_opened = self.gripper_opened
+        tcp_opened = obs[3]
         tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.tcp_center)
         target_to_obj = np.linalg.norm(obj - self._target_pos)
         target_to_obj_init = np.linalg.norm(self.obj_init_pos - self._target_pos)
-
-        approach_object = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, 0.03),
-            margin=target_to_obj_init,
-            sigmoid="long_tail",
-        )
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -172,7 +164,7 @@ class JacoPushEnvV2(JacoEnv):
         )
         reward = 2 * object_grasped
 
-        if tcp_to_obj < 0.02 and tcp_opened:
+        if tcp_to_obj < 0.02 and tcp_opened > 0:
             reward += 1.0 + reward + 5.0 * in_place
 
         # override reward

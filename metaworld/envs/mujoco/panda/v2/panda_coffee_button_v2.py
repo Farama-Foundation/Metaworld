@@ -90,10 +90,11 @@ class PandaCoffeeButtonEnvV2(PandaEnv):
         return np.array([1.0, 0.0, 0.0, 0.0])
 
     def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flatten()
-        qvel = self.data.qvel.flatten()
-        qpos[0:3] = pos.copy()
-        qvel[9:15] = 0
+        arm_nqpos = self._QPOS_SPACE.low.size
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[arm_nqpos : arm_nqpos + 2] = pos
+        qvel[arm_nqpos : arm_nqpos + 6] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):

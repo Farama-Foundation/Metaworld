@@ -30,7 +30,6 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--assets_dir", type=str, default="./")
     parser.add_argument("--arm", type=str, default="jaco")
-    parser.add_argument("--arm_upper", type=str, default="Jaco")
     args = parser.parse_args()
     return args
 

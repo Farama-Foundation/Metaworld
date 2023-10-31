@@ -1,6 +1,7 @@
 import numpy as np
 from gymnasium.spaces import Box
 
+from scipy.spatial.transform import Rotation
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.jaco.jaco_env import (
@@ -74,7 +75,8 @@ class JacoGripEnvV2(JacoEnv):
         return reward, info
 
     def _get_quat_objects(self):
-        return self.data.body("obj").xquat
+        # return self.data.body("obj").xquat
+        return Rotation.random().as_quat()
 
     def _get_pos_objects(self):
         pos = self.data.body("obj").xpos.copy()

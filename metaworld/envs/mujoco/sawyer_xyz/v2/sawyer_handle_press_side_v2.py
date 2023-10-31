@@ -99,10 +99,11 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         return np.zeros(4)
 
     def _set_obj_xyz(self, pos):
+        arm_nqpos = self._QPOS_SPACE.low.size
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[9] = pos
-        qvel[9] = 0
+        qpos[arm_nqpos] = pos
+        qvel[arm_nqpos] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
