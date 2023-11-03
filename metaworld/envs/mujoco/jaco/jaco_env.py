@@ -112,6 +112,9 @@ class JacoEnv(ArmEnv):
 
         self.action_cost_coff = 1e-3
 
+        self.init_left_pad = self.get_body_com("index_distal")
+        self.init_right_pad = self.get_body_com("thumb_distal")
+
     @property
     def tcp_center(self):
         """The COM of the gripper's 3 fingers.
@@ -126,6 +129,14 @@ class JacoEnv(ArmEnv):
         )
         tcp_center = (finger_1.xpos + finger_2.xpos + finger_3.xpos) / 3.0
         return tcp_center
+
+    @property
+    def left_pad(self):
+        return self.get_body_com("index_distal")
+
+    @property
+    def right_pad(self):
+        return self.get_body_com("thumb_distal")
 
     def set_action(self, action):
         """Applies the given action to the simulation.
