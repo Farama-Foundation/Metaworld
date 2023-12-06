@@ -1,5 +1,4 @@
 # Package ######################################################################
-
 [build-system]
 requires = ["setuptools >= 61.0.0"]
 build-backend = "setuptools.build_meta"
@@ -14,7 +13,7 @@ authors = [{ name = "Farama Foundation", email = "contact@farama.org" }]
 license = { text = "MIT License" }
 keywords = ["Reinforcement Learning", "game", "RL", "AI", "gymnasium"]
 classifiers = [
-    "Development Status :: 4 - Beta",  # change to `5 - Production/Stable` when ready
+    "Development Status :: 4 - Beta", # change to `5 - Production/Stable` when ready
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -26,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "gymnasium>=0.29.0",
-    "mujoco<3.0.0",
+    "mujoco~=3.0.0",
     "numpy>=1.18",
     "scipy>=1.4.1",
     "imageio"
@@ -34,12 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Update dependencies in `all` if any are added or removed
-testing = [
-    "ipdb",
-    "memory_profiler",
-    "pyquaternion==0.9.5",
-    "pytest>=4.4.0",
-]
+testing = ["ipdb", "memory_profiler", "pyquaternion==0.9.5", "pytest>=4.4.0"]
 
 [project.urls]
 Homepage = "https://farama.org"
@@ -54,7 +48,6 @@ include-package-data = true
 include = ["metaworld", "metaworld.*"]
 
 # Linters and Test tools #######################################################
-
 [tool.black]
 safe = true
 
@@ -62,3 +55,11 @@ safe = true
 atomic = true
 profile = "black"
 src_paths = ["metaworld", "tests"]
+
+[tool.mypy]
+plugins = ["numpy.typing.mypy_plugin"]
+exclude = ["docs"]
+
+[[tool.mypy.overrides]]
+module = ["setuptools", "glfw", "mujoco", "memory_profiler", "scipy.*"]
+ignore_missing_imports = true
