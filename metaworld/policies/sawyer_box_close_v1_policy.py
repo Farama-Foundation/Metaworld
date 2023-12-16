@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
@@ -7,7 +12,7 @@ from metaworld.policies.policy import Policy, assert_fully_parsed, move
 class SawyerBoxCloseV1Policy(Policy):
     @staticmethod
     @assert_fully_parsed
-    def _parse_obs(obs):
+    def _parse_obs(obs: npt.NDArray[np.float64]) -> dict[str, npt.NDArray[np.float64]]:
         return {
             "hand_pos": obs[:3],
             "lid_pos": obs[3:6],
@@ -15,20 +20,18 @@ class SawyerBoxCloseV1Policy(Policy):
             "extra_info": obs[[6, 7, 8, 11]],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs: npt.NDArray[np.float64]) -> npt.NDArray[np.float32]:
         o_d = self._parse_obs(obs)
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(
-            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
-        )
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def _desired_pos(o_d):
+    def _desired_pos(o_d: dict[str, npt.NDArray[np.float64]]) -> npt.NDArray[Any]:
         pos_curr = o_d["hand_pos"]
         pos_lid = o_d["lid_pos"] + np.array([-0.04, 0.0, -0.06])
         pos_box = np.array([*o_d["box_pos"], 0.15]) + np.array([-0.04, 0.0, 0.0])
@@ -47,14 +50,11 @@ class SawyerBoxCloseV1Policy(Policy):
             return pos_box
 
     @staticmethod
-    def _grab_effort(o_d):
+    def _grab_effort(o_d: dict[str, npt.NDArray[np.float64]]) -> float:
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["lid_pos"] + np.array([-0.04, 0.0, -0.06])
 
-        if (
-            np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.01
-            or abs(pos_curr[2] - pos_puck[2]) > 0.13
-        ):
+        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.01 or abs(pos_curr[2] - pos_puck[2]) > 0.13:
             return 0.0
         # While end effector is moving down toward the puck, begin closing the grabber
         else:

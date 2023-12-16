@@ -6,8 +6,6 @@ import numpy as np
 import numpy.typing as npt
 from typing_extensions import NotRequired, TypedDict
 
-EnvName = str
-
 
 class Task(NamedTuple):
     """All data necessary to describe a single MDP.

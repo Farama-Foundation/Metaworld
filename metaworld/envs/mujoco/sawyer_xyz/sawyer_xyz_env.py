@@ -611,7 +611,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[np.float64, dict[str, Any]]:
+    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
         """Resets the environment.
 
         Args:
@@ -625,7 +625,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         obs, info = super().reset()
         self._prev_obs = obs[:18].copy()
         obs[18:36] = self._prev_obs
-        obs = np.float64(obs)
+        obs = obs.astype(np.float64)
         return obs, info
 
     def _reset_hand(self, steps: int = 50) -> None:

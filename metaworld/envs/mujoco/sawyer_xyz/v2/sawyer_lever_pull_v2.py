@@ -185,7 +185,7 @@ class TrainLeverPullv2(SawyerLeverPullEnvV2):
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[np.float64, dict[str, Any]]:
+    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
@@ -197,5 +197,5 @@ class TestLeverPullv2(SawyerLeverPullEnvV2):
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[np.float64, dict[str, Any]]:
+    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
         return super().reset(seed=seed, options=options)
