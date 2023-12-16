@@ -1,18 +1,21 @@
+from __future__ import annotations
+
+from typing import Any
+
 import mujoco
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
-    TARGET_RADIUS = 0.07
+    TARGET_RADIUS: float = 0.07
     """
     Motivation for V2:
         V1 was difficult to solve because the observation didn't say where
@@ -30,7 +33,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             the hole's position, as opposed to hand_low and hand_high
     """
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_init_pos = (0, 0.6, 0.2)
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -41,7 +44,6 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         goal_high = (-0.25, 0.7, 0.001)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -50,7 +52,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
             "hand_init_pos": np.array([0, 0.6, 0.2]),
         }
@@ -72,11 +74,13 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         )
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_peg_insertion_side.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         obj = obs[4:7]
 
         (
@@ -89,11 +93,8 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             collision_box_front,
             ip_orig,
         ) = self.compute_reward(action, obs)
-        grasp_success = float(
-            tcp_to_obj < 0.02
-            and (tcp_open > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        )
+        assert self.obj_init_pos is not None
+        grasp_success = float(tcp_to_obj < 0.02 and (tcp_open > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]))
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
 
@@ -109,14 +110,14 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self._get_site_pos("pegGrasp")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.site("pegGrasp").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         pos_peg, pos_box = np.split(self._get_state_rand_vec(), 2)
         while np.linalg.norm(pos_peg[:2] - pos_box[:2]) < 0.1:
@@ -124,24 +125,25 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = pos_peg
         self.peg_head_pos_init = self._get_site_pos("pegHead")
         self._set_obj_xyz(self.obj_init_pos)
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
-        ] = pos_box
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")] = pos_box
         self._target_pos = pos_box + np.array([0.03, 0.0, 0.13])
         return self._get_obs()
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float, float, float]:
+        assert self._target_pos is not None and self.obj_init_pos is not None
         tcp = self.tcp_center
         obj = obs[4:7]
         obj_head = self._get_site_pos("pegHead")
-        tcp_opened = obs[3]
+        tcp_opened: float = obs[3]
         target = self._target_pos
-        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
         scale = np.array([1.0, 2.0, 2.0])
         #  force agent to pick up object then insert
-        obj_to_target = np.linalg.norm((obj_head - target) * scale)
+        obj_to_target = float(np.linalg.norm((obj_head - target) * scale))
 
-        in_place_margin = np.linalg.norm((self.peg_head_pos_init - target) * scale)
+        in_place_margin = float(np.linalg.norm((self.peg_head_pos_init - target) * scale))
         in_place = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, self.TARGET_RADIUS),
@@ -154,15 +156,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
         tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
-        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
-            curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
-        )
-        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(
-            curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2
-        )
-        collision_boxes = reward_utils.hamacher_product(
-            collision_box_bottom_2, collision_box_bottom_1
-        )
+        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1)
+        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2)
+        collision_boxes = reward_utils.hamacher_product(collision_box_bottom_2, collision_box_bottom_1)
         in_place = reward_utils.hamacher_product(in_place, collision_boxes)
 
         pad_success_margin = 0.03
@@ -179,28 +175,18 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             xz_thresh=x_z_margin,
             high_density=True,
         )
-        if (
-            tcp_to_obj < 0.08
-            and (tcp_opened > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        ):
+        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             object_grasped = 1.0
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, in_place
-        )
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
         reward = in_place_and_object_grasped
 
-        if (
-            tcp_to_obj < 0.08
-            and (tcp_opened > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        ):
+        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
             reward += 1.0 + 5 * in_place
 
         if obj_to_target <= 0.07:
             reward = 10.0
 
-        return [
+        return (
             reward,
             tcp_to_obj,
             tcp_opened,
@@ -209,24 +195,28 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             in_place,
             collision_boxes,
             ip_orig,
-        ]
+        )
 
 
 class TrainPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)

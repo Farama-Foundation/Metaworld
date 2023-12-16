@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerDoorEnv(SawyerXYZEnv):
@@ -53,7 +50,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_door_pull.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, reachDist, pullDist = self.compute_reward(action, ob)
@@ -82,19 +79,13 @@ class SawyerDoorEnv(SawyerXYZEnv):
 
         self.objHeight = self.data.get_geom_xpos("handle")[2]
 
-        self.obj_init_pos = (
-            self._get_state_rand_vec()
-            if self.random_init
-            else self.init_config["obj_init_pos"]
-        )
+        self.obj_init_pos = self._get_state_rand_vec() if self.random_init else self.init_config["obj_init_pos"]
         self._target_pos = self.obj_init_pos + np.array([-0.3, -0.25, 0.05])
 
         self.sim.model.body_pos[self.model.body_name2id("door")] = self.obj_init_pos
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self._set_obj_xyz(0)
-        self.maxPullDist = np.linalg.norm(
-            self.data.get_geom_xpos("handle")[:-1] - self._target_pos[:-1]
-        )
+        self.maxPullDist = np.linalg.norm(self.data.get_geom_xpos("handle")[:-1] - self._target_pos[:-1])
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
         return self._get_obs()
@@ -102,9 +93,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.reachCompleted = False
 
@@ -112,9 +101,7 @@ class SawyerDoorEnv(SawyerXYZEnv):
         del actions
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pullGoal = self._target_pos

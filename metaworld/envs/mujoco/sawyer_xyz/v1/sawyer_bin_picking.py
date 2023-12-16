@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerBinPickingEnv(SawyerXYZEnv):
@@ -48,15 +45,13 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         )
 
         self.goal_space = Box(goal_low, goal_high)
-        self._random_reset_space = Box(
-            low=np.array([-0.22, -0.02]), high=np.array([0.6, 0.8])
-        )
+        self._random_reset_space = Box(low=np.array([-0.22, -0.02]), high=np.array([0.6, 0.8]))
 
     @property
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_bin_picking.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, ob)
@@ -109,10 +104,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self._target_pos = self.get_body_com("bin_goal")
         self.maxPlacingDist = (
-            np.linalg.norm(
-                np.array([self.obj_init_pos[0], self.obj_init_pos[1]])
-                - np.array(self._target_pos)[:-1]
-            )
+            np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._target_pos)[:-1])
             + self.heightTarget
         )
 
@@ -120,9 +112,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
 
     def _reset_hand(self):
         super()._reset_hand(10)
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
         self.placeCompleted = False
@@ -130,9 +120,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
     def compute_reward(self, actions, obs):
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -167,11 +155,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             self.pickCompleted = True
 
         def objDropped():
-            return (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -210,10 +194,7 @@ class SawyerBinPickingEnv(SawyerXYZEnv):
             if self.placeCompleted:
                 return [-200 * actions[-1] + placeRew, placingDist]
             elif cond:
-                if (
-                    abs(objPos[0] - placingGoal[0]) < 0.05
-                    and abs(objPos[1] - placingGoal[1]) < 0.05
-                ):
+                if abs(objPos[0] - placingGoal[0]) < 0.05 and abs(objPos[1] - placingGoal[1]) < 0.05:
                     return [-200 * actions[-1] + placeRew, placingDist]
                 else:
                     return [placeRew, placingDist]

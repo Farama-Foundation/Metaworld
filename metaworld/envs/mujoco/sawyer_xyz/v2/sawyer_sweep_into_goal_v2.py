@@ -1,19 +1,22 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
-    OBJ_RADIUS = 0.02
+    OBJ_RADIUS: float = 0.02
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -22,7 +25,6 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         goal_high = (+0.001, 0.8401, 0.0201)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -31,7 +33,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),
             "obj_init_angle": 0.3,
             "hand_init_pos": np.array([0.0, 0.6, 0.2]),
@@ -48,11 +50,13 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_table_with_hole.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         # obj = obs[4:7]
         (
             reward,
@@ -76,14 +80,14 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         }
         return reward, info
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("obj")
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.get_body_com("obj")
@@ -93,12 +97,11 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        assert self.obj_init_pos is not None
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
@@ -112,12 +115,8 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_position[1]
         delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(
-            abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin
-        )
-        left_caging_margin = abs(
-            abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin
-        )
+        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -154,16 +153,12 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         assert y_caging >= 0 and y_caging <= 1
 
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
-        obj_position_x_z = np.copy(obj_position) + np.array(
-            [0.0, -obj_position[1], 0.0]
-        )
+        obj_position_x_z = np.copy(obj_position) + np.array([0.0, -obj_position[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
-        tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        )
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(
             tcp_obj_norm_x_z,
             bounds=(0, x_z_success_margin),
@@ -188,15 +183,18 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
         return caging_and_gripping
 
-    def compute_reward(self, action, obs):
-        _TARGET_RADIUS = 0.05
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert self._target_pos is not None
+        _TARGET_RADIUS: float = 0.05
         tcp = self.tcp_center
         obj = obs[4:7]
         tcp_opened = obs[3]
         target = np.array([self._target_pos[0], self._target_pos[1], obj[2]])
 
-        obj_to_target = np.linalg.norm(obj - target)
-        tcp_to_obj = np.linalg.norm(obj - tcp)
+        obj_to_target = float(np.linalg.norm(obj - target))
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
         in_place = reward_utils.tolerance(
@@ -207,32 +205,34 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         )
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, in_place
-        )
+        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
 
         reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+        return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place
 
 
 class TrainSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)

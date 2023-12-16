@@ -1,18 +1,21 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
-    _TARGET_RADIUS = 0.02
+    _TARGET_RADIUS: float = 0.02
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0, 0.75, 0.02)
@@ -21,7 +24,6 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         goal_high = (0.1, 0.6, 0.3)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -30,7 +32,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.0]),
             "obj_init_angle": 0.3,
             "hand_init_pos": np.array([0.0, 0.6, 0.2]),
@@ -47,11 +49,13 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_pick_out_of_hole.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             tcp_to_obj,
@@ -78,23 +82,22 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         return reward, info
 
     @property
-    def _target_site_config(self):
-        l = [("goal", self.init_right_pad)]
+    def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
+        _site_config = [("goal", self.init_right_pad)]
         if self.obj_init_pos is not None:
-            l[0] = ("goal", self.obj_init_pos)
-        return l
+            _site_config[0] = ("goal", self.obj_init_pos)
+        return _site_config
 
-    @property
-    def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id("objGeom")
+    def _get_id_main_object(self) -> int:
+        return self.model.geom_name2id("objGeom")
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("obj")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return self.data.body("obj").xquat
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
 
         pos_obj, pos_goal = np.split(self._get_state_rand_vec(), 2)
@@ -107,17 +110,20 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert self._target_pos is not None and self.obj_init_pos is not None
         obj = obs[4:7]
         gripper = self.tcp_center
 
-        obj_to_target = np.linalg.norm(obj - self._target_pos)
-        tcp_to_obj = np.linalg.norm(obj - gripper)
-        in_place_margin = np.linalg.norm(self.obj_init_pos - self._target_pos)
+        obj_to_target = float(np.linalg.norm(obj - self._target_pos))
+        tcp_to_obj = float(np.linalg.norm(obj - gripper))
+        in_place_margin = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
 
         threshold = 0.03
         # floor is a 3D funnel centered on the initial object pos
-        radius = np.linalg.norm(gripper[:2] - self.obj_init_pos[:2])
+        radius = float(np.linalg.norm(gripper[:2] - self.obj_init_pos[:2]))
         if radius <= threshold:
             floor = 0.0
         else:
@@ -143,9 +149,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             desired_gripper_effort=0.1,
             high_density=True,
         )
-        in_place = reward_utils.tolerance(
-            obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail"
-        )
+        in_place = reward_utils.tolerance(obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail")
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         near_object = tcp_to_obj < 0.04
@@ -170,20 +174,24 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
 
 class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)

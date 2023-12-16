@@ -1,17 +1,20 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.85, 0.15)
@@ -20,7 +23,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         goal_high = (-0.2, 0.5, 0.1501)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -29,8 +31,8 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
-            "obj_init_angle": np.array([0.3]),
+        self.init_config: InitConfigDict = {
+            "obj_init_angle": 0.3,
             "obj_init_pos": np.array([0.1, 0.95, 0.15]),
             "hand_init_pos": np.array([0, 0.6, 0.2]),
         }
@@ -50,11 +52,14 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_door_pull.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
+        assert self._target_pos is not None
         (
             reward,
             reward_grab,
@@ -77,25 +82,23 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return reward, info
 
     @property
-    def _target_site_config(self):
+    def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
         return []
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.data.geom("handle").xpos.copy()
 
-    def _get_quat_objects(self):
-        return Rotation.from_matrix(
-            self.data.geom("handle").xmat.reshape(3, 3)
-        ).as_quat()
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
+        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
 
-    def _set_obj_xyz(self, pos):
+    def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
         qvel = self.data.qvel.copy()
         qpos[self.door_qpos_adr] = pos
         qvel[self.door_qvel_adr] = 0
         self.set_state(qpos.flatten(), qvel.flatten())
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self.objHeight = self.data.geom("handle").xpos[2]
 
@@ -104,17 +107,16 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         self.model.body("door").pos = self.obj_init_pos
         self.model.site("goal").pos = self._target_pos
-        self._set_obj_xyz(0)
-        self.maxPullDist = np.linalg.norm(
-            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
-        )
+        self._set_obj_xyz(np.array(0))
+        assert self._target_pos is not None
+        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
         return self._get_obs()
 
     @staticmethod
-    def _reward_grab_effort(actions):
-        return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
+    def _reward_grab_effort(actions: npt.NDArray[Any]) -> float:
+        return float((np.clip(actions[3], -1, 1) + 1.0) / 2.0)
 
     @staticmethod
     def _reward_pos(obs, theta):
@@ -162,7 +164,10 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
         return ready_to_open, opened
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, bool]:
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         theta = self.data.joint("doorjoint").qpos
 
         reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
@@ -176,7 +181,6 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
 
         # Override reward on success flag
-        reward = reward[0]
         if abs(obs[4] - self._target_pos[0]) <= 0.08:
             reward = 10.0
 
@@ -188,20 +192,24 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
 
 class TrainDoorOpenv2(SawyerDoorEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerDoorEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestDoorOpenv2(SawyerDoorEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerDoorEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)

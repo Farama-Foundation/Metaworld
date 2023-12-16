@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
@@ -42,7 +39,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_button_press_topdown.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, reachDist, pressDist = self.compute_reward(action, ob)
@@ -87,10 +84,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id("button")] = self._target_pos
         self._set_obj_xyz(0)
         self._target_pos = self._get_site_pos("hole")
-        self.maxDist = np.abs(
-            self.data.site_xpos[self.model.site_name2id("buttonStart")][2]
-            - self._target_pos[2]
-        )
+        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id("buttonStart")][2] - self._target_pos[2])
         self.target_reward = 1000 * self.maxDist + 1000 * 2
 
         return self._get_obs()
@@ -98,9 +92,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -108,9 +100,7 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         del actions
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pressGoal = self._target_pos[2]

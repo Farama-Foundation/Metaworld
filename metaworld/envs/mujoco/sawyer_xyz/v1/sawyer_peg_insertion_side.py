@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerPegInsertionSideEnv(SawyerXYZEnv):
@@ -51,7 +48,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_peg_insertion_side.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, pickRew, _, placingDist = self.compute_reward(action, ob)
@@ -72,9 +69,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
     def reset_model(self):
         self._reset_hand()
 
-        self.sim.model.body_pos[self.model.body_name2id("box")] = np.array(
-            [-0.3, 0.6, 0.05]
-        )
+        self.sim.model.body_pos[self.model.body_name2id("box")] = np.array([-0.3, 0.6, 0.05])
         self._target_pos = (
             self.sim.model.site_pos[self.model.site_name2id("hole")]
             + self.sim.model.body_pos[self.model.body_name2id("box")]
@@ -98,10 +93,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.obj_init_pos = self.get_body_com("peg")
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -111,9 +103,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -121,9 +111,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         objPos = obs[3:6]
         pegHeadPos = self._get_site_pos("pegHead")
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -158,11 +146,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
         self.pickCompleted = pickCompletionCriteria()
 
         def objDropped():
-            return (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -184,13 +168,11 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             if cond:
                 if placingDistHead <= 0.05:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist**2) / c2)
-                        + np.exp(-(placingDist**2) / c3)
+                        np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                     )
                 else:
                     placeRew = 1000 * (self.maxPlacingDist - placingDistHead) + c1 * (
-                        np.exp(-(placingDistHead**2) / c2)
-                        + np.exp(-(placingDistHead**2) / c3)
+                        np.exp(-(placingDistHead**2) / c2) + np.exp(-(placingDistHead**2) / c3)
                     )
                 placeRew = max(placeRew, 0)
                 return [placeRew, placingDist]

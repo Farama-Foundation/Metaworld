@@ -24,12 +24,14 @@
 #    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Many methods borrow heavily or entirely from transforms3d:
-# https://github.com/matthew-brett/transforms3d
-# They have mostly been modified to support batched operations.
+"""Utilities for computing rotations in 3D space.
+
+Many methods borrow heavily or entirely from transforms3d: https://github.com/matthew-brett/transforms3d
+They have mostly been modified to support batched operations.
+"""
+from __future__ import annotations
 
 import itertools
-from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -359,7 +361,7 @@ def quat_identity() -> npt.NDArray[np.int_]:
     return np.array([1, 0, 0, 0])
 
 
-def quat2axisangle(quat: npt.NDArray) -> Tuple[npt.NDArray, float]:
+def quat2axisangle(quat: npt.NDArray) -> tuple[npt.NDArray, float]:
     """Converts a quaternion to an axis-angle representation.
 
     Args:
@@ -480,9 +482,9 @@ def round_to_straight_angles(angles: npt.NDArray) -> npt.NDArray[np.float_]:
     return normalize_angles(angles)
 
 
-def get_parallel_rotations() -> List[npt.NDArray]:
+def get_parallel_rotations() -> list[npt.NDArray]:
     mult90 = [0, np.pi / 2, -np.pi / 2, np.pi]
-    parallel_rotations: List[npt.NDArray] = []
+    parallel_rotations: list[npt.NDArray] = []
     for euler in itertools.product(mult90, repeat=3):
         canonical = mat2euler(euler2mat(euler))
         canonical = np.round(canonical / (np.pi / 2))

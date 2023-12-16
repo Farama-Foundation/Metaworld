@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
@@ -66,7 +63,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_reach_push_pick_and_place_wall.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         (
@@ -99,10 +96,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
     @property
     def _target_site_config(self):
         far_away = np.array([10.0, 10.0, 10.0])
-        return [
-            ("goal_" + t, self._target_pos if t == self.task_type else far_away)
-            for t in self.task_types
-        ]
+        return [("goal_" + t, self._target_pos if t == self.task_type else far_away) for t in self.task_types]
 
     def _get_pos_objects(self):
         return self.data.get_geom_xpos("objGeom")
@@ -131,29 +125,18 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
                 goal_pos = self._get_state_rand_vec()
                 self._target_pos = goal_pos[3:]
             if self.task_type == "push":
-                self._target_pos = np.concatenate(
-                    (goal_pos[-3:-1], [self.obj_init_pos[-1]])
-                )
-                self.obj_init_pos = np.concatenate(
-                    (goal_pos[:2], [self.obj_init_pos[-1]])
-                )
+                self._target_pos = np.concatenate((goal_pos[-3:-1], [self.obj_init_pos[-1]]))
+                self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             else:
                 self._target_pos = goal_pos[-3:]
                 self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxReachDist = np.linalg.norm(
-            self.init_fingerCOM - np.array(self._target_pos)
-        )
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxReachDist = np.linalg.norm(self.init_fingerCOM - np.array(self._target_pos))
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -178,18 +161,14 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
     def compute_reward(self, actions, obs):
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -263,11 +242,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
             self.pickCompleted = pickCompletionCriteria()
 
             def objDropped():
-                return (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
-                )
+                return (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
                 # Object on the ground, far away from the goal, and from the gripper
                 # Can tweak the margin limits
 
@@ -287,8 +262,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
                 cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped())
                 if cond:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist**2) / c2)
-                        + np.exp(-(placingDist**2) / c3)
+                        np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                     )
                     placeRew = max(placeRew, 0)
                     return [placeRew, placingDist]

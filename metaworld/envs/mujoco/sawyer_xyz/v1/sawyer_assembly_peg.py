@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerNutAssemblyEnv(SawyerXYZEnv):
@@ -48,12 +45,10 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_assembly_peg.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(
-            action, ob
-        )
+        reward, _, reachDist, pickRew, _, placingDist, _, success = self.compute_reward(action, ob)
         info = {
             "reachDist": reachDist,
             "pickRew": pickRew,
@@ -95,10 +90,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         self.sim.model.site_pos[self.model.site_name2id("pegTop")] = self._target_pos
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -108,9 +100,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
         self.placeCompleted = False
@@ -119,9 +109,7 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
         graspPos = obs[3:6]
         objPos = self.get_body_com("RoundNut")
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -157,17 +145,10 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
             self.pickCompleted = True
 
         def objDropped():
-            return (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
         def placeCompletionCriteria():
-            if (
-                abs(objPos[0] - placingGoal[0]) < 0.03
-                and abs(objPos[1] - placingGoal[1]) < 0.03
-            ):
+            if abs(objPos[0] - placingGoal[0]) < 0.03 and abs(objPos[1] - placingGoal[1]) < 0.03:
                 return True
             else:
                 return False
@@ -198,13 +179,10 @@ class SawyerNutAssemblyEnv(SawyerXYZEnv):
                 c5 = 0.003
                 c6 = 0.0003
                 placeRew += 2000 * (heightTarget - placingDistFinal) + c4 * (
-                    np.exp(-(placingDistFinal**2) / c5)
-                    + np.exp(-(placingDistFinal**2) / c6)
+                    np.exp(-(placingDistFinal**2) / c5) + np.exp(-(placingDistFinal**2) / c6)
                 )
             placeRew = max(placeRew, 0)
-            cond = self.placeCompleted or (
-                self.pickCompleted and (reachDist < 0.04) and not (objDropped())
-            )
+            cond = self.placeCompleted or (self.pickCompleted and (reachDist < 0.04) and not (objDropped()))
             if cond:
                 return [placeRew, placingDist, placingDistFinal]
             else:

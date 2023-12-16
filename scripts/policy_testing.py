@@ -27,12 +27,6 @@ p = policy()
 count = 0
 done = False
 
-states = []
-actions = []
-next_states = []
-rewards = []
-
-dones = []
 info = {}
 
 while count < 500 and not done:

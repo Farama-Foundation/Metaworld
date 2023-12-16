@@ -1,17 +1,20 @@
+from __future__ import annotations
+
+from typing import Any
+
 import mujoco
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -20,7 +23,6 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         goal_high = obj_high + np.array([0.194, 0.0, 0.131])
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -29,7 +31,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.225, 0.6, 0.05]),
             "hand_init_pos": np.array((0, 0.6, 0.2)),
         }
@@ -44,11 +46,13 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_peg_unplug_side.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         # obj = obs[4:7]
 
         (
@@ -75,13 +79,13 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self._get_site_pos("pegEnd")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return self.data.body("plug1").xquat
 
-    def _set_obj_xyz(self, pos):
+    def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos
@@ -89,13 +93,11 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         qvel[9:12] = 0
         self.set_state(qpos, qvel)
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
 
         pos_box = self._get_state_rand_vec()
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
-        ] = pos_box
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")] = pos_box
         pos_plug = pos_box + np.array([0.044, 0.0, 0.131])
         self._set_obj_xyz(pos_plug)
         self.obj_init_pos = self._get_site_pos("pegEnd")
@@ -104,13 +106,16 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float, float]:
+        assert self._target_pos is not None and self.obj_init_pos is not None
         tcp = self.tcp_center
         obj = obs[4:7]
-        tcp_opened = obs[3]
+        tcp_opened: float = obs[3]
         target = self._target_pos
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
+        obj_to_target = float(np.linalg.norm(obj - target))
         pad_success_margin = 0.05
         object_reach_radius = 0.01
         x_z_margin = 0.005
@@ -126,7 +131,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             desired_gripper_effort=0.8,
             high_density=True,
         )
-        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+        in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
 
         in_place = reward_utils.tolerance(
             obj_to_target,
@@ -156,20 +161,24 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
 
 class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)

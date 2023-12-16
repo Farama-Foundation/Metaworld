@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerSoccerEnv(SawyerXYZEnv):
@@ -43,7 +40,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_soccer.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, reachDist, pushDist = self.compute_reward(action, ob)
@@ -84,23 +81,17 @@ class SawyerSoccerEnv(SawyerXYZEnv):
                 goal_pos = self._get_state_rand_vec()
                 self._target_pos = goal_pos[3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[
-                self.model.body_name2id("goal_whole")
-            ] = self._target_pos
+            self.sim.model.body_pos[self.model.body_name2id("goal_whole")] = self._target_pos
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.reachCompleted = False
 
@@ -109,9 +100,7 @@ class SawyerSoccerEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos(
-            "rightEndEffector"
-        ), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         goal = self._target_pos

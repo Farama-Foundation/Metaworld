@@ -1,19 +1,22 @@
+from __future__ import annotations
+
+from typing import Any
+
 import mujoco
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
 from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.types import InitConfigDict, Task
 
 
 class SawyerDialTurnEnvV2(SawyerXYZEnv):
-    TARGET_RADIUS = 0.07
+    TARGET_RADIUS: float = 0.07
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.0)
@@ -22,7 +25,6 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         goal_high = (0.1, 0.83, 0.0301)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -31,7 +33,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         if tasks is not None:
             self.tasks = tasks
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
             "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
         }
@@ -46,11 +48,13 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_dial.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             tcp_to_obj,
@@ -72,23 +76,21 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         dial_center = self.get_body_com("dial").copy()
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
-        offset = np.array(
-            [np.sin(dial_angle_rad), -np.cos(dial_angle_rad), 0], dtype=object
-        )
+        offset = np.array([np.sin(dial_angle_rad), -np.cos(dial_angle_rad), 0], dtype=object)
         dial_radius = 0.05
 
         offset *= dial_radius
 
         return dial_center + offset
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return self.data.body("dial").xquat
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.init_config["obj_init_pos"]
@@ -98,14 +100,15 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
         final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
         self._target_pos = final_pos
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "dial")
-        ] = self.obj_init_pos
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "dial")] = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
         mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         obj = self._get_pos_objects()
         dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
         tcp = self.tcp_center
@@ -124,8 +127,8 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         )
 
         dial_reach_radius = 0.005
-        tcp_to_obj = np.linalg.norm(dial_push_position - tcp)
-        tcp_to_obj_init = np.linalg.norm(self.dial_push_position - self.init_tcp)
+        tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp))
+        tcp_to_obj_init = float(np.linalg.norm(self.dial_push_position - self.init_tcp))
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, dial_reach_radius),
@@ -140,7 +143,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
         return (
-            reward[0],
+            reward,
             tcp_to_obj,
             tcp_opened,
             target_to_obj,
@@ -150,20 +153,24 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
 
 class TrainDialTurnv2(SawyerDialTurnEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerDialTurnEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
 
 
 class TestDialTurnv2(SawyerDialTurnEnvV2):
-    tasks = None
+    tasks: list[Task] | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         SawyerDialTurnEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.float64, dict[str, Any]]:
         return super().reset(seed=seed, options=options)
