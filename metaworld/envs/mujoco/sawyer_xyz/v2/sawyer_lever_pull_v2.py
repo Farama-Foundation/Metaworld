@@ -140,7 +140,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         # The skill of the agent should be measured by its ability to get the
         # lever to point straight upward. This means we'll be measuring the
         # current angle of the lever's joint, and comparing with 90deg.
-        lever_angle = -self.data.joint("LeverAxis").qpos
+        lever_angle = float(-self.data.joint("LeverAxis").qpos.item())
         lever_angle_desired = np.pi / 2.0
 
         lever_error = abs(lever_angle - lever_angle_desired)

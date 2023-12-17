@@ -161,7 +161,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success. We check that reward is above a threshold
         # because this env's success metric could be hacked easily
-        success = self.data.joint("NailSlideJoint").qpos > 0.09
+        success = bool(self.data.joint("NailSlideJoint").qpos > 0.09)
         if success and reward > 5.0:
             reward = 10.0
 

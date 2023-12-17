@@ -115,7 +115,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         target = self._target_pos.copy()
 
         target_to_obj = obj - target
-        target_to_obj = np.linalg.norm(target_to_obj)
+        target_to_obj = float(np.linalg.norm(target_to_obj).item())
         target_to_obj_init = self.dial_push_position - target
         target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
@@ -127,8 +127,8 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         )
 
         dial_reach_radius = 0.005
-        tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp))
-        tcp_to_obj_init = float(np.linalg.norm(self.dial_push_position - self.init_tcp))
+        tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp).item())
+        tcp_to_obj_init = float(np.linalg.norm(self.dial_push_position - self.init_tcp).item())
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, dial_reach_radius),

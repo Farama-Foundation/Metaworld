@@ -70,7 +70,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
         success = float(target_to_obj <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
-        assert self.obj_init_pos
+        assert self.obj_init_pos is not None
         grasp_success = float(self.touching_main_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             "success": success,

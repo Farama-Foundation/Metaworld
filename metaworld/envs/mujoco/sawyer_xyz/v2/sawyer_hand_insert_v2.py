@@ -83,8 +83,7 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    @property
-    def _get_id_main_object(self):
+    def _get_id_main_object(self) -> int:
         return self.model.geom("objGeom").id
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:

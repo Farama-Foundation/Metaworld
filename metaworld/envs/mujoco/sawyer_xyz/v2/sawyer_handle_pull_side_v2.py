@@ -65,7 +65,7 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             in_place_reward,
         ) = self.compute_reward(action, obs)
 
-        assert self.obj_init_pos
+        assert self.obj_init_pos is not None
         info = {
             "success": float(obj_to_target <= 0.08),
             "near_object": float(tcp_to_obj <= 0.05),

@@ -115,7 +115,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         mujoco.mj_forward(self.model, self.data)
         self._target_pos = self.model.site("goal").pos + self.model.body("shelf").pos
 
-        assert self.obj_init_pos
+        assert self.obj_init_pos is not None
         self._set_obj_xyz(self.obj_init_pos)
 
         return self._get_obs()

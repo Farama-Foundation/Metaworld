@@ -305,7 +305,7 @@ ML10_V2 = _get_train_test_env_dict(
 )
 ML10_ARGS_KWARGS = {
     "train": _get_args_kwargs(ALL_V2_ENVIRONMENTS, ML10_V2["train"]),
-    "test": _get_args_kwargs(ALL_V2_ENVIRONMENTS, ML10_V2["train"]),
+    "test": _get_args_kwargs(ALL_V2_ENVIRONMENTS, ML10_V2["test"]),
 }
 
 ML45_V2 = _get_train_test_env_dict(

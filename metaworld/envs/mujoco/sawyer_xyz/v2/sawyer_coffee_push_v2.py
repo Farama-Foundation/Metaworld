@@ -83,6 +83,9 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("coffee_goal", self._target_pos)]
 
+    def _get_id_main_object(self) -> int:
+        return self.data.geom("mug").id
+
     def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("obj")
 

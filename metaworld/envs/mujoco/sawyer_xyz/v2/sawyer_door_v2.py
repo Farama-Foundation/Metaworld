@@ -119,7 +119,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return float((np.clip(actions[3], -1, 1) + 1.0) / 2.0)
 
     @staticmethod
-    def _reward_pos(obs, theta):
+    def _reward_pos(obs: npt.NDArray[Any], theta: float) -> tuple[float, float]:
         hand = obs[:3]
         door = obs[4:7] + np.array([-0.05, 0, 0])
 
@@ -144,7 +144,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
         # move the hand to a position between the handle and the main door body
         in_place = reward_utils.tolerance(
-            np.linalg.norm(hand - door - np.array([0.05, 0.03, -0.01])),
+            float(np.linalg.norm(hand - door - np.array([0.05, 0.03, -0.01]))),
             bounds=(0, threshold / 2.0),
             margin=0.5,
             sigmoid="long_tail",
@@ -166,9 +166,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float, bool]:
+    ) -> tuple[float, float, float, float]:
         assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
-        theta = self.data.joint("doorjoint").qpos
+        theta = float(self.data.joint("doorjoint").qpos.item())
 
         reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
         reward_steps = SawyerDoorEnvV2._reward_pos(obs, theta)
