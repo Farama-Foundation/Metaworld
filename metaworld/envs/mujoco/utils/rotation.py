@@ -32,6 +32,7 @@ They have mostly been modified to support batched operations.
 from __future__ import annotations
 
 import itertools
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -240,7 +241,7 @@ def quat2euler(quat: npt.ArrayLike) -> npt.NDArray[np.float64]:
     return mat2euler(quat2mat(quat))
 
 
-def subtract_euler(e1: npt.NDArray, e2: npt.NDArray) -> npt.NDArray[np.float64]:
+def subtract_euler(e1: npt.NDArray[Any], e2: npt.NDArray[Any]) -> npt.NDArray[np.float64]:
     """Subtracts two euler angles.
 
     Args:
@@ -291,7 +292,7 @@ def quat2mat(quat: npt.ArrayLike) -> npt.NDArray[np.float64]:
     return np.where((Nq > _FLOAT_EPS)[..., np.newaxis, np.newaxis], mat, np.eye(3))
 
 
-def quat_conjugate(q: npt.NDArray) -> npt.NDArray:
+def quat_conjugate(q: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Returns the conjugate of a quaternion.
 
     Args:
@@ -305,7 +306,7 @@ def quat_conjugate(q: npt.NDArray) -> npt.NDArray:
     return inv_q
 
 
-def quat_mul(q0: npt.NDArray, q1: npt.NDArray) -> npt.NDArray:
+def quat_mul(q0: npt.NDArray[Any], q1: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Multiplies two quaternions.
 
     Args:
@@ -340,7 +341,7 @@ def quat_mul(q0: npt.NDArray, q1: npt.NDArray) -> npt.NDArray:
     return q
 
 
-def quat_rot_vec(q: npt.NDArray, v0: npt.NDArray) -> npt.NDArray[np.float64]:
+def quat_rot_vec(q: npt.NDArray[Any], v0: npt.NDArray[Any]) -> npt.NDArray[np.float64]:
     """Rotates a vector by a quaternion.
 
     Args:
@@ -361,7 +362,7 @@ def quat_identity() -> npt.NDArray[np.int_]:
     return np.array([1, 0, 0, 0])
 
 
-def quat2axisangle(quat: npt.NDArray) -> tuple[npt.NDArray, float]:
+def quat2axisangle(quat: npt.NDArray[Any]) -> tuple[npt.NDArray[Any], float]:
     """Converts a quaternion to an axis-angle representation.
 
     Args:
@@ -382,7 +383,7 @@ def quat2axisangle(quat: npt.NDArray) -> tuple[npt.NDArray, float]:
     return axis, theta
 
 
-def euler2point_euler(euler: npt.NDArray) -> npt.NDArray:
+def euler2point_euler(euler: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Convert euler angles to 2D points on the unit circle for each one.
 
     Args:
@@ -400,7 +401,7 @@ def euler2point_euler(euler: npt.NDArray) -> npt.NDArray:
     return np.concatenate([_euler_sin, _euler_cos], axis=-1)
 
 
-def point_euler2euler(euler: npt.NDArray) -> npt.NDArray:
+def point_euler2euler(euler: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Convert 2D points on the unit circle for each axis to euler angles.
 
     Args:
@@ -419,7 +420,7 @@ def point_euler2euler(euler: npt.NDArray) -> npt.NDArray:
     return angle
 
 
-def quat2point_quat(quat: npt.NDArray) -> npt.NDArray:
+def quat2point_quat(quat: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Convert the quaternion's angle to 2D points on the unit circle for each axis in 3D space.
 
     Args:
@@ -442,7 +443,7 @@ def quat2point_quat(quat: npt.NDArray) -> npt.NDArray:
     return np.concatenate([np.sin(angle), np.cos(angle), xyz], axis=-1)
 
 
-def point_quat2quat(quat: npt.NDArray) -> npt.NDArray:
+def point_quat2quat(quat: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Convert 2D points on the unit circle for each axis to quaternions.
 
     Args:
@@ -467,7 +468,7 @@ def point_quat2quat(quat: npt.NDArray) -> npt.NDArray:
     return np.concatenate([qw, qxyz], axis=-1)
 
 
-def normalize_angles(angles: npt.NDArray) -> npt.NDArray[np.float_]:
+def normalize_angles(angles: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Puts angles in [-pi, pi] range."""
     angles = angles.copy()
     if angles.size > 0:
@@ -476,13 +477,13 @@ def normalize_angles(angles: npt.NDArray) -> npt.NDArray[np.float_]:
     return angles
 
 
-def round_to_straight_angles(angles: npt.NDArray) -> npt.NDArray[np.float_]:
+def round_to_straight_angles(angles: npt.NDArray[Any]) -> npt.NDArray[Any]:
     """Returns closest angle modulo 90 degrees."""
     angles = np.round(angles / (np.pi / 2)) * (np.pi / 2)
     return normalize_angles(angles)
 
 
-def get_parallel_rotations() -> list[npt.NDArray]:
+def get_parallel_rotations() -> list[npt.NDArray[Any]]:
     mult90 = [0, np.pi / 2, -np.pi / 2, np.pi]
     parallel_rotations: list[npt.NDArray] = []
     for euler in itertools.product(mult90, repeat=3):
