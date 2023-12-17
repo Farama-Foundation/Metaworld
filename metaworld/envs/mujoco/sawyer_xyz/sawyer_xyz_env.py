@@ -13,7 +13,7 @@ from gymnasium.spaces import Box, Discrete, Space
 from gymnasium.utils import seeding
 from gymnasium.utils.ezpickle import EzPickle
 
-from metaworld.envs import reward_utils
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import XYZ, EnvironmentStateDict, ObservationDict, Task
 
 RenderMode = Literal["human", "rgb_array", "depth_array"]

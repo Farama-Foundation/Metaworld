@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -123,7 +122,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
         rand_vec = self._get_state_rand_vec()
         self.obj_init_pos = rand_vec[:3]
         self._target_pos = rand_vec[3:]
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "puck_goal")] = self.obj_init_pos
+        self.model.body("puck_goal").pos = self.obj_init_pos
         self._set_obj_xyz(np.array([-0.15, 0.0]))
 
         return self._get_obs()

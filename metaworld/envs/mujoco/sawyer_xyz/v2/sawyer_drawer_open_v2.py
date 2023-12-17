@@ -7,9 +7,9 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -95,7 +95,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         # Compute nightstand position
         self.obj_init_pos = self._get_state_rand_vec()
         # Set mujoco body to computed position
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "drawer")] = self.obj_init_pos
+        self.model.body("drawer").pos = self.obj_init_pos
 
         # Set _target_pos to current drawer position (closed) minus an offset
         self._target_pos = self.obj_init_pos + np.array([0.0, -0.16 - self.maxDist, 0.09])

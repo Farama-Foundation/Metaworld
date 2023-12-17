@@ -7,9 +7,9 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -109,7 +109,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos.copy()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "window")] = self.obj_init_pos
+        self.model.body("window").pos = self.obj_init_pos
 
         self.window_handle_pos_init = self._get_pos_objects() + np.array([0.2, 0.0, 0.0])
         self.data.joint("window_slide").qpos = 0.2

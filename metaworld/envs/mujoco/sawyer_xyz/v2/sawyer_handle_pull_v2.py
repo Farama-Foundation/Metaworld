@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -99,7 +98,7 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")] = self.obj_init_pos
+        self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(np.array(-0.1))
         self._target_pos = self._get_site_pos("goalPull")
 

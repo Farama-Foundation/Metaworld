@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -110,7 +109,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
 
         pos_machine = pos_mug_goal + np.array([0.0, 0.22, 0.0])
 
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "coffee_machine")] = pos_machine
+        self.model.body("coffee_machine").pos = pos_machine
 
         self._target_pos = pos_mug_goal
         return self._get_obs()

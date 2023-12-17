@@ -244,9 +244,9 @@ class ML10(Benchmark):
         super().__init__()
         self._train_classes = _env_dict.ML10_V2["train"]
         self._test_classes = _env_dict.ML10_V2["test"]
-        train_kwargs = _env_dict.ml10_train_args_kwargs
+        train_kwargs = _env_dict.ML10_ARGS_KWARGS["train"]
 
-        test_kwargs = _env_dict.ml10_test_args_kwargs
+        test_kwargs = _env_dict.ML10_ARGS_KWARGS["test"]
         self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
 
         self._test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)
@@ -259,8 +259,8 @@ class ML45(Benchmark):
         super().__init__()
         self._train_classes = _env_dict.ML45_V2["train"]
         self._test_classes = _env_dict.ML45_V2["test"]
-        train_kwargs = _env_dict.ml45_train_args_kwargs
-        test_kwargs = _env_dict.ml45_test_args_kwargs
+        train_kwargs = _env_dict.ML45_ARGS_KWARGS["train"]
+        test_kwargs = _env_dict.ML45_ARGS_KWARGS["test"]
 
         self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
         self._test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)

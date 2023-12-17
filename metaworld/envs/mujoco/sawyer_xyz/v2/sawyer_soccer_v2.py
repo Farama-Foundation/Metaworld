@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -104,7 +103,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             self._target_pos = goal_pos[3:]
         assert self.obj_init_pos is not None
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")] = self._target_pos
+        self.model.body("goal_whole").pos = self._target_pos
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 

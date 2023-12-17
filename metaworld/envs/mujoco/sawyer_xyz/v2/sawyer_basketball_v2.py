@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -103,8 +102,8 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             basket_pos = goal_pos[3:]
         assert self.obj_init_pos is not None
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "basket_goal")] = basket_pos
-        self._target_pos = self.data.site_xpos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "goal")]
+        self.model.body("basket_goal").pos = basket_pos
+        self._target_pos = self.data.site("goal").xpos
         self._set_obj_xyz(self.obj_init_pos)
         return self._get_obs()
 

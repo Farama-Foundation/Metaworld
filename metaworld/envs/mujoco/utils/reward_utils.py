@@ -14,7 +14,7 @@ SIGMOID_TYPE = Literal[
     "gaussian", "hyperbolic", "long_tail", "reciprocal", "cosine", "linear", "quadratic", "tanh_squared"
 ]
 
-X = TypeVar("X", float, npt.NDArray[np.float_], np.floating[Any])
+X = TypeVar("X", float, npt.NDArray[Any], np.floating[Any])
 
 
 def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:

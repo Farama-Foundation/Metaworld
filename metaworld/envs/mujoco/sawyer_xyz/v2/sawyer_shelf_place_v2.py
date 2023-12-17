@@ -8,9 +8,9 @@ import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -111,12 +111,9 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         base_shelf_pos = goal_pos - np.array([0, 0, 0, 0, 0, 0.3])
         self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
 
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")] = base_shelf_pos[-3:]
+        self.model.body("shelf").pos = base_shelf_pos[-3:]
         mujoco.mj_forward(self.model, self.data)
-        self._target_pos = (
-            self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "goal")]
-            + self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "shelf")]
-        )
+        self._target_pos = self.model.site("goal").pos + self.model.body("shelf").pos
 
         assert self.obj_init_pos
         self._set_obj_xyz(self.obj_init_pos)

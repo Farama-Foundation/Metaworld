@@ -9,14 +9,66 @@ from typing import OrderedDict as Typing_OrderedDict
 
 import numpy as np
 
-import metaworld.envs.mujoco.sawyer_xyz.v2 as v2
-from metaworld.envs.mujoco.sawyer_xyz import SawyerXYZEnv
+from metaworld.envs.mujoco.sawyer_xyz import SawyerXYZEnv, v2
 
 # Utils
 
 EnvDict = Typing_OrderedDict[str, type[SawyerXYZEnv]]
 TrainTestEnvDict = Typing_OrderedDict[Literal["train", "test"], EnvDict]
 EnvArgsKwargsDict = Dict[str, Dict[Literal["args", "kwargs"], Union[List, Dict]]]
+
+ENV_CLS_MAP = {
+    "assembly-v2": v2.SawyerNutAssemblyEnvV2,
+    "basketball-v2": v2.SawyerBasketballEnvV2,
+    "bin-picking-v2": v2.SawyerBinPickingEnvV2,
+    "box-close-v2": v2.SawyerBoxCloseEnvV2,
+    "button-press-topdown-v2": v2.SawyerButtonPressTopdownEnvV2,
+    "button-press-topdown-wall-v2": v2.SawyerButtonPressTopdownWallEnvV2,
+    "button-press-v2": v2.SawyerButtonPressEnvV2,
+    "button-press-wall-v2": v2.SawyerButtonPressWallEnvV2,
+    "coffee-button-v2": v2.SawyerCoffeeButtonEnvV2,
+    "coffee-pull-v2": v2.SawyerCoffeePullEnvV2,
+    "coffee-push-v2": v2.SawyerCoffeePushEnvV2,
+    "dial-turn-v2": v2.SawyerDialTurnEnvV2,
+    "disassemble-v2": v2.SawyerNutDisassembleEnvV2,
+    "door-close-v2": v2.SawyerDoorCloseEnvV2,
+    "door-lock-v2": v2.SawyerDoorLockEnvV2,
+    "door-open-v2": v2.SawyerDoorEnvV2,
+    "door-unlock-v2": v2.SawyerDoorUnlockEnvV2,
+    "hand-insert-v2": v2.SawyerHandInsertEnvV2,
+    "drawer-close-v2": v2.SawyerDrawerCloseEnvV2,
+    "drawer-open-v2": v2.SawyerDrawerOpenEnvV2,
+    "faucet-open-v2": v2.SawyerFaucetOpenEnvV2,
+    "faucet-close-v2": v2.SawyerFaucetCloseEnvV2,
+    "hammer-v2": v2.SawyerHammerEnvV2,
+    "handle-press-side-v2": v2.SawyerHandlePressSideEnvV2,
+    "handle-press-v2": v2.SawyerHandlePressEnvV2,
+    "handle-pull-side-v2": v2.SawyerHandlePullSideEnvV2,
+    "handle-pull-v2": v2.SawyerHandlePullEnvV2,
+    "lever-pull-v2": v2.SawyerLeverPullEnvV2,
+    "peg-insert-side-v2": v2.SawyerPegInsertionSideEnvV2,
+    "pick-place-wall-v2": v2.SawyerPickPlaceWallEnvV2,
+    "pick-out-of-hole-v2": v2.SawyerPickOutOfHoleEnvV2,
+    "reach-v2": v2.SawyerReachEnvV2,
+    "push-back-v2": v2.SawyerPushBackEnvV2,
+    "push-v2": v2.SawyerPushEnvV2,
+    "pick-place-v2": v2.SawyerPickPlaceEnvV2,
+    "plate-slide-v2": v2.SawyerPlateSlideEnvV2,
+    "plate-slide-side-v2": v2.SawyerPlateSlideSideEnvV2,
+    "plate-slide-back-v2": v2.SawyerPlateSlideBackEnvV2,
+    "plate-slide-back-side-v2": v2.SawyerPlateSlideBackSideEnvV2,
+    "peg-unplug-side-v2": v2.SawyerPegUnplugSideEnvV2,
+    "soccer-v2": v2.SawyerSoccerEnvV2,
+    "stick-push-v2": v2.SawyerStickPushEnvV2,
+    "stick-pull-v2": v2.SawyerStickPullEnvV2,
+    "push-wall-v2": v2.SawyerPushWallEnvV2,
+    "reach-wall-v2": v2.SawyerReachWallEnvV2,
+    "shelf-place-v2": v2.SawyerShelfPlaceEnvV2,
+    "sweep-into-v2": v2.SawyerSweepIntoGoalEnvV2,
+    "sweep-v2": v2.SawyerSweepEnvV2,
+    "window-open-v2": v2.SawyerWindowOpenEnvV2,
+    "window-close-v2": v2.SawyerWindowCloseEnvV2,
+}
 
 
 def _get_env_dict(env_names: Sequence[str]) -> EnvDict:
@@ -28,7 +80,7 @@ def _get_env_dict(env_names: Sequence[str]) -> EnvDict:
     Returns:
         The appropriate `OrderedDict.
     """
-    return OrderedDict([(env_name, getattr(v2, env_name)) for env_name in env_names])
+    return OrderedDict([(env_name, ENV_CLS_MAP[env_name]) for env_name in env_names])
 
 
 def _get_train_test_env_dict(train_env_names: Sequence[str], test_env_names: Sequence[str]) -> TrainTestEnvDict:

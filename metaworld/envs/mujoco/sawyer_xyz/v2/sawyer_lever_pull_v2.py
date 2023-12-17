@@ -8,9 +8,9 @@ import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict, Task
 
 
@@ -104,7 +104,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "lever")] = self.obj_init_pos
+        self.model.body("lever").pos = self.obj_init_pos
         self._lever_pos_init = self.obj_init_pos + np.array([0.12, -self.LEVER_RADIUS, 0.25])
         self._target_pos = self.obj_init_pos + np.array([0.12, 0.0, 0.25 + self.LEVER_RADIUS])
         mujoco.mj_forward(self.model, self.data)

@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import HammerInitConfigDict, Task
 
 
@@ -94,9 +93,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self._reset_hand()
 
         # Set position of box & nail (these are not randomized)
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")] = np.array(
-            [0.24, 0.85, 0.0]
-        )
+        self.model.body("box").pos = np.array([0.24, 0.85, 0.0])
         # Update _target_pos
         self._target_pos = self._get_site_pos("goal")
 

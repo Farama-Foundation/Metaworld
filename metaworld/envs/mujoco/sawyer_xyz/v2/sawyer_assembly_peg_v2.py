@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
-from metaworld.envs.reward_utils import tolerance
+from metaworld.envs.mujoco.utils.reward_utils import tolerance
 from metaworld.types import InitConfigDict, ObservationDict, Task
 
 
@@ -108,8 +107,8 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
         peg_pos = self._target_pos - np.array([0.0, 0.0, 0.05])
         self._set_obj_xyz(self.obj_init_pos)
-        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "peg")] = peg_pos
-        self.model.site_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "pegTop")] = self._target_pos
+        self.model.body("peg").pos = peg_pos
+        self.model.site("pegTop").pos = self._target_pos
         return self._get_obs()
 
     @staticmethod
