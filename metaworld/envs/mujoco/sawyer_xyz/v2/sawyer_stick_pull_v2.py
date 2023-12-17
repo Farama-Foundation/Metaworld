@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import StickInitConfigDict, Task
+from metaworld.types import ObservationDict, StickInitConfigDict, Task
 
 
 class SawyerStickPullEnvV2(SawyerXYZEnv):
@@ -112,12 +112,12 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             )
         )
 
-    def _get_obs_dict(self):
+    def _get_obs_dict(self) -> ObservationDict:
         obs_dict = super()._get_obs_dict()
         obs_dict["state_achieved_goal"] = self._get_site_pos("insertion")
         return obs_dict
 
-    def _set_stick_xyz(self, pos):
+    def _set_stick_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
@@ -150,7 +150,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _stick_is_inserted(self, handle, end_of_stick):
+    def _stick_is_inserted(self, handle: npt.NDArray[Any], end_of_stick: npt.NDArray[Any]) -> bool:
         return (
             (end_of_stick[0] >= handle[0])
             and (np.abs(end_of_stick[1] - handle[1]) <= 0.040)

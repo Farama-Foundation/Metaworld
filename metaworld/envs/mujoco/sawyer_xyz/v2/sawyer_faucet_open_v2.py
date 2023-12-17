@@ -102,8 +102,8 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
-    def _reset_hand(self):
-        super()._reset_hand()
+    def _reset_hand(self, steps: int = 50) -> None:
+        super()._reset_hand(steps=steps)
         self.reachCompleted = False
 
     def compute_reward(

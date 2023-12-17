@@ -107,7 +107,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("obj")
 
-    def fix_extreme_obj_pos(self, orig_init_pos):
+    def fix_extreme_obj_pos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not
         # aligned. If this is not done, the object could be initialized in an
         # extreme position
@@ -115,7 +115,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()

@@ -109,7 +109,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
 
-    def fix_extreme_obj_pos(self, orig_init_pos):
+    def fix_extreme_obj_pos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not
         # aligned. If this is not done, the object could be initialized in an
         # extreme position
@@ -117,7 +117,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -140,17 +140,28 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _gripper_caging_reward(self, action, obj_position):
+    def _gripper_caging_reward(
+        self,
+        action: npt.NDArray[np.float32],
+        obj_pos: npt.NDArray[Any],
+        obj_radius: float = 0,  # All of these args are unused, just here to match
+        pad_success_thresh: float = 0,  # the parent's type signature
+        object_reach_radius: float = 0,
+        xz_thresh: float = 0,
+        desired_gripper_effort: float = 1.0,
+        high_density: bool = False,
+        medium_density: bool = False,
+    ) -> float:
         pad_success_margin = 0.05
         x_z_success_margin = 0.005
         obj_radius = 0.015
         tcp = self.tcp_center
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
-        delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+        delta_object_y_left_pad = left_pad[1] - obj_pos[1]
+        delta_object_y_right_pad = obj_pos[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -169,10 +180,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
         # compute the tcp_obj distance in the x_z plane
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
-        obj_position_x_z = np.copy(obj_position) + np.array([0.0, -obj_position[1], 0.0])
-        tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
+        tcp_obj_norm_x_z = float(np.linalg.norm(tcp_xz - obj_position_x_z, ord=2))
 
         # used for computing the tcp to object object margin in the x_z plane
+        assert self.obj_init_pos is not None
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin

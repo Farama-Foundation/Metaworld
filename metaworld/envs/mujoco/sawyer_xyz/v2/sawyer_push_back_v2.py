@@ -89,14 +89,14 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
 
-    def adjust_initObjPos(self, orig_init_pos):
+    def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
         diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
+        return np.array([adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -104,7 +104,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
-        assert self.obj_init_pos
+        assert self.obj_init_pos is not None
         goal_pos = self._get_state_rand_vec()
         self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
@@ -116,7 +116,18 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+    def _gripper_caging_reward(
+        self,
+        action: npt.NDArray[np.float32],
+        obj_pos: npt.NDArray[Any],
+        obj_radius: float,
+        pad_success_thresh: float = 0,  # All of these args are unused
+        object_reach_radius: float = 0,  # just here to match the parent's type signature
+        xz_thresh: float = 0,
+        desired_gripper_effort: float = 1.0,
+        high_density: bool = False,
+        medium_density: bool = False,
+    ) -> float:
         pad_success_margin = 0.05
         grip_success_margin = obj_radius + 0.003
         x_z_success_margin = 0.01
@@ -124,10 +135,10 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
-        delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+        delta_object_y_left_pad = left_pad[1] - obj_pos[1]
+        delta_object_y_right_pad = obj_pos[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -164,14 +175,15 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         assert y_caging >= 0 and y_caging <= 1
 
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
-        obj_position_x_z = np.copy(obj_position) + np.array([0.0, -obj_position[1], 0.0])
+        obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        assert self.obj_init_pos is not None
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(
-            tcp_obj_norm_x_z,
+            float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
             margin=tcp_obj_x_z_margin,
             sigmoid="long_tail",

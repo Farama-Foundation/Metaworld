@@ -109,7 +109,18 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+    def _gripper_caging_reward(
+        self,
+        action: npt.NDArray[np.float32],
+        obj_pos: npt.NDArray[Any],
+        obj_radius: float,
+        pad_success_thresh: float = 0,  # None of these args are used,
+        object_reach_radius: float = 0,  # just here to match the parent's
+        xz_thresh: float = 0,  # type signature
+        desired_gripper_effort: float = 1.0,
+        high_density: bool = False,
+        medium_density: bool = False,
+    ) -> float:
         pad_success_margin = 0.05
         grip_success_margin = obj_radius + 0.01
         x_z_success_margin = 0.005
@@ -117,10 +128,10 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
-        delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        delta_object_y_right_pad = obj_position[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin)
+        delta_object_y_left_pad = left_pad[1] - obj_pos[1]
+        delta_object_y_right_pad = obj_pos[1] - right_pad[1]
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -157,14 +168,15 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         assert y_caging >= 0 and y_caging <= 1
 
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
-        obj_position_x_z = np.copy(obj_position) + np.array([0.0, -obj_position[1], 0.0])
+        obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        assert self.obj_init_pos is not None
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
         tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(
-            tcp_obj_norm_x_z,
+            float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
             margin=tcp_obj_x_z_margin,
             sigmoid="long_tail",

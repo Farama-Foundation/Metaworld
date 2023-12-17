@@ -120,22 +120,22 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     @staticmethod
-    def _reward_quat(obs):
+    def _reward_quat(obs: npt.NDArray[np.float64]) -> float:
         # Ideal laid-down wrench has quat [.707, 0, 0, .707]
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([0.707, 0, 0, 0.707])
-        error = np.linalg.norm(obs[7:11] - ideal)
+        error = float(np.linalg.norm(obs[7:11] - ideal))
         return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
-    def _reward_pos(wrench_center, target_pos):
+    def _reward_pos(wrench_center: npt.NDArray[Any], target_pos: npt.NDArray[Any]) -> float:
         pos_error = target_pos + np.array([0.0, 0.0, 0.1]) - wrench_center
 
         a = 0.1  # Relative importance of just *trying* to lift the wrench
         b = 0.9  # Relative importance of placing the wrench on the peg
         lifted = wrench_center[2] > 0.02
         in_place = a * float(lifted) + b * reward_utils.tolerance(
-            np.linalg.norm(pos_error),
+            float(np.linalg.norm(pos_error)),
             bounds=(0, 0.02),
             margin=0.2,
             sigmoid="long_tail",

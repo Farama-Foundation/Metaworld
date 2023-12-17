@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import StickInitConfigDict, Task
+from metaworld.types import ObservationDict, StickInitConfigDict, Task
 
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
@@ -110,12 +110,12 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             )
         )
 
-    def _get_obs_dict(self):
+    def _get_obs_dict(self) -> ObservationDict:
         obs_dict = super()._get_obs_dict()
         obs_dict["state_achieved_goal"] = self._get_site_pos("insertion") + np.array([0.0, 0.09, 0.0])
         return obs_dict
 
-    def _set_stick_xyz(self, pos):
+    def _set_stick_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
@@ -148,16 +148,16 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
     def _gripper_caging_reward(
         self,
-        action,
-        obj_pos,
-        obj_radius,
-        pad_success_thresh,
-        object_reach_radius,
-        xz_thresh,
-        desired_gripper_effort=1.0,
-        high_density=False,
-        medium_density=False,
-    ):
+        action: npt.NDArray[np.float32],
+        obj_pos: npt.NDArray[Any],
+        obj_radius: float,
+        pad_success_thresh: float,
+        object_reach_radius: float,
+        xz_thresh: float,
+        desired_gripper_effort: float = 1.0,
+        high_density: bool = False,
+        medium_density: bool = False,
+    ) -> float:
         """Reward for agent grasping obj.
 
         Args:
@@ -208,7 +208,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         caging_xz_margin = np.linalg.norm(self.stick_init_pos[xz] - self.init_tcp[xz])
         caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
-            np.linalg.norm(tcp[xz] - obj_pos[xz]),  # "x" in the description above
+            float(np.linalg.norm(tcp[xz] - obj_pos[xz])),  # "x" in the description above
             bounds=(0, xz_thresh),
             margin=caging_xz_margin,  # "margin" in the description above
             sigmoid="long_tail",
@@ -230,7 +230,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             tcp_to_obj_init = np.linalg.norm(self.stick_init_pos - self.init_tcp)
             reach_margin = abs(tcp_to_obj_init - object_reach_radius)
             reach = reward_utils.tolerance(
-                tcp_to_obj,
+                float(tcp_to_obj),
                 bounds=(0, object_reach_radius),
                 margin=reach_margin,
                 sigmoid="long_tail",

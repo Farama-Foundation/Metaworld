@@ -82,7 +82,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         return np.hstack((self.data.body("hammer").xquat, self.data.body("nail_link").xquat))
 
-    def _set_hammer_xyz(self, pos):
+    def _set_hammer_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
@@ -106,11 +106,11 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     @staticmethod
-    def _reward_quat(obs):
+    def _reward_quat(obs: npt.NDArray[np.float64]) -> float:
         # Ideal laid-down wrench has quat [1, 0, 0, 0]
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([1.0, 0.0, 0.0, 0.0])
-        error = np.linalg.norm(obs[7:11] - ideal)
+        error = float(np.linalg.norm(obs[7:11] - ideal).item())
         return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
