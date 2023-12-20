@@ -177,9 +177,11 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        near_object = np.linalg.norm(obj - hand) < 0.04
+        near_object = np.linalg.norm(obj - hand) < 0.05
         pinched_without_obj = obs[3] < 0.43
-        lifted = obj[2] - 0.02 > self.obj_init_pos[2]
+        lifted = obj[2] > self.obj_init_pos[2]
+        print(near_object, lifted, near_object)
+        print(np.linalg.norm(obj - hand), obj[2], self.obj_init_pos[2], obs[3])
         # Increase reward when properly grabbed obj
         grasp_success = near_object and lifted and not pinched_without_obj
         if grasp_success:
