@@ -462,7 +462,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             raise ValueError("You must reset the env manually once truncate==True")
         self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
         self.curr_path_length += 1
-
+        
         # Running the simulator can sometimes mess up site positions, so
         # re-position them here to make sure they're accurate
         for site in self._target_site_config:
@@ -484,7 +484,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
                     "unscaled_reward": 0.0,
                 },
             )
-
+        mujoco.mj_forward(self.model, self.data)
         self._last_stable_obs = self._get_obs()
 
         self._last_stable_obs = np.clip(
