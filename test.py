@@ -17,8 +17,7 @@ for env in envs:
 
 exit(0)'''
 
-envs = ['bin-picking-v2']
-for e in envs:
+for e in ['drawer-close-v2']:
     parts = e.split('-')
     new_parts = []
     for i in range(len(parts)):
@@ -34,10 +33,10 @@ for e in envs:
     task_num = 0
     current_results = []
     alpha = 0.8
-    noisy = True
+    noisy = False
     num_steps = 500
     if noisy:
-        folder = f'videos/fail_move_videos_all_{alpha}_{num_steps}_steps/{e}/'
+        folder = f'videos//{e}/'
     else:
         folder = f'videos/success_videos/{e}/'
     task_rewards = 0.0
@@ -48,38 +47,19 @@ for e in envs:
         env.set_task(task)
         obs, info = env.reset()
         env = RecordVideo(env, video_folder=folder, name_prefix=e + ' ' + str(task_num), video_length=1000)
-        env.start_video_recorder()
         info['success'] = 0.0
         count = 0
         success_count = 0
         success_reward = 0.0
         first_grasp = None
         while count < num_steps:
-            if noisy and first_grasp is not None:
-                a = p.get_action(obs)
-                if np.random.random() < alpha:
-                    a = np.random.uniform(-1, 1, 4)
-                a[-1] = grasp_act[-1]
-            else:
-                a = p.get_action(obs)
+            a = p.get_action(obs)
             next_state, reward, terminate, truncate, info = env.step(a)
-            time.sleep(0.02)
             success_reward += reward
             obs = next_state
             count += 1
-            print(count, first_grasp)
-            if int(info['grasp_success']) == 1:
-                print('success')
-                success_count += 1
-                if first_grasp is None:
-                    first_grasp = count
-                    grasp_act = a
-            print(info['success'])
             if int(info['success']) == 1:
-                env = None
                 break
-
-        print(success_count + first_grasp)
         print('after loop')
         if env:
             env.close()
@@ -261,5 +241,3 @@ plot_scatter_log_scale(v2, [i for i in range(len(v2))], 'V2')
 print(len(v1))
 print(len(v2))'''
 
-from metaworld import MT1
-mt1 = MT1('reach-v2')
