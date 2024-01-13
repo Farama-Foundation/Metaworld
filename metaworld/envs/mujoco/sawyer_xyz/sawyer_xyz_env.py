@@ -26,13 +26,15 @@ class SawyerMocapBase(mjenv_gym):
         "render_fps": 80,
     }
 
-    def __init__(self, model_name, frame_skip=5, render_mode=None):
+    def __init__(self, model_name, frame_skip=5, render_mode=None, camera_name=None, camera_id=None):
         mjenv_gym.__init__(
             self,
             model_name,
             frame_skip=frame_skip,
             observation_space=self.sawyer_observation_space,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
@@ -113,6 +115,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         action_scale=1.0 / 100,
         action_rot_scale=1.0,
         render_mode=None,
+        camera_id=None,
+        camera_name=None
     ):
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -140,7 +144,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._partially_observable = True
 
-        super().__init__(model_name, frame_skip=frame_skip, render_mode=render_mode)
+        super().__init__(model_name, frame_skip=frame_skip, render_mode=render_mode, camera_name=camera_name, camera_id=camera_id)
 
         mujoco.mj_forward(
             self.model, self.data
