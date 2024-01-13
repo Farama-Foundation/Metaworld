@@ -26,7 +26,14 @@ class SawyerMocapBase(mjenv_gym):
         "render_fps": 80,
     }
 
-    def __init__(self, model_name, frame_skip=5, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        model_name,
+        frame_skip=5,
+        render_mode=None,
+        camera_name=None,
+        camera_id=None,
+    ):
         mjenv_gym.__init__(
             self,
             model_name,
@@ -34,7 +41,7 @@ class SawyerMocapBase(mjenv_gym):
             observation_space=self.sawyer_observation_space,
             render_mode=render_mode,
             camera_name=camera_name,
-            camera_id=camera_id
+            camera_id=camera_id,
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
@@ -116,7 +123,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         action_rot_scale=1.0,
         render_mode=None,
         camera_id=None,
-        camera_name=None
+        camera_name=None,
     ):
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -144,7 +151,13 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._partially_observable = True
 
-        super().__init__(model_name, frame_skip=frame_skip, render_mode=render_mode, camera_name=camera_name, camera_id=camera_id)
+        super().__init__(
+            model_name,
+            frame_skip=frame_skip,
+            render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
+        )
 
         mujoco.mj_forward(
             self.model, self.data
@@ -466,7 +479,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             raise ValueError("You must reset the env manually once truncate==True")
         self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
         self.curr_path_length += 1
-        
+
         # Running the simulator can sometimes mess up site positions, so
         # re-position them here to make sure they're accurate
         for site in self._target_site_config:

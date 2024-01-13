@@ -38,9 +38,9 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
             render_mode=render_mode,
             camera_name=camera_name,
-            camera_id=camera_id
+            camera_id=camera_id,
         )
-        
+
         self.init_config = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.12, 0.7, 0.02]),

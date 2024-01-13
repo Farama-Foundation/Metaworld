@@ -27,10 +27,8 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
             render_mode=render_mode,
             camera_name=camera_name,
-            camera_id=camera_id
+            camera_id=camera_id,
         )
-
-        
 
         self.init_config = {
             "hammer_init_pos": np.array([0, 0.5, 0.0]),

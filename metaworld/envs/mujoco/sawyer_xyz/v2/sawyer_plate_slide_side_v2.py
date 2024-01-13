@@ -25,10 +25,8 @@ class SawyerPlateSlideSideEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
             render_mode=render_mode,
             camera_name=camera_name,
-            camera_id=camera_id
+            camera_id=camera_id,
         )
-
-        
 
         self.init_config = {
             "obj_init_angle": 0.3,

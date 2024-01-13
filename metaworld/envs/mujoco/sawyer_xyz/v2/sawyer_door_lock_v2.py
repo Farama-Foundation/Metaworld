@@ -23,11 +23,8 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
             hand_high=hand_high,
             render_mode=render_mode,
             camera_name=camera_name,
-            camera_id=camera_id
+            camera_id=camera_id,
         )
-
-        def __init__(self, render_mode=None, camera_name=None, camera_id=None):
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
