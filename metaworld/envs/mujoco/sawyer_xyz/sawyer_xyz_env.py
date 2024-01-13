@@ -485,6 +485,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
                 },
             )
 
+        mujoco.mj_forward(self.model, self.data)
+
         self._last_stable_obs = self._get_obs()
 
         self._last_stable_obs = np.clip(
@@ -524,6 +526,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     def reset(self, seed=None, options=None):
         self.curr_path_length = 0
         obs, info = super().reset()
+        mujoco.mj_forward(self.model, self.data)
         self._prev_obs = obs[:18].copy()
         obs[18:36] = self._prev_obs
         obs = np.float64(obs)
