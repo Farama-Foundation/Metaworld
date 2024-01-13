@@ -128,21 +128,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         return [10 * in_place, tcp_to_target, in_place]
 
 
-class TrainReachWallv2(SawyerReachWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerReachWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestReachWallv2(SawyerReachWallEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerReachWallEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

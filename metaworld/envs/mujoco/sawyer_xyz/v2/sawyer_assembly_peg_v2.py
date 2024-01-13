@@ -194,23 +194,3 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
-
-
-class TrainAssemblyv2(SawyerNutAssemblyEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestAssemblyv2(SawyerNutAssemblyEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerNutAssemblyEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

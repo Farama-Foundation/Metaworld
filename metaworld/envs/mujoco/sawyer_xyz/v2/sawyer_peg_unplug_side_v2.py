@@ -154,21 +154,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

@@ -168,21 +168,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

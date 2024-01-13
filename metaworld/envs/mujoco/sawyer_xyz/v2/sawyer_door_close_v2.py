@@ -131,21 +131,7 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         return [reward, obj_to_target, hand_in_place]
 
 
-class TrainDoorClosev2(SawyerDoorCloseEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDoorCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestDoorClosev2(SawyerDoorCloseEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerDoorCloseEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

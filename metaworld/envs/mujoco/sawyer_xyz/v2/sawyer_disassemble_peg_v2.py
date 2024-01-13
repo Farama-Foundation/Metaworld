@@ -185,21 +185,7 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainDisassemblev2(SawyerNutDisassembleEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestDisassemblev2(SawyerNutDisassembleEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerNutDisassembleEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

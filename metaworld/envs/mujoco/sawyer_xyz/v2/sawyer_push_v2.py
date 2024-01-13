@@ -170,21 +170,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
 
-class TrainPushv2(SawyerPushEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestPushv2(SawyerPushEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerPushEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

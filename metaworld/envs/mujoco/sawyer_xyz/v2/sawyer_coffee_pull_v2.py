@@ -158,21 +158,7 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainCoffeePullv2(SawyerCoffeePullEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestCoffeePullv2(SawyerCoffeePullEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

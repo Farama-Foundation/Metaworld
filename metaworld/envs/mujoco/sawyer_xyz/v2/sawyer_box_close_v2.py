@@ -198,21 +198,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainBoxClosev2(SawyerBoxCloseEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestBoxClosev2(SawyerBoxCloseEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

@@ -186,21 +186,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainDoorOpenv2(SawyerDoorEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDoorEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestDoorOpenv2(SawyerDoorEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerDoorEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

@@ -174,21 +174,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         )
 
 
-class TrainHammerv2(SawyerHammerEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerHammerEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestHammerv2(SawyerHammerEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerHammerEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

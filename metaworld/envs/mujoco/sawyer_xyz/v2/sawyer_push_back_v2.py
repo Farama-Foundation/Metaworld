@@ -231,21 +231,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
 
 
-class TrainPushBackv2(SawyerPushBackEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestPushBackv2(SawyerPushBackEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

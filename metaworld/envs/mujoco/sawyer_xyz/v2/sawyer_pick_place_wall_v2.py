@@ -203,21 +203,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         ]
 
 
-class TrainPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

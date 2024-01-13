@@ -304,21 +304,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         ]
 
 
-class TrainStickPushv2(SawyerStickPushEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerStickPushEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
 
 
-class TestStickPushv2(SawyerStickPushEnvV2):
-    tasks = None
 
-    def __init__(self):
-        SawyerStickPushEnvV2.__init__(self, self.tasks)
 
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
