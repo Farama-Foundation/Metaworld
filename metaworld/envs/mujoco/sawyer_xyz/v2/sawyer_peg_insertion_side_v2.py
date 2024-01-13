@@ -209,9 +209,3 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             collision_boxes,
             ip_orig,
         ]
-
-
-
-
-
-

@@ -146,9 +146,3 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-
-
-
-

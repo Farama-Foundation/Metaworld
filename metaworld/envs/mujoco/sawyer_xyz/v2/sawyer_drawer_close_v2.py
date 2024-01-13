@@ -151,9 +151,3 @@ class SawyerDrawerCloseEnvV2(SawyerXYZEnv):
         reward *= 10
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-
-
-
-

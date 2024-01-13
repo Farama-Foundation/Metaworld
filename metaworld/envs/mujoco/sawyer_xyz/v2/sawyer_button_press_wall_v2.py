@@ -143,9 +143,3 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
             reward += 2 * (1 + obs[3])
             reward += 4 * button_pressed**2
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
-
-
-
-
-
-

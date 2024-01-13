@@ -145,9 +145,3 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             reward_for_caging,
             reward_for_opening,
         )
-
-
-
-
-
-

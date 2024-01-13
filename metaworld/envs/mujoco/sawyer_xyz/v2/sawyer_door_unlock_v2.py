@@ -143,9 +143,3 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             ready_to_push,
             pushed,
         )
-
-
-
-
-
-

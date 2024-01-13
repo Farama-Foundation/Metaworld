@@ -190,9 +190,3 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         ]
-
-
-
-
-
-

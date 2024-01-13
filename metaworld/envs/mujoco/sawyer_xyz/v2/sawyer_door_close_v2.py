@@ -129,9 +129,3 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
             reward = 10
 
         return [reward, obj_to_target, hand_in_place]
-
-
-
-
-
-

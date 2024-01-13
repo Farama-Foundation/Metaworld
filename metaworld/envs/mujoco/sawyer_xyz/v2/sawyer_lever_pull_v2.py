@@ -173,9 +173,3 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
             lever_error,
             lever_engagement,
         )
-
-
-
-
-
-

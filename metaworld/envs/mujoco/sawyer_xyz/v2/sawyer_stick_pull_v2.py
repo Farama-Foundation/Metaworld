@@ -244,9 +244,3 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             object_grasped,
             stick_in_place,
         ]
-
-
-
-
-
-

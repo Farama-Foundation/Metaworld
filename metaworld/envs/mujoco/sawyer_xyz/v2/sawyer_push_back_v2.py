@@ -229,9 +229,3 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-
-
-
-

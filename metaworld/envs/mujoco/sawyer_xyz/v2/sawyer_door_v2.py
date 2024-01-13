@@ -184,9 +184,3 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
-
-
-
-
-
-

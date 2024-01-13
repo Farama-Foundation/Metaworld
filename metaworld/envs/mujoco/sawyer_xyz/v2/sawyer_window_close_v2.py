@@ -153,9 +153,3 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-
-
-
-

@@ -196,9 +196,3 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
-
-
-
-
-
-

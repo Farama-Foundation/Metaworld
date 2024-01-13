@@ -197,9 +197,3 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-
-
-
-

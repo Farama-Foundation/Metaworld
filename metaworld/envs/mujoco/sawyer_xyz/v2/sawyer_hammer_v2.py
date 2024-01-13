@@ -172,9 +172,3 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
-
-
-
-
-
-

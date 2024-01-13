@@ -152,9 +152,3 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             in_place,
             float(grasp_success),
         )
-
-
-
-
-
-
