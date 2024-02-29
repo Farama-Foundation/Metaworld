@@ -80,7 +80,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         dial_center = self.get_body_com("dial").copy()
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
-        offset = np.array([np.sin(dial_angle_rad), -np.cos(dial_angle_rad), 0], dtype=object)
+        offset = np.array([np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0])
         dial_radius = 0.05
 
         offset *= dial_radius
