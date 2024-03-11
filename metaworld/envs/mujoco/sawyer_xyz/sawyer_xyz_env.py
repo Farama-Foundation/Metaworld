@@ -565,7 +565,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             rand_vec = self.np_random.uniform(
                 self._random_reset_space.low,
                 self._random_reset_space.high,
-                size=self._random_reset_space.low.size)
+                size=self._random_reset_space.low.size,
+            )
             self._last_rand_vec = rand_vec
             return rand_vec
         else:
