@@ -15,7 +15,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.013
     TARGET_RADIUS = 0.07
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -28,10 +28,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.03]),
@@ -233,23 +232,3 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainSoccerv2(SawyerSoccerEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestSoccerv2(SawyerSoccerEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

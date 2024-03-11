@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         self.max_dist = 0.03
 
         hand_low = (-0.5, 0.4, 0.05)
@@ -28,10 +28,9 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.9, 0.28]),
@@ -140,23 +139,3 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             reward += 8 * button_pressed
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
-
-
-class TrainCoffeeButtonv2(SawyerCoffeeButtonEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestCoffeeButtonv2(SawyerCoffeeButtonEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerCoffeeButtonEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

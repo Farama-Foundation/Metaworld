@@ -14,7 +14,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.007
     TARGET_RADIUS = 0.05
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
         hand_low = (-0.5, 0.40, 0.05)
@@ -27,10 +27,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.8, 0.02]),
@@ -230,23 +229,3 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainPushBackv2(SawyerPushBackEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestPushBackv2(SawyerPushBackEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

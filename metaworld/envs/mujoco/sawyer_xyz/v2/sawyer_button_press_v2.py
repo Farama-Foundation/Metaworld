@@ -11,7 +11,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 
 
 class SawyerButtonPressEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.85, 0.115)
@@ -22,10 +22,9 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0.0, 0.9, 0.115], dtype=np.float32),
@@ -137,23 +136,3 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
             reward += 8 * button_pressed
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
-
-
-class TrainButtonPressv2(SawyerButtonPressEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestButtonPressv2(SawyerButtonPressEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

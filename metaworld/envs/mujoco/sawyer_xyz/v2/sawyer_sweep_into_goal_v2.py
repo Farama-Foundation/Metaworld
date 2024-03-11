@@ -13,7 +13,7 @@ from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
 class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
     OBJ_RADIUS = 0.02
 
-    def __init__(self, tasks=None, render_mode=None):
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -26,10 +26,9 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),
@@ -216,23 +215,3 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
-
-
-class TrainSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestSweepIntoGoalv2(SawyerSweepIntoGoalEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSweepIntoGoalEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
