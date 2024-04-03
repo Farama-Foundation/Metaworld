@@ -232,23 +232,3 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainSoccerv2(SawyerSoccerEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestSoccerv2(SawyerSoccerEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerSoccerEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

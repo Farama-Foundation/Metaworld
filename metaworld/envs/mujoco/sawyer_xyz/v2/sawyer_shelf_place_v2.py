@@ -186,23 +186,3 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
-
-
-class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestShelfPlacev2(SawyerShelfPlaceEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

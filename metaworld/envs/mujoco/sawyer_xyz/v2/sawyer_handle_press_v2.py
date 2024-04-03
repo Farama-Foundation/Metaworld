@@ -144,23 +144,3 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         reward = 1 if target_to_obj <= self.TARGET_RADIUS else reward
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainHandlePressv2(SawyerHandlePressEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerHandlePressEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestHandlePressv2(SawyerHandlePressEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerHandlePressEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

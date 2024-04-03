@@ -155,23 +155,3 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainBasketballv2(SawyerBasketballEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerBasketballEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestBasketballv2(SawyerBasketballEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerBasketballEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

@@ -146,23 +146,3 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainWindowOpenv2(SawyerWindowOpenEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestWindowOpenv2(SawyerWindowOpenEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerWindowOpenEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

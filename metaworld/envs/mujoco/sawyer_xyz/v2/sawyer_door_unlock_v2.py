@@ -143,23 +143,3 @@ class SawyerDoorUnlockEnvV2(SawyerXYZEnv):
             ready_to_push,
             pushed,
         )
-
-
-class TrainDoorUnlockv2(SawyerDoorUnlockEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestDoorUnlockv2(SawyerDoorUnlockEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDoorUnlockEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

@@ -135,23 +135,3 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         )
 
         return [10 * in_place, tcp_to_target, in_place]
-
-
-class TrainReachv2(SawyerReachEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerReachEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestReachv2(SawyerReachEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerReachEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

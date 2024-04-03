@@ -209,23 +209,3 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             collision_boxes,
             ip_orig,
         ]
-
-
-class TrainPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

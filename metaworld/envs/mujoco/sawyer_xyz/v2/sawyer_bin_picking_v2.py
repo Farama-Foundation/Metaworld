@@ -197,23 +197,3 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainBinPickingv2(SawyerBinPickingEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerBinPickingEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestBinPickingv2(SawyerBinPickingEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerBinPickingEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

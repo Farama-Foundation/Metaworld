@@ -143,23 +143,3 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
             reward += 2 * (1 + obs[3])
             reward += 4 * button_pressed**2
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
-
-
-class TrainButtonPressWallv2(SawyerButtonPressWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestButtonPressWallv2(SawyerButtonPressWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

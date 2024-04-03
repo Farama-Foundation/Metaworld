@@ -136,23 +136,3 @@ class SawyerButtonPressTopdownWallEnvV2(SawyerXYZEnv):
             reward += 5 * button_pressed
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
-
-
-class TrainButtonPressTopdownWallv2(SawyerButtonPressTopdownWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestButtonPressTopdownWallv2(SawyerButtonPressTopdownWallEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerButtonPressTopdownWallEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

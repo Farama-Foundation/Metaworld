@@ -153,23 +153,3 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainWindowClosev2(SawyerWindowCloseEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestWindowClosev2(SawyerWindowCloseEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

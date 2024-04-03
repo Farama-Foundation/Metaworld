@@ -145,23 +145,3 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             reward_for_caging,
             reward_for_opening,
         )
-
-
-class TrainDrawerOpenv2(SawyerDrawerOpenEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestDrawerOpenv2(SawyerDrawerOpenEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDrawerOpenEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

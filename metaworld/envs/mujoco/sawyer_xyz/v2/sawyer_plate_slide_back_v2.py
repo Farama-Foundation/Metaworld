@@ -133,23 +133,3 @@ class SawyerPlateSlideBackEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
-
-
-class TrainPlateSlideBackv2(SawyerPlateSlideBackEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestPlateSlideBackv2(SawyerPlateSlideBackEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerPlateSlideBackEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)

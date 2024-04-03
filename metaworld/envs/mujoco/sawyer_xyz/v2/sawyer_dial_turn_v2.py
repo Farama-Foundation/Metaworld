@@ -146,23 +146,3 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainDialTurnv2(SawyerDialTurnEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDialTurnEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
-
-
-class TestDialTurnv2(SawyerDialTurnEnvV2):
-    tasks = None
-
-    def __init__(self):
-        SawyerDialTurnEnvV2.__init__(self, self.tasks)
-
-    def reset(self, seed=None, options=None):
-        return super().reset(seed=seed, options=options)
