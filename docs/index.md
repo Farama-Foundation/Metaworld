@@ -13,7 +13,7 @@ Meta-World is an open-source simulated benchmark for meta-reinforcement learning
 ```
 
 ```{figure} _static/mt10.gif
-   :alt: REPLACE ME
+   :alt: Metaworld GIF
    :width: 500
 ```
 
