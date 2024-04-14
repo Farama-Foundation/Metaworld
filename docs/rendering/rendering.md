@@ -2,8 +2,6 @@
 
 Each Meta-World environment uses Gymnasium to handle the rendering functions following the [`gymnasium.MujocoEnv`](https://github.com/Farama-Foundation/Gymnasium/blob/94a7909042e846c496bcf54f375a5d0963da2b31/gymnasium/envs/mujoco/mujoco_env.py#L184) interface.
 
-['https://gymnasium.farama.org/api/env/#gymnasium.Env.render']#Gymnasium. 
-
 Upon environment creation a user can select a render mode in ('rgb_array', 'human').
 
 For example:
