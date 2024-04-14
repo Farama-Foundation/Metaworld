@@ -51,7 +51,7 @@ env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
-obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 ```
 __MT1__ can be run the same way except that it does not contain any `test_tasks`
 
@@ -75,7 +75,7 @@ for name, env_cls in ml10.train_classes.items():
 for env in training_envs:
   obs = env.reset()  # Reset environment
   a = env.action_space.sample()  # Sample an action
-  obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+  obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 ```
 Create an environment with test tasks (this only works for ML10 and ML45, since MT10 and MT50 don't have a separate set of test tasks):
 ```python
@@ -95,7 +95,7 @@ for name, env_cls in ml10.test_classes.items():
 for env in testing_envs:
   obs = env.reset()  # Reset environment
   a = env.action_space.sample()  # Sample an action
-  obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+  obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 ```
 
 ## Accessing Single Goal Environments
@@ -119,7 +119,7 @@ door_open_goal_hidden_cls = ALL_V2_ENVIRONMENTS_GOAL_HIDDEN["door-open-v2-goal-h
 env = door_open_goal_hidden_cls()
 env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
-obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 assert (obs[-3:] == np.zeros(3)).all() # goal will be zeroed out because env is HiddenGoal
 
 # You can choose to initialize the random seed of the environment.
@@ -131,7 +131,7 @@ env1.reset()  # Reset environment
 env2.reset()
 a1 = env1.action_space.sample()  # Sample an action
 a2 = env2.action_space.sample()
-next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
+next_obs1, _, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
 
 next_obs2, _, _, _ = env2.step(a2)
 assert (next_obs1[-3:] == next_obs2[-3:]).all() # 2 envs initialized with the same seed will have the same goal
@@ -142,8 +142,8 @@ env1.reset()  # Reset environment
 env3.reset()
 a1 = env1.action_space.sample()  # Sample an action
 a3 = env3.action_space.sample()
-next_obs1, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
-next_obs3, _, _, _ = env3.step(a3)
+next_obs1, _, _, _, _ = env1.step(a1)  # Step the environment with the sampled random action
+next_obs3, _, _, _, _ = env3.step(a3)
 
 assert not (next_obs1[-3:] == next_obs3[-3:]).all() # 2 envs initialized with different seeds will have different goals
 assert not (next_obs1[-3:] == np.zeros(3)).all()   # The env's are goal observable, meaning the goal is not zero'd out
