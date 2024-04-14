@@ -21,6 +21,9 @@ import os
 
 # from typing import Any, Dict
 
+import sphinx_gallery.gen_rst
+from furo.gen_tutorials import generate_tutorials
+
 
 project = "Metaworld"
 copyright = "2023 Farama Foundation"
