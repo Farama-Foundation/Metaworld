@@ -17,12 +17,9 @@
 # -- Project information -----------------------------------------------------
 import os
 
-# import metaworld
+import metaworld
 
 # from typing import Any, Dict
-
-import sphinx_gallery.gen_rst
-from furo.gen_tutorials import generate_tutorials
 
 
 project = "Metaworld"
@@ -88,7 +85,7 @@ html_theme_options = {
     "image": "_static/img/metaworld_black-github.png",
     "versioning": True,
     "source_repository": "https://github.com/Farama-Foundation/Metaworld/",
-    "source_branch": "master",
+    "source_branch": "docs_work",
     "source_directory": "docs/",
 }
 
