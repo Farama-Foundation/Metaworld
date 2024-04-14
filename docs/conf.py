@@ -17,7 +17,7 @@
 # -- Project information -----------------------------------------------------
 import os
 
-import metaworld
+# import metaworld
 
 # from typing import Any, Dict
 
@@ -55,7 +55,7 @@ templates_path = ["_templates"]
 exclude_patterns = []
 
 # Napoleon settings
-napoleon_use_ivar = True
+# napoleon_use_ivar = True
 napoleon_use_admonition_for_references = True
 # See https://github.com/sphinx-doc/sphinx/issues/9119
 napoleon_custom_sections = [("Returns", "params_style")]
@@ -77,7 +77,7 @@ html_favicon = "_static/img/metaworld-favicon.svg"
 html_theme_options = {
     "light_logo": "_static/img/metaworld_black.svg",
     "dark_logo": "_static/img/metaworld_white.svg",
-    "gtag": "",
+    "gtag": "G-6H9C8TWXZ8",
     "description": (
         "Collections of robotics environments geared towards "
         "benchmarking multi-task and meta reinforcement learning"
