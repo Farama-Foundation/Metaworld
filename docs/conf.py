@@ -77,7 +77,6 @@ html_favicon = "_static/img/metaworld-favicon.svg"
 html_theme_options = {
     "light_logo": "_static/img/metaworld_black.svg",
     "dark_logo": "_static/img/metaworld_white.svg",
-    "gtag": "G-6H9C8TWXZ8",
     "description": (
         "Collections of robotics environments geared towards "
         "benchmarking multi-task and meta reinforcement learning"
