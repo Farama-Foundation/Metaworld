@@ -42,6 +42,7 @@ obs, reward, done, info = env.step(a)
 
 introduction/installation
 introduction/basic_usage
+rendering/rendering
 ```
 
 
