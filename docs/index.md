@@ -51,6 +51,5 @@ introduction/basic_usage
 
 Github <https://github.com/Farama-Foundation/Metaworld>
 citation
-release_notes/index
 Contribute to the Docs <https://github.com/Farama-Foundation/Metaworld/blob/main/docs/README.md>
 ```

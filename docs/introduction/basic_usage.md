@@ -24,11 +24,6 @@ For each of those environments, a task must be assigned to it using
 respectively.
 `Tasks` can only be assigned to environments which have a key in
 `benchmark.train_classes` or `benchmark.test_classes` matching `task.env_name`.
-Please see the sections [Running ML1, MT1](#running-ml1-or-mt1) and [Running ML10, ML45, MT10, MT50](#running-a-benchmark)
-for more details.
-
-You may wish to only access individual environments used in the Metaworld benchmark for your research. See the
-[Accessing Single Goal Environments](#accessing-single-goal-environments) for more details.
 
 
 ### Seeding a Benchmark Instance
