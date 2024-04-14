@@ -58,7 +58,7 @@ templates_path = ["_templates"]
 exclude_patterns = []
 
 # Napoleon settings
-# napoleon_use_ivar = True
+napoleon_use_ivar = True
 napoleon_use_admonition_for_references = True
 # See https://github.com/sphinx-doc/sphinx/issues/9119
 napoleon_custom_sections = [("Returns", "params_style")]
