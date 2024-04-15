@@ -37,7 +37,10 @@ class SawyerSoccerEnv(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -84,9 +87,9 @@ class SawyerSoccerEnv(SawyerXYZEnv):
                 goal_pos = self._get_state_rand_vec()
                 self._target_pos = goal_pos[3:]
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-            self.sim.model.body_pos[
-                self.model.body_name2id("goal_whole")
-            ] = self._target_pos
+            self.sim.model.body_pos[self.model.body_name2id("goal_whole")] = (
+                self._target_pos
+            )
 
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(

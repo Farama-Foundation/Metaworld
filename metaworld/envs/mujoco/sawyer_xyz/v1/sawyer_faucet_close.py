@@ -33,10 +33,13 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low, dtype=np.float32),
+            np.array(obj_high, dtype=np.float32),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -79,9 +82,9 @@ class SawyerFaucetCloseEnv(SawyerXYZEnv):
             self._target_pos = final_pos
 
         self.sim.model.body_pos[self.model.body_name2id("faucet")] = self.obj_init_pos
-        self.sim.model.body_pos[
-            self.model.body_name2id("faucetBase")
-        ] = self.obj_init_pos
+        self.sim.model.body_pos[self.model.body_name2id("faucetBase")] = (
+            self.obj_init_pos
+        )
         self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()

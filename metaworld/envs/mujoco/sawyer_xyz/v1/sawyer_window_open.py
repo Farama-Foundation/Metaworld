@@ -43,10 +43,13 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low, dtype=np.float32),
+            np.array(obj_high, dtype=np.float32),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -86,9 +89,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         wall_pos = self.obj_init_pos.copy() - np.array([-0.1, 0, 0.12])
         window_another_pos = self.obj_init_pos.copy() + np.array([0.2, 0.03, 0])
         self.sim.model.body_pos[self.model.body_name2id("window")] = self.obj_init_pos
-        self.sim.model.body_pos[
-            self.model.body_name2id("window_another")
-        ] = window_another_pos
+        self.sim.model.body_pos[self.model.body_name2id("window_another")] = (
+            window_another_pos
+        )
         self.sim.model.body_pos[self.model.body_name2id("wall")] = wall_pos
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self.maxPullDist = 0.2

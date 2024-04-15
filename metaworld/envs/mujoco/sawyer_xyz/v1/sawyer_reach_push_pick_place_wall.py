@@ -43,7 +43,10 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
         self.num_resets = 0
 
@@ -287,8 +290,7 @@ class SawyerReachPushPickPlaceWallEnv(SawyerXYZEnv):
                 cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped())
                 if cond:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist**2) / c2)
-                        + np.exp(-(placingDist**2) / c3)
+                        np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                     )
                     placeRew = max(placeRew, 0)
                     return [placeRew, placingDist]

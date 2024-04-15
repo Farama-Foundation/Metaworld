@@ -45,7 +45,10 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -184,8 +187,7 @@ class SawyerPegInsertionSideEnv(SawyerXYZEnv):
             if cond:
                 if placingDistHead <= 0.05:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist**2) / c2)
-                        + np.exp(-(placingDist**2) / c3)
+                        np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                     )
                 else:
                     placeRew = 1000 * (self.maxPlacingDist - placingDistHead) + c1 * (

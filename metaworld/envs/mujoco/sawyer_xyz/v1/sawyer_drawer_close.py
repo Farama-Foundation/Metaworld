@@ -38,10 +38,13 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low, dtype=np.float32),
+            np.array(obj_high, dtype=np.float32),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -85,9 +88,9 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         drawer_cover_pos = self.obj_init_pos.copy()
         drawer_cover_pos[2] -= 0.02
         self.sim.model.body_pos[self.model.body_name2id("drawer")] = self.obj_init_pos
-        self.sim.model.body_pos[
-            self.model.body_name2id("drawer_cover")
-        ] = drawer_cover_pos
+        self.sim.model.body_pos[self.model.body_name2id("drawer_cover")] = (
+            drawer_cover_pos
+        )
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self._set_obj_xyz(-0.2)
         self.maxDist = np.abs(

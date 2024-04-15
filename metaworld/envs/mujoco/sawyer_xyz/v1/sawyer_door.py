@@ -42,10 +42,13 @@ class SawyerDoorEnv(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low, dtype=np.float32),
+            np.array(obj_high, dtype=np.float32),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
         self.door_angle_idx = self.model.get_joint_qpos_addr("doorjoint")
 

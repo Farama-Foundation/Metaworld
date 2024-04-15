@@ -36,10 +36,13 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low, dtype=np.float32),
+            np.array(obj_high, dtype=np.float32),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -81,9 +84,9 @@ class SawyerCoffeeButtonEnv(SawyerXYZEnv):
             obj_pos = goal_pos + np.array([0, -0.1, -0.28])
             self._target_pos = button_pos
 
-        self.sim.model.body_pos[
-            self.model.body_name2id("coffee_machine")
-        ] = self.obj_init_pos
+        self.sim.model.body_pos[self.model.body_name2id("coffee_machine")] = (
+            self.obj_init_pos
+        )
         self.sim.model.body_pos[self.model.body_name2id("button")] = self._target_pos
         self._set_obj_xyz(obj_pos)
         self._target_pos = self._get_site_pos("coffee_goal")

@@ -37,7 +37,10 @@ class SawyerCoffeePushEnv(SawyerXYZEnv):
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(
+            np.array(goal_low, dtype=np.float32),
+            np.array(goal_high, dtype=np.float32),
+        )
 
     @property
     def model_name(self):
@@ -92,9 +95,9 @@ class SawyerCoffeePushEnv(SawyerXYZEnv):
             self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
             machine_pos = self._target_pos - np.array([0, -0.1, -0.27])
             button_pos = machine_pos + np.array([0.0, -0.12, 0.05])
-            self.sim.model.body_pos[
-                self.model.body_name2id("coffee_machine")
-            ] = machine_pos
+            self.sim.model.body_pos[self.model.body_name2id("coffee_machine")] = (
+                machine_pos
+            )
             self.sim.model.body_pos[self.model.body_name2id("button")] = button_pos
 
         self._set_obj_xyz(self.obj_init_pos)
