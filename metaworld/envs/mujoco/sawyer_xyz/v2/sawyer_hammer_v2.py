@@ -104,7 +104,6 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self.nail_init_pos = self._get_site_pos("nailHead")
         self.obj_init_pos = self.hammer_init_pos.copy()
         self._set_hammer_xyz(self.hammer_init_pos)
-        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     @staticmethod
