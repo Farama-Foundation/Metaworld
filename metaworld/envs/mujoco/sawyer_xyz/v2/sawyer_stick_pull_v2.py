@@ -146,7 +146,7 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com("object").copy()
-        self._set_pos_site('goal', self._target_pos)
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def _stick_is_inserted(self, handle, end_of_stick):

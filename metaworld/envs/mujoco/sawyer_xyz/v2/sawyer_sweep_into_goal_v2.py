@@ -98,7 +98,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
-        self._set_pos_site('goal', self._target_pos)
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):

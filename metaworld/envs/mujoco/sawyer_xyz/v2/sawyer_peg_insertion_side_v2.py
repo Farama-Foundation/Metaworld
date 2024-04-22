@@ -127,7 +127,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
         ] = pos_box
         self._target_pos = pos_box + np.array([0.03, 0.0, 0.13])
-        self.model.site('goal').pos = self._target_pos
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(self, action, obs):

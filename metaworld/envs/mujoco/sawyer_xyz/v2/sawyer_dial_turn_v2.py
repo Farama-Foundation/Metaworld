@@ -101,7 +101,7 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "dial")
         ] = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
-        self.model.site('goal').pos = self._target_pos
+        self.model.site("goal").pos = self._target_pos
         mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 

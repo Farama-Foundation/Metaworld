@@ -97,7 +97,7 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
         self._target_pos = self.obj_init_pos + np.array(
             [+self._handle_length, 0.0, 0.125]
         )
-        self.model.site('goal_open').pos = self._target_pos
+        self.model.site("goal_open").pos = self._target_pos
         return self._get_obs()
 
     def _reset_hand(self):
