@@ -97,7 +97,7 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             self.get_body_com("obj")[:-1] - self._target_pos[:-1]
         )
         self.target_reward = 1000 * self.maxPushDist + 1000 * 2
-
+        self._set_pos_site('goal', self._target_pos)
         return self._get_obs()
 
     def _gripper_caging_reward(self, action, obj_position, obj_radius):

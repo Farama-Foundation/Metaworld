@@ -108,7 +108,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
         )
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
-
+        self.model.site('goal').pos = self._target_pos
         return self._get_obs()
 
     @staticmethod

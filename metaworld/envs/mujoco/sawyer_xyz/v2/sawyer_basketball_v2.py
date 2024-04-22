@@ -105,6 +105,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "goal")
         ]
         self._set_obj_xyz(self.obj_init_pos)
+        self.model.site('goal').pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(self, action, obs):

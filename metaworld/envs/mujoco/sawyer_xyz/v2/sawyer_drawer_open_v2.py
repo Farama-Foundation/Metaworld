@@ -103,8 +103,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         self._target_pos = self.obj_init_pos + np.array(
             [0.0, -0.16 - self.maxDist, 0.09]
         )
-        mujoco.mj_forward(self.model, self.data)
-
+        self.model.site('goal').pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(self, action, obs):
