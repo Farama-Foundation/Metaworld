@@ -73,15 +73,15 @@ html_theme = "furo"
 html_title = "Metaworld Documentation"
 html_baseurl = "https://metaworld.farama.org"
 html_copy_source = False
-html_favicon = "_static/img/metaworld-favicon.svg"
+html_favicon = "img/metaworld-favicon.svg"
 html_theme_options = {
-    "light_logo": "_static/img/metaworld_black.svg",
-    "dark_logo": "_static/img/metaworld_white.svg",
+    "light_logo": "img/metaworld_black.svg",
+    "dark_logo": "img/metaworld_white.svg",
     "description": (
         "Collections of robotics environments geared towards "
         "benchmarking multi-task and meta reinforcement learning"
     ),
-    "image": "_static/img/metaworld_black-github.png",
+    "image": "img/metaworld_black-github.png",
     "versioning": True,
     "source_repository": "https://github.com/Farama-Foundation/Metaworld/",
     "source_branch": "docs_work",
