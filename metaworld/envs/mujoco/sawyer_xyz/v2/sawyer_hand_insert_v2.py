@@ -32,9 +32,9 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self.init_config = {
             "obj_init_pos": np.array([0, 0.6, 0.05]),
             "obj_init_angle": 0.3,
-            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
+            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float64),
         }
-        self.goal = np.array([0.0, 0.84, -0.08], dtype=np.float32)
+        self.goal = np.array([0.0, 0.84, -0.08], dtype=np.float64)
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
@@ -44,8 +44,8 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
     @property

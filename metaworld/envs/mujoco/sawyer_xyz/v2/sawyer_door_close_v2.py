@@ -30,8 +30,8 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             "obj_init_angle": 0.3,
-            "obj_init_pos": np.array([0.1, 0.95, 0.15], dtype=np.float32),
-            "hand_init_pos": np.array([-0.5, 0.6, 0.2], dtype=np.float32),
+            "obj_init_pos": np.array([0.1, 0.95, 0.15], dtype=np.float64),
+            "hand_init_pos": np.array([-0.5, 0.6, 0.2], dtype=np.float64),
         }
         self.goal = np.array([0.2, 0.8, 0.15])
         self.obj_init_pos = self.init_config["obj_init_pos"]
@@ -42,13 +42,13 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         self.door_qvel_adr = self.model.joint("doorjoint").dofadr.item()
 
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
         self._random_reset_space = Box(
-            np.array(obj_low, dtype=np.float32),
-            np.array(obj_high, dtype=np.float32),
+            np.array(obj_low, dtype=np.float64),
+            np.array(obj_high, dtype=np.float64),
         )
 
     @property

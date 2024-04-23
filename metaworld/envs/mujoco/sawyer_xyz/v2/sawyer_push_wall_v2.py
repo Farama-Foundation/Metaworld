@@ -64,8 +64,8 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
         self.num_resets = 0

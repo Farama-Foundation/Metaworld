@@ -44,7 +44,7 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
-            "hand_init_pos": np.array([0, 0.4, 0.2], dtype=np.float32),
+            "hand_init_pos": np.array([0, 0.4, 0.2], dtype=np.float64),
         }
         self.goal = np.array([0.12, 0.88, 0.05])
         self.obj_init_pos = self.init_config["obj_init_pos"]
@@ -55,12 +55,12 @@ class SawyerLeverPullEnvV2(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low, dtype=np.float32),
-            np.array(obj_high, dtype=np.float32),
+            np.array(obj_low, dtype=np.float64),
+            np.array(obj_high, dtype=np.float64),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
     @property

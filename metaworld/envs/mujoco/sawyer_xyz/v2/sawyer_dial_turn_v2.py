@@ -32,19 +32,19 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
-            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
+            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float64),
         }
         self.goal = np.array([0.0, 0.73, 0.08])
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low, dtype=np.float32),
-            np.array(obj_high, dtype=np.float32),
+            np.array(obj_low, dtype=np.float64),
+            np.array(obj_high, dtype=np.float64),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
     @property

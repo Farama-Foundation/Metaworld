@@ -27,8 +27,8 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
-            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float32),
+            "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float64),
+            "hand_init_pos": np.array([0, 0.6, 0.2], dtype=np.float64),
         }
         self.goal = np.array([0, 0.85, 0.1])
         self.obj_init_pos = self.init_config["obj_init_pos"]
@@ -40,12 +40,12 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         self._lock_length = 0.1
 
         self._random_reset_space = Box(
-            np.array(obj_low, dtype=np.float32),
-            np.array(obj_high, dtype=np.float32),
+            np.array(obj_low, dtype=np.float64),
+            np.array(obj_high, dtype=np.float64),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
     @property

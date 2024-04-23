@@ -44,10 +44,10 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
                 [
                     0.3,
                 ],
-                dtype=np.float32,
+                dtype=np.float64,
             ),
-            "obj_init_pos": np.array([-0.1, 0.785, 0.16], dtype=np.float32),
-            "hand_init_pos": np.array([0, 0.4, 0.2], dtype=np.float32),
+            "obj_init_pos": np.array([-0.1, 0.785, 0.16], dtype=np.float64),
+            "hand_init_pos": np.array([0, 0.4, 0.2], dtype=np.float64),
         }
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
@@ -57,12 +57,12 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low, dtype=np.float32),
-            np.array(obj_high, dtype=np.float32),
+            np.array(obj_low, dtype=np.float64),
+            np.array(obj_high, dtype=np.float64),
         )
         self.goal_space = Box(
-            np.array(goal_low, dtype=np.float32),
-            np.array(goal_high, dtype=np.float32),
+            np.array(goal_low, dtype=np.float64),
+            np.array(goal_high, dtype=np.float64),
         )
 
         self.maxPullDist = 0.2
