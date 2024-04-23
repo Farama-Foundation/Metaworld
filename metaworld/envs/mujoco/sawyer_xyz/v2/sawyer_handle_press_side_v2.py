@@ -74,7 +74,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         ) = self.compute_reward(action, obs)
-
+        print(target_to_obj)
         info = {
             "success": float(target_to_obj <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.05),

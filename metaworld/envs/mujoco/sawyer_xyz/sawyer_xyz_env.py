@@ -172,13 +172,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             np.array([+1, +1, +1, +1]),
             dtype=np.float64,
         )
-
-        # Technically these observation lengths are different between v1 and v2,
-        # but we handle that elsewhere and just stick with v2 numbers here
         self._obs_obj_max_len = 14
-
         self._set_task_called = False
-
         self.hand_init_pos = None  # OVERRIDE ME
         self._target_pos = None  # OVERRIDE ME
         self._random_reset_space = None  # OVERRIDE ME
@@ -189,6 +184,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
 
+        self.init_qpos = np.copy(self.data.qpos)
+        self.init_qvel = np.copy(self.data.qvel)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
 
         EzPickle.__init__(
@@ -538,10 +535,15 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         # V1 environments don't have to implement it
         raise NotImplementedError
 
+    def reset_model(self):
+        qpos = self.init_qpos
+        qvel = self.init_qvel
+        self.set_state(qpos, qvel)
+
     def reset(self, seed=None, options=None):
         self.curr_path_length = 0
+        self.reset_model()
         obs, info = super().reset()
-        mujoco.mj_forward(self.model, self.data)
         self._prev_obs = obs[:18].copy()
         obs[18:36] = self._prev_obs
         obs = np.float64(obs)

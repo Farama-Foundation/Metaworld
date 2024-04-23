@@ -110,6 +110,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         ] = pos_machine
 
         self._target_pos = pos_mug_goal
+        self.model.site("coffee_goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(self, action, obs):
