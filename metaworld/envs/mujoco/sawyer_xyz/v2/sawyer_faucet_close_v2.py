@@ -98,6 +98,7 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             [-self._handle_length, 0.0, 0.125]
         )
         mujoco.mj_forward(self.model, self.data)
+        self.model.site("goal_close").pos = self._target_pos
         return self._get_obs()
 
     def _reset_hand(self):

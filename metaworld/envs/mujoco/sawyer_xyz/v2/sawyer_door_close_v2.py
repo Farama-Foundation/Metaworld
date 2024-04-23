@@ -80,7 +80,7 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
 
         # keep the door open after resetting initial positions
         self._set_obj_xyz(-1.5708)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     @_assert_task_is_set

@@ -138,7 +138,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         self.init_right_pad = self.get_body_com("rightpad")
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def _gripper_caging_reward(self, action, obj_position):

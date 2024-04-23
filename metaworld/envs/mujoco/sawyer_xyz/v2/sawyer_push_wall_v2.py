@@ -128,6 +128,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
 
         self._set_obj_xyz(self.obj_init_pos)
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(self, action, obs):
