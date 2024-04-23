@@ -18,13 +18,13 @@ render_mode = '' # set a render mode
 
 ml1 = metaworld.ML1(env_name) # Construct the benchmark, sampling tasks
 
-env = ml1.train_classes[env_name](render_mode=render_mode)  
+env = ml1.train_classes[env_name](render_mode=render_mode)
 task = random.choice(ml1.train_tasks)
 env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
-obs, reward, done, info = env.step(a)  # Step the environment with the sampled random action
+obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 ```
 
 # Render from specific camera
