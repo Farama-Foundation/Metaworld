@@ -21,14 +21,14 @@ repos:
     rev: v2.2.4
     hooks:
       - id: codespell
-        exclude: metaworld/envs/assets_updated/sawyer_xyz/dm_control_pick_place.ipynb|docs/*
+        exclude: 'metaworld/envs/assets_updated/sawyer_xyz/dm_control_pick_place.ipynb|docs/*'
 #        args:
 #          - --ignore-words-list==
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
-        exclude: docs/*
+        exclude: 'docs/*'
         args:
           - '--per-file-ignores=*/__init__.py:F401'
           - --ignore=E203,W503,E741
@@ -40,18 +40,18 @@ repos:
     rev: v3.3.2
     hooks:
       - id: pyupgrade
-        exclude: docs/*
+        exclude: 'docs/.*'
         args: ["--py38-plus"]
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
     hooks:
       - id: isort
-        exclude: docs/*
+        exclude: 'docs/*'
   - repo: https://github.com/python/black
     rev: 23.3.0
     hooks:
       - id: black
-        exclude: docs/*
+        exclude: 'docs/*'
 #  - repo: https://github.com/pycqa/pydocstyle
 #    rev: 6.3.0
 #    hooks:
