@@ -17,6 +17,8 @@ Meta-World is an open-source simulated benchmark for meta-reinforcement learning
    :width: 500
 ```
 
+Meta-World has been updated to align with up-to-date reinforcement learning libraries such as Gymnasium and Mujoco. 
+
 **Basic example:**
 
 ```{code-block} python
