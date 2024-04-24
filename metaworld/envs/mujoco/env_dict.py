@@ -1,11 +1,13 @@
 """Dictionaries mapping environment name strings to environment classes,
 and organising them into various collections and splits for the benchmarks."""
+
 from __future__ import annotations
 
 import re
 from collections import OrderedDict
-from typing import Dict, List, Literal, Sequence, Union
+from typing import Dict, List, Literal
 from typing import OrderedDict as Typing_OrderedDict
+from typing import Sequence, Union
 
 import numpy as np
 
@@ -83,7 +85,9 @@ def _get_env_dict(env_names: Sequence[str]) -> EnvDict:
     return OrderedDict([(env_name, ENV_CLS_MAP[env_name]) for env_name in env_names])
 
 
-def _get_train_test_env_dict(train_env_names: Sequence[str], test_env_names: Sequence[str]) -> TrainTestEnvDict:
+def _get_train_test_env_dict(
+    train_env_names: Sequence[str], test_env_names: Sequence[str]
+) -> TrainTestEnvDict:
     """Returns an `OrderedDict` containing two sub-keys ("train" and "test" at positions 0 and 1),
     each containing the appropriate `OrderedDict` for the train and test classes of the benchmark.
 
@@ -113,7 +117,10 @@ def _get_args_kwargs(all_envs: EnvDict, env_subset: EnvDict) -> EnvArgsKwargsDic
     Returns:
         The args and kwargs dictionary.
     """
-    return {key: dict(args=[], kwargs={"task_id": list(all_envs.keys()).index(key)}) for key, _ in env_subset.items()}
+    return {
+        key: dict(args=[], kwargs={"task_id": list(all_envs.keys()).index(key)})
+        for key, _ in env_subset.items()
+    }
 
 
 def _create_hidden_goal_envs(all_envs: EnvDict) -> EnvDict:
@@ -144,7 +151,9 @@ def _create_hidden_goal_envs(all_envs: EnvDict) -> EnvDict:
                 np.random.set_state(st0)
 
         d["__init__"] = initialize
-        hg_env_name = re.sub(r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name)
+        hg_env_name = re.sub(
+            r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name
+        )
         hg_env_name = hg_env_name.replace("-", "")
         hg_env_key = f"{env_name}-goal-hidden"
         hg_env_name = f"{hg_env_name}GoalHidden"
@@ -184,7 +193,9 @@ def _create_observable_goal_envs(all_envs: EnvDict) -> EnvDict:
                 np.random.set_state(st0)
 
         d["__init__"] = initialize
-        og_env_name = re.sub(r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name)
+        og_env_name = re.sub(
+            r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name
+        )
         og_env_name = og_env_name.replace("-", "")
 
         og_env_key = f"{env_name}-goal-observable"
@@ -256,7 +267,7 @@ ALL_V2_ENVIRONMENTS = _get_env_dict(
 ALL_V2_ENVIRONMENTS_GOAL_HIDDEN = _create_hidden_goal_envs(ALL_V2_ENVIRONMENTS)
 ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE = _create_observable_goal_envs(ALL_V2_ENVIRONMENTS)
 
-## MT Dicts
+# MT Dicts
 
 MT10_V2 = _get_env_dict(
     [
@@ -277,9 +288,11 @@ MT10_V2_ARGS_KWARGS = _get_args_kwargs(ALL_V2_ENVIRONMENTS, MT10_V2)
 MT50_V2 = ALL_V2_ENVIRONMENTS
 MT50_V2_ARGS_KWARGS = _get_args_kwargs(ALL_V2_ENVIRONMENTS, MT50_V2)
 
-## ML Dicts
+# ML Dicts
 
-ML1_V2 = _get_train_test_env_dict(list(ALL_V2_ENVIRONMENTS.keys()), list(ALL_V2_ENVIRONMENTS.keys()))
+ML1_V2 = _get_train_test_env_dict(
+    list(ALL_V2_ENVIRONMENTS.keys()), list(ALL_V2_ENVIRONMENTS.keys())
+)
 ML1_args_kwargs = _get_args_kwargs(ALL_V2_ENVIRONMENTS, ML1_V2["train"])
 
 ML10_V2 = _get_train_test_env_dict(

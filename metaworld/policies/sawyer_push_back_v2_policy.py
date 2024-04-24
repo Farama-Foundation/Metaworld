@@ -26,7 +26,9 @@ class SawyerPushBackV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -51,7 +53,10 @@ class SawyerPushBackV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["puck_pos"]
 
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04 or abs(pos_curr[2] - pos_puck[2]) > 0.05:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.04
+            or abs(pos_curr[2] - pos_puck[2]) > 0.05
+        ):
             return 0.0
         # While end effector is moving down toward the puck, begin closing the grabber
         else:

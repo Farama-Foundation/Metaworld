@@ -26,7 +26,9 @@ class SawyerPickPlaceWallV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -46,10 +48,18 @@ class SawyerPickPlaceWallV2Policy(Policy):
         # Move to the goal
         else:
             # if wall is in the way of arm, straight up above the wall
-            if -0.15 <= pos_curr[0] <= 0.35 and 0.60 <= pos_curr[1] <= 0.80 and pos_curr[2] < 0.25:
+            if (
+                -0.15 <= pos_curr[0] <= 0.35
+                and 0.60 <= pos_curr[1] <= 0.80
+                and pos_curr[2] < 0.25
+            ):
                 return pos_curr + [0, 0, 1]
             # move towards the goal while staying above the wall
-            elif -0.15 <= pos_curr[0] <= 0.35 and 0.60 <= pos_curr[1] <= 0.80 and pos_curr[2] < 0.35:
+            elif (
+                -0.15 <= pos_curr[0] <= 0.35
+                and 0.60 <= pos_curr[1] <= 0.80
+                and pos_curr[2] < 0.35
+            ):
                 return np.array([pos_goal[0], pos_goal[1], pos_curr[2]])
             # If not at the same Z height as the goal, move up to that plane
             elif abs(pos_curr[2] - pos_goal[2]) > 0.01:
@@ -60,7 +70,10 @@ class SawyerPickPlaceWallV2Policy(Policy):
     def _grab_effort(o_d: dict[str, npt.NDArray[np.float64]]) -> float:
         pos_curr = o_d["hand_pos"]
         pos_puck = o_d["puck_pos"]
-        if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.015 or abs(pos_curr[2] - pos_puck[2]) > 0.1:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.015
+            or abs(pos_curr[2] - pos_puck[2]) > 0.1
+        ):
             return 0.0
 
         # While end effector is moving down toward the puck, begin closing the grabber

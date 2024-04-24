@@ -31,12 +31,16 @@ for i in range(num_sensors):
 
 
 for i in range(num_sensors):
-    body = ET.SubElement(root, "touch", name="touchsensor" + str(i), site="sensorsurf" + str(i))
+    body = ET.SubElement(
+        root, "touch", name="touchsensor" + str(i), site="sensorsurf" + str(i)
+    )
 
 tree = ET.ElementTree(root)
 
 
-xml_str = minidom.parseString(ET.tostring(tree.getroot(), "utf-8")).toprettyxml(indent="    ")
+xml_str = minidom.parseString(ET.tostring(tree.getroot(), "utf-8")).toprettyxml(
+    indent="    "
+)
 
 
 f = open("touchsensor.xml", "wb")

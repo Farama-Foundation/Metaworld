@@ -26,7 +26,9 @@ class SawyerHandInsertV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -53,7 +55,10 @@ class SawyerHandInsertV2Policy(Policy):
     def _grab_effort(o_d: dict[str, npt.NDArray[np.float64]]) -> float:
         hand_pos = o_d["hand_pos"]
         obj_pos = o_d["obj_pos"]
-        if np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02 or abs(hand_pos[2] - obj_pos[2]) > 0.1:
+        if (
+            np.linalg.norm(hand_pos[:2] - obj_pos[:2]) > 0.02
+            or abs(hand_pos[2] - obj_pos[2]) > 0.1
+        ):
             return 0.0
         else:
             return 0.65

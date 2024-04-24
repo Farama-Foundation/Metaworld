@@ -180,8 +180,12 @@ def mat2euler(mat: npt.ArrayLike) -> npt.NDArray[np.float64]:
         -np.arctan2(mat[..., 0, 1], mat[..., 0, 0]),
         -np.arctan2(-mat[..., 1, 0], mat[..., 1, 1]),
     )
-    euler[..., 1] = np.where(condition, -np.arctan2(-mat[..., 0, 2], cy), -np.arctan2(-mat[..., 0, 2], cy))
-    euler[..., 0] = np.where(condition, -np.arctan2(mat[..., 1, 2], mat[..., 2, 2]), 0.0)
+    euler[..., 1] = np.where(
+        condition, -np.arctan2(-mat[..., 0, 2], cy), -np.arctan2(-mat[..., 0, 2], cy)
+    )
+    euler[..., 0] = np.where(
+        condition, -np.arctan2(mat[..., 1, 2], mat[..., 2, 2]), 0.0
+    )
     return euler
 
 
@@ -241,7 +245,9 @@ def quat2euler(quat: npt.ArrayLike) -> npt.NDArray[np.float64]:
     return mat2euler(quat2mat(quat))
 
 
-def subtract_euler(e1: npt.NDArray[Any], e2: npt.NDArray[Any]) -> npt.NDArray[np.float64]:
+def subtract_euler(
+    e1: npt.NDArray[Any], e2: npt.NDArray[Any]
+) -> npt.NDArray[np.float64]:
     """Subtracts two euler angles.
 
     Args:

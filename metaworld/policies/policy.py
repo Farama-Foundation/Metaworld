@@ -30,7 +30,9 @@ def assert_fully_parsed(
     return inner
 
 
-def move(from_xyz: npt.NDArray[Any], to_xyz: npt.NDArray[Any], p: float) -> npt.NDArray[Any]:
+def move(
+    from_xyz: npt.NDArray[Any], to_xyz: npt.NDArray[Any], p: float
+) -> npt.NDArray[Any]:
     """Computes action components that help move from 1 position to another.
 
     Args:
@@ -44,7 +46,9 @@ def move(from_xyz: npt.NDArray[Any], to_xyz: npt.NDArray[Any], p: float) -> npt.
     error = to_xyz - from_xyz
     response = p * error
     if np.any(np.absolute(response) > 1.0):
-        warnings.warn("Constant(s) may be too high. Environments clip response to [-1, 1]")
+        warnings.warn(
+            "Constant(s) may be too high. Environments clip response to [-1, 1]"
+        )
 
     return response
 

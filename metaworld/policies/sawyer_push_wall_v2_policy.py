@@ -26,7 +26,9 @@ class SawyerPushWallV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -47,7 +49,9 @@ class SawyerPushWallV2Policy(Policy):
             # if the wall is between the puck and the goal, go around the wall
             if -0.1 <= pos_obj[0] <= 0.3 and 0.65 <= pos_obj[1] <= 0.75:
                 return pos_curr + np.array([-1, 0, 0])
-            elif (-0.15 < pos_obj[0] < 0.05 or 0.15 < pos_obj[0] < 0.35) and 0.695 <= pos_obj[1] <= 0.755:
+            elif (
+                -0.15 < pos_obj[0] < 0.05 or 0.15 < pos_obj[0] < 0.35
+            ) and 0.695 <= pos_obj[1] <= 0.755:
                 return pos_curr + np.array([0, 1, 0])
             return o_d["goal_pos"]
 
@@ -55,7 +59,10 @@ class SawyerPushWallV2Policy(Policy):
     def _grab_effort(o_d: dict[str, npt.NDArray[np.float64]]) -> float:
         pos_curr = o_d["hand_pos"]
         pos_obj = o_d["obj_pos"]
-        if np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02 or abs(pos_curr[2] - pos_obj[2]) > 0.1:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_obj[:2]) > 0.02
+            or abs(pos_curr[2] - pos_obj[2]) > 0.1
+        ):
             return 0.0
         # While end effector is moving down toward the obj, begin closing the grabber
         else:

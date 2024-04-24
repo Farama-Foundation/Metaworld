@@ -28,7 +28,9 @@ class SawyerStickPullV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_pow": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
+        )
         action["grab_pow"] = self._grab_effort(o_d)
 
         return action.array
@@ -59,7 +61,10 @@ class SawyerStickPullV2Policy(Policy):
         hand_pos = o_d["hand_pos"]
         stick_pos = o_d["stick_pos"] + np.array([-0.015, 0.0, 0.03])
 
-        if np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02 or abs(hand_pos[2] - stick_pos[2]) > 0.1:
+        if (
+            np.linalg.norm(hand_pos[:2] - stick_pos[:2]) > 0.02
+            or abs(hand_pos[2] - stick_pos[2]) > 0.1
+        ):
             return -1.0
         else:
             return +0.7

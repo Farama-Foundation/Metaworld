@@ -26,7 +26,9 @@ class SawyerSweepIntoV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -49,7 +51,10 @@ class SawyerSweepIntoV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_cube = o_d["cube_pos"]
 
-        if np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.04 or abs(pos_curr[2] - pos_cube[2]) > 0.15:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.04
+            or abs(pos_curr[2] - pos_cube[2]) > 0.15
+        ):
             return -1.0
         else:
             return 0.7

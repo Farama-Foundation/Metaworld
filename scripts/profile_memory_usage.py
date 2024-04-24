@@ -47,10 +47,14 @@ if __name__ == "__main__":
     print("\nSummary:")
     print("| min      | mean     | max      |")
     print("|----------|----------|----------|")
-    print("| {:.1f} MB | {:.1f} MB | {:.1f} MB |".format(min_independent, mean_independent, max_independent))
+    print(
+        f"| {min_independent:.1f} MB | {mean_independent:.1f} MB | {max_independent:.1f} MB |"
+    )
     print("\n")
 
     print("---------    Shared memory footprint    ---------")
     max_usage = profile_hard_mode_shared()
     mean_shared = max_usage / len(ALL_V2_ENVIRONMENTS)
-    print("Mean memory footprint (n = {}): {:.1f} MB".format(len(ALL_V2_ENVIRONMENTS), mean_shared))
+    print(
+        f"Mean memory footprint (n = {len(ALL_V2_ENVIRONMENTS)}): {mean_shared:.1f} MB"
+    )

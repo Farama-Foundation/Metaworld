@@ -24,10 +24,14 @@ class Action:
         self.array = np.zeros(len(self), dtype=np.float32)
 
     def __len__(self) -> int:
-        return sum([1 if isinstance(idx, int) else len(idx) for idx in self._structure.items()])
+        return sum(
+            [1 if isinstance(idx, int) else len(idx) for idx in self._structure.items()]
+        )
 
     def __getitem__(self, key) -> npt.NDArray[np.float32]:
-        assert key in self._structure, "This action's structure does not contain %s" % key
+        assert key in self._structure, (
+            "This action's structure does not contain %s" % key
+        )
         return self.array[self._structure[key]]
 
     def __setitem__(self, key: str, value) -> None:

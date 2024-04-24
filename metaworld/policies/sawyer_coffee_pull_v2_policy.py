@@ -26,7 +26,9 @@ class SawyerCoffeePullV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -48,7 +50,10 @@ class SawyerCoffeePullV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_mug = o_d["mug_pos"] + np.array([0.01, 0.0, 0.05])
 
-        if np.linalg.norm(pos_curr[:2] - pos_mug[:2]) > 0.06 or abs(pos_curr[2] - pos_mug[2]) > 0.1:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_mug[:2]) > 0.06
+            or abs(pos_curr[2] - pos_mug[2]) > 0.1
+        ):
             return -1.0
         else:
             return 0.7

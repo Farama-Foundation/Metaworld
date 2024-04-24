@@ -24,7 +24,9 @@ class SawyerDialTurnV1Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_pow": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=5.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=5.0
+        )
         action["grab_pow"] = 0.0
 
         return action.array

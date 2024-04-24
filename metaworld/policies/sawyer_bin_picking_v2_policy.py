@@ -25,7 +25,9 @@ class SawyerBinPickingV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -61,7 +63,10 @@ class SawyerBinPickingV2Policy(Policy):
         # See note above in `_desired_pos`
         pos_cube[1] = max(0.675, min(pos_cube[1], 0.725))
 
-        if np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.02 or abs(pos_curr[2] - pos_cube[2]) > 0.02:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.02
+            or abs(pos_curr[2] - pos_cube[2]) > 0.02
+        ):
             return -1.0
         else:
             return 0.6

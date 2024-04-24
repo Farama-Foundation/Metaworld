@@ -25,7 +25,9 @@ class SawyerReachWallV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=5.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=5.0
+        )
         action["grab_effort"] = 0.0
 
         return action.array
@@ -36,6 +38,10 @@ class SawyerReachWallV2Policy(Policy):
         pos_goal = o_d["goal_pos"]
         # if the hand is going to run into the wall, go up while still moving
         # towards the goal position.
-        if -0.1 <= pos_hand[0] <= 0.3 and 0.60 <= pos_hand[1] <= 0.80 and pos_hand[2] < 0.25:
+        if (
+            -0.1 <= pos_hand[0] <= 0.3
+            and 0.60 <= pos_hand[1] <= 0.80
+            and pos_hand[2] < 0.25
+        ):
             return pos_goal + np.array([0.0, 0.0, 1.0])
         return pos_goal

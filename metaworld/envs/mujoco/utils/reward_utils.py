@@ -11,7 +11,14 @@ _DEFAULT_VALUE_AT_MARGIN = 0.1
 
 
 SIGMOID_TYPE = Literal[
-    "gaussian", "hyperbolic", "long_tail", "reciprocal", "cosine", "linear", "quadratic", "tanh_squared"
+    "gaussian",
+    "hyperbolic",
+    "long_tail",
+    "reciprocal",
+    "cosine",
+    "linear",
+    "quadratic",
+    "tanh_squared",
 ]
 
 X = TypeVar("X", float, npt.NDArray[Any], np.floating[Any])
@@ -36,10 +43,14 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
     """
     if sigmoid in ("cosine", "linear", "quadratic"):
         if not 0 <= value_at_1 < 1:
-            raise ValueError(f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}.")
+            raise ValueError(
+                f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}."
+            )
     else:
         if not 0 < value_at_1 < 1:
-            raise ValueError(f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}.")
+            raise ValueError(
+                f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}."
+            )
 
     if sigmoid == "gaussian":
         scale = np.sqrt(-2 * np.log(value_at_1))
@@ -166,12 +177,16 @@ def inverse_tolerance(
         ValueError: If `bounds[0] > bounds[1]`.
         ValueError: If `margin` is negative.
     """
-    bound = tolerance(x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0)
+    bound = tolerance(
+        x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0
+    )
     return 1 - bound
 
 
 def rect_prism_tolerance(
-    curr: npt.NDArray[np.float_], zero: npt.NDArray[np.float_], one: npt.NDArray[np.float_]
+    curr: npt.NDArray[np.float_],
+    zero: npt.NDArray[np.float_],
+    one: npt.NDArray[np.float_],
 ) -> float:
     """Computes a reward if curr is inside a rectangular prism region.
 
@@ -190,7 +205,9 @@ def rect_prism_tolerance(
         return float(b <= a <= c) if c >= b else float(c <= a <= b)
 
     in_prism = (
-        in_range(curr[0], zero[0], one[0]) and in_range(curr[1], zero[1], one[1]) and in_range(curr[2], zero[2], one[2])
+        in_range(curr[0], zero[0], one[0])
+        and in_range(curr[1], zero[1], one[1])
+        and in_range(curr[2], zero[2], one[2])
     )
     if in_prism:
         diff = one - zero

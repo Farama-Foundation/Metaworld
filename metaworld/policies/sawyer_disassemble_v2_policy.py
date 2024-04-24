@@ -26,7 +26,9 @@ class SawyerDisassembleV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -52,7 +54,10 @@ class SawyerDisassembleV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_wrench = o_d["wrench_pos"] + np.array([-0.02, 0.0, 0.01])
 
-        if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.07:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02
+            or abs(pos_curr[2] - pos_wrench[2]) > 0.07
+        ):
             return 0.0
         else:
             return 0.8

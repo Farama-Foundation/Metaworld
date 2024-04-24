@@ -24,7 +24,9 @@ class SawyerButtonPressWallV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=15.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=15.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array

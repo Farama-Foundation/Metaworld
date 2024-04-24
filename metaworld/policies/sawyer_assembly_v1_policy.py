@@ -25,7 +25,9 @@ class SawyerAssemblyV1Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -58,7 +60,10 @@ class SawyerAssemblyV1Policy(Policy):
         pos_wrench = o_d["wrench_pos"] + np.array([0.01, 0.0, 0.0])
         pos_peg = o_d["peg_pos"] + np.array([0.07, 0.0, 0.15])
 
-        if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.1:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02
+            or abs(pos_curr[2] - pos_wrench[2]) > 0.1
+        ):
             return 0.0
         # Until hovering over peg, keep hold of wrench
         elif np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.01:

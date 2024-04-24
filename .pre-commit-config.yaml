@@ -52,6 +52,7 @@ repos:
     rev: "v1.6.1"
     hooks:
       - id: mypy
+        exclude: docs/
         args: [--ignore-missing-imports]
         additional_dependencies: [numpy==1.26.1]
 #  - repo: https://github.com/pycqa/pydocstyle

@@ -25,7 +25,9 @@ class SawyerPegUnplugSideV2Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
+        )
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -47,7 +49,10 @@ class SawyerPegUnplugSideV2Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_peg = o_d["peg_pos"] + np.array([-0.02, 0.0, 0.035])
 
-        if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04 or abs(pos_curr[2] - pos_peg[2]) > 0.15:
+        if (
+            np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04
+            or abs(pos_curr[2] - pos_peg[2]) > 0.15
+        ):
             return -1.0
         else:
             return 0.1
