@@ -14,7 +14,7 @@ from metaworld.types import ObservationDict, StickInitConfigDict, Task
 
 
 class SawyerStickPushEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.08, 0.58, 0.000)
@@ -26,10 +26,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: StickInitConfigDict = {
             "stick_init_pos": np.array([-0.1, 0.6, 0.02]),
@@ -71,7 +70,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         success = float(np.linalg.norm(container - self._target_pos) <= 0.12)
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(
-            self.touching_main_object and (tcp_open > 0) and (stick[2] - 0.01 > self.stick_init_pos[2])
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (stick[2] - 0.01 > self.stick_init_pos[2])
         )
 
         info = {
@@ -112,7 +113,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
     def _get_obs_dict(self) -> ObservationDict:
         obs_dict = super()._get_obs_dict()
-        obs_dict["state_achieved_goal"] = self._get_site_pos("insertion") + np.array([0.0, 0.09, 0.0])
+        obs_dict["state_achieved_goal"] = self._get_site_pos("insertion") + np.array(
+            [0.0, 0.09, 0.0]
+        )
         return obs_dict
 
     def _set_stick_xyz(self, pos: npt.NDArray[Any]) -> None:
@@ -138,12 +141,14 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         self.stick_init_pos = np.concatenate([goal_pos[:2], [self.stick_init_pos[-1]]])
-        self._target_pos = np.concatenate([goal_pos[-3:-1], [self._get_site_pos("insertion")[-1]]])
+        self._target_pos = np.concatenate(
+            [goal_pos[-3:-1], [self._get_site_pos("insertion")[-1]]]
+        )
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com("object").copy()
-
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def _gripper_caging_reward(
@@ -208,14 +213,18 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         caging_xz_margin = np.linalg.norm(self.stick_init_pos[xz] - self.init_tcp[xz])
         caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
-            float(np.linalg.norm(tcp[xz] - obj_pos[xz])),  # "x" in the description above
+            float(
+                np.linalg.norm(tcp[xz] - obj_pos[xz])
+            ),  # "x" in the description above
             bounds=(0, xz_thresh),
             margin=caging_xz_margin,  # "margin" in the description above
             sigmoid="long_tail",
         )
 
         # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
+        gripper_closed = (
+            min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
+        )
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, caging_xz)
@@ -252,7 +261,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         tcp_to_stick = float(np.linalg.norm(stick - tcp))
         stick_to_target = float(np.linalg.norm(stick - target))
-        stick_in_place_margin = float(np.linalg.norm(self.stick_init_pos - target) - _TARGET_RADIUS)
+        stick_in_place_margin = float(
+            np.linalg.norm(self.stick_init_pos - target) - _TARGET_RADIUS
+        )
         stick_in_place = reward_utils.tolerance(
             stick_to_target,
             bounds=(0, _TARGET_RADIUS),
@@ -261,7 +272,9 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         )
 
         container_to_target = float(np.linalg.norm(container - target))
-        container_in_place_margin = float(np.linalg.norm(self.obj_init_pos - target) - _TARGET_RADIUS)
+        container_in_place_margin = float(
+            np.linalg.norm(self.obj_init_pos - target) - _TARGET_RADIUS
+        )
         container_in_place = reward_utils.tolerance(
             container_to_target,
             bounds=(0, _TARGET_RADIUS),
@@ -281,7 +294,11 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
         reward = object_grasped
 
-        if tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.stick_init_pos[2]):
+        if (
+            tcp_to_stick < 0.02
+            and (tcp_opened > 0)
+            and (stick[2] - 0.01 > self.stick_init_pos[2])
+        ):
             object_grasped = 1
             reward = 2.0 + 5.0 * stick_in_place + 3.0 * container_in_place
 
@@ -295,27 +312,3 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
             object_grasped,
             stick_in_place,
         )
-
-
-class TrainStickPushv2(SawyerStickPushEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerStickPushEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestStickPushv2(SawyerStickPushEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerStickPushEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

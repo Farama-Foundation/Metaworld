@@ -30,7 +30,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS: float = 0.05
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -42,10 +42,9 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -90,7 +89,9 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             "success": float(target_to_obj <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.03),
             "grasp_success": float(
-                self.touching_main_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2])
+                self.touching_main_object
+                and (tcp_opened > 0)
+                and (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
             "grasp_reward": object_grasped,
             "in_place_reward": in_place,
@@ -115,12 +116,16 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
+        return np.array(
+            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
+        )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = np.array(self.fix_extreme_obj_pos(self.init_config["obj_init_pos"]))
+        self.obj_init_pos = np.array(
+            self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
+        )
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -132,7 +137,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -168,27 +173,3 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainPushv2(SawyerPushEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPushv2(SawyerPushEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

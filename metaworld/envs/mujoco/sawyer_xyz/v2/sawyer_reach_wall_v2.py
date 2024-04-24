@@ -28,7 +28,7 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
     """
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -40,10 +40,9 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -109,10 +108,12 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
-    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
         _TARGET_RADIUS: float = 0.05
         tcp = self.tcp_center
@@ -131,28 +132,4 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
             sigmoid="long_tail",
         )
 
-        return 10 * in_place, tcp_to_target, in_place
-
-
-class TrainReachWallv2(SawyerReachWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerReachWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestReachWallv2(SawyerReachWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerReachWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (10 * in_place, tcp_to_target, in_place)

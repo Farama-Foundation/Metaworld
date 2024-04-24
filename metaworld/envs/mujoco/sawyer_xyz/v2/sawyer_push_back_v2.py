@@ -17,7 +17,7 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
     OBJ_RADIUS: float = 0.007
     TARGET_RADIUS: float = 0.05
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
         hand_low = (-0.5, 0.40, 0.05)
@@ -29,10 +29,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.8, 0.02]),
@@ -71,7 +70,11 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         success = float(target_to_obj <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(self.touching_main_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_opened > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
         info = {
             "success": success,
             "near_object": near_object,
@@ -87,7 +90,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("objGeom").xmat.reshape(3, 3)
+        ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not aligned
@@ -96,7 +101,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return np.array([adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]])
+        return np.array(
+            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
+        )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -109,11 +116,13 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
-            self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
+            self._target_pos = np.concatenate(
+                [goal_pos[-3:-1], [self.obj_init_pos[-1]]]
+            )
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def _gripper_caging_reward(
@@ -137,8 +146,12 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_pos[1]
         delta_object_y_right_pad = obj_pos[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
+        right_caging_margin = abs(
+            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
+        )
+        left_caging_margin = abs(
+            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
+        )
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -181,7 +194,9 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        tcp_obj_x_z_margin = (
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        )
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
@@ -226,32 +241,12 @@ class SawyerPushBackEnvV2(SawyerXYZEnv):
 
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        if (tcp_to_obj < 0.01) and (0 < tcp_opened < 0.55) and (target_to_obj_init - target_to_obj > 0.01):
+        if (
+            (tcp_to_obj < 0.01)
+            and (0 < tcp_opened < 0.55)
+            and (target_to_obj_init - target_to_obj > 0.01)
+        ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainPushBackv2(SawyerPushBackEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPushBackv2(SawyerPushBackEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushBackEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

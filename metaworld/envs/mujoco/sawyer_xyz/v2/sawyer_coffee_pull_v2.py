@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerCoffeePullEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.7, -0.001)
@@ -26,10 +26,9 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.75, 0.0]),
@@ -81,7 +80,9 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `_target_site_config`."
         return [("mug_goal", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -115,12 +116,15 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
         self.model.body("coffee_machine").pos = pos_machine
 
         self._target_pos = pos_mug_goal
+        self.model.site("mug_goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         obj = obs[4:7]
         target = self._target_pos.copy()
 
@@ -165,27 +169,3 @@ class SawyerCoffeePullEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainCoffeePullv2(SawyerCoffeePullEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestCoffeePullv2(SawyerCoffeePullEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerCoffeePullEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

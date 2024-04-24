@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerDoorCloseEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (0.2, 0.65, 0.1499)
         goal_high = (0.3, 0.75, 0.1501)
         hand_low = (-0.5, 0.40, 0.05)
@@ -26,10 +26,9 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -59,7 +58,9 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("handle").xmat.reshape(3, 3)
+        ).as_quat()
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
@@ -80,8 +81,8 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         # keep the door open after resetting initial positions
-        self._set_obj_xyz(np.array(-1.5708))
-
+        self._set_obj_xyz(-1.5708)
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     @SawyerXYZEnv._Decorators.assert_task_is_set
@@ -100,7 +101,9 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         }
         return reward, info
 
-    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float]:
         assert (
             self._target_pos is not None and self.hand_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
@@ -134,28 +137,4 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
 
-        return reward, obj_to_target, hand_in_place
-
-
-class TrainDoorClosev2(SawyerDoorCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestDoorClosev2(SawyerDoorCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return [reward, obj_to_target, hand_in_place]

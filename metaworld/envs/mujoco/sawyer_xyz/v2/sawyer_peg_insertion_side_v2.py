@@ -32,7 +32,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             the hole's position, as opposed to hand_low and hand_high
     """
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_init_pos = (0, 0.6, 0.2)
 
         hand_low = (-0.5, 0.40, 0.05)
@@ -46,10 +46,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -93,7 +92,11 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             ip_orig,
         ) = self.compute_reward(action, obs)
         assert self.obj_init_pos is not None
-        grasp_success = float(tcp_to_obj < 0.02 and (tcp_open > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]))
+        grasp_success = float(
+            tcp_to_obj < 0.02
+            and (tcp_open > 0)
+            and (obj[2] - 0.01 > self.obj_init_pos[2])
+        )
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
 
@@ -126,6 +129,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.model.body("box").pos = pos_box
         self._target_pos = pos_box + np.array([0.03, 0.0, 0.13])
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -142,7 +146,9 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
         #  force agent to pick up object then insert
         obj_to_target = float(np.linalg.norm((obj_head - target) * scale))
 
-        in_place_margin = float(np.linalg.norm((self.peg_head_pos_init - target) * scale))
+        in_place_margin = float(
+            np.linalg.norm((self.peg_head_pos_init - target) * scale)
+        )
         in_place = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, self.TARGET_RADIUS),
@@ -155,9 +161,15 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
         tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
-        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1)
-        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2)
-        collision_boxes = reward_utils.hamacher_product(collision_box_bottom_2, collision_box_bottom_1)
+        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
+            curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
+        )
+        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(
+            curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2
+        )
+        collision_boxes = reward_utils.hamacher_product(
+            collision_box_bottom_2, collision_box_bottom_1
+        )
         in_place = reward_utils.hamacher_product(in_place, collision_boxes)
 
         pad_success_margin = 0.03
@@ -174,12 +186,22 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             xz_thresh=x_z_margin,
             high_density=True,
         )
-        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+        if (
+            tcp_to_obj < 0.08
+            and (tcp_opened > 0)
+            and (obj[2] - 0.01 > self.obj_init_pos[2])
+        ):
             object_grasped = 1.0
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, in_place
+        )
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+        if (
+            tcp_to_obj < 0.08
+            and (tcp_opened > 0)
+            and (obj[2] - 0.01 > self.obj_init_pos[2])
+        ):
             reward += 1.0 + 5 * in_place
 
         if obj_to_target <= 0.07:
@@ -195,27 +217,3 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
             collision_boxes,
             ip_orig,
         )
-
-
-class TrainPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPegInsertionSidev2(SawyerPegInsertionSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPegInsertionSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

@@ -15,7 +15,7 @@ from metaworld.types import InitConfigDict, Task
 class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
     _TARGET_RADIUS: float = 0.02
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0, 0.75, 0.02)
@@ -27,10 +27,9 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.0]),
@@ -107,7 +106,7 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
         self.obj_init_pos = pos_obj
         self._set_obj_xyz(self.obj_init_pos)
         self._target_pos = pos_goal
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -149,7 +148,9 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             desired_gripper_effort=0.1,
             high_density=True,
         )
-        in_place = reward_utils.tolerance(obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail")
+        in_place = reward_utils.tolerance(
+            obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail"
+        )
         reward = reward_utils.hamacher_product(object_grasped, in_place)
 
         near_object = tcp_to_obj < 0.04
@@ -171,27 +172,3 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPickOutOfHolev2(SawyerPickOutOfHoleEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPickOutOfHoleEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

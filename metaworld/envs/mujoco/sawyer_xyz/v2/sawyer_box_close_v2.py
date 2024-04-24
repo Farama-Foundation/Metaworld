@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.5, 0.02)
@@ -26,9 +26,9 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -103,13 +103,15 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
-        self.model.body("boxbody").pos = np.concatenate([self._target_pos[:2], [box_height]])
+        self.model.body("boxbody").pos = np.concatenate(
+            [self._target_pos[:2], [box_height]]
+        )
 
         for _ in range(self.frame_skip):
             mujoco.mj_step(self.model, self.data)
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     @staticmethod
@@ -125,7 +127,9 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return max(1.0 - error / 0.2, 0.0)
 
     @staticmethod
-    def _reward_pos(obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]) -> tuple[float, float]:
+    def _reward_pos(
+        obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]
+    ) -> tuple[float, float]:
         hand = obs[:3]
         lid = obs[4:7] + np.array([0.0, 0.0, 0.02])
 
@@ -174,7 +178,9 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
 
         reward_grab = SawyerBoxCloseEnvV2._reward_grab_effort(actions)
         reward_quat = SawyerBoxCloseEnvV2._reward_quat(obs)
@@ -202,27 +208,3 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             *reward_steps,
             success,
         )
-
-
-class TrainBoxClosev2(SawyerBoxCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestBoxClosev2(SawyerBoxCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerBoxCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

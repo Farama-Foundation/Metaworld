@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerDoorEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.85, 0.15)
@@ -26,10 +26,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -89,7 +88,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("handle").xmat.reshape(3, 3)
+        ).as_quat()
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
@@ -109,9 +110,11 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
         self._set_obj_xyz(np.array(0))
         assert self._target_pos is not None
-        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
+        self.maxPullDist = np.linalg.norm(
+            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
+        )
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     @staticmethod
@@ -167,7 +170,9 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         theta = float(self.data.joint("doorjoint").qpos.item())
 
         reward_grab = SawyerDoorEnvV2._reward_grab_effort(actions)
@@ -189,27 +194,3 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
             reward_grab,
             *reward_steps,
         )
-
-
-class TrainDoorOpenv2(SawyerDoorEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestDoorOpenv2(SawyerDoorEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

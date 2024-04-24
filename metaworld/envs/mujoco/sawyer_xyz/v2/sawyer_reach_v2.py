@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
@@ -29,7 +28,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -41,10 +40,9 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -102,7 +100,9 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
+        return np.array(
+            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
+        )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -118,10 +118,13 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
         self.obj_init_pos = goal_pos[:3]
         self._set_obj_xyz(self.obj_init_pos)
-        mujoco.mj_forward(self.model, self.data)
+
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
-    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float]:
         assert self._target_pos is not None
         _TARGET_RADIUS: float = 0.05
         tcp = self.tcp_center
@@ -140,28 +143,4 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             sigmoid="long_tail",
         )
 
-        return 10 * in_place, tcp_to_target, in_place
-
-
-class TrainReachv2(SawyerReachEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerReachEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestReachv2(SawyerReachEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerReachEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (10 * in_place, tcp_to_target, in_place)

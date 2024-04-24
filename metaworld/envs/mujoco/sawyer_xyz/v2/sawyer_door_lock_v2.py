@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerDoorLockEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.15)
@@ -24,10 +24,9 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
@@ -79,7 +78,9 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `_target_site_config`."
         return [
             ("goal_lock", self._target_pos),
             ("goal_unlock", np.array([10.0, 10.0, 10.0])),
@@ -108,7 +109,9 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         del action
         obj = obs[4:7]
         tcp = self.get_body_com("leftpad")
@@ -137,27 +140,3 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
         reward += 8 * lock_pressed
 
         return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
-
-
-class TrainDoorLockv2(SawyerDoorLockEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorLockEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestDoorLockv2(SawyerDoorLockEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDoorLockEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

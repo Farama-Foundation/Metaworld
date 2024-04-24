@@ -16,7 +16,7 @@ from metaworld.types import InitConfigDict, Task
 class SawyerPlateSlideEnvV2(SawyerXYZEnv):
     OBJ_RADIUS: float = 0.04
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.85, 0.0)
         goal_high = (0.1, 0.9, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -28,10 +28,9 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -139,33 +138,11 @@ class SawyerPlateSlideEnvV2(SawyerXYZEnv):
             sigmoid="long_tail",
         )
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, in_place
+        )
         reward = 8 * in_place_and_object_grasped
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place
-
-
-class TrainPlateSlidev2(SawyerPlateSlideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPlateSlideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPlateSlidev2(SawyerPlateSlideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPlateSlideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)

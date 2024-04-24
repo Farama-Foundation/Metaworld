@@ -26,7 +26,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         - (11/23/20) Updated reward function to new pick-place style
     """
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.21, 0.65, 0.02)
@@ -39,9 +39,9 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-        if tasks is not None:
-            self.tasks = tasks
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.12, 0.7, 0.02]),
@@ -156,7 +156,12 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         ]
         # floor is a *pair* of 3D funnels centered on (1) the object's initial
         # position and (2) the desired final position
-        floor = min([0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0 for radius in radii])
+        floor = min(
+            [
+                0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0
+                for radius in radii
+            ]
+        )
         # prevent the hand from running into the edge of the bins by keeping
         # it above the "floor"
         above_floor = (
@@ -201,27 +206,3 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainBinPickingv2(SawyerBinPickingEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerBinPickingEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestBinPickingv2(SawyerBinPickingEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerBinPickingEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

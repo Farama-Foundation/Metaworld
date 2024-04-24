@@ -15,7 +15,7 @@ from metaworld.types import HammerInitConfigDict, Task
 class SawyerHammerEnvV2(SawyerXYZEnv):
     HAMMER_HANDLE_LENGTH = 0.14
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.4, 0.0)
@@ -27,10 +27,9 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: HammerInitConfigDict = {
             "hammer_init_pos": np.array([0, 0.5, 0.0]),
@@ -77,10 +76,14 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         return self.model.geom_name2id("HammerHandle")
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
-        return np.hstack((self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy()))
+        return np.hstack(
+            (self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy())
+        )
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return np.hstack((self.data.body("hammer").xquat, self.data.body("nail_link").xquat))
+        return np.hstack(
+            (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
+        )
 
     def _set_hammer_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
@@ -102,7 +105,6 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self.nail_init_pos = self._get_site_pos("nailHead")
         self.obj_init_pos = self.hammer_init_pos.copy()
         self._set_hammer_xyz(self.hammer_init_pos)
-
         return self._get_obs()
 
     @staticmethod
@@ -172,27 +174,3 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
-
-
-class TrainHammerv2(SawyerHammerEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHammerEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestHammerv2(SawyerHammerEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHammerEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

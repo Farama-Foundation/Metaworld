@@ -13,7 +13,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, -0.001)
@@ -25,10 +25,9 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.225, 0.6, 0.05]),
@@ -102,7 +101,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self._get_site_pos("pegEnd")
 
         self._target_pos = pos_plug + np.array([0.15, 0.0, 0.0])
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -157,27 +156,3 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             in_place,
             float(grasp_success),
         )
-
-
-class TrainPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPegUnplugSidev2(SawyerPegUnplugSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPegUnplugSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

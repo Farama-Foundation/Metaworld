@@ -39,9 +39,11 @@ class SawyerMocapBase(mjenv_gym):
 
     def __init__(
         self,
-        model_name: str,
-        frame_skip: int = 5,
-        render_mode: RenderMode | None = None,
+        model_name,
+        frame_skip=5,
+        render_mode=None,
+        camera_name=None,
+        camera_id=None,
     ) -> None:
         mjenv_gym.__init__(
             self,
@@ -49,6 +51,8 @@ class SawyerMocapBase(mjenv_gym):
             frame_skip=frame_skip,
             observation_space=self.sawyer_observation_space,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
@@ -163,15 +167,18 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
     def __init__(
         self,
-        frame_skip: int = 5,
-        hand_low: XYZ = (-0.2, 0.55, 0.05),
-        hand_high: XYZ = (0.2, 0.75, 0.3),
-        mocap_low: XYZ | None = None,
-        mocap_high: XYZ | None = None,
-        action_scale: float = 1.0 / 100,
-        action_rot_scale: float = 1.0,
-        render_mode: RenderMode | None = None,
-    ) -> None:
+        model_name,
+        frame_skip=5,
+        hand_low=(-0.2, 0.55, 0.05),
+        hand_high=(0.2, 0.75, 0.3),
+        mocap_low=None,
+        mocap_high=None,
+        action_scale=1.0 / 100,
+        action_rot_scale=1.0,
+        render_mode=None,
+        camera_id=None,
+        camera_name=None,
+    ):
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
         self.hand_low = np.array(hand_low)
@@ -197,7 +204,13 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._partially_observable: bool = True
 
-        super().__init__(self.model_name, frame_skip=frame_skip, render_mode=render_mode)
+        super().__init__(
+            model_name,
+            frame_skip=frame_skip,
+            render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
+        )
 
         mujoco.mj_forward(self.model, self.data)  # *** DO NOT REMOVE: EZPICKLE WON'T WORK *** #
 
@@ -210,25 +223,19 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             np.array([+1, +1, +1, +1]),
             dtype=np.float32,
         )
-
-        # Technically these observation lengths are different between v1 and v2,
-        # but we handle that elsewhere and just stick with v2 numbers here
-        self._obs_obj_max_len: int = 14
-
-        self._set_task_called: bool = False
-
-        self.hand_init_pos: npt.NDArray[Any] | None = None  # OVERRIDE ME
-        self._target_pos: npt.NDArray[Any] | None = None  # OVERRIDE ME
-        self._random_reset_space: Box | None = None  # OVERRIDE ME
-
-        self.goal_space: Box | None = None  # OVERRIDE ME
-
-        self._last_stable_obs: npt.NDArray[np.float64] | None = None
+        self._obs_obj_max_len = 14
+        self._set_task_called = False
+        self.hand_init_pos = None  # OVERRIDE ME
+        self._target_pos = None  # OVERRIDE ME
+        self._random_reset_space = None  # OVERRIDE ME
 
         # Note: It is unlikely that the positions and orientations stored
         # in this initiation of _prev_obs are correct. That being said, it
         # doesn't seem to matter (it will only effect frame-stacking for the
         # very first observation)
+
+        self.init_qpos = np.copy(self.data.qpos)
+        self.init_qvel = np.copy(self.data.qvel)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
 
         EzPickle.__init__(
@@ -571,7 +578,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
                     "unscaled_reward": 0.0,
                 },
             )
-
+        mujoco.mj_forward(self.model, self.data)
         self._last_stable_obs = self._get_obs()
 
         self._last_stable_obs = np.clip(
@@ -608,6 +615,11 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
         raise NotImplementedError
+    
+    def reset_model(self) -> None:
+        qpos = self.init_qpos
+        qvel = self.init_qvel
+        self.set_state(qpos, qvel)
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
@@ -622,6 +634,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             The `(obs, info)` tuple.
         """
         self.curr_path_length = 0
+        self.reset_model()
         obs, info = super().reset()
         self._prev_obs = obs[:18].copy()
         obs[18:36] = self._prev_obs
@@ -646,6 +659,14 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
             return self._last_rand_vec
+        elif self.seeded_rand_vec:
+            rand_vec = self.np_random.uniform(
+                self._random_reset_space.low,
+                self._random_reset_space.high,
+                size=self._random_reset_space.low.size,
+            )
+            self._last_rand_vec = rand_vec
+            return rand_vec
         else:
             assert self._random_reset_space is not None
             rand_vec: npt.NDArray[np.float64] = np.random.uniform(  # type: ignore

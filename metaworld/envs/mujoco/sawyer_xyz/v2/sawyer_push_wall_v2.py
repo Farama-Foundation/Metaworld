@@ -33,7 +33,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     OBJ_RADIUS: float = 0.02
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
@@ -45,10 +45,9 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -91,7 +90,11 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
         info = {
             "success": success,
             "near_object": near_object,
@@ -113,7 +116,9 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return np.array([adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]])
+        return np.array(
+            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
+        )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -130,6 +135,7 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -147,7 +153,9 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
         in_place_scaling = np.array([3.0, 1.0, 1.0])
         obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
-        obj_to_midpoint_init = float(np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling))
+        obj_to_midpoint_init = float(
+            np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
+        )
 
         obj_to_target = float(np.linalg.norm(obj - target))
         obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
@@ -193,27 +201,3 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         )
-
-
-class TrainPushWallv2(SawyerPushWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPushWallv2(SawyerPushWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPushWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

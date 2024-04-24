@@ -15,7 +15,7 @@ from metaworld.types import InitConfigDict, Task
 class SawyerSweepEnvV2(SawyerXYZEnv):
     OBJ_RADIUS: float = 0.02
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
@@ -28,10 +28,9 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),
@@ -98,9 +97,11 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
-        self.maxPushDist = np.linalg.norm(self.get_body_com("obj")[:-1] - self._target_pos[:-1])
+        self.maxPushDist = np.linalg.norm(
+            self.get_body_com("obj")[:-1] - self._target_pos[:-1]
+        )
         self.target_reward = 1000 * self.maxPushDist + 1000 * 2
-
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def _gripper_caging_reward(
@@ -124,8 +125,12 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_pos[1]
         delta_object_y_right_pad = obj_pos[1] - right_pad[1]
-        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
-        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
+        right_caging_margin = abs(
+            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
+        )
+        left_caging_margin = abs(
+            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
+        )
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -168,7 +173,9 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
-        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        tcp_obj_x_z_margin = (
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+        )
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
@@ -215,34 +222,12 @@ class SawyerSweepEnvV2(SawyerXYZEnv):
         )
 
         object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, in_place
+        )
 
         reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place
-
-
-class TrainSweepv2(SawyerSweepEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerSweepEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestSweepv2(SawyerSweepEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerSweepEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)

@@ -14,7 +14,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.0)
@@ -26,10 +26,9 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.8, 0.0]),
@@ -78,7 +77,9 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `_target_site_config`."
         return [
             ("goal_close", self._target_pos),
             ("goal_open", np.array([10.0, 10.0, 10.0])),
@@ -98,8 +99,11 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         # Set mujoco body to computed position
         self.model.body("faucetBase").pos = self.obj_init_pos
 
-        self._target_pos = self.obj_init_pos + np.array([-self._handle_length, 0.0, 0.125])
+        self._target_pos = self.obj_init_pos + np.array(
+            [-self._handle_length, 0.0, 0.125]
+        )
         mujoco.mj_forward(self.model, self.data)
+        self.model.site("goal_close").pos = self._target_pos
         return self._get_obs()
 
     def _reset_hand(self, steps: int = 50) -> None:
@@ -109,7 +113,9 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         obj = obs[4:7]
         tcp = self.tcp_center
         target = self._target_pos.copy()
@@ -144,27 +150,3 @@ class SawyerFaucetCloseEnvV2(SawyerXYZEnv):
         reward = 10 if target_to_obj <= self._target_radius else reward
 
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainFaucetClosev2(SawyerFaucetCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerFaucetCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestFaucetClosev2(SawyerFaucetCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerFaucetCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

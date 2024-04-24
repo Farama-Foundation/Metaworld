@@ -15,7 +15,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -27,10 +27,9 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -70,7 +69,11 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
 
         info = {
             "success": success,
@@ -109,7 +112,9 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         base_shelf_pos = goal_pos - np.array([0, 0, 0, 0, 0, 0.3])
-        self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
+        self.obj_init_pos = np.concatenate(
+            (base_shelf_pos[:2], [self.obj_init_pos[-1]])
+        )
 
         self.model.body("shelf").pos = base_shelf_pos[-3:]
         mujoco.mj_forward(self.model, self.data)
@@ -117,7 +122,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         assert self.obj_init_pos is not None
         self._set_obj_xyz(self.obj_init_pos)
-
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def compute_reward(
@@ -158,40 +163,26 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
             and ((target[1] - 3 * _TARGET_RADIUS) < obj[1] < target[1])
         ):
             z_scaling = (0.24 - obj[2]) / 0.24
-            y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (3 * _TARGET_RADIUS)
+            y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (
+                3 * _TARGET_RADIUS
+            )
             bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
             in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
-        if (0.0 < obj[2] < 0.24) and (target[0] - 0.15 < obj[0] < target[0] + 0.15) and (obj[1] > target[1]):
+        if (
+            (0.0 < obj[2] < 0.24)
+            and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
+            and (obj[1] > target[1])
+        ):
             in_place = 0.0
 
-        if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
+        if (
+            tcp_to_obj < 0.025
+            and (tcp_opened > 0)
+            and (obj[2] - 0.01 > self.obj_init_pos[2])
+        ):
             reward += 1.0 + 5.0 * in_place
 
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.0
-        return reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place
-
-
-class TrainShelfPlacev2(SawyerShelfPlaceEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestShelfPlacev2(SawyerShelfPlaceEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerShelfPlaceEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)

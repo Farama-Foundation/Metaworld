@@ -13,7 +13,7 @@ from metaworld.types import InitConfigDict, Task
 
 
 class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, 0.0)
@@ -23,10 +23,9 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -69,7 +68,9 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         info = {
             "success": float(obj_to_target <= 0.08),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
+            "grasp_success": float(
+                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
+            ),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -102,7 +103,9 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(np.array(-0.1))
         self._target_pos = self._get_site_pos("goalPull")
-        self.maxDist = np.abs(self.data.site("handleStart").xpos[-1] - self._target_pos[-1])
+        self.maxDist = np.abs(
+            self.data.site("handleStart").xpos[-1] - self._target_pos[-1]
+        )
         self.target_reward = 1000 * self.maxDist + 1000 * 2
         self.obj_init_pos = self._get_pos_objects()
 
@@ -147,32 +150,12 @@ class SawyerHandlePullSideEnvV2(SawyerXYZEnv):
         tcp_opened = obs[3]
         tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
 
-        if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
+        if (
+            tcp_to_obj < 0.035
+            and tcp_opened > 0
+            and obj[2] - 0.01 > self.obj_init_pos[2]
+        ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainHandlePullSidev2(SawyerHandlePullSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestHandlePullSidev2(SawyerHandlePullSideEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHandlePullSideEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

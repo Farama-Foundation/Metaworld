@@ -16,7 +16,7 @@ from metaworld.types import InitConfigDict, Task
 class SawyerDialTurnEnvV2(SawyerXYZEnv):
     TARGET_RADIUS: float = 0.07
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.0)
@@ -28,10 +28,9 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
@@ -80,7 +79,9 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         dial_center = self.get_body_com("dial").copy()
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
-        offset = np.array([np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0])
+        offset = np.array(
+            [np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0]
+        )
         dial_radius = 0.05
 
         offset *= dial_radius
@@ -102,13 +103,16 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
         self._target_pos = final_pos
         self.model.body("dial").pos = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
+        self.model.site("goal").pos = self._target_pos
         mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         obj = self._get_pos_objects()
         dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
         tcp = self.tcp_center
@@ -128,7 +132,9 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
 
         dial_reach_radius = 0.005
         tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp).item())
-        tcp_to_obj_init = float(np.linalg.norm(self.dial_push_position - self.init_tcp).item())
+        tcp_to_obj_init = float(
+            np.linalg.norm(self.dial_push_position - self.init_tcp).item()
+        )
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, dial_reach_radius),
@@ -150,27 +156,3 @@ class SawyerDialTurnEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place,
         )
-
-
-class TrainDialTurnv2(SawyerDialTurnEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDialTurnEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestDialTurnv2(SawyerDialTurnEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerDialTurnEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

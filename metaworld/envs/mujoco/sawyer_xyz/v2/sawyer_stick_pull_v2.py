@@ -14,7 +14,7 @@ from metaworld.types import ObservationDict, StickInitConfigDict, Task
 
 
 class SawyerStickPullEnvV2(SawyerXYZEnv):
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.55, 0.000)
@@ -26,10 +26,9 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: StickInitConfigDict = {
             "stick_init_pos": np.array([0, 0.6, 0.02]),
@@ -71,10 +70,15 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         assert self._target_pos is not None and self.obj_init_pos is not None
         success = float(
-            (np.linalg.norm(handle - self._target_pos) <= 0.12) and self._stick_is_inserted(handle, end_of_stick)
+            (np.linalg.norm(handle - self._target_pos) <= 0.12)
+            and self._stick_is_inserted(handle, end_of_stick)
         )
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (stick[2] - 0.02 > self.obj_init_pos[2])
+        )
 
         info = {
             "success": success,
@@ -147,10 +151,12 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
         self.obj_init_pos = self.get_body_com("object").copy()
-
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
-    def _stick_is_inserted(self, handle: npt.NDArray[Any], end_of_stick: npt.NDArray[Any]) -> bool:
+    def _stick_is_inserted(
+        self, handle: npt.NDArray[Any], end_of_stick: npt.NDArray[Any]
+    ) -> bool:
         return (
             (end_of_stick[0] >= handle[0])
             and (np.abs(end_of_stick[1] - handle[1]) <= 0.040)
@@ -175,7 +181,9 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
 
         yz_scaling = np.array([1.0, 1.0, 2.0])
         stick_to_container = float(np.linalg.norm((stick - container) * yz_scaling))
-        stick_in_place_margin = float(np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling))
+        stick_in_place_margin = float(
+            np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling)
+        )
         stick_in_place = reward_utils.tolerance(
             stick_to_container,
             bounds=(0, _TARGET_RADIUS),
@@ -211,17 +219,29 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             high_density=True,
         )
 
-        grasp_success = tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.stick_init_pos[2])
+        grasp_success = (
+            tcp_to_stick < 0.02
+            and (tcp_opened > 0)
+            and (stick[2] - 0.01 > self.stick_init_pos[2])
+        )
         object_grasped = 1 if grasp_success else object_grasped
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, stick_in_place)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, stick_in_place
+        )
         reward = in_place_and_object_grasped
 
         if grasp_success:
             reward = 1.0 + in_place_and_object_grasped + 5.0 * stick_in_place
 
             if self._stick_is_inserted(handle, end_of_stick):
-                reward = 1.0 + in_place_and_object_grasped + 5.0 + 2.0 * stick_in_place_2 + 1.0 * container_in_place
+                reward = (
+                    1.0
+                    + in_place_and_object_grasped
+                    + 5.0
+                    + 2.0 * stick_in_place_2
+                    + 1.0 * container_in_place
+                )
 
                 if handle_to_target <= 0.12:
                     reward = 10.0
@@ -234,27 +254,3 @@ class SawyerStickPullEnvV2(SawyerXYZEnv):
             object_grasped,
             stick_in_place,
         )
-
-
-class TrainStickPullv2(SawyerStickPullEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerStickPullEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestStickPullv2(SawyerStickPullEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerStickPullEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

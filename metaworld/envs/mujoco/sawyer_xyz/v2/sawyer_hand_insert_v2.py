@@ -15,7 +15,7 @@ from metaworld.types import InitConfigDict, Task
 class SawyerHandInsertEnvV2(SawyerXYZEnv):
     TARGET_RADIUS: float = 0.05
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.05)
@@ -27,10 +27,9 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.05]),
@@ -73,7 +72,9 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
             "success": float(obj_to_target <= 0.05),
             "near_object": float(tcp_to_obj <= 0.03),
             "grasp_success": float(
-                self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2])
+                self.touching_main_object
+                and (tcp_open > 0)
+                and (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
@@ -106,12 +107,15 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         self._target_pos = goal_pos[-3:]
 
         self._set_obj_xyz(self.obj_init_pos)
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         obj = obs[4:7]
 
         target_to_obj = float(np.linalg.norm(obj - self._target_pos))
@@ -143,27 +147,3 @@ class SawyerHandInsertEnvV2(SawyerXYZEnv):
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-
-
-class TrainHandInsertv2(SawyerHandInsertEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHandInsertEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestHandInsertv2(SawyerHandInsertEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerHandInsertEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)

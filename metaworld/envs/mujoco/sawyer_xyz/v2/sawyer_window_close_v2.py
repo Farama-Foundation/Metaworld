@@ -28,7 +28,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS: float = 0.05
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -39,10 +39,9 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -111,9 +110,11 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         self._target_pos = self.obj_init_pos.copy()
         self.model.body("window").pos = self.obj_init_pos
 
-        self.window_handle_pos_init = self._get_pos_objects() + np.array([0.2, 0.0, 0.0])
+        self.window_handle_pos_init = self._get_pos_objects() + np.array(
+            [0.2, 0.0, 0.0]
+        )
         self.data.joint("window_slide").qpos = 0.2
-        mujoco.mj_forward(self.model, self.data)
+        self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
     def _reset_hand(self, steps: int = 50) -> None:
@@ -143,7 +144,9 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
         handle_radius = 0.02
         tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        tcp_to_obj_init = float(np.linalg.norm(self.window_handle_pos_init - self.init_tcp))
+        tcp_to_obj_init = float(
+            np.linalg.norm(self.window_handle_pos_init - self.init_tcp)
+        )
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, handle_radius),
@@ -156,28 +159,4 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
-        return reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place
-
-
-class TrainWindowClosev2(SawyerWindowCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestWindowClosev2(SawyerWindowCloseEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerWindowCloseEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
+        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

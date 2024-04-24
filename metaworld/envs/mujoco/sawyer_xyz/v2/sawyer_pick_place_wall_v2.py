@@ -29,7 +29,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
           reach-push-pick-place-wall.
     """
 
-    def __init__(self, tasks: list[Task] | None = None, render_mode: RenderMode | None = None) -> None:
+    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
@@ -41,10 +41,9 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
+            camera_name=camera_name,
+            camera_id=camera_id,
         )
-
-        if tasks is not None:
-            self.tasks = tasks
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -87,7 +86,11 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
+        grasp_success = float(
+            self.touching_main_object
+            and (tcp_open > 0)
+            and (obj[2] - 0.02 > self.obj_init_pos[2])
+        )
         info = {
             "success": success,
             "near_object": near_object,
@@ -104,7 +107,9 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
+        return Rotation.from_matrix(
+            self.data.geom("objGeom").xmat.reshape(3, 3)
+        ).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -130,7 +135,7 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
         self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
-
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
@@ -150,7 +155,9 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
 
         in_place_scaling = np.array([1.0, 1.0, 3.0])
         obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
-        obj_to_midpoint_init = float(np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling))
+        obj_to_midpoint_init = float(
+            np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
+        )
 
         obj_to_target = float(np.linalg.norm(obj - target))
         obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
@@ -179,10 +186,16 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             high_density=False,
         )
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place_part1)
+        in_place_and_object_grasped = reward_utils.hamacher_product(
+            object_grasped, in_place_part1
+        )
         reward = in_place_and_object_grasped
 
-        if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.015 > self.obj_init_pos[2]):
+        if (
+            tcp_to_obj < 0.02
+            and (tcp_opened > 0)
+            and (obj[2] - 0.015 > self.obj_init_pos[2])
+        ):
             reward = in_place_and_object_grasped + 1.0 + 4.0 * in_place_part1
             if obj[1] > 0.75:
                 reward = in_place_and_object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
@@ -198,27 +211,3 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place_part2,
         )
-
-
-class TrainPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
-
-
-class TestPickPlaceWallv2(SawyerPickPlaceWallEnvV2):
-    tasks: list[Task] | None = None
-
-    def __init__(self) -> None:
-        SawyerPickPlaceWallEnvV2.__init__(self, self.tasks)
-
-    def reset(
-        self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        return super().reset(seed=seed, options=options)
