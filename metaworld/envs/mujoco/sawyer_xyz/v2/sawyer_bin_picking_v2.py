@@ -62,17 +62,20 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
+            dtype=np.float64,
         )
 
         self.goal_and_obj_space = Box(
             np.hstack((goal_low[:2], obj_low[:2])),
             np.hstack((goal_high[:2], obj_high[:2])),
+            dtype=np.float64,
         )
 
-        self.goal_space = Box(goal_low, goal_high)
+        self.goal_space = Box(goal_low, goal_high, dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
 
     @property

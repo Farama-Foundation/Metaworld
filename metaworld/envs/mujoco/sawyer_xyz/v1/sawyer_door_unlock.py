@@ -29,10 +29,9 @@ class SawyerDoorUnlockEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -91,7 +90,9 @@ class SawyerDoorUnlockEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.reachCompleted = False
 
@@ -100,7 +101,9 @@ class SawyerDoorUnlockEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pullGoal = self._target_pos

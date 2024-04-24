@@ -48,11 +48,10 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         self.door_qpos_adr = self.model.joint("doorjoint").qposadr.item()
         self.door_qvel_adr = self.model.joint("doorjoint").dofadr.item()
 
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
 
     @property

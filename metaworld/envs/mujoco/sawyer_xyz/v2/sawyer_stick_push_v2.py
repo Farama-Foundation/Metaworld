@@ -46,11 +46,12 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         # For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.0])
         self.obj_init_qpos = np.array([0.0, 0.0])
-        self.obj_space = Box(np.array(obj_low), np.array(obj_high))
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.obj_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
 
     @property

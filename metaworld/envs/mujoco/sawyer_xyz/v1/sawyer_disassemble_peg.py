@@ -36,8 +36,9 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -46,7 +47,9 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
     @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
-        reward, _, reachDist, pickRew, _, placingDist, success = self.compute_reward(action, ob)
+        reward, _, reachDist, pickRew, _, placingDist, success = self.compute_reward(
+            action, ob
+        )
         info = {
             "reachDist": reachDist,
             "pickRew": pickRew,
@@ -91,7 +94,10 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -101,7 +107,9 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -109,7 +117,9 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         graspPos = obs[3:6]
         objPos = graspPos
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -144,7 +154,11 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
             self.pickCompleted = True
 
         def objDropped():
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
+            return (
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
+            )
 
         def orig_pickReward():
             hScale = 100
@@ -184,7 +198,9 @@ class SawyerNutDisassembleEnv(SawyerXYZEnv):
         placeRew, placingDist = placeRewardMove()
         assert (placeRew >= 0) and (pickRew >= 0)
         reward = reachRew + pickRew + placeRew
-        success = (abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05) or placingDist < 0.02
+        success = (
+            abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05
+        ) or placingDist < 0.02
 
         return [
             reward,

@@ -35,10 +35,9 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -82,17 +81,23 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
         drawer_cover_pos = self.obj_init_pos.copy()
         drawer_cover_pos[2] -= 0.02
         self.sim.model.body_pos[self.model.body_name2id("drawer")] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id("drawer_cover")] = drawer_cover_pos
+        self.sim.model.body_pos[
+            self.model.body_name2id("drawer_cover")
+        ] = drawer_cover_pos
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self._set_obj_xyz(-0.2)
-        self.maxDist = np.abs(self.data.get_geom_xpos("handle")[1] - self._target_pos[1])
+        self.maxDist = np.abs(
+            self.data.get_geom_xpos("handle")[1] - self._target_pos[1]
+        )
         self.target_reward = 1000 * self.maxDist + 1000 * 2
 
         return self._get_obs()
 
     def _reset_hand(self):
         super()._reset_hand(10)
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
 
     def compute_reward(self, actions, obs):
@@ -100,7 +105,9 @@ class SawyerDrawerCloseEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pullGoal = self._target_pos[1]

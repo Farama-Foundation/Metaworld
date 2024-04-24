@@ -34,11 +34,12 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.04])
         self.obj_init_qpos = np.array([0.0, 0.09])
-        self.obj_space = Box(np.array(obj_low), np.array(obj_high))
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.obj_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
 
     @property
@@ -70,7 +71,9 @@ class SawyerStickPullEnv(SawyerXYZEnv):
 
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
-        obs_dict["state_achieved_goal"] = self.data.site_xpos[self.model.site_name2id("insertion")]
+        obs_dict["state_achieved_goal"] = self.data.site_xpos[
+            self.model.site_name2id("insertion")
+        ]
         return obs_dict
 
     def _set_stick_xyz(self, pos):
@@ -100,8 +103,12 @@ class SawyerStickPullEnv(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
                 goal_pos = self._get_state_rand_vec()
-            self.stick_init_pos = np.concatenate((goal_pos[:2], [self.stick_init_pos[-1]]))
-            self._target_pos = np.concatenate((goal_pos[-3:-1], [self.stick_init_pos[-1]]))
+            self.stick_init_pos = np.concatenate(
+                (goal_pos[:2], [self.stick_init_pos[-1]])
+            )
+            self._target_pos = np.concatenate(
+                (goal_pos[-3:-1], [self.stick_init_pos[-1]])
+            )
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
@@ -109,7 +116,9 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:-1])
         self.maxPlaceDist = (
             np.linalg.norm(
-                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget])
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
                 - np.array(self.stick_init_pos)
             )
             + self.heightTarget
@@ -120,7 +129,9 @@ class SawyerStickPullEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
         # self.do_simulation(None, self.frame_skip)
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -128,7 +139,9 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         stickPos = obs[3:6]
         objPos = obs[6:9]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -154,7 +167,11 @@ class SawyerStickPullEnv(SawyerXYZEnv):
         self.pickCompleted = pickCompletionCriteria()
 
         def objDropped():
-            return (stickPos[2] < (self.stickHeight + 0.005)) and (pullDist > 0.02) and (reachDist > 0.02)
+            return (
+                (stickPos[2] < (self.stickHeight + 0.005))
+                and (pullDist > 0.02)
+                and (reachDist > 0.02)
+            )
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 

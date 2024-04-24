@@ -31,8 +31,10 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
         self.liftThresh = liftThresh
 
-        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high))
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self._random_reset_space = Box(
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
+        )
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -66,7 +68,9 @@ class SawyerHammerEnv(SawyerXYZEnv):
                 self.data.site_xpos[self.model.site_name2id("screwHead")],
             )
         )
-        obs_dict["state_achieved_goal"] = self.data.site_xpos[self.model.site_name2id("screwHead")]
+        obs_dict["state_achieved_goal"] = self.data.site_xpos[
+            self.model.site_name2id("screwHead")
+        ]
         return obs_dict
 
     def _set_hammer_xyz(self, pos):
@@ -80,8 +84,12 @@ class SawyerHammerEnv(SawyerXYZEnv):
         self._reset_hand()
 
         # Set position of box & nail (these are not randomized)
-        self.sim.model.body_pos[self.model.body_name2id("box")] = np.array([0.24, 0.85, 0.05])
-        self.sim.model.body_pos[self.model.body_name2id("screw")] = np.array([0.24, 0.71, 0.11])
+        self.sim.model.body_pos[self.model.body_name2id("box")] = np.array(
+            [0.24, 0.85, 0.05]
+        )
+        self.sim.model.body_pos[self.model.body_name2id("screw")] = np.array(
+            [0.24, 0.71, 0.11]
+        )
         # Update _target_pos
         self._target_pos = self._get_site_pos("goal")
 
@@ -90,7 +98,11 @@ class SawyerHammerEnv(SawyerXYZEnv):
         self.heightTarget = self.hammerHeight + self.liftThresh
 
         # Randomize hammer position
-        self.hammer_init_pos = self._get_state_rand_vec() if self.random_init else self.init_config["hammer_init_pos"]
+        self.hammer_init_pos = (
+            self._get_state_rand_vec()
+            if self.random_init
+            else self.init_config["hammer_init_pos"]
+        )
         self._set_hammer_xyz(self.hammer_init_pos)
 
         # Update distances (for use in reward function)
@@ -118,7 +130,9 @@ class SawyerHammerEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -127,7 +141,9 @@ class SawyerHammerEnv(SawyerXYZEnv):
         hammerHeadPos = self.data.get_geom_xpos("hammerHead").copy()
         objPos = self.data.site_xpos[self.model.site_name2id("screwHead")]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         heightTarget = self.heightTarget
@@ -154,7 +170,11 @@ class SawyerHammerEnv(SawyerXYZEnv):
             self.pickCompleted = True
 
         def objDropped():
-            return (hammerPos[2] < (self.hammerHeight + 0.005)) and (hammerDist > 0.02) and (reachDist > 0.02)
+            return (
+                (hammerPos[2] < (self.hammerHeight + 0.005))
+                and (hammerDist > 0.02)
+                and (reachDist > 0.02)
+            )
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -175,8 +195,11 @@ class SawyerHammerEnv(SawyerXYZEnv):
 
             cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped())
             if cond:
-                hammerRew = 1000 * (self.maxHammerDist - hammerDist - screwDist) + c1 * (
-                    np.exp(-((hammerDist + screwDist) ** 2) / c2) + np.exp(-((hammerDist + screwDist) ** 2) / c3)
+                hammerRew = 1000 * (
+                    self.maxHammerDist - hammerDist - screwDist
+                ) + c1 * (
+                    np.exp(-((hammerDist + screwDist) ** 2) / c2)
+                    + np.exp(-((hammerDist + screwDist) ** 2) / c3)
                 )
                 hammerRew = max(hammerRew, 0)
                 return [hammerRew, hammerDist, screwDist]

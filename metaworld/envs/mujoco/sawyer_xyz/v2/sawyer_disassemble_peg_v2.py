@@ -50,10 +50,12 @@ class SawyerNutDisassembleEnvV2(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
         self.goal_space = Box(
             np.array(goal_low) + np.array([0.0, 0.0, 0.005]),
             np.array(goal_high) + np.array([0.0, 0.0, 0.005]),
+            dtype=np.float64,
         )
 
     @property

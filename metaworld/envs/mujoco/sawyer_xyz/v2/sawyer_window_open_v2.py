@@ -58,10 +58,9 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxPullDist = 0.2
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2

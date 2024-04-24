@@ -35,10 +35,9 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -64,7 +63,8 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
     def _get_obs_dict(self):
         obs_dict = super()._get_obs_dict()
         obs_dict["state_achieved_goal"] = (
-            self._get_site_pos("handleStart").copy() + self.data.get_geom_xpos("drawer_wall2").copy()
+            self._get_site_pos("handleStart").copy()
+            + self.data.get_geom_xpos("drawer_wall2").copy()
         ) / 2
         return obs_dict
 
@@ -83,7 +83,9 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         drawer_cover_pos = self.obj_init_pos.copy()
         drawer_cover_pos[2] -= 0.02
         self.sim.model.body_pos[self.model.body_name2id("drawer")] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id("drawer_cover")] = drawer_cover_pos
+        self.sim.model.body_pos[
+            self.model.body_name2id("drawer_cover")
+        ] = drawer_cover_pos
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self.maxPullDist = 0.2
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
@@ -93,7 +95,9 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.reachCompleted = False
 
@@ -101,7 +105,9 @@ class SawyerDrawerOpenEnv(SawyerXYZEnv):
         del actions
 
         objPos = obs[3:6]
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
         pullGoal = self._target_pos
         pullDist = np.abs(objPos[1] - pullGoal[1])

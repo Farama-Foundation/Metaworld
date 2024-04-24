@@ -40,10 +40,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -83,7 +82,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
         wall_pos = self.obj_init_pos.copy() - np.array([-0.1, 0, 0.12])
         window_another_pos = self.obj_init_pos.copy() + np.array([0.2, 0.03, 0])
         self.sim.model.body_pos[self.model.body_name2id("window")] = self.obj_init_pos
-        self.sim.model.body_pos[self.model.body_name2id("window_another")] = window_another_pos
+        self.sim.model.body_pos[
+            self.model.body_name2id("window_another")
+        ] = window_another_pos
         self.sim.model.body_pos[self.model.body_name2id("wall")] = wall_pos
         self.sim.model.site_pos[self.model.site_name2id("goal")] = self._target_pos
         self.maxPullDist = 0.2
@@ -94,7 +95,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.reachCompleted = False
 
@@ -103,7 +106,9 @@ class SawyerWindowOpenEnv(SawyerXYZEnv):
 
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pullGoal = self._target_pos

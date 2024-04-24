@@ -30,10 +30,9 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
     def model_name(self):
@@ -84,7 +83,10 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         self.sim.model.body_pos[self.model.body_name2id("button")] = self._target_pos
         self._set_obj_xyz(0)
         self._target_pos = self._get_site_pos("hole")
-        self.maxDist = np.abs(self.data.site_xpos[self.model.site_name2id("buttonStart")][2] - self._target_pos[2])
+        self.maxDist = np.abs(
+            self.data.site_xpos[self.model.site_name2id("buttonStart")][2]
+            - self._target_pos[2]
+        )
         self.target_reward = 1000 * self.maxDist + 1000 * 2
 
         return self._get_obs()
@@ -92,7 +94,9 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
     def _reset_hand(self):
         super()._reset_hand(10)
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         self.init_fingerCOM = (rightFinger + leftFinger) / 2
         self.pickCompleted = False
 
@@ -100,7 +104,9 @@ class SawyerButtonPressTopdownEnv(SawyerXYZEnv):
         del actions
         objPos = obs[3:6]
 
-        rightFinger, leftFinger = self._get_site_pos("rightEndEffector"), self._get_site_pos("leftEndEffector")
+        rightFinger, leftFinger = self._get_site_pos(
+            "rightEndEffector"
+        ), self._get_site_pos("leftEndEffector")
         fingerCOM = (rightFinger + leftFinger) / 2
 
         pressGoal = self._target_pos[2]
