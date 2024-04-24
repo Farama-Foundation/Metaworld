@@ -235,7 +235,6 @@ class ML1(Benchmark):
         cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = self._train_classes
-        self._train_ = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
         self._train_tasks = _make_tasks(
