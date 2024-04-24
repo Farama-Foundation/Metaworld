@@ -10,11 +10,16 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerDoorCloseEnvV2(SawyerXYZEnv):
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         goal_low = (0.2, 0.65, 0.1499)
         goal_high = (0.3, 0.75, 0.1501)
         hand_low = (-0.5, 0.40, 0.05)
@@ -81,7 +86,7 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         # keep the door open after resetting initial positions
-        self._set_obj_xyz(-1.5708)
+        self._set_obj_xyz(np.array(-1.5708))
         self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
@@ -137,4 +142,4 @@ class SawyerDoorCloseEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10
 
-        return [reward, obj_to_target, hand_in_place]
+        return (reward, obj_to_target, hand_in_place)

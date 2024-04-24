@@ -1,4 +1,5 @@
 """Set of utilities for retrieving asset paths for the environments."""
+
 from __future__ import annotations
 
 from pathlib import Path

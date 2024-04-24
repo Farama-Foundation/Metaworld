@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
@@ -10,7 +9,7 @@ from gymnasium.spaces import Box
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerWindowOpenEnvV2(SawyerXYZEnv):
@@ -27,7 +26,12 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
     TARGET_RADIUS: float = 0.05
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.16)
@@ -108,6 +112,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
         self.window_handle_pos_init = self._get_pos_objects()
         self.data.joint("window_slide").qpos = 0.0
+        assert self._target_pos is not None
         self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 

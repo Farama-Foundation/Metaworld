@@ -10,13 +10,18 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
     OBJ_RADIUS: float = 0.02
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -112,7 +117,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         obj_pos: npt.NDArray[Any],
         obj_radius: float,
         pad_success_thresh: float = 0,  # All of these args are unused,
-        object_reach_radius: float = 0,  # jus there to match the parent's type signature
+        object_reach_radius: float = 0,  # just there to match the parent's type signature
         xz_thresh: float = 0,
         desired_gripper_effort: float = 1.0,
         high_density: bool = False,

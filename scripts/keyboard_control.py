@@ -7,8 +7,8 @@ See/modify `char_to_action` to set the key-to-action mapping.
 import sys
 
 import numpy as np
-import pygame
-from pygame.locals import KEYDOWN, QUIT
+import pygame  # type: ignore
+from pygame.locals import KEYDOWN, QUIT  # type: ignore
 
 from metaworld.envs.mujoco.sawyer_xyz.v2 import SawyerPickPlaceEnvV2
 

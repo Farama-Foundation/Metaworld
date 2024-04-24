@@ -11,11 +11,16 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
         hand_low = (-0.5, 0.40, 0.05)
@@ -122,6 +127,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
         assert self.obj_init_pos is not None
         self._set_obj_xyz(self.obj_init_pos)
+        assert self._target_pos is not None
         self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 

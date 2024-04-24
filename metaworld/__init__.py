@@ -1,4 +1,5 @@
 """The public-facing Metaworld API."""
+
 from __future__ import annotations
 
 import abc
@@ -93,7 +94,10 @@ def _encode_task(env_name, data) -> Task:
 
 
 def _make_tasks(
-    classes: _env_dict.EnvDict, args_kwargs: _env_dict.EnvArgsKwargsDict, kwargs_override: dict, seed: int | None = None
+    classes: _env_dict.EnvDict,
+    args_kwargs: _env_dict.EnvArgsKwargsDict,
+    kwargs_override: dict,
+    seed: int | None = None,
 ) -> list[Task]:
     """Initialises goals for a given set of environments.
 
@@ -175,7 +179,9 @@ class MT1(Benchmark):
         self._test_classes = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
-        self._train_tasks = _make_tasks(self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed
+        )
 
         self._test_tasks = []
 
@@ -188,7 +194,9 @@ class MT10(Benchmark):
         self._train_classes = _env_dict.MT10_V2
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+        )
 
         self._test_tasks = []
         self._test_classes = []
@@ -202,7 +210,9 @@ class MT50(Benchmark):
         self._train_classes = _env_dict.MT50_V2
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+        )
 
         self._test_tasks = []
         self._test_classes = []
@@ -228,7 +238,9 @@ class ML1(Benchmark):
         self._train_ = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
-        self._train_tasks = _make_tasks(self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=seed
+        )
         self._test_tasks = _make_tasks(
             self._test_classes,
             {env_name: args_kwargs},
@@ -247,9 +259,13 @@ class ML10(Benchmark):
         train_kwargs = _env_dict.ML10_ARGS_KWARGS["train"]
 
         test_kwargs = _env_dict.ML10_ARGS_KWARGS["test"]
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+        )
 
-        self._test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)
+        self._test_tasks = _make_tasks(
+            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+        )
 
 
 class ML45(Benchmark):
@@ -262,8 +278,12 @@ class ML45(Benchmark):
         train_kwargs = _env_dict.ML45_ARGS_KWARGS["train"]
         test_kwargs = _env_dict.ML45_ARGS_KWARGS["test"]
 
-        self._train_tasks = _make_tasks(self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed)
-        self._test_tasks = _make_tasks(self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed)
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+        )
+        self._test_tasks = _make_tasks(
+            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+        )
 
 
 __all__ = ["ML1", "MT1", "ML10", "MT10", "ML45", "MT50"]

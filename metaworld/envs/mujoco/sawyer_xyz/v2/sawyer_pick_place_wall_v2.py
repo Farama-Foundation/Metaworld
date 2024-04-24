@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
@@ -29,7 +29,12 @@ class SawyerPickPlaceWallEnvV2(SawyerXYZEnv):
           reach-push-pick-place-wall.
     """
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)

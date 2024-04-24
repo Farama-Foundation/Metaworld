@@ -9,11 +9,16 @@ from gymnasium.spaces import Box
 from metaworld.envs.asset_path_utils import full_v2_path_for
 from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
 from metaworld.envs.mujoco.utils import reward_utils
-from metaworld.types import InitConfigDict, Task
+from metaworld.types import InitConfigDict
 
 
 class SawyerHandlePullEnvV2(SawyerXYZEnv):
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.1, 0.8, -0.001)
@@ -67,7 +72,9 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
         info = {
             "success": float(obj_to_target <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
+            "grasp_success": float(
+                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
+            ),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -136,7 +143,11 @@ class SawyerHandlePullEnvV2(SawyerXYZEnv):
 
         tcp_opened = obs[3]
         tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
-        if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[1] - 0.01 > self.obj_init_pos[2]:
+        if (
+            tcp_to_obj < 0.035
+            and tcp_opened > 0
+            and obj[1] - 0.01 > self.obj_init_pos[2]
+        ):
             reward += 1.0 + 5.0 * in_place
         if target_to_obj < self.TARGET_RADIUS:
             reward = 10.0
