@@ -4,7 +4,7 @@ from typing import Any, NamedTuple, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import NotRequired, TypeAlias, TypedDict
 
 
 class Task(NamedTuple):
@@ -17,7 +17,7 @@ class Task(NamedTuple):
     data: bytes  # Contains env parameters like random_init and *a* goal
 
 
-XYZ = Tuple[float, float, float]
+XYZ: TypeAlias = "Tuple[float, float, float]"
 """A 3D coordinate."""
 
 

@@ -21,7 +21,7 @@ SIGMOID_TYPE = Literal[
     "tanh_squared",
 ]
 
-X = TypeVar("X", float, npt.NDArray[Any], np.floating[Any])
+X = TypeVar("X", float, npt.NDArray, np.floating)
 
 
 def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:

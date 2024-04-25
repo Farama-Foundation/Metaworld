@@ -10,14 +10,17 @@ from typing import OrderedDict as Typing_OrderedDict
 from typing import Sequence, Union
 
 import numpy as np
+from typing_extensions import TypeAlias
 
 from metaworld.envs.mujoco.sawyer_xyz import SawyerXYZEnv, v2
 
 # Utils
 
-EnvDict = Typing_OrderedDict[str, type[SawyerXYZEnv]]
-TrainTestEnvDict = Typing_OrderedDict[Literal["train", "test"], EnvDict]
-EnvArgsKwargsDict = Dict[str, Dict[Literal["args", "kwargs"], Union[List, Dict]]]
+EnvDict: TypeAlias = "Typing_OrderedDict[str, type[SawyerXYZEnv]]"
+TrainTestEnvDict: TypeAlias = "Typing_OrderedDict[Literal['train', 'test'], EnvDict]"
+EnvArgsKwargsDict: TypeAlias = (
+    "Dict[str, Dict[Literal['args', 'kwargs'], Union[List, Dict]]]"
+)
 
 ENV_CLS_MAP = {
     "assembly-v2": v2.SawyerNutAssemblyEnvV2,
