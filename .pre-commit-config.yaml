@@ -48,6 +48,13 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.6.1"
+    hooks:
+      - id: mypy
+        exclude: docs/
+        args: [--ignore-missing-imports]
+        additional_dependencies: [numpy==1.26.1]
 #  - repo: https://github.com/pycqa/pydocstyle
 #    rev: 6.3.0
 #    hooks:

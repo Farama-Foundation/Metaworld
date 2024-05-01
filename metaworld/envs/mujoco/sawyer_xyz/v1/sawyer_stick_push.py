@@ -2,10 +2,7 @@ import numpy as np
 from gymnasium.spaces import Box
 
 from metaworld.envs.asset_path_utils import full_v1_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerStickPushEnv(SawyerXYZEnv):
@@ -35,18 +32,19 @@ class SawyerStickPushEnv(SawyerXYZEnv):
         self.liftThresh = liftThresh  # For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.04])
         self.obj_init_qpos = np.array([0.0, 0.0])
-        self.obj_space = Box(np.array(obj_low), np.array(obj_high))
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.obj_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
 
     @property
     def model_name(self):
         return full_v1_path_for("sawyer_xyz/sawyer_stick_obj.xml")
 
-    @_assert_task_is_set
+    @SawyerXYZEnv._Decorators.assert_task_is_set
     def step(self, action):
         ob = super().step(action)
         reward, _, reachDist, pickRew, _, pushDist = self.compute_reward(action, ob)

@@ -21,18 +21,12 @@ env.set_task(task)
 env.seed(seed)
 env.action_space.seed(seed)
 env.observation_space.seed(seed)
-obs = env.reset()
+obs, _ = env.reset()
 
 p = policy()
 count = 0
 done = False
 
-states = []
-actions = []
-next_states = []
-rewards = []
-
-dones = []
 info = {}
 
 while count < 500 and not done:

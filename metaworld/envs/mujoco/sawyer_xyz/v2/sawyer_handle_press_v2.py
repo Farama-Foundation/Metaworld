@@ -1,19 +1,26 @@
-import mujoco
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import InitConfigDict
 
 
 class SawyerHandlePressEnvV2(SawyerXYZEnv):
-    TARGET_RADIUS = 0.02
+    TARGET_RADIUS: float = 0.02
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.1, 0.8, -0.001)
@@ -22,7 +29,6 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         goal_high = (0.1, 0.70, 0.08)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -30,7 +36,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.9, 0.0]),
             "hand_init_pos": np.array(
                 (0, 0.6, 0.2),
@@ -41,17 +47,18 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_handle_press.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             tcp_to_obj,
@@ -74,43 +81,43 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         return reward, info
 
     @property
-    def _target_site_config(self):
+    def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
         return []
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self._get_site_pos("handleStart")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return np.zeros(4)
 
-    def _set_obj_xyz(self, pos):
+    def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9] = pos
         qvel[9] = 0
         self.set_state(qpos, qvel)
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
-        ] = self.obj_init_pos
-        self._set_obj_xyz(-0.001)
+        self.model.body("box").pos = self.obj_init_pos
+        self._set_obj_xyz(np.array(-0.001))
         self._target_pos = self._get_site_pos("goalPress")
         self.maxDist = np.abs(
-            self.data.site_xpos[
-                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "handleStart")
-            ][-1]
-            - self._target_pos[-1]
+            self.data.site("handleStart").xpos[-1] - self._target_pos[-1]
         )
         self.target_reward = 1000 * self.maxDist + 1000 * 2
         self._handle_init_pos = self._get_pos_objects()
 
         return self._get_obs()
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         del actions
         obj = self._get_pos_objects()
         tcp = self.tcp_center
@@ -129,7 +136,7 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         )
 
         handle_radius = 0.02
-        tcp_to_obj = np.linalg.norm(obj - tcp)
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
         tcp_to_obj_init = np.linalg.norm(self._handle_init_pos - self.init_tcp)
         reach = reward_utils.tolerance(
             tcp_to_obj,
@@ -141,6 +148,6 @@ class SawyerHandlePressEnvV2(SawyerXYZEnv):
         object_grasped = reach
 
         reward = reward_utils.hamacher_product(reach, in_place)
-        reward = 1 if target_to_obj <= self.TARGET_RADIUS else reward
+        reward = 1.0 if target_to_obj <= self.TARGET_RADIUS else reward
         reward *= 10
         return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

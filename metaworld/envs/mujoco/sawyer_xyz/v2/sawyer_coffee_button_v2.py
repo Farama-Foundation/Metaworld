@@ -1,17 +1,24 @@
-import mujoco
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import InitConfigDict
 
 
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         self.max_dist = 0.03
 
         hand_low = (-0.5, 0.4, 0.05)
@@ -24,7 +31,6 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         goal_high = obj_high + np.array([+0.001, -0.22 + self.max_dist, 0.301])
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -32,7 +38,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.9, 0.28]),
             "obj_init_angle": 0.3,
             "hand_init_pos": np.array([0.0, 0.4, 0.2]),
@@ -43,17 +49,18 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_coffee.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             tcp_to_obj,
@@ -76,32 +83,33 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         return reward, info
 
     @property
-    def _target_site_config(self):
+    def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `_target_site_config`."
         return [("coffee_goal", self._target_pos)]
 
     def _get_id_main_object(self):
         return None
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self._get_site_pos("buttonStart")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return np.array([1.0, 0.0, 0.0, 0.0])
 
-    def _set_obj_xyz(self, pos):
+    def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flatten()
         qvel = self.data.qvel.flatten()
         qpos[0:3] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
 
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "coffee_machine")
-        ] = self.obj_init_pos
+        self.model.body("coffee_machine").pos = self.obj_init_pos
 
         pos_mug = self.obj_init_pos + np.array([0.0, -0.22, 0.0])
         self._set_obj_xyz(pos_mug)
@@ -111,13 +119,18 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
         del action
         obj = obs[4:7]
         tcp = self.tcp_center
 
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        tcp_to_obj_init = np.linalg.norm(obj - self.init_tcp)
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
+        tcp_to_obj_init = float(np.linalg.norm(obj - self.init_tcp))
         obj_to_target = abs(self._target_pos[1] - obj[1])
 
         tcp_closed = max(obs[3], 0.0)

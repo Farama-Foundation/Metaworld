@@ -1,21 +1,28 @@
-import mujoco
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 from scipy.spatial.transform import Rotation
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import InitConfigDict
 
 
 class SawyerSoccerEnvV2(SawyerXYZEnv):
-    OBJ_RADIUS = 0.013
-    TARGET_RADIUS = 0.07
+    OBJ_RADIUS: float = 0.013
+    TARGET_RADIUS: float = 0.07
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
         hand_low = (-0.5, 0.40, 0.05)
@@ -24,7 +31,6 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         obj_high = (0.1, 0.7, 0.03)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -32,7 +38,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.03]),
             "obj_init_angle": 0.3,
             "hand_init_pos": np.array([0.0, 0.6, 0.2]),
@@ -45,15 +51,18 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_soccer.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         obj = obs[4:7]
         (
             reward,
@@ -66,8 +75,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         success = float(target_to_obj <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
+        assert self.obj_init_pos is not None
         grasp_success = float(
-            self.touching_object
+            self.touching_main_object
             and (tcp_opened > 0)
             and (obj[2] - 0.02 > self.obj_init_pos[2])
         )
@@ -83,14 +93,14 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("soccer_ball")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
         return Rotation.from_matrix(geom_xmat).as_quat()
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config["obj_init_angle"]
@@ -100,10 +110,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "goal_whole")
-        ] = self._target_pos
+        assert self.obj_init_pos is not None
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.model.body("goal_whole").pos = self._target_pos
         self._set_obj_xyz(self.obj_init_pos)
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
@@ -111,7 +120,18 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
-    def _gripper_caging_reward(self, action, obj_position, obj_radius):
+    def _gripper_caging_reward(
+        self,
+        action: npt.NDArray[np.float32],
+        obj_pos: npt.NDArray[Any],
+        obj_radius: float,
+        pad_success_thresh: float = 0,  # None of these args are used,
+        object_reach_radius: float = 0,  # just here to match the parent's
+        xz_thresh: float = 0,  # type signature
+        desired_gripper_effort: float = 1.0,
+        high_density: bool = False,
+        medium_density: bool = False,
+    ) -> float:
         pad_success_margin = 0.05
         grip_success_margin = obj_radius + 0.01
         x_z_success_margin = 0.005
@@ -119,13 +139,13 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         tcp = self.tcp_center
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
-        delta_object_y_left_pad = left_pad[1] - obj_position[1]
-        delta_object_y_right_pad = obj_position[1] - right_pad[1]
+        delta_object_y_left_pad = left_pad[1] - obj_pos[1]
+        delta_object_y_right_pad = obj_pos[1] - right_pad[1]
         right_caging_margin = abs(
-            abs(obj_position[1] - self.init_right_pad[1]) - pad_success_margin
+            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
         )
         left_caging_margin = abs(
-            abs(obj_position[1] - self.init_left_pad[1]) - pad_success_margin
+            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
         )
 
         right_caging = reward_utils.tolerance(
@@ -163,10 +183,9 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         assert y_caging >= 0 and y_caging <= 1
 
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
-        obj_position_x_z = np.copy(obj_position) + np.array(
-            [0.0, -obj_position[1], 0.0]
-        )
+        obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
+        assert self.obj_init_pos is not None
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
@@ -174,7 +193,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         )
         x_z_caging = reward_utils.tolerance(
-            tcp_obj_norm_x_z,
+            float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
             margin=tcp_obj_x_z_margin,
             sigmoid="long_tail",
@@ -197,13 +216,18 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
         return caging_and_gripping
 
-    def compute_reward(self, action, obs):
+    def compute_reward(
+        self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert self._target_pos is not None and self.obj_init_pos is not None
         obj = obs[4:7]
-        tcp_opened = obs[3]
+        tcp_opened: float = obs[3]
         x_scaling = np.array([3.0, 1.0, 1.0])
-        tcp_to_obj = np.linalg.norm(obj - self.tcp_center)
-        target_to_obj = np.linalg.norm((obj - self._target_pos) * x_scaling)
-        target_to_obj_init = np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
+        tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
+        target_to_obj = float(np.linalg.norm((obj - self._target_pos) * x_scaling))
+        target_to_obj_init = float(
+            np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
+        )
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -228,7 +252,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
             reward,
             tcp_to_obj,
             tcp_opened,
-            np.linalg.norm(obj - self._target_pos),
+            float(np.linalg.norm(obj - self._target_pos)),
             object_grasped,
             in_place,
         )

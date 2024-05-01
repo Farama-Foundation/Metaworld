@@ -1,19 +1,26 @@
-import mujoco
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import HammerInitConfigDict
 
 
 class SawyerHammerEnvV2(SawyerXYZEnv):
     HAMMER_HANDLE_LENGTH = 0.14
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.4, 0.0)
@@ -22,7 +29,6 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         goal_high = (0.2401, 0.7401, 0.111)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -30,7 +36,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
+        self.init_config: HammerInitConfigDict = {
             "hammer_init_pos": np.array([0, 0.5, 0.0]),
             "hand_init_pos": np.array([0, 0.4, 0.2]),
         }
@@ -38,17 +44,21 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         self.hammer_init_pos = self.init_config["hammer_init_pos"]
         self.obj_init_pos = self.hammer_init_pos.copy()
         self.hand_init_pos = self.init_config["hand_init_pos"]
-        self.nail_init_pos = None
+        self.nail_init_pos: npt.NDArray[Any] | None = None
 
-        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high))
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self._random_reset_space = Box(
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
+        )
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_hammer.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             reward_grab,
@@ -69,33 +79,31 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id("HammerHandle")
+    def _get_id_main_object(self) -> int:
+        return self.model.geom_name2id("HammerHandle")
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return np.hstack(
             (self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy())
         )
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return np.hstack(
             (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
         )
 
-    def _set_hammer_xyz(self, pos):
+    def _set_hammer_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
 
         # Set position of box & nail (these are not randomized)
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
-        ] = np.array([0.24, 0.85, 0.0])
+        self.model.body("box").pos = np.array([0.24, 0.85, 0.0])
         # Update _target_pos
         self._target_pos = self._get_site_pos("goal")
 
@@ -107,11 +115,11 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     @staticmethod
-    def _reward_quat(obs):
+    def _reward_quat(obs: npt.NDArray[np.float64]) -> float:
         # Ideal laid-down wrench has quat [1, 0, 0, 0]
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([1.0, 0.0, 0.0, 0.0])
-        error = np.linalg.norm(obs[7:11] - ideal)
+        error = float(np.linalg.norm(obs[7:11] - ideal).item())
         return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
@@ -130,7 +138,9 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
         return in_place
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, bool]:
         hand = obs[:3]
         hammer = obs[4:7]
         hammer_head = hammer + np.array([0.16, 0.06, 0.0])
@@ -160,7 +170,7 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
         reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
         # Override reward on success. We check that reward is above a threshold
         # because this env's success metric could be hacked easily
-        success = self.data.joint("NailSlideJoint").qpos > 0.09
+        success = bool(self.data.joint("NailSlideJoint").qpos > 0.09)
         if success and reward > 5.0:
             reward = 10.0
 

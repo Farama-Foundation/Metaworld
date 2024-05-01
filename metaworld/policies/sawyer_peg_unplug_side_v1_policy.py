@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
@@ -7,14 +12,14 @@ from metaworld.policies.policy import Policy, assert_fully_parsed, move
 class SawyerPegUnplugSideV1Policy(Policy):
     @staticmethod
     @assert_fully_parsed
-    def _parse_obs(obs):
+    def _parse_obs(obs: npt.NDArray[np.float64]) -> dict[str, npt.NDArray[np.float64]]:
         return {
             "hand_pos": obs[:3],
             "peg_pos": obs[3:6],
             "unused_info": obs[6:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs: npt.NDArray[np.float64]) -> npt.NDArray[np.float32]:
         o_d = self._parse_obs(obs)
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
@@ -27,7 +32,7 @@ class SawyerPegUnplugSideV1Policy(Policy):
         return action.array
 
     @staticmethod
-    def _desired_pos(o_d):
+    def _desired_pos(o_d: dict[str, npt.NDArray[np.float64]]) -> npt.NDArray[Any]:
         pos_curr = o_d["hand_pos"]
         pos_peg = o_d["peg_pos"] + np.array([0.005, 0.0, 0.015])
 
@@ -39,7 +44,7 @@ class SawyerPegUnplugSideV1Policy(Policy):
             return pos_peg + np.array([0.1, 0.0, 0.0])
 
     @staticmethod
-    def _grab_effort(o_d):
+    def _grab_effort(o_d: dict[str, npt.NDArray[np.float64]]) -> float:
         pos_curr = o_d["hand_pos"]
         pos_peg = o_d["peg_pos"]
 

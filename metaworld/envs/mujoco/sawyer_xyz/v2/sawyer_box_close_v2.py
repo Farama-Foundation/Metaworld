@@ -1,17 +1,25 @@
+from __future__ import annotations
+
+from typing import Any
+
 import mujoco
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import InitConfigDict
 
 
 class SawyerBoxCloseEnvV2(SawyerXYZEnv):
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.5, 0.02)
@@ -20,7 +28,6 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         goal_high = (0.1, 0.8, 0.133)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -28,7 +35,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
+        self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([0, 0.55, 0.02], dtype=np.float32),
             "hand_init_pos": np.array((0, 0.6, 0.2), dtype=np.float32),
@@ -40,20 +47,23 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
         self._target_to_obj_init = None
 
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
+            dtype=np.float64,
         )
 
         self.init_obj_quat = None
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_box.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             reward_grab,
@@ -75,19 +85,19 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return reward, info
 
     @property
-    def _target_site_config(self):
+    def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
         return []
 
-    def _get_id_main_object(self):
-        return self.unwrapped.model.geom_name2id("BoxHandleGeom")
+    def _get_id_main_object(self) -> int:
+        return self.model.geom_name2id("BoxHandleGeom")
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("top_link")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return self.data.body("top_link").xquat
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
@@ -96,12 +106,12 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
             goal_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate((goal_pos[:2], [self.obj_init_pos[-1]]))
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "boxbody")
-        ] = np.concatenate((self._target_pos[:2], [box_height]))
+        self.model.body("boxbody").pos = np.concatenate(
+            [self._target_pos[:2], [box_height]]
+        )
 
         for _ in range(self.frame_skip):
             mujoco.mj_step(self.model, self.data)
@@ -111,19 +121,21 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         return self._get_obs()
 
     @staticmethod
-    def _reward_grab_effort(actions):
-        return (np.clip(actions[3], -1, 1) + 1.0) / 2.0
+    def _reward_grab_effort(actions: npt.NDArray[Any]) -> float:
+        return float((np.clip(actions[3], -1, 1) + 1.0) / 2.0)
 
     @staticmethod
-    def _reward_quat(obs):
+    def _reward_quat(obs) -> float:
         # Ideal upright lid has quat [.707, 0, 0, .707]
         # Rather than deal with an angle between quaternions, just approximate:
         ideal = np.array([0.707, 0, 0, 0.707])
-        error = np.linalg.norm(obs[7:11] - ideal)
+        error = float(np.linalg.norm(obs[7:11] - ideal))
         return max(1.0 - error / 0.2, 0.0)
 
     @staticmethod
-    def _reward_pos(obs, target_pos):
+    def _reward_pos(
+        obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]
+    ) -> tuple[float, float]:
         hand = obs[:3]
         lid = obs[4:7] + np.array([0.0, 0.0, 0.02])
 
@@ -148,7 +160,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         )
         # grab the lid's handle
         in_place = reward_utils.tolerance(
-            np.linalg.norm(hand - lid),
+            float(np.linalg.norm(hand - lid)),
             bounds=(0, 0.02),
             margin=0.5,
             sigmoid="long_tail",
@@ -161,7 +173,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         a = 0.2  # Relative importance of just *trying* to lift the lid at all
         b = 0.8  # Relative importance of placing the lid on the box
         lifted = a * float(lid[2] > 0.04) + b * reward_utils.tolerance(
-            np.linalg.norm(pos_error * error_scale),
+            float(np.linalg.norm(pos_error * error_scale)),
             bounds=(0, 0.05),
             margin=0.25,
             sigmoid="long_tail",
@@ -169,7 +181,13 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
 
         return ready_to_lift, lifted
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, bool]:
+        assert (
+            self._target_pos is not None
+        ), "`reset_model()` must be called before `compute_reward()`."
+
         reward_grab = SawyerBoxCloseEnvV2._reward_grab_effort(actions)
         reward_quat = SawyerBoxCloseEnvV2._reward_quat(obs)
         reward_steps = SawyerBoxCloseEnvV2._reward_pos(obs, self._target_pos)
@@ -182,7 +200,7 @@ class SawyerBoxCloseEnvV2(SawyerXYZEnv):
         )
 
         # Override reward on success
-        success = np.linalg.norm(obs[4:7] - self._target_pos) < 0.08
+        success = bool(np.linalg.norm(obs[4:7] - self._target_pos) < 0.08)
         if success:
             reward = 10.0
 

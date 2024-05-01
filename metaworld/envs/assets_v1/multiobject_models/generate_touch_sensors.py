@@ -44,7 +44,7 @@ xml_str = minidom.parseString(ET.tostring(tree.getroot(), "utf-8")).toprettyxml(
 
 
 f = open("touchsensor.xml", "wb")
-f.write(xml_str)
+f.write(xml_str.encode("utf-8"))
 f.close()
 
 

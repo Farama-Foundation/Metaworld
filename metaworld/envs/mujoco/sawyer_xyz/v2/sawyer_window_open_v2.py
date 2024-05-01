@@ -1,13 +1,15 @@
-import mujoco
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.envs import reward_utils
 from metaworld.envs.asset_path_utils import full_v2_path_for
-from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import (
-    SawyerXYZEnv,
-    _assert_task_is_set,
-)
+from metaworld.envs.mujoco.sawyer_xyz.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.envs.mujoco.utils import reward_utils
+from metaworld.types import InitConfigDict
 
 
 class SawyerWindowOpenEnvV2(SawyerXYZEnv):
@@ -22,16 +24,20 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         - (6/15/20) Increased max_path_length from 150 to 200
     """
 
-    TARGET_RADIUS = 0.05
+    TARGET_RADIUS: float = 0.05
 
-    def __init__(self, render_mode=None, camera_name=None, camera_id=None):
+    def __init__(
+        self,
+        render_mode: RenderMode | None = None,
+        camera_name: str | None = None,
+        camera_id: int | None = None,
+    ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.16)
         obj_high = (0.1, 0.9, 0.16)
 
         super().__init__(
-            self.model_name,
             hand_low=hand_low,
             hand_high=hand_high,
             render_mode=render_mode,
@@ -39,13 +45,8 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
             camera_id=camera_id,
         )
 
-        self.init_config = {
-            "obj_init_angle": np.array(
-                [
-                    0.3,
-                ],
-                dtype=np.float32,
-            ),
+        self.init_config: InitConfigDict = {
+            "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.1, 0.785, 0.16], dtype=np.float32),
             "hand_init_pos": np.array([0, 0.4, 0.2], dtype=np.float32),
         }
@@ -57,20 +58,21 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         goal_high = self.hand_high
 
         self._random_reset_space = Box(
-            np.array(obj_low),
-            np.array(obj_high),
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxPullDist = 0.2
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return full_v2_path_for("sawyer_xyz/sawyer_window_horizontal.xml")
 
-    @_assert_task_is_set
-    def evaluate_state(self, obs, action):
+    @SawyerXYZEnv._Decorators.assert_task_is_set
+    def evaluate_state(
+        self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
+    ) -> tuple[float, dict[str, Any]]:
         (
             reward,
             tcp_to_obj,
@@ -92,38 +94,40 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
         return reward, info
 
-    def _get_pos_objects(self):
+    def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self._get_site_pos("handleOpenStart")
 
-    def _get_quat_objects(self):
+    def _get_quat_objects(self) -> npt.NDArray[Any]:
         return np.zeros(4)
 
-    def reset_model(self):
+    def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self.prev_obs = self._get_curr_obs_combined_no_goal()
 
         self.obj_init_pos = self._get_state_rand_vec()
 
         self._target_pos = self.obj_init_pos + np.array([0.2, 0.0, 0.0])
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "window")
-        ] = self.obj_init_pos
+        self.model.body("window").pos = self.obj_init_pos
 
         self.window_handle_pos_init = self._get_pos_objects()
         self.data.joint("window_slide").qpos = 0.0
+        assert self._target_pos is not None
         self._set_pos_site("goal", self._target_pos)
         return self._get_obs()
 
-    def compute_reward(self, actions, obs):
+    def compute_reward(
+        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
+    ) -> tuple[float, float, float, float, float, float]:
+        assert self._target_pos is not None and self.obj_init_pos is not None
         del actions
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()
 
-        target_to_obj = obj[0] - target[0]
-        target_to_obj = np.linalg.norm(target_to_obj)
+        target_to_obj: float = obj[0] - target[0]
+        target_to_obj = float(np.linalg.norm(target_to_obj))
         target_to_obj_init = self.obj_init_pos[0] - target[0]
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
+        target_to_obj_init = float(np.linalg.norm(target_to_obj_init))
 
         in_place = reward_utils.tolerance(
             target_to_obj,
@@ -133,15 +137,17 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
         )
 
         handle_radius = 0.02
-        tcp_to_obj = np.linalg.norm(obj - tcp)
-        tcp_to_obj_init = np.linalg.norm(self.window_handle_pos_init - self.init_tcp)
+        tcp_to_obj = float(np.linalg.norm(obj - tcp))
+        tcp_to_obj_init = float(
+            np.linalg.norm(self.window_handle_pos_init - self.init_tcp)
+        )
         reach = reward_utils.tolerance(
             tcp_to_obj,
             bounds=(0, handle_radius),
             margin=abs(tcp_to_obj_init - handle_radius),
             sigmoid="long_tail",
         )
-        tcp_opened = 0
+        tcp_opened = 0.0
         object_grasped = reach
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)

@@ -1,20 +1,26 @@
+from __future__ import annotations
+
 import abc
 import warnings
+from typing import Any, Callable
 
 import numpy as np
+import numpy.typing as npt
 
 
-def assert_fully_parsed(func):
+def assert_fully_parsed(
+    func: Callable[[npt.NDArray[np.float64]], dict[str, npt.NDArray[np.float64]]]
+) -> Callable[[npt.NDArray[np.float64]], dict[str, npt.NDArray[np.float64]]]:
     """Decorator function to ensure observations are fully parsed.
 
     Args:
-        func (Callable): The function to check
+        func: The function to check
 
     Returns:
-        (Callable): The input function, decorated to assert full parsing
+        The input function, decorated to assert full parsing
     """
 
-    def inner(obs):
+    def inner(obs) -> dict[str, Any]:
         obs_dict = func(obs)
         assert len(obs) == sum(
             [len(i) if isinstance(i, np.ndarray) else 1 for i in obs_dict.values()]
@@ -24,17 +30,18 @@ def assert_fully_parsed(func):
     return inner
 
 
-def move(from_xyz, to_xyz, p):
+def move(
+    from_xyz: npt.NDArray[Any], to_xyz: npt.NDArray[Any], p: float
+) -> npt.NDArray[Any]:
     """Computes action components that help move from 1 position to another.
 
     Args:
-        from_xyz (np.ndarray): The coordinates to move from (usually current position)
-        to_xyz (np.ndarray): The coordinates to move to
-        p (float): constant to scale response
+        from_xyz: The coordinates to move from (usually current position)
+        to_xyz: The coordinates to move to
+        p: constant to scale response
 
     Returns:
-        (np.ndarray): Response that will decrease abs(to_xyz - from_xyz)
-
+        Response that will decrease abs(to_xyz - from_xyz)
     """
     error = to_xyz - from_xyz
     response = p * error
@@ -47,27 +54,29 @@ def move(from_xyz, to_xyz, p):
 
 
 class Policy(abc.ABC):
+    """Abstract base class for policies."""
+
     @staticmethod
     @abc.abstractmethod
-    def _parse_obs(obs):
+    def _parse_obs(obs: npt.NDArray[np.float64]) -> dict[str, npt.NDArray[np.float64]]:
         """Pulls pertinent information out of observation and places in a dict.
 
         Args:
-            obs (np.ndarray): Observation which conforms to env.observation_space
+            obs: Observation which conforms to env.observation_space
 
         Returns:
             dict: Dictionary which contains information from the observation
         """
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
-    def get_action(self, obs):
+    def get_action(self, obs: npt.NDArray[np.float64]) -> npt.NDArray[np.float32]:
         """Gets an action in response to an observation.
 
         Args:
-            obs (np.ndarray): Observation which conforms to env.observation_space
+            obs: Observation which conforms to env.observation_space
 
         Returns:
-            np.ndarray: Array (usually 4 elements) representing the action to take
+            Array (usually 4 elements) representing the action to take
         """
-        pass
+        raise NotImplementedError

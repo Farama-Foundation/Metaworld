@@ -1,21 +1,40 @@
 """A set of reward utilities written by the authors of dm_control."""
+from __future__ import annotations
+
+from typing import Any, Literal, TypeVar
 
 import numpy as np
+import numpy.typing as npt
 
 # The value returned by tolerance() at `margin` distance from `bounds` interval.
 _DEFAULT_VALUE_AT_MARGIN = 0.1
 
 
-def _sigmoids(x, value_at_1, sigmoid):
-    """Returns 1 when `x` == 0, between 0 and 1 otherwise.
+SIGMOID_TYPE = Literal[
+    "gaussian",
+    "hyperbolic",
+    "long_tail",
+    "reciprocal",
+    "cosine",
+    "linear",
+    "quadratic",
+    "tanh_squared",
+]
+
+X = TypeVar("X", float, npt.NDArray, np.floating)
+
+
+def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
+    """Maps the input to values between 0 and 1 using a specified sigmoid function. Returns 1 when the input is 0, between 0 and 1 otherwise.
 
     Args:
-        x: A scalar or numpy array.
-        value_at_1: A float between 0 and 1 specifying the output when `x` == 1.
-        sigmoid: String, choice of sigmoid type.
+        x: The input.
+        value_at_1: The output value when `x` == 1. Must be between 0 and 1.
+        sigmoid: Choice of sigmoid type. Valid values are 'gaussian', 'hyperbolic',
+        'long_tail', 'reciprocal', 'cosine', 'linear', 'quadratic', 'tanh_squared'.
 
     Returns:
-        A numpy array with values between 0.0 and 1.0.
+        The input mapped to values between 0.0 and 1.0.
 
     Raises:
         ValueError: If not 0 < `value_at_1` < 1, except for `linear`, `cosine` and
@@ -25,14 +44,12 @@ def _sigmoids(x, value_at_1, sigmoid):
     if sigmoid in ("cosine", "linear", "quadratic"):
         if not 0 <= value_at_1 < 1:
             raise ValueError(
-                "`value_at_1` must be nonnegative and smaller than 1, "
-                "got {}.".format(value_at_1)
+                f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}."
             )
     else:
         if not 0 < value_at_1 < 1:
             raise ValueError(
-                "`value_at_1` must be strictly between 0 and 1, "
-                "got {}.".format(value_at_1)
+                f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}."
             )
 
     if sigmoid == "gaussian":
@@ -54,17 +71,20 @@ def _sigmoids(x, value_at_1, sigmoid):
     elif sigmoid == "cosine":
         scale = np.arccos(2 * value_at_1 - 1) / np.pi
         scaled_x = x * scale
-        return np.where(abs(scaled_x) < 1, (1 + np.cos(np.pi * scaled_x)) / 2, 0.0)
+        ret = np.where(abs(scaled_x) < 1, (1 + np.cos(np.pi * scaled_x)) / 2, 0.0)
+        return ret.item() if np.isscalar(x) else ret
 
     elif sigmoid == "linear":
         scale = 1 - value_at_1
         scaled_x = x * scale
-        return np.where(abs(scaled_x) < 1, 1 - scaled_x, 0.0)
+        ret = np.where(abs(scaled_x) < 1, 1 - scaled_x, 0.0)
+        return ret.item() if np.isscalar(x) else ret
 
     elif sigmoid == "quadratic":
         scale = np.sqrt(1 - value_at_1)
         scaled_x = x * scale
-        return np.where(abs(scaled_x) < 1, 1 - scaled_x**2, 0.0)
+        ret = np.where(abs(scaled_x) < 1, 1 - scaled_x**2, 0.0)
+        return ret.item() if np.isscalar(x) else ret
 
     elif sigmoid == "tanh_squared":
         scale = np.arctanh(np.sqrt(1 - value_at_1))
@@ -75,29 +95,29 @@ def _sigmoids(x, value_at_1, sigmoid):
 
 
 def tolerance(
-    x,
-    bounds=(0.0, 0.0),
-    margin=0.0,
-    sigmoid="gaussian",
-    value_at_margin=_DEFAULT_VALUE_AT_MARGIN,
-):
+    x: X,
+    bounds: tuple[float, float] = (0.0, 0.0),
+    margin: float | np.floating[Any] = 0.0,
+    sigmoid: SIGMOID_TYPE = "gaussian",
+    value_at_margin: float = _DEFAULT_VALUE_AT_MARGIN,
+) -> X:
     """Returns 1 when `x` falls inside the bounds, between 0 and 1 otherwise.
 
     Args:
-        x: A scalar or numpy array.
+        x: The input.
         bounds: A tuple of floats specifying inclusive `(lower, upper)` bounds for
         the target interval. These can be infinite if the interval is unbounded
         at one or both ends, or they can be equal to one another if the target
         value is exact.
-        margin: Float. Parameter that controls how steeply the output decreases as
+        margin: Parameter that controls how steeply the output decreases as
         `x` moves out-of-bounds.
         * If `margin == 0` then the output will be 0 for all values of `x`
             outside of `bounds`.
         * If `margin > 0` then the output will decrease sigmoidally with
             increasing distance from the nearest bound.
-        sigmoid: String, choice of sigmoid type. Valid values are: 'gaussian',
-        'linear', 'hyperbolic', 'long_tail', 'cosine', 'tanh_squared'.
-        value_at_margin: A float between 0 and 1 specifying the output value when
+        sigmoid: Choice of sigmoid type. Valid values are 'gaussian', 'hyperbolic',
+        'long_tail', 'reciprocal', 'cosine', 'linear', 'quadratic', 'tanh_squared'.
+        value_at_margin: A value between 0 and 1 specifying the output when
         the distance from `x` to the nearest bound is equal to `margin`. Ignored
         if `margin == 0`.
 
@@ -121,27 +141,32 @@ def tolerance(
         d = np.where(x < lower, lower - x, x - upper) / margin
         value = np.where(in_bounds, 1.0, _sigmoids(d, value_at_margin, sigmoid))
 
-    return float(value) if np.isscalar(x) else value
+    return value.item() if np.isscalar(x) else value
 
 
-def inverse_tolerance(x, bounds=(0.0, 0.0), margin=0.0, sigmoid="reciprocal"):
+def inverse_tolerance(
+    x: X,
+    bounds: tuple[float, float] = (0.0, 0.0),
+    margin: float = 0.0,
+    sigmoid: SIGMOID_TYPE = "reciprocal",
+) -> X:
     """Returns 0 when `x` falls inside the bounds, between 1 and 0 otherwise.
 
     Args:
-        x: A scalar or numpy array.
+        x: The input
         bounds: A tuple of floats specifying inclusive `(lower, upper)` bounds for
         the target interval. These can be infinite if the interval is unbounded
         at one or both ends, or they can be equal to one another if the target
         value is exact.
-        margin: Float. Parameter that controls how steeply the output decreases as
+        margin: Parameter that controls how steeply the output decreases as
         `x` moves out-of-bounds.
         * If `margin == 0` then the output will be 0 for all values of `x`
             outside of `bounds`.
         * If `margin > 0` then the output will decrease sigmoidally with
             increasing distance from the nearest bound.
-        sigmoid: String, choice of sigmoid type. Valid values are: 'gaussian',
-        'linear', 'hyperbolic', 'long_tail', 'cosine', 'tanh_squared'.
-        value_at_margin: A float between 0 and 1 specifying the output value when
+        sigmoid: Choice of sigmoid type. Valid values are 'gaussian', 'hyperbolic',
+        'long_tail', 'reciprocal', 'cosine', 'linear', 'quadratic', 'tanh_squared'.
+        value_at_margin: A value between 0 and 1 specifying the output when
         the distance from `x` to the nearest bound is equal to `margin`. Ignored
         if `margin == 0`.
 
@@ -158,24 +183,22 @@ def inverse_tolerance(x, bounds=(0.0, 0.0), margin=0.0, sigmoid="reciprocal"):
     return 1 - bound
 
 
-def rect_prism_tolerance(curr, zero, one):
+def rect_prism_tolerance(
+    curr: npt.NDArray[np.float_],
+    zero: npt.NDArray[np.float_],
+    one: npt.NDArray[np.float_],
+) -> float:
     """Computes a reward if curr is inside a rectangular prism region.
 
-    The 3d points curr and zero specify 2 diagonal corners of a rectangular
-    prism that represents the decreasing region.
-
-    one represents the corner of the prism that has a reward of 1.
-    zero represents the diagonal opposite corner of the prism that has a reward
-        of 0.
-    Curr is the point that the prism reward region is being applied for.
+    All inputs are 3D points with shape (3,).
 
     Args:
-        curr(np.ndarray): The point whose reward is being assessed.
-            shape is (3,).
-        zero(np.ndarray): One corner of the rectangular prism, with reward 0.
-            shape is (3,)
-        one(np.ndarray): The diagonal opposite corner of one, with reward 1.
-            shape is (3,)
+        curr: The point that the prism reward region is being applied for.
+        zero: The diagonal opposite corner of the prism with reward 0.
+        one: The corner of the prism with reward 1.
+
+    Returns:
+        A reward if curr is inside the prism, 1.0 otherwise.
     """
 
     def in_range(a, b, c):
@@ -192,25 +215,24 @@ def rect_prism_tolerance(curr, zero, one):
         y_scale = (curr[1] - zero[1]) / diff[1]
         z_scale = (curr[2] - zero[2]) / diff[2]
         return x_scale * y_scale * z_scale
-        # return 0.01
     else:
         return 1.0
 
 
-def hamacher_product(a, b):
-    """The hamacher (t-norm) product of a and b.
+def hamacher_product(a: float, b: float) -> float:
+    """Returns the hamacher (t-norm) product of a and b.
 
-    computes (a * b) / ((a + b) - (a * b))
+    Computes (a * b) / ((a + b) - (a * b)).
 
     Args:
-        a (float): 1st term of hamacher product.
-        b (float): 2nd term of hamacher product.
+        a: 1st term of the hamacher product.
+        b: 2nd term of the hamacher product.
+
+    Returns:
+        The hammacher product of a and b
 
     Raises:
         ValueError: a and b must range between 0 and 1
-
-    Returns:
-        float: The hammacher product of a and b
     """
     if not ((0.0 <= a <= 1.0) and (0.0 <= b <= 1.0)):
         raise ValueError("a and b must range between 0 and 1")
