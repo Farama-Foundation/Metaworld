@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from metaworld.envs.env_dict import ALL_V2_ENVIRONMENTS
-from metaworld.envs.sawyer_xyz import SawyerXYZEnv
+from metaworld.env_dict import ALL_V2_ENVIRONMENTS
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, move
 
