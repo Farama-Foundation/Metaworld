@@ -4,7 +4,7 @@ firstpage:
 lastpage:
 ---
 
-```{project-logo} _static/metaworld-text.png
+```{project-logo} _static/metaworld-text.svg
 :alt: Metaworld Logo
 ```
 
@@ -12,7 +12,7 @@ lastpage:
 Meta-World is an open-source simulated benchmark for meta-reinforcement learning and multi-task learning consisting of 50 distinct robotic manipulation tasks.
 ```
 
-```{figure} _static/REPLACE_ME.gif
+```{figure} _static/mt10.gif
    :alt: REPLACE ME
    :width: 500
 ```
@@ -40,8 +40,10 @@ obs, reward, done, info = env.step(a)
 :hidden:
 :caption: Introduction
 
-introduction/installation
 introduction/basic_usage
+installation/installation
+rendering/rendering
+
 ```
 
 
