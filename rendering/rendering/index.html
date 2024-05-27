@@ -191,7 +191,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -268,7 +268,7 @@
                 </svg>
               </button>
             </div>
-            <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <label class="toc-overlay-icon toc-content-icon" for="__toc">
               <div class="visually-hidden">Toggle table of contents sidebar</div>
               <i class="icon"><svg>
                   <use href="#svg-toc"></use>
@@ -302,7 +302,8 @@
 <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
 </pre></div>
 </div>
-<p>You can also render from a specific camera</p>
+<section id="render-from-a-specific-camera">
+<h2>Render from a specific camera<a class="headerlink" href="#render-from-a-specific-camera" title="Link to this heading">¶</a></h2>
 <p>In addition to the base render functions, Meta-World supports multiple camera positions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">camera_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># one of: [&#39;corner&#39;, &#39;corner2&#39;, &#39;corner3&#39;, &#39;topview&#39;, &#39;behindGripper&#39;, &#39;gripperPOV&#39;]</span>
 
@@ -318,6 +319,7 @@
 
 </pre></div>
 </div>
+</section>
 </section>
 
           </article>
@@ -377,8 +379,27 @@
           
         </footer>
       </div>
-      <aside class="toc-drawer no-toc">
+      <aside class="toc-drawer">
         
+        
+        <div class="toc-sticky toc-scroll">
+          <div class="toc-title-container">
+            <span class="toc-title">
+              On this page
+            </span>
+          </div>
+          <div class="toc-tree-container">
+            <div class="toc-tree">
+              <ul>
+<li><a class="reference internal" href="#">Rendering</a><ul>
+<li><a class="reference internal" href="#render-from-a-specific-camera">Render from a specific camera</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
         
         
       </aside>
