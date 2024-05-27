@@ -27,7 +27,7 @@ a = env.action_space.sample()  # Sample an action
 obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
 ```
 
-You can also render from a specific camera
+## Render from a specific camera
 
 In addition to the base render functions, Meta-World supports multiple camera positions.
 
