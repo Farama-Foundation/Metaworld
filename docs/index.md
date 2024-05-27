@@ -33,7 +33,7 @@ env.set_task(task)  # Set task
 
 obs = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
-obs, reward, done, info = env.step(a)
+obs, reward, terminate, truncate, info = env.step(a)
 ```
 
 ```{toctree}
