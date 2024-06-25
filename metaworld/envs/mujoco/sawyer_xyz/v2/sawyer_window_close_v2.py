@@ -117,7 +117,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
             [0.2, 0.0, 0.0]
         )
         self.data.joint("window_slide").qpos = 0.2
-        self._set_pos_site("goal", self._target_pos)
+        self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def _reset_hand(self, steps: int = 50) -> None:
