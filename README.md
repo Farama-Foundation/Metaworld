@@ -74,7 +74,7 @@ For example, for the ML1 benchmark with the 'pick-place-v2' environment, you can
 import metaworld
 
 SEED = 0  # some seed number here
-env = gym.make('ML-pick-place-v2', seed=SEED)
+env = gym.make('ML-pick-place-v2-train', seed=SEED)
 ```
 
 ### Running ML1 or MT1
