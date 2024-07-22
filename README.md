@@ -43,15 +43,25 @@ pip install -e .
 
 ## Using the benchmark
 Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):
-* [__ML1__](https://meta-world.github.io/figures/ml1.gif) is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.
-* [__ML10__](https://meta-world.github.io/figures/ml10.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 3 test tasks.
-* [__ML45__](https://meta-world.github.io/figures/ml45-1080p.gif) is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.
-* [__MT10__](https://meta-world.github.io/figures/mt10.gif), __MT1__, and __MT50__ are multi-task-RL benchmark environments for learning a multi-task policy that perform 10, 1, and 50 training tasks respectively. __MT1__ is similar to __ML1__ because you can choose to test variation within any of [50 tasks](https://meta-world.github.io/figures/ml45-1080p.gif) for this benchmark.  In the original Meta-World experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don't enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as [this one](https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py)
+* ML1 is a meta-RL benchmark which tests few-shot adaptation to goal variations within a single task. It comprises 1 train task and 1 test tasks. 
+* ML10 is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 5 test tasks.
+* ML45 is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.
+* MT1 is a benchmark for learning a policy for single tasks with multiple goals. It comprises 1 train task and 0 test tasks.
+* MT10 is a benchmark for learning a policy for multiple tasks with multiple goals. It comprises 10 train task and 0 test tasks.
+* MT50 is a benchmark for learning a policy for multiple tasks with multiple goals. It comprises 50 train task and 0 test tasks.
+
+To view all available environment variations:
+
+```python
+import gymnasium as gym
+import metaworld
+
+gym.envs.pprint_registry()
+```
 
 
 ### Basics
-We provide a `Benchmark` API, that allows constructing environments following the [`gymnasium.Env`](https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/core.py#L21) interface.
-
+We provide environments via gym.make
 
 You may wish to only access individual environments used in the Metaworld benchmark for your research. See the
 [Accessing Single Goal Environments](#accessing-single-goal-environments) for more details.
@@ -59,7 +69,7 @@ You may wish to only access individual environments used in the Metaworld benchm
 
 ### Seeding a Benchmark Instance
 For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
-For example, for the ML1 benchmark environment with the 'pick-place-v2' environment, you can do so in the following way:
+For example, for the ML1 benchmark with the 'pick-place-v2' environment, you can do so in the following way:
 ```python
 import metaworld
 
@@ -73,13 +83,14 @@ import gymnasium as gym
 import metaworld
 import random
 
-print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
+gym.envs.pprint_registry() # print all available environments (this includes environments in Gymnasium)
 
 env = gym.make('ML-pick-place-train', seed=SEED)
 
 obs, info = env.reset()  # Reset environment
 a = env.action_space.sample()  # Sample an action
 obs, reward, terminate, truncate, info = env.step(a)  # Step the environment with the sampled random action
+
 ```
 __MT1__ can be run the same way except that it does not contain any `test_tasks`
 ### Running a benchmark
