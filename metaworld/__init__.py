@@ -329,7 +329,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
 
-    tasks: list[object]
+    tasks: list[Task]
     sample_tasks_on_reset: bool = True
 
     def _set_random_task(self):
@@ -339,9 +339,9 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[object],
+        tasks: list[Task],
         sample_tasks_on_reset: bool = True,
-        seed: int or None = None,
+        seed: int | None = None,
     ):
         super().__init__(env)
         self.tasks = tasks
@@ -391,7 +391,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         env: Env,
         tasks: list[object],
         sample_tasks_on_reset: bool = False,
-        seed: int = None,
+        seed: int | None = None,
     ):
         super().__init__(env)
         self.sample_tasks_on_reset = sample_tasks_on_reset
@@ -478,8 +478,8 @@ def _make_single_env(
     seed: int = 0,
     max_episode_steps: int | None = None,
     use_one_hot: bool = False,
-    env_id: int = None,
-    num_tasks: int = None,
+    env_id: int | None = None,
+    num_tasks: int | None = None,
     terminate_on_success: bool = False,
 ) -> gym.Env:
     def init_each_env(env_cls: type[SawyerXYZEnv], name: str, seed: int) -> gym.Env:
@@ -511,7 +511,7 @@ def _make_single_env(
         benchmark = ML1(
             name.replace("ML1-train-" if "train" in name else "ML1-test-", ""),
             seed=seed,
-        )
+        )  # type: ignore
         if "train" in name:
             env = init_each_env(
                 env_cls=benchmark.train_classes[name.replace("ML1-train-", "")],
@@ -546,6 +546,26 @@ def register_mw_envs():
         register(
             id=f"Meta-World/ML1-test-{name}",
             entry_point="metaworld:make_single",
+            kwargs=kwargs,
+        )
+
+    for name_hid in ALL_V2_ENVIRONMENTS_GOAL_HIDDEN:
+        kwargs = {}
+        register(
+            id=f"Meta-World/{name_hid}",
+            entry_point=lambda seed: ALL_V2_ENVIRONMENTS_GOAL_HIDDEN[name_hid](
+                seed=seed
+            ),
+            kwargs=kwargs,
+        )
+
+    for name_obs in ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE:
+        kwargs = {}
+        register(
+            id=f"Meta-World/{name_obs}",
+            entry_point=lambda seed: ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](
+                seed=seed
+            ),
             kwargs=kwargs,
         )
 
