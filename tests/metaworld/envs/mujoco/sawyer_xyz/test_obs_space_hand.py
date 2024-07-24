@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from metaworld.env_dict import ALL_V2_ENVIRONMENTS
-from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, move
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 
 class SawyerRandomReachPolicy(Policy):

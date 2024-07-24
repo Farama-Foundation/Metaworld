@@ -8,8 +8,8 @@ from gymnasium.spaces import Box
 
 from metaworld.asset_path_utils import full_v2_path_for
 from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
-from metaworld.utils.reward_utils import tolerance
 from metaworld.types import InitConfigDict, ObservationDict
+from metaworld.utils.reward_utils import tolerance
 
 
 class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
