@@ -43,7 +43,7 @@ obs, reward, terminate, truncate, info = env.step(a)
 introduction/basic_usage
 installation/installation
 rendering/rendering
-
+usage/basic_usage
 ```
 
 
