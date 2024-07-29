@@ -25,9 +25,9 @@ from numpy.typing import NDArray
 import metaworld  # type: ignore
 import metaworld.env_dict as _env_dict
 from metaworld.env_dict import (
-    ALL_V2_ENVIRONMENTS,
-    ALL_V2_ENVIRONMENTS_GOAL_HIDDEN,
-    ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE,
+    ALL_V3_ENVIRONMENTS,
+    ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
+    ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE,
 )
 from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
 from metaworld.types import Task
@@ -184,13 +184,13 @@ def _make_tasks(
 class MT1(Benchmark):
     """The MT1 benchmark. A goal-conditioned RL environment for a single Metaworld task."""
 
-    ENV_NAMES = list(_env_dict.ALL_V2_ENVIRONMENTS.keys())
+    ENV_NAMES = list(_env_dict.ALL_V3_ENVIRONMENTS.keys())
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
-            raise ValueError(f"{env_name} is not a V2 environment")
-        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
+        if env_name not in _env_dict.ALL_V3_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V3 environment")
+        cls = _env_dict.ALL_V3_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
@@ -207,9 +207,9 @@ class MT10(Benchmark):
 
     def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.MT10_V2
+        self._train_classes = _env_dict.MT10_V3
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.MT10_V2_ARGS_KWARGS
+        train_kwargs = _env_dict.MT10_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
             self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
         )
@@ -223,9 +223,9 @@ class MT50(Benchmark):
 
     def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.MT50_V2
+        self._train_classes = _env_dict.MT50_V3
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.MT50_V2_ARGS_KWARGS
+        train_kwargs = _env_dict.MT50_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
             self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
         )
@@ -241,14 +241,14 @@ class ML1(Benchmark):
     """The ML1 benchmark. A meta-RL environment for a single Metaworld task. The train and test set contain different goal positions.
     The goal position is not part of the observation."""
 
-    ENV_NAMES = list(_env_dict.ALL_V2_ENVIRONMENTS.keys())
+    ENV_NAMES = list(_env_dict.ALL_V3_ENVIRONMENTS.keys())
 
     def __init__(self, env_name, seed=None):
         super().__init__()
-        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
-            raise ValueError(f"{env_name} is not a V2 environment")
+        if env_name not in _env_dict.ALL_V3_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V3 environment")
 
-        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
+        cls = _env_dict.ALL_V3_ENVIRONMENTS[env_name]
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = self._train_classes
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
@@ -269,8 +269,8 @@ class ML10(Benchmark):
 
     def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.ML10_V2["train"]
-        self._test_classes = _env_dict.ML10_V2["test"]
+        self._train_classes = _env_dict.ML10_V3["train"]
+        self._test_classes = _env_dict.ML10_V3["test"]
         train_kwargs = _env_dict.ML10_ARGS_KWARGS["train"]
 
         test_kwargs = _env_dict.ML10_ARGS_KWARGS["test"]
@@ -288,8 +288,8 @@ class ML45(Benchmark):
 
     def __init__(self, seed=None):
         super().__init__()
-        self._train_classes = _env_dict.ML45_V2["train"]
-        self._test_classes = _env_dict.ML45_V2["test"]
+        self._train_classes = _env_dict.ML45_V3["train"]
+        self._test_classes = _env_dict.ML45_V3["test"]
         train_kwargs = _env_dict.ML45_ARGS_KWARGS["train"]
         test_kwargs = _env_dict.ML45_ARGS_KWARGS["test"]
 
@@ -531,7 +531,7 @@ make_single = partial(_make_single_env, terminate_on_success=False)
 
 
 def register_mw_envs():
-    for name in ALL_V2_ENVIRONMENTS:
+    for name in ALL_V3_ENVIRONMENTS:
         kwargs = {"name": "MT1-" + name}
         register(
             id=f"Meta-World/{name}", entry_point="metaworld:make_single", kwargs=kwargs
@@ -549,21 +549,21 @@ def register_mw_envs():
             kwargs=kwargs,
         )
 
-    for name_hid in ALL_V2_ENVIRONMENTS_GOAL_HIDDEN:
+    for name_hid in ALL_V3_ENVIRONMENTS_GOAL_HIDDEN:
         kwargs = {}
         register(
             id=f"Meta-World/{name_hid}",
-            entry_point=lambda seed: ALL_V2_ENVIRONMENTS_GOAL_HIDDEN[name_hid](
+            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[name_hid](
                 seed=seed
             ),
             kwargs=kwargs,
         )
 
-    for name_obs in ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE:
+    for name_obs in ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE:
         kwargs = {}
         register(
             id=f"Meta-World/{name_obs}",
-            entry_point=lambda seed: ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](
+            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](
                 seed=seed
             ),
             kwargs=kwargs,
@@ -582,7 +582,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=use_one_hot,
                 )
-                for idx, env_name in enumerate(list(_env_dict.MT10_V2.keys()))
+                for idx, env_name in enumerate(list(_env_dict.MT10_V3.keys()))
             ]
         ),
         kwargs=kwargs,
@@ -599,7 +599,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=use_one_hot,
                 )
-                for idx, env_name in enumerate(list(_env_dict.MT50_V2.keys()))
+                for idx, env_name in enumerate(list(_env_dict.MT50_V3.keys()))
             ]
         ),
         kwargs=kwargs,
@@ -617,7 +617,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=use_one_hot,
                 )
-                for idx, env_name in enumerate(list(_env_dict.MT50_V2.keys()))
+                for idx, env_name in enumerate(list(_env_dict.MT50_V3.keys()))
             ]
         ),
         kwargs=kwargs,
@@ -633,7 +633,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=False,
                 )
-                for idx, env_name in enumerate(list(_env_dict.ML10_V2["train"].keys()))
+                for idx, env_name in enumerate(list(_env_dict.ML10_V3["train"].keys()))
             ]
         ),
         kwargs=kwargs,
@@ -649,7 +649,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=False,
                 )
-                for idx, env_name in enumerate(list(_env_dict.ML10_V2["test"].keys()))
+                for idx, env_name in enumerate(list(_env_dict.ML10_V3["test"].keys()))
             ]
         ),
         kwargs=kwargs,
@@ -665,7 +665,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=False,
                 )
-                for idx, env_name in enumerate(list(_env_dict.ML10_V2["train"].keys()))
+                for idx, env_name in enumerate(list(_env_dict.ML10_V3["train"].keys()))
             ]
         ),
         kwargs=kwargs,
@@ -681,7 +681,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=False,
                 )
-                for idx, env_name in enumerate(list(_env_dict.ML10_V2["test"].keys()))
+                for idx, env_name in enumerate(list(_env_dict.ML10_V3["test"].keys()))
             ]
         ),
         kwargs=kwargs,
@@ -699,7 +699,7 @@ def register_mw_envs():
                     seed=None if not seed else seed + idx,
                     use_one_hot=use_one_hot,
                 )
-                for idx, env_name in enumerate(list(_env_dict.MT10_V2.keys()))
+                for idx, env_name in enumerate(list(_env_dict.MT10_V3.keys()))
             ]
         ),
         kwargs=kwargs,
@@ -782,7 +782,7 @@ __all__ = [
     "MT10",
     "ML45",
     "MT50",
-    "ALL_V2_ENVIRONMENTS_GOAL_HIDDEN",
+    "ALL_V3_ENVIRONMENTS_GOAL_HIDDEN",
     "ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE",
     "SawyerXYZEnv",
 ]

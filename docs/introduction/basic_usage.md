@@ -33,12 +33,12 @@ You may wish to only access individual environments used in the Metaworld benchm
 
 ### Seeding a Benchmark Instance
 For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
-For example, for the ML1 benchmark environment with the 'pick-place-v2' environment, you can do so in the following way:
+For example, for the ML1 benchmark environment with the 'pick-place-V3' environment, you can do so in the following way:
 ```python
 import metaworld
 
 SEED = 0  # some seed number here
-benchmark = metaworld.ML1('pick-place-v2', seed=SEED)
+benchmark = metaworld.ML1('pick-place-V3', seed=SEED)
 ```
 
 ### Running ML1 or MT1
@@ -48,9 +48,9 @@ import random
 
 print(metaworld.ML1.ENV_NAMES)  # Check out the available environments
 
-ml1 = metaworld.ML1('pick-place-v2') # Construct the benchmark, sampling tasks
+ml1 = metaworld.ML1('pick-place-V3') # Construct the benchmark, sampling tasks
 
-env = ml1.train_classes['pick-place-v2']()  # Create an environment with task `pick_place`
+env = ml1.train_classes['pick-place-V3']()  # Create an environment with task `pick_place`
 task = random.choice(ml1.train_tasks)
 env.set_task(task)  # Set task
 
@@ -111,15 +111,15 @@ environments respectively.
 
 You can access them in the following way:
 ```python
-from metaworld.envs import (ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE,
-                            ALL_V2_ENVIRONMENTS_GOAL_HIDDEN)
+from metaworld.envs import (ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE,
+                            ALL_V3_ENVIRONMENTS_GOAL_HIDDEN)
                             # these are ordered dicts where the key : value
                             # is env_name : env_constructor
 
 import numpy as np
 
-door_open_goal_observable_cls = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE["door-open-v2-goal-observable"]
-door_open_goal_hidden_cls = ALL_V2_ENVIRONMENTS_GOAL_HIDDEN["door-open-v2-goal-hidden"]
+door_open_goal_observable_cls = ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE["door-open-V3-goal-observable"]
+door_open_goal_hidden_cls = ALL_V3_ENVIRONMENTS_GOAL_HIDDEN["door-open-V3-goal-hidden"]
 
 env = door_open_goal_hidden_cls()
 env.reset()  # Reset environment
