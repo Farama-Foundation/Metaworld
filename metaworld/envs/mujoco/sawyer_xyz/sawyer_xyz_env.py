@@ -81,8 +81,7 @@ class SawyerMocapBase(MujocoEnv, metaclass=abc.ABCMeta):
 class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     _HAND_SPACE = Box(
         np.array([-0.525, .348, -.0525]),
-        np.array([+0.525, 1.025, .7]),
-        dtype=np.float64,
+        np.array([+0.525, 1.025, .7])
     )
     max_path_length = 500
 
@@ -129,7 +128,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
-            dtype=np.float64,
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -398,12 +396,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
         return Box(
             np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high)),
-            dtype=np.float64,
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         ) if self.isV2 else Box(
             np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high)),
-            dtype=np.float64,
+            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
         )
 
     @_assert_task_is_set
