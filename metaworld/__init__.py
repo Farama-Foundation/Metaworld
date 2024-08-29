@@ -31,6 +31,9 @@ from metaworld.wrappers import (
     PseudoRandomTaskSelectWrapper,
     RandomTaskSelectWrapper,
 )
+from metaworld.types import Task
+
+from .sawyer_xyz_env import SawyerXYZEnv
 
 
 class MetaWorldEnv(abc.ABC):
