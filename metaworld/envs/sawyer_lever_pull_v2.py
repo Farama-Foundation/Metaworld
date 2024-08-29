@@ -10,8 +10,8 @@ from scipy.spatial.transform import Rotation
 
 from metaworld.asset_path_utils import full_v2_path_for
 from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
-from metaworld.utils import reward_utils
 from metaworld.types import InitConfigDict
+from metaworld.utils import reward_utils
 
 
 class SawyerLeverPullEnvV2(SawyerXYZEnv):

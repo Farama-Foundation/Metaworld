@@ -15,8 +15,8 @@ from gymnasium.utils import seeding
 from gymnasium.utils.ezpickle import EzPickle
 from typing_extensions import TypeAlias
 
-from metaworld.utils import reward_utils
 from metaworld.types import XYZ, EnvironmentStateDict, ObservationDict, Task
+from metaworld.utils import reward_utils
 
 RenderMode: TypeAlias = "Literal['human', 'rgb_array', 'depth_array']"
 

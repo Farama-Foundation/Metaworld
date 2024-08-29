@@ -2,10 +2,16 @@ from metaworld.policies.sawyer_assembly_v2_policy import SawyerAssemblyV2Policy
 from metaworld.policies.sawyer_basketball_v2_policy import SawyerBasketballV2Policy
 from metaworld.policies.sawyer_bin_picking_v2_policy import SawyerBinPickingV2Policy
 from metaworld.policies.sawyer_box_close_v2_policy import SawyerBoxCloseV2Policy
-from metaworld.policies.sawyer_button_press_topdown_v2_policy import SawyerButtonPressTopdownV2Policy
-from metaworld.policies.sawyer_button_press_topdown_wall_v2_policy import SawyerButtonPressTopdownWallV2Policy
+from metaworld.policies.sawyer_button_press_topdown_v2_policy import (
+    SawyerButtonPressTopdownV2Policy,
+)
+from metaworld.policies.sawyer_button_press_topdown_wall_v2_policy import (
+    SawyerButtonPressTopdownWallV2Policy,
+)
 from metaworld.policies.sawyer_button_press_v2_policy import SawyerButtonPressV2Policy
-from metaworld.policies.sawyer_button_press_wall_v2_policy import SawyerButtonPressWallV2Policy
+from metaworld.policies.sawyer_button_press_wall_v2_policy import (
+    SawyerButtonPressWallV2Policy,
+)
 from metaworld.policies.sawyer_coffee_button_v2_policy import SawyerCoffeeButtonV2Policy
 from metaworld.policies.sawyer_coffee_pull_v2_policy import SawyerCoffeePullV2Policy
 from metaworld.policies.sawyer_coffee_push_v2_policy import SawyerCoffeePushV2Policy
@@ -21,19 +27,37 @@ from metaworld.policies.sawyer_faucet_close_v2_policy import SawyerFaucetCloseV2
 from metaworld.policies.sawyer_faucet_open_v2_policy import SawyerFaucetOpenV2Policy
 from metaworld.policies.sawyer_hammer_v2_policy import SawyerHammerV2Policy
 from metaworld.policies.sawyer_hand_insert_v2_policy import SawyerHandInsertV2Policy
-from metaworld.policies.sawyer_handle_press_side_v2_policy import SawyerHandlePressSideV2Policy
+from metaworld.policies.sawyer_handle_press_side_v2_policy import (
+    SawyerHandlePressSideV2Policy,
+)
 from metaworld.policies.sawyer_handle_press_v2_policy import SawyerHandlePressV2Policy
-from metaworld.policies.sawyer_handle_pull_side_v2_policy import SawyerHandlePullSideV2Policy
+from metaworld.policies.sawyer_handle_pull_side_v2_policy import (
+    SawyerHandlePullSideV2Policy,
+)
 from metaworld.policies.sawyer_handle_pull_v2_policy import SawyerHandlePullV2Policy
 from metaworld.policies.sawyer_lever_pull_v2_policy import SawyerLeverPullV2Policy
-from metaworld.policies.sawyer_peg_insertion_side_v2_policy import SawyerPegInsertionSideV2Policy
-from metaworld.policies.sawyer_peg_unplug_side_v2_policy import SawyerPegUnplugSideV2Policy
-from metaworld.policies.sawyer_pick_out_of_hole_v2_policy import SawyerPickOutOfHoleV2Policy
+from metaworld.policies.sawyer_peg_insertion_side_v2_policy import (
+    SawyerPegInsertionSideV2Policy,
+)
+from metaworld.policies.sawyer_peg_unplug_side_v2_policy import (
+    SawyerPegUnplugSideV2Policy,
+)
+from metaworld.policies.sawyer_pick_out_of_hole_v2_policy import (
+    SawyerPickOutOfHoleV2Policy,
+)
 from metaworld.policies.sawyer_pick_place_v2_policy import SawyerPickPlaceV2Policy
-from metaworld.policies.sawyer_pick_place_wall_v2_policy import SawyerPickPlaceWallV2Policy
-from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import SawyerPlateSlideBackSideV2Policy
-from metaworld.policies.sawyer_plate_slide_back_v2_policy import SawyerPlateSlideBackV2Policy
-from metaworld.policies.sawyer_plate_slide_side_v2_policy import SawyerPlateSlideSideV2Policy
+from metaworld.policies.sawyer_pick_place_wall_v2_policy import (
+    SawyerPickPlaceWallV2Policy,
+)
+from metaworld.policies.sawyer_plate_slide_back_side_v2_policy import (
+    SawyerPlateSlideBackSideV2Policy,
+)
+from metaworld.policies.sawyer_plate_slide_back_v2_policy import (
+    SawyerPlateSlideBackV2Policy,
+)
+from metaworld.policies.sawyer_plate_slide_side_v2_policy import (
+    SawyerPlateSlideSideV2Policy,
+)
 from metaworld.policies.sawyer_plate_slide_v2_policy import SawyerPlateSlideV2Policy
 from metaworld.policies.sawyer_push_back_v2_policy import SawyerPushBackV2Policy
 from metaworld.policies.sawyer_push_v2_policy import SawyerPushV2Policy
