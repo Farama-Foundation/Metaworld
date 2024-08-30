@@ -242,7 +242,7 @@ class MT50(Benchmark):
         )
 
         self._test_tasks = []
-        self._test_classes = None
+        self._test_classes = []
 
 
 # ML Benchmarks
