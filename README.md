@@ -5,7 +5,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/Farama-Foundation/Metaworld/main/metaworld-text-banner.svg" width="500px"/>
+    <img src="https://github.com/reginald-mclean/Metaworld/blob/newReadMe/metaworld-text-banner.svg" width="500px"/>
 </p>
 
 Meta-World is an open source benchmark for developing and evaluating multi-task and meta reinforcement learning algorithms for continuous control robotic manipulation environments, with various benchmarks to evaluate different aspects of reinforcement learning algorithms.
