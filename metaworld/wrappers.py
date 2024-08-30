@@ -98,7 +98,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[Task],
+        tasks: List[Task],
         sample_tasks_on_reset: bool = False,
         seed: Optional[int] = None,
     ):
