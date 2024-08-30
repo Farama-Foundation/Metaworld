@@ -11,7 +11,7 @@ from metaworld.policies.sawyer_door_lock_v3_policy import (
 np.set_printoptions(suppress=True)
 
 seed = 42
-env_name = "door-lock-V3"
+env_name = "door-lock-v3"
 
 random.seed(seed)
 ml1 = metaworld.MT50(seed=seed)
