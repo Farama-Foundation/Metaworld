@@ -24,7 +24,7 @@ classifiers = [
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
 dependencies = [
-    "gymnasium@git+https://github.com/Farama-Foundation/Gymnasium.git",
+    "gymnasium>=1.0.0a1",
     "mujoco<3.0.0",
     "numpy>=1.18",
     "scipy>=1.4.1",
