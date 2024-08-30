@@ -59,13 +59,15 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+    ):
         if self.sample_tasks_on_reset:
             self._set_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: int | None = None, options: dict[str, Any] | None = None
+        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
     ):
         self._set_random_task()
         return self.env.reset(seed=seed, options=options)
@@ -98,7 +100,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         env: Env,
         tasks: list[Task],
         sample_tasks_on_reset: bool = False,
-        seed: int | None = None,
+        seed: Optional[int] = None,
     ):
         super().__init__(env)
         self.sample_tasks_on_reset = sample_tasks_on_reset
@@ -107,13 +109,15 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         if seed:
             np.random.seed(seed)
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+    ):
         if self.sample_tasks_on_reset:
             self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: int | None = None, options: dict[str, Any] | None = None
+        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
     ):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
