@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import gymnasium as gym
 import numpy as np
@@ -48,7 +48,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
         env: Env,
         tasks: List[Task],
         sample_tasks_on_reset: bool = True,
-        seed: int | None = None,
+        seed: Optional[int] = None,
     ):
         super().__init__(env)
         self.tasks = tasks
