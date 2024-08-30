@@ -77,7 +77,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
 
     @property
     def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_push_wall_V3.xml")
+        return full_V3_path_for("sawyer_xyz/sawyer_push_wall_v3.xml")
 
     @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
