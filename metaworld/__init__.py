@@ -337,9 +337,11 @@ def _make_single_env(
         env_cls: type[SawyerXYZEnv], name: str, seed: int | None
     ) -> gym.Env:
         env = env_cls()
+        if seed:
+            env.seed(seed)
         env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)
-        if terminate_on_success:
-            env = AutoTerminateOnSuccessWrapper(env)
+        env = AutoTerminateOnSuccessWrapper(env)
+        env.toggle_terminate_on_success(terminate_on_success)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if use_one_hot:
             assert env_id is not None, "Need to pass env_id through constructor"
@@ -349,29 +351,9 @@ def _make_single_env(
         env = RandomTaskSelectWrapper(env, tasks, seed=seed)
         return env
 
-    if "MT1-" in name:
-        name = name.replace("MT1-", "")
-        benchmark = MT1(name, seed=seed)
-        return init_each_env(
-            env_cls=benchmark.train_classes[name], name=name, seed=seed
-        )
-    elif "ML1-" in name:
-        benchmark = ML1(
-            name.replace("ML1-train-" if "train" in name else "ML1-test-", ""),
-            seed=seed,
-        )  # type: ignore
-        if "train" in name:
-            return init_each_env(
-                env_cls=benchmark.train_classes[name.replace("ML1-train-", "")],
-                name=name + "-train",
-                seed=seed,
-            )  # type: ignore
-        elif "test" in name:
-            return init_each_env(
-                env_cls=benchmark.test_classes[name.replace("ML1-test-", "")],
-                name=name + "-test",
-                seed=seed,
-            )
+    name = name.replace("MT1-", "")
+    benchmark = MT1(name, seed=seed)
+    return init_each_env(env_cls=benchmark.train_classes[name], name=name, seed=seed)
 
 
 make_single_mt = partial(_make_single_env, terminate_on_success=False)
@@ -405,6 +387,8 @@ def _make_single_ml(
 
     def make_env(env_cls: type[SawyerXYZEnv], tasks: list) -> gym.Env:
         env = env_cls()
+        if seed:
+            env.seed(seed)
         env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)
         env = AutoTerminateOnSuccessWrapper(env)
         env.toggle_terminate_on_success(terminate_on_success)

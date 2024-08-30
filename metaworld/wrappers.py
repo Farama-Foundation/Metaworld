@@ -46,7 +46,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[Task],
+        tasks: List[Task],
         sample_tasks_on_reset: bool = True,
         seed: int | None = None,
     ):
