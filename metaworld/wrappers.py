@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 import gymnasium as gym
 import numpy as np
@@ -36,7 +36,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
 
-    tasks: list[Task]
+    tasks: List[Task]
     sample_tasks_on_reset: bool = True
 
     def _set_random_task(self):
@@ -80,7 +80,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     Doesn't sample new tasks on reset by default.
     """
 
-    tasks: list[object]
+    tasks: List[Task]
     current_task_idx: int
     sample_tasks_on_reset: bool = False
 
@@ -96,7 +96,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[object],
+        tasks: list[Task],
         sample_tasks_on_reset: bool = False,
         seed: int | None = None,
     ):
