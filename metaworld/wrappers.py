@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import gymnasium as gym
 import numpy as np
@@ -60,14 +60,14 @@ class RandomTaskSelectWrapper(gym.Wrapper):
         self.sample_tasks_on_reset = on
 
     def reset(
-        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         if self.sample_tasks_on_reset:
             self._set_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         self._set_random_task()
         return self.env.reset(seed=seed, options=options)
@@ -110,14 +110,14 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
             np.random.seed(seed)
 
     def reset(
-        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         if self.sample_tasks_on_reset:
             self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: Optional[int] = None, options: Optional[dict[str, Any]] = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
