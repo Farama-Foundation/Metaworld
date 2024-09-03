@@ -47,6 +47,16 @@ rendering/rendering
 usage/basic_usage
 ```
 
+```{toctree}
+:hidden:
+:caption: Benchmark Information
+benchmark/state_space
+benchmark/action_space
+benchmark/benchmark_descriptions
+benchmark/env_tasks_vs_task_init
+benchmark/reward_functions
+```
+
 
 ```{toctree}
 :hidden:
