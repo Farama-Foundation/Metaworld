@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import pickle
+from functools import cached_property
 from typing import Any, Callable, Literal, SupportsFloat
 
 import mujoco
@@ -35,7 +36,7 @@ class SawyerMocapBase(mjenv_gym):
         "render_fps": 80,
     }
 
-    @property
+    @cached_property
     def sawyer_observation_space(self) -> Space:
         raise NotImplementedError
 
@@ -291,7 +292,12 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self._freeze_rand_vec = True
         self._last_rand_vec = data["rand_vec"]
         del data["rand_vec"]
-        self._partially_observable = data["partially_observable"]
+        new_observability = data["partially_observable"]
+        if new_observability != self._partially_observable:
+            # Force recomputation of the observation space
+            # See https://docs.python.org/3/library/functools.html#functools.cached_property
+            del self.sawyer_observation_space
+        self._partially_observable = new_observability
         del data["partially_observable"]
         self._set_task_inner(**data)
 
@@ -512,7 +518,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             state_achieved_goal=obs[3:-3],
         )
 
-    @property
+    @cached_property
     def sawyer_observation_space(self) -> Box:
         obs_obj_max_len = 14
         obj_low = np.full(obs_obj_max_len, -np.inf, dtype=np.float64)
