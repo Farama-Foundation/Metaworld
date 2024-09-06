@@ -40,7 +40,7 @@ positions are fixed in all tasks to focus solely on the skill acquisition.
 
 ### Multi-Task (MT50)
 
-The **MT50** evaluation uses all 50 Meta-World tasks. This is the most
+The **MT50** evaluation uses all 50 Metaworld tasks. This is the most
 challenging multi-task setting and involves no evaluation on test tasks.
 As with **MT10**, the policy is provided with a one-hot vector indicating
 the current task, and object and goal positions are fixed.
@@ -58,10 +58,10 @@ ability to adapt to or learn new tasks.
 ### Meta-RL (ML1)
 
 The simplest meta-RL setting, **ML1**, involves few-shot adaptation to goal
-variation within one task. ML1 uses single Meta-World Tasks, with the
+variation within one task. ML1 uses single Metaworld Tasks, with the
 meta-training "tasks" corresponding to 50 random initial object and goal
 positions, and meta-testing on 10 held-out positions. We evaluate algorithms
-on three individual tasks from Meta-World: *reaching*, *pushing*, and *pick and
+on three individual tasks from Metaworld: *reaching*, *pushing*, and *pick and
 place*, where the variation is over reaching position or goal object position.
 The goal positions are not provided in the observation, forcing meta-RL
 algorithms to adapt to the goal through trial-and-error.
@@ -86,7 +86,7 @@ input, requiring a meta-RL algorithm to identify the tasks from experience.
 
 ### Meta-RL (ML45)
 
-The most difficult environment setting of Meta-World, **ML45**, challenges the
+The most difficult environment setting of Metaworld, **ML45**, challenges the
 agent with few-shot adaptation to new test tasks using 45 meta-training tasks.
 Similar to ML10, we hold out 5 tasks for testing and meta-train policies on 45
 tasks. Object and goal positions are randomized, and training tasks are
