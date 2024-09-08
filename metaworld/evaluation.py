@@ -1,124 +1,114 @@
 from __future__ import annotations
 
 import time
-from typing import Protocol
+from typing import Protocol, NamedTuple
 
 import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
 
+from metaworld.env_dict import ALL_V3_ENVIRONMENTS
+
+
 class Agent(Protocol):
-    def get_action_eval(obs: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        ...
+    def get_action_eval(
+        self, obs: npt.NDArray[np.float64]
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
 
 
 class MetaLearningAgent(Agent):
-    def adapt(rollouts: npt.NDArray[np.float64]) -> None:
-        ...
+    def adapt(self, rollouts: Rollout) -> None: ...
+
+
+def _get_task_names(
+    envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
+) -> list[str]:
+    metaworld_cls_to_task_name = {v: k for k, v in ALL_V3_ENVIRONMENTS.items()}
+    return [
+        metaworld_cls_to_task_name[env_class.__name__]
+        for env_class in envs.get_attr("__class__")
+    ]
 
 
 def evaluation(
     agent: Agent,
-    eval_envs: gym.vector.VectorEnv,
+    eval_envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
     num_episodes: int,
-    task_names: list[str] | None = None,
 ) -> tuple[float, float, npt.NDArray]:
     print(f"Evaluating for {num_episodes} episodes.")
+    obs: npt.NDArray[np.float64]
     obs, _ = eval_envs.reset()
-    if task_names is not None:
-        successes = {task_name: 0 for task_name in set(task_names)}
-        episodic_returns = {task_name: [] for task_name in set(task_names)}
-        envs_per_task = {
-            task_name: task_names.count(task_name) for task_name in set(task_names)
-        }
-    else:
-        successes = np.zeros(eval_envs.num_envs)
-        episodic_returns = [[] for _ in range(eval_envs.num_envs)]
+    task_names = _get_task_names(eval_envs)
+    successes = {task_name: 0 for task_name in set(task_names)}
+    episodic_returns: dict[str, list[float]] = {
+        task_name: [] for task_name in set(task_names)
+    }
+    envs_per_task = {
+        task_name: task_names.count(task_name) for task_name in set(task_names)
+    }
 
     start_time = time.time()
 
     def eval_done(returns):
-        if isinstance(returns, dict):
-            return all(
-                len(r) >= (num_episodes * envs_per_task[task_name])
-                for task_name, r in returns.items()
-            )
-        else:
-            return all(len(r) >= num_episodes for r in returns)
+        return all(
+            len(r) >= (num_episodes * envs_per_task[task_name])
+            for task_name, r in returns.items()
+        )
 
     while not eval_done(episodic_returns):
-        actions = agent.get_action_eval(obs)
+        actions, _ = agent.get_action_eval(obs)
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:
-                if task_names is not None:
-                    episodic_returns[task_names[i]].append(
-                        float(infos["episode"]["r"][i])
-                    )
-                    if (
-                        len(episodic_returns[task_names[i]])
-                        <= num_episodes * envs_per_task[task_names[i]]
-                    ):
-                        successes[task_names[i]] += int(infos["success"][i])
-                else:
-                    episodic_returns[i].append(float(infos["episode"]["r"][i]))
-                    if len(episodic_returns[i]) <= num_episodes:
-                        successes[i] += int(infos["success"][i])
+                episodic_returns[task_names[i]].append(float(infos["episode"]["r"][i]))
+                if (
+                    len(episodic_returns[task_names[i]])
+                    <= num_episodes * envs_per_task[task_names[i]]
+                ):
+                    successes[task_names[i]] += int(infos["success"][i])
 
-    if isinstance(episodic_returns, dict):
-        episodic_returns = {
-            task_name: returns[: (num_episodes * envs_per_task[task_name])]
-            for task_name, returns in episodic_returns.items()
-        }
-    else:
-        episodic_returns = [returns[:num_episodes] for returns in episodic_returns]
-
+    episodic_returns = {
+        task_name: returns[: (num_episodes * envs_per_task[task_name])]
+        for task_name, returns in episodic_returns.items()
+    }
     print(f"Evaluation time: {time.time() - start_time:.2f}s")
 
-    if isinstance(successes, dict):
-        success_rate_per_task = np.array(
-            [
-                successes[task_name] / (num_episodes * envs_per_task[task_name])
-                for task_name in set(task_names)
-            ]
-        )
-        mean_success_rate = np.mean(success_rate_per_task)
-        mean_returns = np.mean(list(episodic_returns.values()))
-    else:
-        success_rate_per_task = successes / num_episodes
-        mean_success_rate = np.mean(success_rate_per_task)
-        mean_returns = np.mean(episodic_returns)
+    success_rate_per_task = np.array(
+        [
+            successes[task_name] / (num_episodes * envs_per_task[task_name])
+            for task_name in set(task_names)
+        ]
+    )
+    mean_success_rate = np.mean(success_rate_per_task)
+    mean_returns = np.mean(list(episodic_returns.values()))
 
-    return mean_success_rate, mean_returns, success_rate_per_task
+    return float(mean_success_rate), float(mean_returns), success_rate_per_task
 
 
 def metalearning_evaluation(
     agent: MetaLearningAgent,
-    eval_envs: gym.vector.VectorEnv,
+    eval_envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
     adaptation_steps: int,
     max_episode_steps: int,
     adaptation_episodes: int,
     eval_episodes: int,
     num_evals: int,
-    buffer_kwargs: dict,  # TODO
-    task_names: list[str] | None = None,
 ):
+    task_names = _get_task_names(eval_envs)
+
     total_mean_success_rate = 0.0
     total_mean_return = 0.0
 
-    if task_names is not None:
-        success_rate_per_task = np.zeros((num_evals, len(set(task_names))))
-    else:
-        success_rate_per_task = np.zeros((num_evals, eval_envs.num_envs))
+    success_rate_per_task = np.zeros((num_evals, len(set(task_names))))
 
     for i in range(num_evals):
         eval_envs.call("toggle_sample_tasks_on_reset", False)
         eval_envs.call("toggle_terminate_on_success", False)
-        obs, _ = zip(*eval_envs.call("sample_tasks"))
-        obs = np.stack(obs)
-        # TODO
-        eval_buffer = MultiTaskRolloutBuffer(
+        obs: npt.NDArray[np.float64]
+        obs, _ = zip(*eval_envs.call("sample_tasks"))  # type: ignore
+        obs = np.stack(obs)  # type: ignore
+        eval_buffer = _MultiTaskRolloutBuffer(
             num_tasks=eval_envs.num_envs,
             rollouts_per_task=adaptation_episodes,
             max_episode_steps=max_episode_steps,
@@ -126,19 +116,28 @@ def metalearning_evaluation(
 
         for _ in range(adaptation_steps):
             while not eval_buffer.ready:
-                action, log_probs, means, stds, key = agent.get_action_eval(obs)
-                next_obs, reward, _, truncated, _ = eval_envs.step(action)
-                eval_buffer.push(obs, action, reward, truncated, log_probs, means, stds)
+                actions, aux_policy_outs = agent.get_action_eval(obs)
+                next_obs: npt.NDArray[np.float64]
+                next_obs, rewards, _, truncated, _ = eval_envs.step(actions)
+                eval_buffer.push(
+                    obs,
+                    actions,
+                    rewards,
+                    truncated,
+                    log_probs=aux_policy_outs.get("log_probs"),
+                    means=aux_policy_outs.get("means"),
+                    stds=aux_policy_outs.get("stds"),
+                )
                 obs = next_obs
 
-            rollouts = eval_buffer.get(**buffer_kwargs)
+            rollouts = eval_buffer.get()
             agent.adapt(rollouts)
             eval_buffer.reset()
 
         # Evaluation
         eval_envs.call("toggle_terminate_on_success", True)
         mean_success_rate, mean_return, _success_rate_per_task = evaluation(
-            agent, eval_envs, eval_episodes, task_names
+            agent, eval_envs, eval_episodes
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
@@ -153,5 +152,149 @@ def metalearning_evaluation(
         total_mean_success_rate / num_evals,
         total_mean_return / num_evals,
         task_success_rates,
-        key,
     )
+
+
+class Rollout(NamedTuple):
+    observations: npt.NDArray
+    actions: npt.NDArray
+    rewards: npt.NDArray
+    dones: npt.NDArray
+
+    # Auxilary polcy outputs
+    log_probs: npt.NDArray | None = None
+    means: npt.NDArray | None = None
+    stds: npt.NDArray | None = None
+
+
+class _MultiTaskRolloutBuffer:
+    """A buffer to accumulate rollouts for multple tasks.
+    Useful for ML1, ML10, ML45, or on-policy MTRL algorithms.
+
+    In Metaworld, all episodes are as long as the time limit (typically 500), thus in this buffer we assume
+    fixed-length episodes and leverage that for optimisations."""
+
+    rollouts: list[list[Rollout]]
+
+    def __init__(
+        self,
+        num_tasks: int,
+        rollouts_per_task: int,
+        max_episode_steps: int,
+    ):
+        self.num_tasks = num_tasks
+        self._rollouts_per_task = rollouts_per_task
+        self._max_episode_steps = max_episode_steps
+
+        self.reset()
+
+    def reset(self):
+        """Reset the buffer."""
+        self.rollouts = [[] for _ in range(self.num_tasks)]
+        self._running_rollouts = [[] for _ in range(self.num_tasks)]
+
+    @property
+    def ready(self) -> bool:
+        """Returns whether or not a full batch of rollouts for each task has been sampled."""
+        return all(len(t) == self._rollouts_per_task for t in self.rollouts)
+
+    def get_single_task(
+        self,
+        task_idx: int,
+    ) -> Rollout:
+        """Compute returns and advantages for the collected rollouts.
+
+        Returns a Rollout tuple for a single task where each array has the batch dimensions (Timestep,).
+        The timesteps are multiple rollouts flattened into one time dimension."""
+        assert task_idx < self.num_tasks, "Task index out of bounds."
+
+        task_rollouts = Rollout(
+            *map(lambda *xs: np.stack(xs), *self.rollouts[task_idx])
+        )
+
+        assert task_rollouts.observations.shape[:2] == (
+            self._rollouts_per_task,
+            self._max_episode_steps,
+        ), "Buffer does not have the expected amount of data before sampling."
+
+        return task_rollouts
+
+    def get(
+        self,
+    ) -> Rollout:
+        """Compute returns and advantages for the collected rollouts.
+
+        Returns a Rollout tuple where each array has the batch dimensions (Task,Timestep,).
+        The timesteps are multiple rollouts flattened into one time dimension."""
+        rollouts_per_task = [
+            Rollout(*map(lambda *xs: np.stack(xs), *t)) for t in self.rollouts
+        ]
+        all_rollouts = Rollout(*map(lambda *xs: np.stack(xs), *rollouts_per_task))
+        assert all_rollouts.observations.shape[:3] == (
+            self.num_tasks,
+            self._rollouts_per_task,
+            self._max_episode_steps,
+        ), "Buffer does not have the expected amount of data before sampling."
+
+        return all_rollouts
+
+    def push(
+        self,
+        obs: npt.NDArray,
+        actions: npt.NDArray,
+        rewards: npt.NDArray,
+        dones: npt.NDArray,
+        log_probs: npt.NDArray | None = None,
+        means: npt.NDArray | None = None,
+        stds: npt.NDArray | None = None,
+    ):
+        """Add a batch of timesteps to the buffer. Multiple batch dims are supported, but they
+        need to multiply to the buffer's meta batch size.
+
+        If an episode finishes here for any of the envs, pop the full rollout into the rollout buffer.
+        """
+        assert np.prod(rewards.shape) == self.num_tasks
+
+        obs = obs.copy()
+        actions = actions.copy()
+        assert obs.ndim == actions.ndim
+        if (
+            obs.ndim > 2 and actions.ndim > 2
+        ):  # Flatten outer batch dims only if they exist
+            obs = obs.reshape(-1, *obs.shape[2:])
+            actions = actions.reshape(-1, *actions.shape[2:])
+
+        rewards = rewards.reshape(-1, 1).copy()
+        dones = dones.reshape(-1, 1).copy()
+        if log_probs is not None:
+            log_probs = log_probs.reshape(-1, 1).copy()
+        if means is not None:
+            means = means.copy()
+            if means.ndim > 2:
+                means = means.reshape(-1, *means.shape[2:])
+        if stds is not None:
+            stds = stds.copy()
+            if stds.ndim > 2:
+                stds = stds.reshape(-1, *stds.shape[2:])
+
+        for i in range(self.num_tasks):
+            timestep: tuple[npt.NDArray, ...] = (
+                obs[i],
+                actions[i],
+                rewards[i],
+                dones[i],
+            )
+            if log_probs is not None:
+                timestep += (log_probs[i],)
+            if means is not None:
+                timestep += (means[i],)
+            if stds is not None:
+                timestep += (stds[i],)
+            self._running_rollouts[i].append(timestep)
+
+            if dones[i]:  # pop full rollouts into the rollouts buffer
+                rollout = Rollout(
+                    *map(lambda *xs: np.stack(xs), *self._running_rollouts[i])
+                )
+                self.rollouts[i].append(rollout)
+                self._running_rollouts[i] = []
