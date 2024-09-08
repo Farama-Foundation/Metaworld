@@ -12,6 +12,7 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
     def __init__(self, env: Env, task_idx: int, num_tasks: int):
         gym.utils.RecordConstructorArgs.__init__(self)
         gym.ObservationWrapper.__init__(self, env)
+        assert isinstance(env.observation_space, gym.spaces.Box)
         env_lb = env.observation_space.low
         env_ub = env.observation_space.high
         one_hot_ub = np.ones(num_tasks)
@@ -23,10 +24,6 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
         self._observation_space = gym.spaces.Box(
             np.concatenate([env_lb, one_hot_lb]), np.concatenate([env_ub, one_hot_ub])
         )
-
-    @property
-    def observation_space(self) -> gym.spaces.Space:
-        return self._observation_space
 
     def observation(self, obs: NDArray) -> NDArray:
         return np.concatenate([obs, self.one_hot])
@@ -48,13 +45,10 @@ class RandomTaskSelectWrapper(gym.Wrapper):
         env: Env,
         tasks: list[Task],
         sample_tasks_on_reset: bool = True,
-        seed: int | None = None,
     ):
         super().__init__(env)
         self.tasks = tasks
         self.sample_tasks_on_reset = sample_tasks_on_reset
-        if seed:
-            self.unwrapped.seed(seed)
 
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
@@ -80,7 +74,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     Doesn't sample new tasks on reset by default.
     """
 
-    tasks: list[object]
+    tasks: list[Task]
     current_task_idx: int
     sample_tasks_on_reset: bool = False
 
@@ -96,16 +90,13 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[object],
+        tasks: list[Task],
         sample_tasks_on_reset: bool = False,
-        seed: int | None = None,
     ):
         super().__init__(env)
         self.sample_tasks_on_reset = sample_tasks_on_reset
         self.tasks = tasks
         self.current_task_idx = -1
-        if seed:
-            np.random.seed(seed)
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
         if self.sample_tasks_on_reset:

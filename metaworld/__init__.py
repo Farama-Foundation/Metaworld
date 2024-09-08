@@ -6,7 +6,7 @@ import abc
 import pickle
 from collections import OrderedDict
 from functools import partial
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Literal
 
 import gymnasium as gym  # type: ignore
 import numpy as np
@@ -14,9 +14,7 @@ import numpy.typing as npt
 
 # noqa: D104
 from gymnasium.envs.registration import register
-from numpy.typing import NDArray
 
-import metaworld  # type: ignore
 import metaworld.env_dict as _env_dict
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
@@ -324,7 +322,61 @@ class ML45(Benchmark):
         )
 
 
-def _make_single_env(
+class CustomML(Benchmark):
+    """
+    A custom meta RL benchmark.
+    Provide the desired train and test env names during initialisation.
+    """
+
+    def __init__(self, train_envs: list[str], test_envs: list[str], seed=None):
+        if len(set(train_envs).intersection(set(test_envs))) != 0:
+            raise ValueError("The test tasks cannot contain any of the train tasks.")
+
+        self._train_classes = _env_dict._get_env_dict(train_envs)
+        train_kwargs = _env_dict._get_args_kwargs(
+            ALL_V3_ENVIRONMENTS, self._train_classes
+        )
+
+        self._test_classes = _env_dict._get_env_dict(test_envs)
+        test_kwargs = _env_dict._get_args_kwargs(
+            ALL_V3_ENVIRONMENTS, self._test_classes
+        )
+
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+        )
+        self._test_tasks = _make_tasks(
+            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+        )
+
+
+def _init_each_env(
+    env_cls: type[SawyerXYZEnv],
+    tasks: list[Task],
+    max_episode_steps: int | None = None,
+    terminate_on_success: bool = False,
+    use_one_hot: bool = False,
+    env_id: int | None = None,
+    num_tasks: int | None = None,
+    task_select: Literal["random", "pseudorandom"] = "random",
+) -> gym.Env:
+    env: gym.Env = env_cls()
+    env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
+    env = AutoTerminateOnSuccessWrapper(env)
+    env.toggle_terminate_on_success(terminate_on_success)
+    env = gym.wrappers.RecordEpisodeStatistics(env)
+    if use_one_hot:
+        assert env_id is not None, "Need to pass env_id through constructor"
+        assert num_tasks is not None, "Need to pass num_tasks through constructor"
+        env = OneHotWrapper(env, env_id, num_tasks)
+    if task_select != "random":
+        env = PseudoRandomTaskSelectWrapper(env, tasks)
+    else:
+        env = RandomTaskSelectWrapper(env, tasks)
+    return env
+
+
+def make_mt_envs(
     name: str,
     seed: int | None = None,
     max_episode_steps: int | None = None,
@@ -332,493 +384,265 @@ def _make_single_env(
     env_id: int | None = None,
     num_tasks: int | None = None,
     terminate_on_success: bool = False,
-) -> gym.Env:
-    def init_each_env(
-        env_cls: type[SawyerXYZEnv], name: str, seed: int | None
-    ) -> gym.Env:
-        env = env_cls()
-        env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)
-        if terminate_on_success:
-            env = AutoTerminateOnSuccessWrapper(env)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        if use_one_hot:
-            assert env_id is not None, "Need to pass env_id through constructor"
-            assert num_tasks is not None, "Need to pass num_tasks through constructor"
-            env = OneHotWrapper(env, env_id, num_tasks)
-        tasks = [task for task in benchmark.train_tasks if task.env_name in name]
-        env = RandomTaskSelectWrapper(env, tasks, seed=seed)
-        return env
-
-    if "MT1-" in name:
-        name = name.replace("MT1-", "")
+    vector_strategy: Literal["sync", "async"] = "sync",
+    task_select: Literal["random", "pseudorandom"] = "random",
+) -> gym.Env | gym.vector.VectorEnv:
+    benchmark: Benchmark
+    if name in ALL_V3_ENVIRONMENTS.keys():
         benchmark = MT1(name, seed=seed)
-        return init_each_env(
-            env_cls=benchmark.train_classes[name], name=name, seed=seed
+        tasks = [task for task in benchmark.train_tasks]
+        return _init_each_env(
+            env_cls=benchmark.train_classes[name],
+            tasks=tasks,
+            max_episode_steps=max_episode_steps,
+            use_one_hot=use_one_hot,
+            env_id=env_id,
+            num_tasks=num_tasks,
+            terminate_on_success=terminate_on_success,
         )
-    elif "ML1-" in name:
-        benchmark = ML1(
-            name.replace("ML1-train-" if "train" in name else "ML1-test-", ""),
-            seed=seed,
-        )  # type: ignore
-        if "train" in name:
-            return init_each_env(
-                env_cls=benchmark.train_classes[name.replace("ML1-train-", "")],
-                name=name + "-train",
-                seed=seed,
-            )  # type: ignore
-        elif "test" in name:
-            return init_each_env(
-                env_cls=benchmark.test_classes[name.replace("ML1-test-", "")],
-                name=name + "-test",
-                seed=seed,
+    elif name == "MT10" or name == "MT50":
+        benchmark = globals()[name](seed=seed)
+        vectorizer: type[gym.vector.VectorEnv] = getattr(
+            gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+        )
+        return vectorizer(  # type: ignore
+            [
+                partial(
+                    _init_each_env,
+                    env_cls=env_cls,
+                    tasks=[
+                        task for task in benchmark.train_tasks if task.env_name == name
+                    ],
+                    max_episode_steps=max_episode_steps,
+                    use_one_hot=use_one_hot,
+                    env_id=env_id,
+                    num_tasks=num_tasks,
+                    terminate_on_success=terminate_on_success,
+                    task_select=task_select,
+                )
+                for env_id, (name, env_cls) in enumerate(
+                    benchmark.train_classes.items()
+                )
+            ]
+        )
+    else:
+        raise ValueError(
+            "Invalid MT env name. Must either be a valid Metaworld task name (e.g. 'reach-v3'), 'MT10' or 'MT50'."
+        )
+
+
+def _make_ml_envs_inner(
+    benchmark: Benchmark,
+    meta_batch_size: int,
+    total_tasks_per_cls: int | None = None,
+    max_episode_steps: int | None = None,
+    split: Literal["train", "test"] = "train",
+    terminate_on_success: bool = False,
+    task_select: Literal["random", "pseudorandom"] = "pseudorandom",
+    vector_strategy: Literal["sync", "async"] = "sync",
+):
+    all_classes = (
+        benchmark.train_classes if split == "train" else benchmark.test_classes
+    )
+    all_tasks = benchmark.train_tasks if split == "train" else benchmark.test_tasks
+    assert (
+        meta_batch_size % len(all_classes) == 0
+    ), "meta_batch_size must be divisible by envs_per_task"
+    tasks_per_env = meta_batch_size // len(all_classes)
+
+    env_tuples = []
+    # TODO figure out how to expose task names for eval
+    # task_names = []
+    for env_name, env_cls in all_classes.items():
+        tasks = [task for task in all_tasks if task.env_name == env_name]
+        if total_tasks_per_cls is not None:
+            tasks = tasks[:total_tasks_per_cls]
+        subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
+        for tasks_for_subenv in subenv_tasks:
+            assert len(tasks_for_subenv) == len(tasks) // tasks_per_env
+            env_tuples.append((env_cls, tasks_for_subenv))
+            # task_names.append(env_name)
+
+    vectorizer: type[gym.vector.VectorEnv] = getattr(
+        gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+    )
+    return vectorizer(  # type: ignore
+        [
+            partial(
+                _init_each_env,
+                env_cls=env_cls,
+                tasks=tasks,
+                max_episode_steps=max_episode_steps,
+                terminate_on_success=terminate_on_success,
+                task_select=task_select,
             )
+            for env_cls, tasks in env_tuples
+        ]
+    )
 
 
-make_single_mt = partial(_make_single_env, terminate_on_success=False)
-
-
-def _make_single_ml(
+def make_ml_envs(
     name: str,
     seed: int,
-    tasks_per_env: int,
-    env_num: int,
-    max_episode_steps: int | None = None,
-    split: str = "train",
-    terminate_on_success: bool = False,
-    task_select: str = "random",
+    meta_batch_size: int,
     total_tasks_per_cls: int | None = None,
-):
-    benchmark = ML1(
-        name.replace("ML1-train-" if "train" in name else "ML1-test-", ""),
-        seed=seed,
-    )  # type: ignore
-    cls = (
-        benchmark.train_classes[name.replace("ML1-train-", "")]
-        if split == "train"
-        else benchmark.test_classes[name.replace("ML1-test-", "")]
+    max_episode_steps: int | None = None,
+    split: Literal["train", "test"] = "train",
+    terminate_on_success: bool = False,
+    task_select: Literal["random", "pseudorandom"] = "pseudorandom",
+    vector_strategy: Literal["sync", "async"] = "sync",
+) -> gym.vector.VectorEnv:
+    benchmark: Benchmark
+    if name in ALL_V3_ENVIRONMENTS.keys():
+        benchmark = ML1(name, seed=seed)
+    elif name == "ML10" or name == "ML45":
+        benchmark = globals()[name](seed=seed)
+    else:
+        raise ValueError(
+            "Invalid ML env name. Must either be a valid Metaworld task name (e.g. 'reach-v3'), 'ML10' or 'ML45'."
+        )
+    return _make_ml_envs_inner(
+        benchmark,
+        meta_batch_size,
+        total_tasks_per_cls,
+        max_episode_steps,
+        split,
+        terminate_on_success,
+        task_select,
+        vector_strategy,
     )
-    tasks = benchmark.train_tasks if split == "train" else benchmark.test_tasks
-
-    if total_tasks_per_cls is not None:
-        tasks = tasks[:total_tasks_per_cls]
-    tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)][env_num]
-
-    def make_env(env_cls: type[SawyerXYZEnv], tasks: list) -> gym.Env:
-        env = env_cls()
-        env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)
-        env = AutoTerminateOnSuccessWrapper(env)
-        env.toggle_terminate_on_success(terminate_on_success)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        if task_select != "random":
-            env = PseudoRandomTaskSelectWrapper(env, tasks)
-        else:
-            env = RandomTaskSelectWrapper(env, tasks)
-        return env
-
-    return make_env(cls, tasks)
 
 
-make_single_ml_train = partial(
-    _make_single_ml,
+make_ml_envs_train = partial(
+    make_ml_envs,
     terminate_on_success=False,
     task_select="pseudorandom",
     split="train",
 )
-make_single_ml_test = partial(
-    _make_single_ml, terminate_on_success=True, task_select="pseudorandom", split="test"
+make_ml_envs_test = partial(
+    make_ml_envs, terminate_on_success=True, task_select="pseudorandom", split="test"
 )
 
 
-def register_mw_envs():
-    for name in ALL_V3_ENVIRONMENTS:
-        kwargs = {"name": "MT1-" + name}
+def register_mw_envs() -> None:
+    for name in ALL_V3_ENVIRONMENTS.keys():
+        kwargs = {"name": name}
         register(
             id=f"Meta-World/{name}",
-            entry_point="metaworld:make_single_mt",
+            entry_point="metaworld:make_mt_envs",
             kwargs=kwargs,
         )
-        kwargs = {"name": "ML1-train-" + name}
         register(
             id=f"Meta-World/ML1-train-{name}",
-            entry_point="metaworld:make_single_ml_train",
+            entry_point="metaworld:make_ml_envs_train",
             kwargs=kwargs,
         )
-        kwargs = {"name": "ML1-test-" + name}
         register(
             id=f"Meta-World/ML1-test-{name}",
-            entry_point="metaworld:make_single_ml_test",
+            entry_point="metaworld:make_ml_envs_test",
             kwargs=kwargs,
         )
 
     for name_hid in ALL_V3_ENVIRONMENTS_GOAL_HIDDEN:
-        kwargs = {}
         register(
             id=f"Meta-World/{name_hid}",
-            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[name_hid](
+            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[name_hid](  # type: ignore
                 seed=seed
             ),
-            kwargs=kwargs,
+            kwargs={},
         )
 
     for name_obs in ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE:
-        kwargs = {}
         register(
             id=f"Meta-World/{name_obs}",
-            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](
+            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](  # type: ignore
                 seed=seed
             ),
-            kwargs=kwargs,
+            kwargs={},
         )
 
-    kwargs = {}
-    register(
-        id="Meta-World/MT10-sync",
-        vector_entry_point=lambda seed=None, use_one_hot=False, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=10,
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
+    for mt_bench in ["MT10", "MT50"]:
+        for vector_strategy in ["sync", "async"]:
+            register(
+                id=f"Meta-World/{mt_bench}-{vector_strategy}",
+                vector_entry_point=lambda seed=None,  # type: ignore
+                use_one_hot=False,
+                num_envs=None,
+                *args,
+                **lamb_kwargs: make_mt_envs(
+                    mt_bench,
+                    seed=seed,
                     use_one_hot=use_one_hot,
+                    vector_strategy="sync",
                     *args,
                     **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(list(_env_dict.MT10_V3.keys()))
-            ],
-        ),
-        kwargs=kwargs,
-    )
-    register(
-        id="Meta-World/MT50-sync",
-        vector_entry_point=lambda seed=None, use_one_hot=False, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=50,
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
-                    use_one_hot=use_one_hot,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(list(_env_dict.MT50_V3.keys()))
-            ]
-        ),
-        kwargs=kwargs,
-    )
+                ),
+                kwargs={},
+            )
 
-    register(
-        id="Meta-World/MT50-async",
-        vector_entry_point=lambda seed=None, use_one_hot=False, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=50,
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
-                    use_one_hot=use_one_hot,
-                    *args,
-                    **lamb_kwargs,
+    for ml_bench in ["ML10", "ML45"]:
+        for vector_strategy in ["sync", "async"]:
+            for split in ["train", "test"]:
+                env_generator = (
+                    make_ml_envs_train if split == "train" else make_ml_envs_test
                 )
-                for idx, env_name in enumerate(list(_env_dict.MT50_V3.keys()))
-            ]
-        ),
-        kwargs=kwargs,
-    )
+                register(
+                    id=f"Meta-World/{ml_bench}-{split}-{vector_strategy}",
+                    vector_entry_point=lambda seed=None,
+                    meta_batch_size=20,
+                    num_envs=None,
+                    *args,
+                    **lamb_kwargs: env_generator(
+                        ml_bench,
+                        seed=seed,
+                        meta_batch_size=meta_batch_size,
+                        vector_strategy=vector_strategy,
+                        *args,
+                        **lamb_kwargs,
+                    ),
+                )
 
-    register(
-        id="Meta-World/MT10-async",
-        vector_entry_point=lambda seed=None, use_one_hot=False, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=10,
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
-                    use_one_hot=use_one_hot,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(list(_env_dict.MT10_V3.keys()))
-            ]
-        ),
-        kwargs=kwargs,
-    )
+    for vector_strategy in ["sync", "async"]:
+        vectorizer: type[gym.vector.VectorEnv] = getattr(
+            gym.vector, f"{vector_strategy}VectorEnv"
+        )
+        register(
+            id=f"Meta-World/custom-mt-envs-{vector_strategy}",
+            vector_entry_point=lambda seed=None,
+                use_one_hot=False,
+                envs_list=None,
+                num_envs=None,
+                *args,
+                **lamb_kwargs: vectorizer(  # type: ignore
+                    [
+                        partial(
+                            make_mt_envs,
+                            env_name,
+                            num_tasks=len(envs_list),
+                            env_id=idx,
+                            seed=None if not seed else seed + idx,
+                            use_one_hot=use_one_hot,
+                            *args,
+                            **lamb_kwargs,
+                        )
+                        for idx, env_name in enumerate(envs_list)
+                    ]
+                ),
+            kwargs={},
+        )
 
-    register(
-        id="Meta-World/ML10-train-sync",
-        vector_entry_point=lambda seed=None, meta_batch_size=20, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=meta_batch_size // 10,
-                    env_num=idx % (meta_batch_size // 10),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 10)),
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML10_V3["train"].keys())
-                        * (meta_batch_size // 10)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML10-test-sync",
-        vector_entry_point=lambda seed=None, meta_batch_size=20, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_test,
-                    "ML1-test-" + env_name,
-                    tasks_per_env=meta_batch_size // 5,
-                    env_num=idx % (meta_batch_size // 5),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 5)),
-                    total_tasks_per_cls=40,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML10_V3["test"].keys()) * (meta_batch_size // 5)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML10-train-async",
-        vector_entry_point=lambda seed=None, meta_batch_size=20, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=meta_batch_size // 10,
-                    env_num=idx % (meta_batch_size // 10),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 10)),
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML10_V3["train"].keys())
-                        * (meta_batch_size // 10)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML10-test-async",
-        vector_entry_point=lambda seed=None, meta_batch_size=20, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_test,
-                    "ML1-test-" + env_name,
-                    tasks_per_env=meta_batch_size // 5,
-                    env_num=idx % (meta_batch_size // 5),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 5)),
-                    total_tasks_per_cls=40,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML10_V3["test"].keys()) * (meta_batch_size // 5)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML45-train-sync",
-        vector_entry_point=lambda seed=None, meta_batch_size=45, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=meta_batch_size // 45,
-                    env_num=idx % (meta_batch_size // 45),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 45)),
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML45_V3["train"].keys())
-                        * (meta_batch_size // 45)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML45-test-sync",
-        vector_entry_point=lambda seed=None, meta_batch_size=45, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_test,
-                    "ML1-test-" + env_name,
-                    tasks_per_env=meta_batch_size // 5,
-                    env_num=idx % (meta_batch_size // 5),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 5)),
-                    total_tasks_per_cls=45,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML45_V3["test"].keys()) * (meta_batch_size // 5)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML45-train-async",
-        vector_entry_point=lambda seed=None, meta_batch_size=45, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=meta_batch_size // 45,
-                    env_num=idx % (meta_batch_size // 45),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 45)),
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML45_V3["train"].keys())
-                        * (meta_batch_size // 45)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/ML45-test-async",
-        vector_entry_point=lambda seed=None, meta_batch_size=45, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_test,
-                    "ML1-test-" + env_name,
-                    tasks_per_env=meta_batch_size // 5,
-                    env_num=idx % (meta_batch_size // 5),
-                    seed=None if not seed else seed + (idx // (meta_batch_size // 5)),
-                    total_tasks_per_cls=45,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(
-                    sorted(
-                        list(_env_dict.ML45_V3["test"].keys()) * (meta_batch_size // 5)
-                    )
-                )
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/custom-mt-envs-sync",
-        vector_entry_point=lambda seed=None, use_one_hot=False, envs_list=None, num_envs=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=len(envs_list),
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
-                    use_one_hot=use_one_hot,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(envs_list)
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/custom-mt-envs-async",
-        vector_entry_point=lambda seed=None, use_one_hot=False, envs_list=None, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_mt,
-                    "MT1-" + env_name,
-                    num_tasks=len(envs_list),
-                    env_id=idx,
-                    seed=None if not seed else seed + idx,
-                    use_one_hot=use_one_hot,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(envs_list)
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/custom-ml-envs-sync",
-        vector_entry_point=lambda envs_list, seed=None, num_envs=None, meta_batch_size=None, *args, **lamb_kwargs: gym.vector.SyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=1,
-                    env_num=0,
-                    seed=None if not seed else seed + idx,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(envs_list)
-            ]
-        ),
-        kwargs=kwargs,
-    )
-
-    register(
-        id="Meta-World/custom-ml-envs-async",
-        vector_entry_point=lambda envs_list, seed=None, meta_batch_size=None, num_envs=None, *args, **lamb_kwargs: gym.vector.AsyncVectorEnv(
-            [
-                partial(
-                    make_single_ml_train,
-                    "ML1-train-" + env_name,
-                    tasks_per_env=1,
-                    env_num=0,
-                    seed=None if not seed else seed + idx,
-                    *args,
-                    **lamb_kwargs,
-                )
-                for idx, env_name in enumerate(envs_list)
-            ]
-        ),
-        kwargs=kwargs,
-    )
+    for vector_strategy in ["sync", "async"]:
+        register(
+            id=f"Meta-World/custom-ml-envs-{vector_strategy}",
+            vector_entry_point=lambda train_envs,
+                test_envs,
+                seed=None,
+                num_envs=None,
+                meta_batch_size=None,
+                *args,
+                **lamb_kwargs: _make_ml_envs_inner(CustomML(train_envs, test_envs, seed=seed), meta_batch_size=meta_batch_size, vector_strategy=vector_strategy, *args, **lamb_kwargs)
+            kwargs={},
+        )
 
 
 register_mw_envs()
