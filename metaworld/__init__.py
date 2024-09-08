@@ -573,7 +573,7 @@ def register_mw_envs() -> None:
                     mt_bench,
                     seed=seed,
                     use_one_hot=use_one_hot,
-                    vector_strategy="sync",
+                    vector_strategy=vector_strategy,
                     *args,
                     **lamb_kwargs,
                 ),
