@@ -8,18 +8,18 @@ firstpage:
 
 The benchmark provides a selection of tasks used to study generalization in reinforcement learning (RL).
 Different combinations of tasks provide benchmark scenarios suitable for multi-task RL and meta-RL.
-Unlike usual RL benchmarks, the training of the agent is strictly split into a training and testing phase.
+Unlike usual RL benchmarks, the training of the agent is strictly split into training and testing phases.
 
 ## Task Configuration
 
 Meta-World distinguishes between parametric and non-parametric variations.
-Parametric variations concern the configuration of the goal or object position, hence changing the location of the puck in the `push` task.
+Parametric variations concern the configuration of the goal or object position, such as changing the location of the puck in the `push` task.
 
 ```
 TODO: Add code snippets
 ```
 
-Non-parametric are implemented by the settings containing multiple task, hence where the agent is faced with challenges like `push` and `open window` that necessitate a different set of skills.
+Non-parametric variations are implemented by the settings containing multiple tasks, where the agent is faced with challenges like `push` and `open window` that necessitate a different set of skills.
 
 
 ## Multi-Task Problems
@@ -27,9 +27,10 @@ Non-parametric are implemented by the settings containing multiple task, hence w
 The multi-task setting challenges the agent to learn a predefined set of skills simultaneously.
 Below, different levels of difficulty are described.
 
+
 ### Multi-Task (MT1)
 
-In the easiest setting, **MT1**, a single task needs to be learned where the agent must, e.g,  *reach*, *push*, or *pick place* a goal object.
+In the easiest setting, **MT1**, a single task needs to be learned where the agent must, e.g., *reach*, *push*, or *pick place* a goal object.
 There is no testing of generalization involved in this setting.
 
 ```{figure} ../_static/mt1.gif
@@ -39,11 +40,9 @@ There is no testing of generalization involved in this setting.
 
 ### Multi-Task (MT10)
 
-The **MT10** evaluation uses 10 tasks: *reach*, *push*, *pick and place*,
-*open door*, *open drawer*, *close drawer*, *press button top-down*,
-*insert peg side*, *open window*, and *open box*. The policy is provided with a
-one-hot vector indicating the current task. The positions of objects and goal
-positions are fixed in all tasks to focus solely on the skill acquisition.
+The **MT10** evaluation uses 10 tasks: *reach*, *push*, *pick and place*, *open door*, *open drawer*, *close drawer*, *press button top-down*, *insert peg side*, *open window*, and *open box*.
+The policy should be provided with a one-hot vector indicating the current task.
+The positions of objects and goal positions are fixed in all tasks to focus solely on skill acquisition. <!-- TODO: check this -->
 
 ```{figure} ../_static/mt10.gif
    :alt: Multi-Task 10 
@@ -52,10 +51,9 @@ positions are fixed in all tasks to focus solely on the skill acquisition.
 
 ### Multi-Task (MT50)
 
-The **MT50** evaluation uses all 50 Meta-World tasks. This is the most
-challenging multi-task setting and involves no evaluation on test tasks.
-As with **MT10**, the policy is provided with a one-hot vector indicating
-the current task, and object and goal positions are fixed.
+The **MT50** evaluation uses all 50 Meta-World tasks.
+This is the most challenging multi-task setting and involves no evaluation on test tasks.
+As with **MT10**, the policy is provided with a one-hot vector indicating the current task, and object and goal positions are fixed.
 
 See [Task Descriptions](task_descriptions) for more details.
 

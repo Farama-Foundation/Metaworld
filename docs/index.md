@@ -50,8 +50,8 @@ usage/basic_usage
 ```{toctree}
 :hidden:
 :caption: Benchmark Information
-benchmark/state_space
 benchmark/action_space
+benchmark/state_space
 benchmark/benchmark_descriptions
 benchmark/task_descriptions.md
 benchmark/reward_functions

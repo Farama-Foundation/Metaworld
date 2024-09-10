@@ -6,7 +6,7 @@ firstpage:
 
 # Task Descriptions
 
-In the following, we list all of the 50 tasks contained in Metaworld with a small verbal description.
+In the following, we list all of the 50 tasks contained in Meta-World with a small verbal description.
 
 ## Turn on faucet
 Rotate the faucet counter-clockwise. Randomize faucet positions
