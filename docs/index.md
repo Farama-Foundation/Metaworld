@@ -54,10 +54,8 @@ benchmark/state_space
 benchmark/action_space
 benchmark/benchmark_descriptions
 benchmark/task_descriptions.md
-benchmark/env_tasks_vs_task_init
 benchmark/reward_functions
 ```
-
 
 ```{toctree}
 :hidden:
