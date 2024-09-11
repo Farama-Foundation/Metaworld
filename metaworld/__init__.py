@@ -76,7 +76,7 @@ _ML_OVERRIDE = dict(partially_observable=True)
 _MT_OVERRIDE = dict(partially_observable=False)
 """The overrides for the Multi-Task benchmarks. Enables the inclusion of the goal position in the observation."""
 
-_N_GOALS = 50
+_N_GOALS = 100
 """The number of goals to generate for each environment."""
 
 
@@ -98,6 +98,7 @@ def _make_tasks(
     args_kwargs: _env_dict.EnvArgsKwargsDict,
     kwargs_override: dict,
     seed: int | None = None,
+    num_goals: int = _N_GOALS,
 ) -> list[Task]:
     """Initialises goals for a given set of environments.
 
@@ -131,15 +132,15 @@ def _make_tasks(
         del kwargs["task_id"]
         env._set_task_inner(**kwargs)
 
-        for _ in range(_N_GOALS):  # Generate random goals
+        for _ in range(num_goals):  # Generate random goals
             env.reset()
             assert env._last_rand_vec is not None
             rand_vecs.append(env._last_rand_vec)
 
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert (
-            unique_task_rand_vecs.shape[0] == _N_GOALS
-        ), f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {_N_GOALS}"
+            unique_task_rand_vecs.shape[0] == num_goals
+        ), f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {num_goals}"
         env.close()
 
         # Create a task for each random goal
@@ -170,7 +171,7 @@ class MT1(Benchmark):
 
     ENV_NAMES = list(_env_dict.ALL_V2_ENVIRONMENTS.keys())
 
-    def __init__(self, env_name, seed=None):
+    def __init__(self, env_name, seed=None, num_goals=_N_GOALS):
         super().__init__()
         if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V2 environment")
@@ -178,13 +179,27 @@ class MT1(Benchmark):
         self._train_classes = OrderedDict([(env_name, cls)])
         self._test_classes = OrderedDict([(env_name, cls)])
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
-
         self._train_tasks = _make_tasks(
-            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed
+            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed, num_goals=num_goals
         )
 
         self._test_tasks = []
-
+        
+    def make_tasks(self, env_name, num_goals):
+        if env_name not in _env_dict.ALL_V2_ENVIRONMENTS:
+            raise ValueError(f"{env_name} is not a V2 environment")
+        cls = _env_dict.ALL_V2_ENVIRONMENTS[env_name]
+        self._eval_classes = OrderedDict([(env_name, cls)])
+        args_kwargs = _env_dict.ML1_args_kwargs[env_name]
+        self.eval_tasks = _make_tasks(
+            self._eval_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed, num_goals=num_goals
+        )
+        
+        # Create a dictionary of tasks
+        # get a task with make_tasks(...)[0] to get the first task
+        # and give the environment the task with env.set_task(task)
+        tasks = {k: task for k, task in enumerate(self.eval_tasks)}
+        return tasks
 
 class MT10(Benchmark):
     """The MT10 benchmark. Contains 10 tasks in its train set. Has an empty test set."""

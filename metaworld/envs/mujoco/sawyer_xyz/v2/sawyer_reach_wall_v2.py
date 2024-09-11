@@ -139,3 +139,6 @@ class SawyerReachWallEnvV2(SawyerXYZEnv):
         )
 
         return (10 * in_place, tcp_to_target, in_place)
+
+
+
