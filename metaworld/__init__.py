@@ -563,19 +563,29 @@ def register_mw_envs() -> None:
 
     for mt_bench in ["MT10", "MT50"]:
         for vector_strategy in ["sync", "async"]:
-            register(
-                id=f"Meta-World/{mt_bench}-{vector_strategy}",
-                vector_entry_point=lambda seed=None,  # type: ignore
+
+            def _mt_bench_vector_entry_point(
+                mt_bench: str,
+                vector_strategy: str,
+                seed=None,
                 use_one_hot=False,
                 num_envs=None,
                 *args,
-                **lamb_kwargs: make_mt_envs(  # type: ignore
+                **lamb_kwargs,
+            ):
+                return make_mt_envs(  # type: ignore
                     mt_bench,
                     seed=seed,
                     use_one_hot=use_one_hot,
                     vector_strategy=vector_strategy,  # type: ignore
                     *args,
                     **lamb_kwargs,
+                )
+
+            register(
+                id=f"Meta-World/{mt_bench}-{vector_strategy}",
+                vector_entry_point=partial(
+                    _mt_bench_vector_entry_point, mt_bench, vector_strategy
                 ),
                 kwargs={},
             )
@@ -583,70 +593,97 @@ def register_mw_envs() -> None:
     for ml_bench in ["ML10", "ML45"]:
         for vector_strategy in ["sync", "async"]:
             for split in ["train", "test"]:
-                env_generator = (
-                    make_ml_envs_train if split == "train" else make_ml_envs_test
-                )
-                register(
-                    id=f"Meta-World/{ml_bench}-{split}-{vector_strategy}",
-                    vector_entry_point=lambda seed=None,
-                    meta_batch_size=20,
+
+                def _ml_bench_vector_entry_point(
+                    split: str,
+                    ml_bench: str,
+                    vector_strategy: str,
+                    seed=None,
+                    meta_batch_size: int = 20,
                     num_envs=None,
                     *args,
-                    **lamb_kwargs: env_generator(
+                    **lamb_kwargs,
+                ):
+                    env_generator = (
+                        make_ml_envs_train if split == "train" else make_ml_envs_test
+                    )
+                    return env_generator(
                         ml_bench,
                         seed=seed,
                         meta_batch_size=meta_batch_size,
                         vector_strategy=vector_strategy,
                         *args,
                         **lamb_kwargs,
+                    )
+
+                register(
+                    id=f"Meta-World/{ml_bench}-{split}-{vector_strategy}",
+                    vector_entry_point=partial(
+                        _ml_bench_vector_entry_point, split, ml_bench, vector_strategy
                     ),
                 )
 
     for vector_strategy in ["sync", "async"]:
-        vectorizer: type[gym.vector.VectorEnv] = getattr(
-            gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
-        )
-        register(
-            id=f"Meta-World/custom-mt-envs-{vector_strategy}",
-            vector_entry_point=lambda seed=None,
-            use_one_hot=False,
-            envs_list=None,
+
+        def _custom_mt_vector_entry_point(
+            vector_strategy: str,
+            envs_list: list[str],
+            seed=None,
+            use_one_hot: bool = False,
             num_envs=None,
             *args,
-            **lamb_kwargs: vectorizer(  # type: ignore
-                [
-                    partial(  # type: ignore
-                        make_mt_envs,
-                        env_name,
-                        num_tasks=len(envs_list),
-                        env_id=idx,
-                        seed=None if not seed else seed + idx,
-                        use_one_hot=use_one_hot,
-                        *args,
-                        **lamb_kwargs,
-                    )
-                    for idx, env_name in enumerate(envs_list)
-                ]
-            ),
+            **lamb_kwargs,
+        ):
+            vectorizer: type[gym.vector.VectorEnv] = getattr(
+                gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+            )
+            return (
+                vectorizer(  # type: ignore
+                    [
+                        partial(  # type: ignore
+                            make_mt_envs,
+                            env_name,
+                            num_tasks=len(envs_list),
+                            env_id=idx,
+                            seed=None if not seed else seed + idx,
+                            use_one_hot=use_one_hot,
+                            *args,
+                            **lamb_kwargs,
+                        )
+                        for idx, env_name in enumerate(envs_list)
+                    ]
+                ),
+            )
+
+        register(
+            id=f"Meta-World/custom-mt-envs-{vector_strategy}",
+            vector_entry_point=partial(_custom_mt_vector_entry_point, vector_strategy),
             kwargs={},
         )
 
     for vector_strategy in ["sync", "async"]:
-        register(
-            id=f"Meta-World/custom-ml-envs-{vector_strategy}",
-            vector_entry_point=lambda train_envs,  # type: ignore
-            test_envs,
+
+        def _custom_ml_vector_entry_point(
+            vector_strategy: str,
+            train_envs: list[str],
+            test_envs: list[str],
+            meta_batch_size: int = 20,
             seed=None,
             num_envs=None,
-            meta_batch_size=None,
             *args,
-            **lamb_kwargs: _make_ml_envs_inner(  # type: ignore
+            **lamb_kwargs,
+        ):
+            return _make_ml_envs_inner(  # type: ignore
                 CustomML(train_envs, test_envs, seed=seed),
                 meta_batch_size=meta_batch_size,
                 vector_strategy=vector_strategy,  # type: ignore
                 *args,
                 **lamb_kwargs,
-            ),
+            )
+
+        register(
+            id=f"Meta-World/custom-ml-envs-{vector_strategy}",
+            vector_entry_point=partial(_custom_ml_vector_entry_point, vector_strategy),
             kwargs={},
         )
 
