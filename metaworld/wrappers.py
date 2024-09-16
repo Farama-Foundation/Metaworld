@@ -81,7 +81,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def _set_pseudo_random_task(self):
         self.current_task_idx = (self.current_task_idx + 1) % len(self.tasks)
         if self.current_task_idx == 0:
-            np.random.shuffle(self.tasks)
+            self.np_random.shuffle(self.tasks)
         self.unwrapped.set_task(self.tasks[self.current_task_idx])
 
     def toggle_sample_tasks_on_reset(self, on: bool):
