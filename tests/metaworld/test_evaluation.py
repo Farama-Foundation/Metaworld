@@ -3,6 +3,7 @@ import random
 import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
+import pytest
 
 import metaworld  # noqa: F401
 from metaworld import evaluation
@@ -58,13 +59,13 @@ class ScriptedPolicyAgent:
 
 def test_evaluation():
     SEED = 42
-    max_episode_steps = 100
+    max_episode_steps = 300  # To speed up the test
     num_episodes = 50
 
     random.seed(SEED)
     np.random.seed(SEED)
     envs = gym.make_vec(
-        "Meta-World/MT10-async", seed=SEED, max_episode_steps=max_episode_steps
+        "Meta-World/MT50-async", seed=SEED, max_episode_steps=max_episode_steps
     )
     agent = ScriptedPolicyAgent(envs)
     mean_success_rate, mean_returns, success_rate_per_task = evaluation.evaluation(
@@ -73,12 +74,14 @@ def test_evaluation():
     assert isinstance(mean_returns, float)
     assert mean_success_rate >= 0.80
     assert len(success_rate_per_task) == envs.num_envs
+    assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
 
 
-def test_metalearning_evaluation():
+@pytest.mark.parametrize("benchmark", ("ML10", "ML45"))
+def test_metalearning_evaluation(benchmark):
     SEED = 42
 
-    max_episode_steps = 100
+    max_episode_steps = 300
     meta_batch_size = 10  # Number of parallel envs
 
     adaptation_steps = 2  # Number of adaptation iterations
@@ -89,7 +92,7 @@ def test_metalearning_evaluation():
     random.seed(SEED)
     np.random.seed(SEED)
     envs = gym.make_vec(
-        "Meta-World/ML10-test-async",
+        f"Meta-World/{benchmark}-test-async",
         seed=SEED,
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
@@ -111,4 +114,6 @@ def test_metalearning_evaluation():
     assert isinstance(mean_returns, float)
     assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
     assert agent.adapt_calls == num_evals * adaptation_steps
+    # ML environments have partially_observable=True.
+    # The scripted policies have limited success rate in this setting.
     assert mean_success_rate + 2e-2 >= 0.60

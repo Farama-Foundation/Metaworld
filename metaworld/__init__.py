@@ -353,6 +353,7 @@ class CustomML(Benchmark):
 def _init_each_env(
     env_cls: type[SawyerXYZEnv],
     tasks: list[Task],
+    seed: int | None = None,
     max_episode_steps: int | None = None,
     terminate_on_success: bool = False,
     use_one_hot: bool = False,
@@ -361,6 +362,8 @@ def _init_each_env(
     task_select: Literal["random", "pseudorandom"] = "random",
 ) -> gym.Env:
     env: gym.Env = env_cls()
+    if seed is not None:
+        env.seed(seed)  # type: ignore
     env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
     env = AutoTerminateOnSuccessWrapper(env)
     env.toggle_terminate_on_success(terminate_on_success)
@@ -394,6 +397,7 @@ def make_mt_envs(
         return _init_each_env(
             env_cls=benchmark.train_classes[name],
             tasks=tasks,
+            seed=seed,
             max_episode_steps=max_episode_steps,
             use_one_hot=use_one_hot,
             env_id=env_id,
@@ -413,6 +417,7 @@ def make_mt_envs(
                     tasks=[
                         task for task in benchmark.train_tasks if task.env_name == name
                     ],
+                    seed=seed,
                     max_episode_steps=max_episode_steps,
                     use_one_hot=use_one_hot,
                     env_id=env_id,
@@ -434,6 +439,7 @@ def make_mt_envs(
 def _make_ml_envs_inner(
     benchmark: Benchmark,
     meta_batch_size: int,
+    seed: int | None = None,
     total_tasks_per_cls: int | None = None,
     max_episode_steps: int | None = None,
     split: Literal["train", "test"] = "train",
@@ -472,6 +478,7 @@ def _make_ml_envs_inner(
                 _init_each_env,
                 env_cls=env_cls,
                 tasks=tasks,
+                seed=seed,
                 max_episode_steps=max_episode_steps,
                 terminate_on_success=terminate_on_success,
                 task_select=task_select,
@@ -503,13 +510,14 @@ def make_ml_envs(
         )
     return _make_ml_envs_inner(
         benchmark,
-        meta_batch_size,
-        total_tasks_per_cls,
-        max_episode_steps,
-        split,
-        terminate_on_success,
-        task_select,
-        vector_strategy,
+        meta_batch_size=meta_batch_size,
+        seed=seed,
+        total_tasks_per_cls=total_tasks_per_cls,
+        max_episode_steps=max_episode_steps,
+        split=split,
+        terminate_on_success=terminate_on_success,
+        task_select=task_select,
+        vector_strategy=vector_strategy,
     )
 
 

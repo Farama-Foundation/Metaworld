@@ -35,7 +35,7 @@ def evaluation(
     agent: Agent,
     eval_envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
     num_episodes: int = 50,
-) -> tuple[float, float, npt.NDArray]:
+) -> tuple[float, float, dict[str, float]]:
     terminate_on_success = np.all(eval_envs.get_attr("terminate_on_success")).item()
     eval_envs.call("toggle_terminate_on_success", True)
 
@@ -64,10 +64,11 @@ def evaluation(
         for task_name, returns in episodic_returns.items()
     }
 
-    success_rate_per_task = np.array(
-        [successes[task_name] / num_episodes for task_name in set(task_names)]
-    )
-    mean_success_rate = np.mean(success_rate_per_task)
+    success_rate_per_task = {
+        task_name: task_successes / num_episodes
+        for task_name, task_successes in successes.items()
+    }
+    mean_success_rate = np.mean(list(success_rate_per_task.values()))
     mean_returns = np.mean(list(episodic_returns.values()))
 
     eval_envs.call("toggle_terminate_on_success", terminate_on_success)
@@ -83,7 +84,7 @@ def metalearning_evaluation(
     adaptation_episodes: int = 10,
     num_episodes: int = 50,
     num_evals: int = 1,
-):
+) -> tuple[float, float, dict[str, float]]:
     task_names = _get_task_names(eval_envs)
 
     total_mean_success_rate = 0.0
@@ -136,7 +137,7 @@ def metalearning_evaluation(
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
-        success_rate_per_task[i] = _success_rate_per_task
+        success_rate_per_task[i] = np.array(list(_success_rate_per_task.values()))
 
     success_rates = (success_rate_per_task).mean(axis=0)
     task_success_rates = {
