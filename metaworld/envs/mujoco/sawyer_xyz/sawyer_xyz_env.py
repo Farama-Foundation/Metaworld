@@ -46,8 +46,8 @@ class SawyerMocapBase(mjenv_gym):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        height: int = 84,
-        width: int = 84,
+        height: int = 224,
+        width: int = 224,
     ) -> None:
         mjenv_gym.__init__(
             self,
@@ -457,6 +457,24 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         assert isinstance(self._target_pos, np.ndarray)
         assert self._target_pos.ndim == 1
         return self._target_pos
+    
+    def get_arm_state(self) -> npt.NDArray[np.float64]:
+        """Same as below _get_curr_obs_combined_no_goal but without object position"""
+        pos_hand = self.get_endeff_pos()
+        vel_hand = self.data.body("hand").cvel
+        finger_right, finger_left = (
+            self.data.body("rightclaw"),
+            self.data.body("leftclaw"),
+        )
+
+        gripper_distance_apart = np.linalg.norm(finger_right.xpos - finger_left.xpos)
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0.0, 1.0)
+        lgrip = self.data.body("leftclaw").xpos
+        rgrip = self.data.body("rightclaw").xpos
+        lgrip_vel = self.data.body("leftclaw").cvel
+        rgrip_vel = self.data.body("rightclaw").cvel
+        
+        return np.hstack((pos_hand, gripper_distance_apart, lgrip, rgrip,))# vel_hand, lgrip_vel, rgrip_vel))
 
     def _get_curr_obs_combined_no_goal(self) -> npt.NDArray[np.float64]:
         """Combines the end effector's {pos, closed amount} and the object(s)' {pos, quat} into a single flat observation.
