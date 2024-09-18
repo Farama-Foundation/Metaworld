@@ -59,6 +59,21 @@ class ScriptedPolicyAgent:
         self.adapt_calls += 1
 
 
+class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):
+    def get_attr(self, name):
+        return self.env.get_attr(name)
+
+    def set_attr(self, name, values):
+        return self.env.set_attr(name, values)
+
+    def call(self, name, *args, **kwargs):
+        return self.env.call(name, *args, **kwargs)
+
+    def step(self, actions):
+        self.env.set_attr("_partially_observable", False)
+        return super().step(actions)
+
+
 def test_evaluation():
     SEED = 42
     max_episode_steps = 300  # To speed up the test
@@ -99,6 +114,7 @@ def test_metalearning_evaluation(benchmark):
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
     )
+    envs = RemovePartialObservabilityWrapper(envs)
     agent = ScriptedPolicyAgent(envs, adaptation_episodes, max_episode_steps)
     (
         mean_success_rate,
@@ -114,8 +130,7 @@ def test_metalearning_evaluation(benchmark):
         num_evals=num_evals,
     )
     assert isinstance(mean_returns, float)
+    assert mean_success_rate >= 0.80
     assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
+    assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
     assert agent.adapt_calls == num_evals * adaptation_steps
-    # ML environments have partially_observable=True.
-    # The scripted policies have limited success rate in this setting.
-    assert mean_success_rate + 2e-2 >= 0.60
