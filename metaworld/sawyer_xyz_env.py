@@ -243,6 +243,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.init_qvel = np.copy(self.data.qvel)
         self._prev_obs = self._get_curr_obs_combined_no_goal()
 
+        self.task_name = self.__class__.__name__
+
         EzPickle.__init__(
             self,
             self.model_name,
