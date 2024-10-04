@@ -183,8 +183,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         render_mode: RenderMode | None = None,
         camera_id: int | None = None,
         camera_name: str | None = None,
-        height: int = 96,
-        width: int = 96,
+        height: int = 224,
+        width: int = 224,
     ) -> None:
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -473,8 +473,15 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         rgrip = self.data.body("rightclaw").xpos
         lgrip_vel = self.data.body("leftclaw").cvel
         rgrip_vel = self.data.body("rightclaw").cvel
+        # print(pos_hand.shape) # 3
+        # print(vel_hand.shape) # 6
+        # print(gripper_distance_apart.shape) # ()
+        # print(lgrip.shape) # 3
+        # print(rgrip.shape) # 3
+        # print(lgrip_vel.shape) # 6
         
-        return np.hstack((pos_hand, gripper_distance_apart, lgrip, rgrip,))# vel_hand, lgrip_vel, rgrip_vel))
+        # return np.hstack((pos_hand, vel_hand, gripper_distance_apart, lgrip, rgrip, lgrip_vel, rgrip_vel))
+        return np.hstack((pos_hand, gripper_distance_apart, lgrip, rgrip))
 
     def _get_curr_obs_combined_no_goal(self) -> npt.NDArray[np.float64]:
         """Combines the end effector's {pos, closed amount} and the object(s)' {pos, quat} into a single flat observation.
