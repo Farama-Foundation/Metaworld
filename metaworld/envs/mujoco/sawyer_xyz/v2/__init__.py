@@ -72,7 +72,7 @@ from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_handle_pull_v2 import (
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_lever_pull_v2 import (
     SawyerLeverPullEnvV2,
 )
-from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_peg_insertion_side_v2 import (
+from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_peg_insert_side_v2 import (
     SawyerPegInsertionSideEnvV2,
 )
 from metaworld.envs.mujoco.sawyer_xyz.v2.sawyer_peg_unplug_side_v2 import (
