@@ -13,7 +13,7 @@ from metaworld.envs.mujoco.utils import reward_utils
 from metaworld.types import InitConfigDict
 
 
-class SawyerPegInsertSideEnvV2(SawyerXYZEnv):
+class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
     TARGET_RADIUS: float = 0.07
     """
     Motivation for V2:
