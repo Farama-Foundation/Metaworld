@@ -43,7 +43,7 @@ def sample_spherical(num_points, radius=1.0):
 
 @pytest.mark.parametrize("target", sample_spherical(100, 10.0))
 def test_reaching_limit(target):
-    env = ALL_V3_ENVIRONMENTS["reach-V3"]()
+    env = ALL_V3_ENVIRONMENTS["reach-v3"]()
     env._partially_observable = False
     env._freeze_rand_vec = False
     env._set_task_called = True

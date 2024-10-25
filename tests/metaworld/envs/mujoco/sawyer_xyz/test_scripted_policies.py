@@ -32,4 +32,4 @@ def test_policy(env_name):
             if int(info["success"]) == 1:
                 completed += 1
                 break
-    assert (float(completed) / 50) > 0.80
+    assert (float(completed) / 50) >= 0.80

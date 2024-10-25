@@ -63,7 +63,7 @@ def test_observable_goal_envs():
 
 def test_seeding_observable():
     door_open_goal_observable_cls = ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[
-        "door-open-V3-goal-observable"
+        "door-open-v3-goal-observable"
     ]
 
     env1 = door_open_goal_observable_cls(seed=5)
@@ -106,7 +106,7 @@ def test_seeding_observable():
 
 def test_seeding_hidden():
     door_open_goal_hidden_cls = ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[
-        "door-open-V3-goal-hidden"
+        "door-open-v3-goal-hidden"
     ]
 
     env1 = door_open_goal_hidden_cls(seed=5)

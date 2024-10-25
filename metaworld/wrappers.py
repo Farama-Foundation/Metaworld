@@ -35,7 +35,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
 
-    tasks: list[Task]
+    tasks: List[Task]
     sample_tasks_on_reset: bool = True
 
     def _set_random_task(self):
@@ -45,7 +45,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def __init__(
         self,
         env: Env,
-        tasks: list[Task],
+        tasks: List[Task],
         sample_tasks_on_reset: bool = True,
     ):
         super().__init__(env)
@@ -55,13 +55,15 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
+    ):
         if self.sample_tasks_on_reset:
             self._set_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: int | None = None, options: dict[str, Any] | None = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         self._set_random_task()
         return self.env.reset(seed=seed, options=options)
@@ -100,13 +102,15 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         self.tasks = tasks
         self.current_task_idx = -1
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
+    ):
         if self.sample_tasks_on_reset:
             self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
 
     def sample_tasks(
-        self, *, seed: int | None = None, options: dict[str, Any] | None = None
+        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
     ):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
