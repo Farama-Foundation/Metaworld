@@ -12,7 +12,7 @@ from metaworld import evaluation
 from metaworld.policies import ENV_POLICY_MAP
 
 
-class ScriptedPolicyAgent:
+class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
     def __init__(
         self,
         envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
@@ -25,7 +25,7 @@ class ScriptedPolicyAgent:
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
 
-    def get_action_eval(
+    def eval_action(
         self, obs: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
         actions: list[npt.NDArray[np.float32]] = []

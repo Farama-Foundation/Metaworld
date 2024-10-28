@@ -401,7 +401,7 @@ def make_mt_envs(
             max_episode_steps=max_episode_steps,
             use_one_hot=use_one_hot,
             env_id=env_id,
-            num_tasks=num_tasks,
+            num_tasks=num_tasks or 1,
             terminate_on_success=terminate_on_success,
         )
     elif name == "MT10" or name == "MT50":
@@ -409,6 +409,7 @@ def make_mt_envs(
         vectorizer: type[gym.vector.VectorEnv] = getattr(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
+        default_num_tasks = 10 if name == "MT10" else 50
         return vectorizer(  # type: ignore
             [
                 partial(
@@ -421,7 +422,7 @@ def make_mt_envs(
                     max_episode_steps=max_episode_steps,
                     use_one_hot=use_one_hot,
                     env_id=env_id,
-                    num_tasks=num_tasks,
+                    num_tasks=num_tasks or default_num_tasks,
                     terminate_on_success=terminate_on_success,
                     task_select=task_select,
                 )
@@ -457,17 +458,16 @@ def _make_ml_envs_inner(
     tasks_per_env = meta_batch_size // len(all_classes)
 
     env_tuples = []
-    # TODO figure out how to expose task names for eval
-    # task_names = []
     for env_name, env_cls in all_classes.items():
         tasks = [task for task in all_tasks if task.env_name == env_name]
         if total_tasks_per_cls is not None:
             tasks = tasks[:total_tasks_per_cls]
         subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
         for tasks_for_subenv in subenv_tasks:
-            assert len(tasks_for_subenv) == len(tasks) // tasks_per_env
+            assert (
+                len(tasks_for_subenv) == len(tasks) // tasks_per_env
+            ), f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
             env_tuples.append((env_cls, tasks_for_subenv))
-            # task_names.append(env_name)
 
     vectorizer: type[gym.vector.VectorEnv] = getattr(
         gym.vector, f"{vector_strategy.capitalize()}VectorEnv"

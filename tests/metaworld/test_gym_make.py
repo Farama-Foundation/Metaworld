@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from typing import Literal
 
@@ -159,7 +161,11 @@ def test_ml_benchmarks(
     vector_strategy: str,
 ):
     meta_batch_size = 20 if benchmark != "ML45" else 45
-    total_tasks_per_cls = _N_GOALS if benchmark != "ML45" else 45
+    total_tasks_per_cls = _N_GOALS
+    if benchmark == "ML45":
+        total_tasks_per_cls = 45
+    elif benchmark == "ML10" and split == "test":
+        total_tasks_per_cls = 40
     max_episode_steps = 10
 
     envs = gym.make_vec(

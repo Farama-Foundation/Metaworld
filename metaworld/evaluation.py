@@ -10,7 +10,7 @@ from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 
 
 class Agent(Protocol):
-    def get_action_eval(
+    def eval_action(
         self, obs: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
         ...
@@ -51,7 +51,7 @@ def evaluation(
         return all(len(r) >= num_episodes for _, r in returns.items())
 
     while not eval_done(episodic_returns):
-        actions, _ = agent.get_action_eval(obs)
+        actions, _ = agent.eval_action(obs)
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:
@@ -108,7 +108,7 @@ def metalearning_evaluation(
 
         for _ in range(adaptation_steps):
             while not eval_buffer.ready:
-                actions, aux_policy_outs = agent.get_action_eval(obs)
+                actions, aux_policy_outs = agent.eval_action(obs)
                 next_obs: npt.NDArray[np.float64]
                 rewards: npt.NDArray[np.float64]
                 next_obs, rewards, terminations, truncations, _ = eval_envs.step(
@@ -157,14 +157,14 @@ class Rollout(NamedTuple):
     rewards: npt.NDArray
     dones: npt.NDArray
 
-    # Auxilary polcy outputs
+    # Auxiliary policy outputs
     log_probs: npt.NDArray | None = None
     means: npt.NDArray | None = None
     stds: npt.NDArray | None = None
 
 
 class _MultiTaskRolloutBuffer:
-    """A buffer to accumulate rollouts for multple tasks.
+    """A buffer to accumulate rollouts for multiple tasks.
     Useful for ML1, ML10, ML45, or on-policy MTRL algorithms.
 
     In Metaworld, all episodes are as long as the time limit (typically 500), thus in this buffer we assume
