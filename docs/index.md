@@ -45,15 +45,14 @@ rendering/rendering
 :hidden:
 :caption: Benchmark Information
 benchmark/environment_creation
-benchmark/state_space
 benchmark/action_space
+benchmark/state_space
 benchmark/benchmark_descriptions
-benchmark/env_tasks_vs_task_init
+benchmark/task_descriptions.md
 benchmark/reward_functions
 benchmark/expert_trajectories
 benchmark/resetting
 ```
-
 
 ```{toctree}
 :hidden:
