@@ -20,8 +20,8 @@ Below, different levels of difficulty are described.
 In the easiest setting, **MT1**, a single task needs to be learned where the agent must *reach*, *push*, or *pick and place* a goal object.
 There is no testing of generalization involved in this setting.
 
-```{figure} _static/mt1.gif
-   :alt: Multi-Task 1 
+```{figure} ../_static/mt1.gif
+   :alt: Multi-Task 1
    :width: 500
 ```
 
@@ -32,8 +32,8 @@ There is no testing of generalization involved in this setting.
 
 
 
-```{figure} _static/mt10.gif
-   :alt: Multi-Task 10 
+```{figure} ../_static/mt10.gif
+   :alt: Multi-Task 10
    :width: 500
 ```
 
@@ -56,8 +56,8 @@ For the test evaluation, unseen goal locations are used to measure generalizatio
 
 
 
-```{figure} _static/ml1.gif
-   :alt: Meta-RL 1 
+```{figure} ../_static/ml1.gif
+   :alt: Meta-RL 1
    :width: 500
 ```
 
@@ -66,8 +66,8 @@ For the test evaluation, unseen goal locations are used to measure generalizatio
 
 The meta-learning setting with 10 tasks, **ML10**, involves training on 10 manipulation tasks and evaluating on 5 unseen tasks during the test phase.
 
-```{figure} _static/ml10.gif
-   :alt: Meta-RL 10 
+```{figure} ../_static/ml10.gif
+   :alt: Meta-RL 10
    :width: 500
 ```
 
@@ -76,7 +76,7 @@ The meta-learning setting with 10 tasks, **ML10**, involves training on 10 manip
 The most difficult environment setting of metaworld, **ML45**, challenges the agent to be trained on 45 distinct manipulation tasks and evaluated on 5 test tasks.
 
 
-```{figure} _static/ml45.gif
-   :alt: Meta-RL 10 
+```{figure} ../_static/ml45.gif
+   :alt: Meta-RL 10
    :width: 500
 ```
