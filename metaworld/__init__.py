@@ -410,6 +410,7 @@ def make_mt_envs(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
         default_num_tasks = 10 if name == "MT10" else 50
+        print(use_one_hot)
         return vectorizer(  # type: ignore
             [
                 partial(
@@ -571,78 +572,83 @@ def register_mw_envs() -> None:
             **lamb_kwargs,
         )
 
-    for name in ALL_V3_ENVIRONMENTS.keys():
-        kwargs = {"name": name}
-        register(
-            id=f"Meta-World/{name}",
-            entry_point="metaworld:make_mt_envs",
-            kwargs=kwargs,
-        )
-        for vector_strategy in ["sync", "async"]:
-            for split in ["train", "test"]:
-                register(
-                    id=f"Meta-World/ML1-{split}-{name}-{vector_strategy}",
-                    vector_entry_point=partial(
-                        _ml_bench_vector_entry_point, name, split, vector_strategy
-                    ),
-                    kwargs={},
-                )
+    register(
+        id=f"Meta-World/MT1",
+        entry_point=lambda env_name, seed=None, vector_strategy='sync': _mt_bench_vector_entry_point(env_name, vector_strategy, seed),
+        kwargs={},
+    )
 
-    for name_hid in ALL_V3_ENVIRONMENTS_GOAL_HIDDEN:
+    for split in ["train", "test"]:
         register(
-            id=f"Meta-World/{name_hid}",
-            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[name_hid](  # type: ignore
-                seed=seed
-            ),
-            kwargs={},
-        )
+            id=f"Meta-World/ML1-{split}",
+                vector_entry_point=lambda env_name, vector_strategy='sync', seed=None, *args, _split=split, **kwargs: _ml_bench_vector_entry_point(
+                  ml_bench=env_name,
+                  split=_split,
+                  vector_strategy=vector_strategy,
+                  seed=seed,
+                  *args,
+                  **kwargs),
+            )
 
-    for name_obs in ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE:
-        register(
-            id=f"Meta-World/{name_obs}",
-            entry_point=lambda seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[name_obs](  # type: ignore
-                seed=seed
-            ),
-            kwargs={},
-        )
+    register(
+        id=f"Meta-World/goal_hidden",
+        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[env_name](  # type: ignore
+            seed=seed
+        ),
+        kwargs={},
+    )
+
+    register(
+        id=f"Meta-World/goal_observable",
+        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](  # type: ignore
+            seed=seed
+        ),
+        kwargs={},
+    )
 
     for mt_bench in ["MT10", "MT50"]:
-        for vector_strategy in ["sync", "async"]:
-            register(
-                id=f"Meta-World/{mt_bench}-{vector_strategy}",
-                vector_entry_point=partial(
-                    _mt_bench_vector_entry_point, mt_bench, vector_strategy
-                ),
-                kwargs={},
-            )
+        register(
+            id=f"Meta-World/{mt_bench}",
+            vector_entry_point=lambda vector_strategy='sync', seed=None, use_one_hot=False, *args, _mt_bench=mt_bench, **kwargs: _mt_bench_vector_entry_point(
+                                     mt_bench=_mt_bench,
+                                     vector_strategy=vector_strategy, 
+                                     seed=seed, 
+                                     use_one_hot=use_one_hot,
+                                     *args, 
+                                     **kwargs),
+            kwargs={},
+        )
+
 
     for ml_bench in ["ML10", "ML45"]:
-        for vector_strategy in ["sync", "async"]:
-            for split in ["train", "test"]:
-                register(
-                    id=f"Meta-World/{ml_bench}-{split}-{vector_strategy}",
-                    vector_entry_point=partial(
-                        _ml_bench_vector_entry_point, ml_bench, split, vector_strategy
-                    ),
-                )
-
-    for vector_strategy in ["sync", "async"]:
-
-        def _custom_mt_vector_entry_point(
-            vector_strategy: str,
-            envs_list: list[str],
-            seed=None,
-            use_one_hot: bool = False,
-            num_envs=None,
-            *args,
-            **lamb_kwargs,
-        ):
-            vectorizer: type[gym.vector.VectorEnv] = getattr(
-                gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+        for split in ["train", "test"]:
+            register(
+                id=f"Meta-World/{ml_bench}-{split}",
+                vector_entry_point=lambda vector_strategy='sync', seed=None, *args,_split=split, _ml_bench=ml_bench, **kwargs: _ml_bench_vector_entry_point(
+                                     ml_bench=_ml_bench, 
+                                     split=_split,
+                                     vector_strategy=vector_strategy,
+                                     seed=seed,
+                                     *args,
+                                     **kwargs),
             )
-            return (
-                vectorizer(  # type: ignore
-                    [
+
+
+    def _custom_mt_vector_entry_point(
+        vector_strategy: str,
+        envs_list: list[str],
+        seed=None,
+        use_one_hot: bool = False,
+        num_envs=None,
+        *args,
+        **lamb_kwargs,
+    ):
+        vectorizer: type[gym.vector.VectorEnv] = getattr(
+            gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+        )
+        return (
+            vectorizer(  # type: ignore
+            [
                         partial(  # type: ignore
                             make_mt_envs,
                             env_name,
@@ -656,39 +662,38 @@ def register_mw_envs() -> None:
                         for idx, env_name in enumerate(envs_list)
                     ]
                 ),
-            )
-
-        register(
-            id=f"Meta-World/custom-mt-envs-{vector_strategy}",
-            vector_entry_point=partial(_custom_mt_vector_entry_point, vector_strategy),
-            kwargs={},
         )
 
-    for vector_strategy in ["sync", "async"]:
+    register(
+        id=f"Meta-World/custom-mt-envs",
+        vector_entry_point=lambda vector_strategy, envs_list, seed=None, use_one_hot=False, num_envs=None: _custom_mt_vector_entry_point(vector_strategy, envs_list, seed, use_one_hot, num_envs),
+        kwargs={},
+    )
 
-        def _custom_ml_vector_entry_point(
-            vector_strategy: str,
-            train_envs: list[str],
-            test_envs: list[str],
-            meta_batch_size: int = 20,
-            seed=None,
-            num_envs=None,
+
+    def _custom_ml_vector_entry_point(
+        vector_strategy: str,
+        train_envs: list[str],
+        test_envs: list[str],
+        meta_batch_size: int = 20,
+        seed=None,
+        num_envs=None,
+        *args,
+        **lamb_kwargs,
+    ):
+        return _make_ml_envs_inner(  # type: ignore
+            CustomML(train_envs, test_envs, seed=seed),
+            meta_batch_size=meta_batch_size,
+            vector_strategy=vector_strategy,  # type: ignore
             *args,
             **lamb_kwargs,
-        ):
-            return _make_ml_envs_inner(  # type: ignore
-                CustomML(train_envs, test_envs, seed=seed),
-                meta_batch_size=meta_batch_size,
-                vector_strategy=vector_strategy,  # type: ignore
-                *args,
-                **lamb_kwargs,
-            )
-
-        register(
-            id=f"Meta-World/custom-ml-envs-{vector_strategy}",
-            vector_entry_point=partial(_custom_ml_vector_entry_point, vector_strategy),
-            kwargs={},
         )
+
+    register(
+        id=f"Meta-World/custom-ml-envs",
+        vector_entry_point=lambda vector_strategy, train_envs, test_envs, meta_batch_size=20, seed=None, num_envs=None: _custom_ml_vector_entry_point(vector_strategy, train_envs, test_envs, meta_batch_size, seed, num_envs),
+        kwargs={},
+    )
 
 
 register_mw_envs()
