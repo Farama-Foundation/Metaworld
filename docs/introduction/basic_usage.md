@@ -130,3 +130,5 @@ import metaworld
 
 envs = gym.make('Meta-World/mt-custom-sync', envs_list=['env_name_1-V3', 'env_name_2-V3', 'env_name_3-V3'], seed=seed)
 ```
+
+## Arguments
