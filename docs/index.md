@@ -41,6 +41,7 @@ obs, reward, terminate, truncate, info = env.step(a)
 :caption: Introduction
 
 introduction/basic_usage
+evaluation/evaluation
 installation/installation
 rendering/rendering
 usage/basic_usage
