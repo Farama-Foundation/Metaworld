@@ -82,7 +82,10 @@ def test_evaluation():
     random.seed(SEED)
     np.random.seed(SEED)
     envs = gym.make_vec(
-        "Meta-World/MT50-async", seed=SEED, max_episode_steps=max_episode_steps
+        "Meta-World/MT50",
+        seed=SEED,
+        vector_strategy="async",
+        max_episode_steps=max_episode_steps,
     )
     agent = ScriptedPolicyAgent(envs)
     mean_success_rate, mean_returns, success_rate_per_task = evaluation.evaluation(
@@ -109,8 +112,9 @@ def test_metalearning_evaluation(benchmark):
     random.seed(SEED)
     np.random.seed(SEED)
     envs = gym.make_vec(
-        f"Meta-World/{benchmark}-test-async",
+        f"Meta-World/{benchmark}-test",
         seed=SEED,
+        vector_strategy="async",
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
     )
