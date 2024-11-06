@@ -1,13 +1,13 @@
 ---
 layout: "contents"
-title: Reward Functions 
+title: Reward Functions
 firstpage:
 ---
 
 # Reward Functions
 
 Similar structures are provided with the [action](action_space) and [state space](space_space).
-Meta-World provides well-shaped reward functions for the individual tasks that are solveable by current single-task reinforcement learning approaches.
+Meta-World provides well-shaped reward functions for the individual tasks that are solvable by current single-task reinforcement learning approaches.
 To assure equivalent learning in the settings with multiple tasks, all task rewards have the same magnitude.
 
 ## Options
