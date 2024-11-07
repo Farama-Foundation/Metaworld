@@ -410,7 +410,6 @@ def make_mt_envs(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
         default_num_tasks = 10 if name == "MT10" else 50
-        print(use_one_hot)
         return vectorizer(  # type: ignore
             [
                 partial(
@@ -574,8 +573,14 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/MT1",
-        entry_point=lambda env_name, seed=None, vector_strategy="sync": _mt_bench_vector_entry_point(
-            env_name, vector_strategy, seed
+        entry_point=lambda env_name, use_one_hot=False, vector_strategy="sync", seed=None, num_envs=None, *args, **kwargs: _mt_bench_vector_entry_point(
+            env_name,  # Pass as positional argument
+            vector_strategy,
+            seed,
+            use_one_hot,
+            num_envs,
+            *args,
+            **kwargs,
         ),
         kwargs={},
     )
@@ -584,7 +589,7 @@ def register_mw_envs() -> None:
         register(
             id=f"Meta-World/ML1-{split}",
             vector_entry_point=lambda env_name, vector_strategy="sync", seed=None, *args, **kwargs: _ml_bench_vector_entry_point(
-                env_name,  # positional arguments
+                env_name,
                 split,
                 vector_strategy,
                 seed,
@@ -596,15 +601,15 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/goal_hidden",
-        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[env_name](  # type: ignore
-            seed=seed
+        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_HIDDEN[env_name + "-goal-hidden" if "-goal-hidden" not in env_name else env_name](  # type: ignore
+            seed=seed,
         ),
         kwargs={},
     )
 
     register(
         id="Meta-World/goal_observable",
-        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[env_name](  # type: ignore
+        entry_point=lambda env_name, seed: ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE[env_name + "-goal-observable" if "-goal-observable" not in env_name else env_name](  # type: ignore
             seed=seed
         ),
         kwargs={},
@@ -628,7 +633,7 @@ def register_mw_envs() -> None:
         for split in ["train", "test"]:
             register(
                 id=f"Meta-World/{ml_bench}-{split}",  # Fixed f-string
-                vector_entry_point=lambda vector_strategy="sync", seed=None, *args, _ml_bench=ml_bench, _split=split, **kwargs: _ml_bench_vector_entry_point(
+                vector_entry_point=lambda vector_strategy="sync", seed=None, *args, _ml_bench=ml_bench, _split=split, **kwargs: _ml_bench_vector_entry_point(  # Bind current values as defaults  # Bind current values as defaults
                     _ml_bench,
                     _split,
                     vector_strategy,
@@ -671,8 +676,8 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/custom-mt-envs",
-        vector_entry_point=lambda vector_strategy, envs_list, seed=None, use_one_hot=False, num_envs=None: _custom_mt_vector_entry_point(
-            vector_strategy, envs_list, seed, use_one_hot, num_envs
+        vector_entry_point=lambda vector_strategy, envs_list, seed=None, use_one_hot=False, num_envs=None, *args, **kwargs: _custom_mt_vector_entry_point(
+            vector_strategy, envs_list, seed, use_one_hot, num_envs, *args, **kwargs
         ),
         kwargs={},
     )
@@ -697,8 +702,15 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/custom-ml-envs",
-        vector_entry_point=lambda vector_strategy, train_envs, test_envs, meta_batch_size=20, seed=None, num_envs=None: _custom_ml_vector_entry_point(
-            vector_strategy, train_envs, test_envs, meta_batch_size, seed, num_envs
+        vector_entry_point=lambda vector_strategy, train_envs, test_envs, meta_batch_size=20, seed=None, num_envs=None, *args, **kwargs: _custom_ml_vector_entry_point(
+            vector_strategy,
+            train_envs,
+            test_envs,
+            meta_batch_size,
+            seed,
+            num_envs,
+            args,
+            kwargs,
         ),
         kwargs={},
     )
