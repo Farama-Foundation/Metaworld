@@ -206,6 +206,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         self._partially_observable: bool = True
 
+        self.task_name = self.__class__.__name__
+
         super().__init__(
             self.model_name,
             frame_skip=frame_skip,

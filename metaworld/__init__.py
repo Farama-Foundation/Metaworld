@@ -25,6 +25,7 @@ from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
 from metaworld.types import Task  # type: ignore
 from metaworld.wrappers import (
     AutoTerminateOnSuccessWrapper,
+    CheckpointWrapper,
     OneHotWrapper,
     PseudoRandomTaskSelectWrapper,
     RandomTaskSelectWrapper,
@@ -376,6 +377,9 @@ def _init_each_env(
         env = PseudoRandomTaskSelectWrapper(env, tasks)
     else:
         env = RandomTaskSelectWrapper(env, tasks)
+    env = CheckpointWrapper(env, f"{env_cls}_{env_id}")
+    if seed is not None:
+        env.action_space.seed(seed)
     return env
 
 

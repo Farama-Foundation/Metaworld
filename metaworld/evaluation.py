@@ -51,7 +51,7 @@ def evaluation(
         return all(len(r) >= num_episodes for _, r in returns.items())
 
     while not eval_done(episodic_returns):
-        actions, _ = agent.eval_action(obs)
+        actions = agent.eval_action(obs)
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:

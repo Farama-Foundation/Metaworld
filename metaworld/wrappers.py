@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import base64
+
 import gymnasium as gym
 import numpy as np
 from gymnasium import Env
 from numpy.typing import NDArray
 
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import Task
 
 
@@ -29,6 +32,21 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
         return np.concatenate([obs, self.one_hot])
 
 
+def _serialize_task(task: Task) -> dict:
+    return {
+        "env_name": task.env_name,
+        "data": base64.b64encode(task.data).decode("ascii"),
+    }
+
+
+def _deserialize_task(task_dict: dict[str, str]) -> Task:
+    assert "env_name" in task_dict and "data" in task_dict
+
+    return Task(
+        env_name=task_dict["env_name"], data=base64.b64decode(task_dict["data"])
+    )
+
+
 class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
@@ -47,6 +65,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
         sample_tasks_on_reset: bool = True,
     ):
         super().__init__(env)
+        self.unwrapped: SawyerXYZEnv
         self.tasks = tasks
         self.sample_tasks_on_reset = sample_tasks_on_reset
 
@@ -61,6 +80,25 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
         self._set_random_task()
         return self.env.reset(seed=seed, options=options)
+
+    def get_checkpoint(self) -> dict:
+        return {
+            "tasks": [_serialize_task(task) for task in self.tasks],
+            "rng_state": self.np_random.__getstate__(),
+            "sample_tasks_on_reset": self.sample_tasks_on_reset,
+            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
+        }
+
+    def load_checkpoint(self, ckpt: dict):
+        assert "tasks" in ckpt
+        assert "rng_state" in ckpt
+        assert "sample_tasks_on_reset" in ckpt
+        assert "env_rng_state" in ckpt
+
+        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
+        self.np_random.__setstate__(ckpt["rng_state"])
+        self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
+        set_env_rng(self.unwrapped, ckpt["env_rng_state"])
 
 
 class PseudoRandomTaskSelectWrapper(gym.Wrapper):
@@ -79,7 +117,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def _set_pseudo_random_task(self):
         self.current_task_idx = (self.current_task_idx + 1) % len(self.tasks)
         if self.current_task_idx == 0:
-            self.np_random.shuffle(self.tasks)
+            self.np_random.shuffle(self.tasks)  # pyright: ignore [reportArgumentType]
         self.unwrapped.set_task(self.tasks[self.current_task_idx])
 
     def toggle_sample_tasks_on_reset(self, on: bool):
@@ -104,6 +142,25 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
+
+    def get_checkpoint(self) -> dict:
+        return {
+            "tasks": self.tasks,
+            "current_task_idx": self.current_task_idx,
+            "sample_tasks_on_reset": self.sample_tasks_on_reset,
+            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
+        }
+
+    def load_checkpoint(self, ckpt: dict):
+        assert "tasks" in ckpt
+        assert "current_task_idx" in ckpt
+        assert "sample_tasks_on_reset" in ckpt
+        assert "env_rng_state" in ckpt
+
+        self.tasks = ckpt["tasks"]
+        self.current_task_idx = ckpt["current_task_idx"]
+        self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
+        set_env_rng(self.unwrapped, ckpt["env_rng_state"])
 
 
 class AutoTerminateOnSuccessWrapper(gym.Wrapper):
@@ -130,3 +187,53 @@ class AutoTerminateOnSuccessWrapper(gym.Wrapper):
         if self.terminate_on_success:
             terminated = info["success"] == 1.0
         return obs, reward, terminated, truncated, info
+
+
+class CheckpointWrapper(gym.Wrapper):
+    env_id: str
+
+    def __init__(self, env: gym.Env, env_id: str):
+        super().__init__(env)
+        assert hasattr(self.env, "get_checkpoint") and callable(self.env.get_checkpoint)
+        assert hasattr(self.env, "load_checkpoint") and callable(
+            self.env.load_checkpoint
+        )
+        self.env_id = env_id
+
+    def get_checkpoint(self) -> tuple[str, dict]:
+        ckpt: dict = self.env.get_checkpoint()
+        return (self.env_id, ckpt)
+
+    def load_checkpoint(self, ckpts: list[tuple[str, dict]]) -> None:
+        my_ckpt = None
+        for env_id, ckpt in ckpts:
+            if env_id == self.env_id:
+                my_ckpt = ckpt
+                break
+        if my_ckpt is None:
+            raise ValueError(
+                f"Could not load checkpoint, no checkpoint found with id {self.env_id}. Checkpoint IDs: ",
+                [env_id for env_id, _ in ckpts],
+            )
+        self.env.load_checkpoint(my_ckpt)
+
+
+def get_env_rng_checkpoint(env: SawyerXYZEnv) -> dict[str, dict]:
+    return {  # pyright: ignore [reportReturnType]
+        "np_random_state": env.np_random.__getstate__(),
+        "action_space_rng_state": env.action_space.np_random.__getstate__(),
+        "obs_space_rng_state": env.observation_space.np_random.__getstate__(),
+        "goal_space_rng_state": env.goal_space.np_random.__getstate__(),  # type: ignore
+    }
+
+
+def set_env_rng(env: SawyerXYZEnv, state: dict[str, dict]) -> None:
+    assert "np_random_state" in state
+    assert "action_space_rng_state" in state
+    assert "obs_space_rng_state" in state
+    assert "goal_space_rng_state" in state
+
+    env.np_random.__setstate__(state["np_random_state"])
+    env.action_space.np_random.__setstate__(state["action_space_rng_state"])
+    env.observation_space.np_random.__setstate__(state["obs_space_rng_state"])
+    env.goal_space.np_random.__setstate__(state["goal_space_rng_state"])  # type: ignore
