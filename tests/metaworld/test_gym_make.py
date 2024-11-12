@@ -42,7 +42,7 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
     max_episode_steps = 10
 
     envs = gym.make_vec(
-        "Meta-World/{benchmark}",
+        f"Meta-World/{benchmark}",
         vector_strategy=vector_strategy,
         seed=SEED,
         use_one_hot=True,
@@ -131,7 +131,7 @@ def test_ml1(env_name, split, vector_strategy):
     max_episode_steps = 10
 
     envs = gym.make_vec(
-        "Meta-World/ML1-{split}",
+        f"Meta-World/ML1-{split}",
         env_name=env_name,
         vector_strategy=vector_strategy,
         meta_batch_size=meta_batch_size,
@@ -173,7 +173,7 @@ def test_ml_benchmarks(
     max_episode_steps = 10
 
     envs = gym.make_vec(
-        "Meta-World/{benchmark}-{split}",
+        f"Meta-World/{benchmark}-{split}",
         vector_strategy=vector_strategy,
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
