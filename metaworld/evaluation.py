@@ -11,7 +11,7 @@ from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 
 class Agent(Protocol):
     def eval_action(
-        self, obs: npt.NDArray[np.float64]
+        self, observation: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
 
 
