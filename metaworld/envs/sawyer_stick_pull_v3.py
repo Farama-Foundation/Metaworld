@@ -19,6 +19,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -34,6 +35,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: StickInitConfigDict = {
             "stick_init_pos": np.array([0, 0.6, 0.02]),
@@ -175,90 +177,91 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        stick = obs[4:7]
-        end_of_stick = self._get_site_pos("stick_end")
-        container = obs[11:14] + np.array([0.05, 0.0, 0.0])
-        container_init_pos = self.obj_init_pos + np.array([0.05, 0.0, 0.0])
-        handle = obs[11:14]
-        tcp_opened: float = obs[3]
-        target = self._target_pos
-        tcp_to_stick = float(np.linalg.norm(stick - tcp))
-        handle_to_target = float(np.linalg.norm(handle - target))
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            stick = obs[4:7]
+            end_of_stick = self._get_site_pos("stick_end")
+            container = obs[11:14] + np.array([0.05, 0.0, 0.0])
+            container_init_pos = self.obj_init_pos + np.array([0.05, 0.0, 0.0])
+            handle = obs[11:14]
+            tcp_opened: float = obs[3]
+            target = self._target_pos
+            tcp_to_stick = float(np.linalg.norm(stick - tcp))
+            handle_to_target = float(np.linalg.norm(handle - target))
 
-        yz_scaling = np.array([1.0, 1.0, 2.0])
-        stick_to_container = float(np.linalg.norm((stick - container) * yz_scaling))
-        stick_in_place_margin = float(
-            np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling)
-        )
-        stick_in_place = reward_utils.tolerance(
-            stick_to_container,
-            bounds=(0, _TARGET_RADIUS),
-            margin=stick_in_place_margin,
-            sigmoid="long_tail",
-        )
+            yz_scaling = np.array([1.0, 1.0, 2.0])
+            stick_to_container = float(np.linalg.norm((stick - container) * yz_scaling))
+            stick_in_place_margin = float(
+                np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling)
+            )
+            stick_in_place = reward_utils.tolerance(
+                stick_to_container,
+                bounds=(0, _TARGET_RADIUS),
+                margin=stick_in_place_margin,
+                sigmoid="long_tail",
+            )
 
-        stick_to_target = float(np.linalg.norm(stick - target))
-        stick_in_place_margin_2 = float(np.linalg.norm(self.stick_init_pos - target))
-        stick_in_place_2 = reward_utils.tolerance(
-            stick_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=stick_in_place_margin_2,
-            sigmoid="long_tail",
-        )
+            stick_to_target = float(np.linalg.norm(stick - target))
+            stick_in_place_margin_2 = float(np.linalg.norm(self.stick_init_pos - target))
+            stick_in_place_2 = reward_utils.tolerance(
+                stick_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=stick_in_place_margin_2,
+                sigmoid="long_tail",
+            )
 
-        container_to_target = float(np.linalg.norm(container - target))
-        container_in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
-        container_in_place = reward_utils.tolerance(
-            container_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=container_in_place_margin,
-            sigmoid="long_tail",
-        )
+            container_to_target = float(np.linalg.norm(container - target))
+            container_in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
+            container_in_place = reward_utils.tolerance(
+                container_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=container_in_place_margin,
+                sigmoid="long_tail",
+            )
 
-        object_grasped = self._gripper_caging_reward(
-            action=action,
-            obj_pos=stick,
-            obj_radius=0.014,
-            pad_success_thresh=0.05,
-            object_reach_radius=0.01,
-            xz_thresh=0.01,
-            high_density=True,
-        )
+            object_grasped = self._gripper_caging_reward(
+                action=action,
+                obj_pos=stick,
+                obj_radius=0.014,
+                pad_success_thresh=0.05,
+                object_reach_radius=0.01,
+                xz_thresh=0.01,
+                high_density=True,
+            )
 
-        grasp_success = (
-            tcp_to_stick < 0.02
-            and (tcp_opened > 0)
-            and (stick[2] - 0.01 > self.stick_init_pos[2])
-        )
-        object_grasped = 1 if grasp_success else object_grasped
+            grasp_success = (
+                tcp_to_stick < 0.02
+                and (tcp_opened > 0)
+                and (stick[2] - 0.01 > self.stick_init_pos[2])
+            )
+            object_grasped = 1 if grasp_success else object_grasped
 
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, stick_in_place
-        )
-        reward = in_place_and_object_grasped
+            in_place_and_object_grasped = reward_utils.hamacher_product(
+                object_grasped, stick_in_place
+            )
+            reward = in_place_and_object_grasped
 
-        if grasp_success:
-            reward = 1.0 + in_place_and_object_grasped + 5.0 * stick_in_place
+            if grasp_success:
+                reward = 1.0 + in_place_and_object_grasped + 5.0 * stick_in_place
 
-            if self._stick_is_inserted(handle, end_of_stick):
-                reward = (
-                    1.0
-                    + in_place_and_object_grasped
-                    + 5.0
-                    + 2.0 * stick_in_place_2
-                    + 1.0 * container_in_place
-                )
+                if self._stick_is_inserted(handle, end_of_stick):
+                    reward = (
+                        1.0
+                        + in_place_and_object_grasped
+                        + 5.0
+                        + 2.0 * stick_in_place_2
+                        + 1.0 * container_in_place
+                    )
 
-                if handle_to_target <= 0.12:
-                    reward = 10.0
+                    if handle_to_target <= 0.12:
+                        reward = 10.0
 
-        return (
-            reward,
-            tcp_to_stick,
-            tcp_opened,
-            handle_to_target,
-            object_grasped,
-            stick_in_place,
-        )
+            return (
+                reward,
+                tcp_to_stick,
+                tcp_opened,
+                handle_to_target,
+                object_grasped,
+                stick_in_place,
+            )

@@ -18,6 +18,7 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -33,6 +34,7 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.8, 0.0]),
@@ -118,40 +120,41 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        del action
-        obj = obs[4:7] + np.array([-0.04, 0.0, 0.03])
-        tcp = self.tcp_center
-        target = self._target_pos.copy()
+        if self.reward_function_version == 'v2':
+            del action
+            obj = obs[4:7] + np.array([-0.04, 0.0, 0.03])
+            tcp = self.tcp_center
+            target = self._target_pos.copy()
 
-        target_to_obj = obj - target
-        target_to_obj = np.linalg.norm(target_to_obj)
-        target_to_obj_init = self.obj_init_pos - target
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
+            target_to_obj = obj - target
+            target_to_obj = np.linalg.norm(target_to_obj)
+            target_to_obj_init = self.obj_init_pos - target
+            target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self._target_radius),
-            margin=abs(target_to_obj_init - self._target_radius),
-            sigmoid="long_tail",
-        )
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self._target_radius),
+                margin=abs(target_to_obj_init - self._target_radius),
+                sigmoid="long_tail",
+            )
 
-        faucet_reach_radius = 0.01
-        tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
-        reach = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, faucet_reach_radius),
-            margin=abs(tcp_to_obj_init - faucet_reach_radius),
-            sigmoid="gaussian",
-        )
+            faucet_reach_radius = 0.01
+            tcp_to_obj = float(np.linalg.norm(obj - tcp))
+            tcp_to_obj_init = np.linalg.norm(self.obj_init_pos - self.init_tcp)
+            reach = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, faucet_reach_radius),
+                margin=abs(tcp_to_obj_init - faucet_reach_radius),
+                sigmoid="gaussian",
+            )
 
-        tcp_opened = 0
-        object_grasped = reach
+            tcp_opened = 0
+            object_grasped = reach
 
-        reward = 2 * reach + 3 * in_place
+            reward = 2 * reach + 3 * in_place
 
-        reward *= 2
+            reward *= 2
 
-        reward = 10 if target_to_obj <= self._target_radius else reward
+            reward = 10 if target_to_obj <= self._target_radius else reward
 
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

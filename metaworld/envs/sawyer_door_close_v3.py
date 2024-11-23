@@ -19,6 +19,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (0.2, 0.65, 0.1499)
         goal_high = (0.3, 0.75, 0.1501)
@@ -34,6 +35,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -111,34 +113,35 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.hand_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        target = self._target_pos
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            obj = obs[4:7]
+            target = self._target_pos
 
-        tcp_to_target = float(np.linalg.norm(tcp - target))
-        # tcp_to_obj = float(np.linalg.norm(tcp - obj))
-        obj_to_target = float(np.linalg.norm(obj - target))
+            tcp_to_target = float(np.linalg.norm(tcp - target))
+            # tcp_to_obj = float(np.linalg.norm(tcp - obj))
+            obj_to_target = float(np.linalg.norm(obj - target))
 
-        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="gaussian",
-        )
+            in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=in_place_margin,
+                sigmoid="gaussian",
+            )
 
-        hand_margin = float(np.linalg.norm(self.hand_init_pos - obj)) + 0.1
-        hand_in_place = reward_utils.tolerance(
-            tcp_to_target,
-            bounds=(0, 0.25 * _TARGET_RADIUS),
-            margin=hand_margin,
-            sigmoid="gaussian",
-        )
+            hand_margin = float(np.linalg.norm(self.hand_init_pos - obj)) + 0.1
+            hand_in_place = reward_utils.tolerance(
+                tcp_to_target,
+                bounds=(0, 0.25 * _TARGET_RADIUS),
+                margin=hand_margin,
+                sigmoid="gaussian",
+            )
 
-        reward = 3 * hand_in_place + 6 * in_place
+            reward = 3 * hand_in_place + 6 * in_place
 
-        if obj_to_target < _TARGET_RADIUS:
-            reward = 10
+            if obj_to_target < _TARGET_RADIUS:
+                reward = 10
 
-        return (reward, obj_to_target, hand_in_place)
+            return (reward, obj_to_target, hand_in_place)

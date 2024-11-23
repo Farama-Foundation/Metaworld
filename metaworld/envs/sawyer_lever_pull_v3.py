@@ -35,6 +35,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -48,6 +49,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
@@ -123,64 +125,65 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float]:
         assert self._lever_pos_init is not None
-        gripper = obs[:3]
-        lever = obs[4:7]
+        if self.reward_function_version == 'v2':
+            gripper = obs[:3]
+            lever = obs[4:7]
 
-        # De-emphasize y error so that we get Sawyer's shoulder underneath the
-        # lever prior to bumping on against
-        scale = np.array([4.0, 1.0, 4.0])
-        # Offset so that we get the Sawyer's shoulder underneath the lever,
-        # rather than its fingers
-        offset = np.array([0.0, 0.055, 0.07])
+            # De-emphasize y error so that we get Sawyer's shoulder underneath the
+            # lever prior to bumping on against
+            scale = np.array([4.0, 1.0, 4.0])
+            # Offset so that we get the Sawyer's shoulder underneath the lever,
+            # rather than its fingers
+            offset = np.array([0.0, 0.055, 0.07])
 
-        shoulder_to_lever = (gripper + offset - lever) * scale
-        shoulder_to_lever_init = (self.init_tcp + offset - self._lever_pos_init) * scale
+            shoulder_to_lever = (gripper + offset - lever) * scale
+            shoulder_to_lever_init = (self.init_tcp + offset - self._lever_pos_init) * scale
 
-        # This `ready_to_lift` reward should be a *hint* for the agent, not an
-        # end in itself. Make sure to devalue it compared to the value of
-        # actually lifting the lever
-        ready_to_lift = reward_utils.tolerance(
-            float(np.linalg.norm(shoulder_to_lever)),
-            bounds=(0, 0.02),
-            margin=np.linalg.norm(shoulder_to_lever_init),
-            sigmoid="long_tail",
-        )
+            # This `ready_to_lift` reward should be a *hint* for the agent, not an
+            # end in itself. Make sure to devalue it compared to the value of
+            # actually lifting the lever
+            ready_to_lift = reward_utils.tolerance(
+                float(np.linalg.norm(shoulder_to_lever)),
+                bounds=(0, 0.02),
+                margin=np.linalg.norm(shoulder_to_lever_init),
+                sigmoid="long_tail",
+            )
 
-        # The skill of the agent should be measured by its ability to get the
-        # lever to point straight upward. This means we'll be measuring the
-        # current angle of the lever's joint, and comparing with 90deg.
-        lever_angle = float(-self.data.joint("LeverAxis").qpos.item())
-        lever_angle_desired = np.pi / 2.0
+            # The skill of the agent should be measured by its ability to get the
+            # lever to point straight upward. This means we'll be measuring the
+            # current angle of the lever's joint, and comparing with 90deg.
+            lever_angle = float(-self.data.joint("LeverAxis").qpos.item())
+            lever_angle_desired = np.pi / 2.0
 
-        lever_error = abs(lever_angle - lever_angle_desired)
+            lever_error = abs(lever_angle - lever_angle_desired)
 
-        # We'll set the margin to 15deg from horizontal. Angles below that will
-        # receive some reward to incentivize exploration, but we don't want to
-        # reward accidents too much. Past 15deg is probably intentional movement
-        lever_engagement = reward_utils.tolerance(
-            lever_error,
-            bounds=(0, np.pi / 48.0),
-            margin=(np.pi / 2.0) - (np.pi / 12.0),
-            sigmoid="long_tail",
-        )
+            # We'll set the margin to 15deg from horizontal. Angles below that will
+            # receive some reward to incentivize exploration, but we don't want to
+            # reward accidents too much. Past 15deg is probably intentional movement
+            lever_engagement = reward_utils.tolerance(
+                lever_error,
+                bounds=(0, np.pi / 48.0),
+                margin=(np.pi / 2.0) - (np.pi / 12.0),
+                sigmoid="long_tail",
+            )
 
-        target = self._target_pos
-        obj_to_target = float(np.linalg.norm(lever - target))
-        in_place_margin = float(np.linalg.norm(self._lever_pos_init - target))
+            target = self._target_pos
+            obj_to_target = float(np.linalg.norm(lever - target))
+            in_place_margin = float(np.linalg.norm(self._lever_pos_init - target))
 
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.04),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, 0.04),
+                margin=in_place_margin,
+                sigmoid="long_tail",
+            )
 
-        # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
-        reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
-        return (
-            reward,
-            float(np.linalg.norm(shoulder_to_lever)),
-            ready_to_lift,
-            lever_error,
-            lever_engagement,
-        )
+            # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
+            reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
+            return (
+                reward,
+                float(np.linalg.norm(shoulder_to_lever)),
+                ready_to_lift,
+                lever_error,
+                lever_engagement,
+            )

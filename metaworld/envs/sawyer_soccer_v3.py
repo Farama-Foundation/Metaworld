@@ -22,6 +22,7 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -37,6 +38,7 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.03]),
@@ -222,39 +224,40 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        obj = obs[4:7]
-        tcp_opened: float = obs[3]
-        x_scaling = np.array([3.0, 1.0, 1.0])
-        tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
-        target_to_obj = float(np.linalg.norm((obj - self._target_pos) * x_scaling))
-        target_to_obj_init = float(
-            np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
-        )
-
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=target_to_obj_init,
-            sigmoid="long_tail",
-        )
-
-        goal_line = self._target_pos[1] - 0.1
-        if obj[1] > goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
-            in_place = np.clip(
-                in_place - 2 * ((obj[1] - goal_line) / (1 - goal_line)), 0.0, 1.0
+        if self.reward_function_version == 'v2':
+            obj = obs[4:7]
+            tcp_opened: float = obs[3]
+            x_scaling = np.array([3.0, 1.0, 1.0])
+            tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
+            target_to_obj = float(np.linalg.norm((obj - self._target_pos) * x_scaling))
+            target_to_obj_init = float(
+                np.linalg.norm((obj - self.obj_init_pos) * x_scaling)
             )
 
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=target_to_obj_init,
+                sigmoid="long_tail",
+            )
 
-        reward = (3 * object_grasped) + (6.5 * in_place)
+            goal_line = self._target_pos[1] - 0.1
+            if obj[1] > goal_line and abs(obj[0] - self._target_pos[0]) > 0.10:
+                in_place = np.clip(
+                    in_place - 2 * ((obj[1] - goal_line) / (1 - goal_line)), 0.0, 1.0
+                )
 
-        if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            float(np.linalg.norm(obj - self._target_pos)),
-            object_grasped,
-            in_place,
-        )
+            object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+
+            reward = (3 * object_grasped) + (6.5 * in_place)
+
+            if target_to_obj < self.TARGET_RADIUS:
+                reward = 10.0
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                float(np.linalg.norm(obj - self._target_pos)),
+                object_grasped,
+                in_place,
+            )

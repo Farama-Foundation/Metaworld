@@ -34,6 +34,7 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.05, 0.6, 0.015)
         goal_high = (0.15, 0.6, 0.015)
@@ -49,6 +50,7 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -140,35 +142,36 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.obj_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened: float = obs[3]
-        target = self._target_pos
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            obj = obs[4:7]
+            tcp_opened: float = obs[3]
+            target = self._target_pos
 
-        obj_to_target = float(np.linalg.norm(obj - target))
-        in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin - _TARGET_RADIUS,
-            sigmoid="long_tail",
-        )
+            obj_to_target = float(np.linalg.norm(obj - target))
+            in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=in_place_margin - _TARGET_RADIUS,
+                sigmoid="long_tail",
+            )
 
-        tcp_to_obj = float(np.linalg.norm(tcp - obj))
-        obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
-        object_grasped = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, _TARGET_RADIUS),
-            margin=obj_grasped_margin - _TARGET_RADIUS,
-            sigmoid="long_tail",
-        )
+            tcp_to_obj = float(np.linalg.norm(tcp - obj))
+            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
+            object_grasped = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, _TARGET_RADIUS),
+                margin=obj_grasped_margin - _TARGET_RADIUS,
+                sigmoid="long_tail",
+            )
 
-        reward = 1.5 * object_grasped
+            reward = 1.5 * object_grasped
 
-        if tcp[2] <= 0.03 and tcp_to_obj < 0.07:
-            reward = 2 + (7 * in_place)
+            if tcp[2] <= 0.03 and tcp_to_obj < 0.07:
+                reward = 2 + (7 * in_place)
 
-        if obj_to_target < _TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+            if obj_to_target < _TARGET_RADIUS:
+                reward = 10.0
+            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)

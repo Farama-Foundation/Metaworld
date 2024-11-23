@@ -21,6 +21,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -36,6 +37,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -122,51 +124,51 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.obj_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
+        if self.reward_function_version == 'v2':
+            obj = obs[4:7]
+            # Force target to be slightly above basketball hoop
+            target = self._target_pos.copy()
+            target[2] = 0.3
 
-        obj = obs[4:7]
-        # Force target to be slightly above basketball hoop
-        target = self._target_pos.copy()
-        target[2] = 0.3
+            # Emphasize Z error
+            scale = np.array([1.0, 1.0, 2.0])
+            target_to_obj = (obj - target) * scale
+            target_to_obj = float(np.linalg.norm(target_to_obj))
+            target_to_obj_init = (self.obj_init_pos - target) * scale
+            target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
-        # Emphasize Z error
-        scale = np.array([1.0, 1.0, 2.0])
-        target_to_obj = (obj - target) * scale
-        target_to_obj = float(np.linalg.norm(target_to_obj))
-        target_to_obj_init = (self.obj_init_pos - target) * scale
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=target_to_obj_init,
+                sigmoid="long_tail",
+            )
+            tcp_opened = float(obs[3])
+            tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=target_to_obj_init,
-            sigmoid="long_tail",
-        )
-        tcp_opened = float(obs[3])
-        tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
+            object_grasped = self._gripper_caging_reward(
+                action,
+                obj,
+                object_reach_radius=0.01,
+                obj_radius=0.025,
+                pad_success_thresh=0.06,
+                xz_thresh=0.005,
+                high_density=True,
+            )
+            if (
+                tcp_to_obj < 0.035
+                and tcp_opened > 0
+                and obj[2] - 0.01 > self.obj_init_pos[2]
+            ):
+                object_grasped = 1.0
+            reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        object_grasped = self._gripper_caging_reward(
-            action,
-            obj,
-            object_reach_radius=0.01,
-            obj_radius=0.025,
-            pad_success_thresh=0.06,
-            xz_thresh=0.005,
-            high_density=True,
-        )
-        if (
-            tcp_to_obj < 0.035
-            and tcp_opened > 0
-            and obj[2] - 0.01 > self.obj_init_pos[2]
-        ):
-            object_grasped = 1.0
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
-
-        if (
-            tcp_to_obj < 0.035
-            and tcp_opened > 0
-            and obj[2] - 0.01 > self.obj_init_pos[2]
-        ):
-            reward += 1.0 + 5.0 * in_place
-        if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            if (
+                tcp_to_obj < 0.035
+                and tcp_opened > 0
+                and obj[2] - 0.01 > self.obj_init_pos[2]
+            ):
+                reward += 1.0 + 5.0 * in_place
+            if target_to_obj < self.TARGET_RADIUS:
+                reward = 10.0
+            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

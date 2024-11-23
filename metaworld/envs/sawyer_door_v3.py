@@ -19,6 +19,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -34,6 +35,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -177,24 +179,55 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        theta = float(self.data.joint("doorjoint").qpos.item())
+        if self.reward_function_version == 'v2':
+            theta = float(self.data.joint("doorjoint").qpos.item())
 
-        reward_grab = SawyerDoorEnvV3._reward_grab_effort(actions)
-        reward_steps = SawyerDoorEnvV3._reward_pos(obs, theta)
+            reward_grab = SawyerDoorEnvV3._reward_grab_effort(actions)
+            reward_steps = SawyerDoorEnvV3._reward_pos(obs, theta)
 
-        reward = sum(
-            (
-                2.0 * reward_utils.hamacher_product(reward_steps[0], reward_grab),
-                8.0 * reward_steps[1],
+            reward = sum(
+                (
+                    2.0 * reward_utils.hamacher_product(reward_steps[0], reward_grab),
+                    8.0 * reward_steps[1],
+                )
             )
-        )
 
-        # Override reward on success flag
-        if abs(obs[4] - self._target_pos[0]) <= 0.08:
-            reward = 10.0
+            # Override reward on success flag
+            if abs(obs[4] - self._target_pos[0]) <= 0.08:
+                reward = 10.0
 
-        return (
-            reward,
-            reward_grab,
-            *reward_steps,
-        )
+            val1, val2 = reward_steps
+
+            return reward, reward_grab, val1, val2
+        elif self.reward_function_version == 'v1':
+            del actions
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            pullGoal = self._target_pos
+
+            pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+            reachRew = -reachDist
+
+            self.reachCompleted = reachDist < 0.05
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+
+            if self.reachCompleted:
+                pullRew = 1000 * (self.maxPullDist - pullDist) + c1 * (
+                        np.exp(-(pullDist ** 2) / c2) + np.exp(-(pullDist ** 2) / c3)
+                )
+                pullRew = max(pullRew, 0)
+            else:
+                pullRew = 0
+
+            reward = reachRew + pullRew
+
+            return reward, 0., 0., 0.

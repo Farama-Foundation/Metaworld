@@ -18,6 +18,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -33,6 +34,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.85, 0.15]),
@@ -120,42 +122,43 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        del action
-        gripper = obs[:3]
-        lock = obs[4:7]
+        if self.reward_function_version == 'v2':
+            del action
+            gripper = obs[:3]
+            lock = obs[4:7]
 
-        # Add offset to track gripper's shoulder, rather than fingers
-        offset = np.array([0.0, 0.055, 0.07])
+            # Add offset to track gripper's shoulder, rather than fingers
+            offset = np.array([0.0, 0.055, 0.07])
 
-        scale = np.array([0.25, 1.0, 0.5])
-        shoulder_to_lock = (gripper + offset - lock) * scale
-        shoulder_to_lock_init = (self.init_tcp + offset - self.obj_init_pos) * scale
+            scale = np.array([0.25, 1.0, 0.5])
+            shoulder_to_lock = (gripper + offset - lock) * scale
+            shoulder_to_lock_init = (self.init_tcp + offset - self.obj_init_pos) * scale
 
-        # This `ready_to_push` reward should be a *hint* for the agent, not an
-        # end in itself. Make sure to devalue it compared to the value of
-        # actually unlocking the lock
-        ready_to_push = reward_utils.tolerance(
-            float(np.linalg.norm(shoulder_to_lock)),
-            bounds=(0, 0.02),
-            margin=np.linalg.norm(shoulder_to_lock_init),
-            sigmoid="long_tail",
-        )
+            # This `ready_to_push` reward should be a *hint* for the agent, not an
+            # end in itself. Make sure to devalue it compared to the value of
+            # actually unlocking the lock
+            ready_to_push = reward_utils.tolerance(
+                float(np.linalg.norm(shoulder_to_lock)),
+                bounds=(0, 0.02),
+                margin=np.linalg.norm(shoulder_to_lock_init),
+                sigmoid="long_tail",
+            )
 
-        obj_to_target = abs(float(self._target_pos[0] - lock[0]))
-        pushed = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.005),
-            margin=self._lock_length,
-            sigmoid="long_tail",
-        )
+            obj_to_target = abs(float(self._target_pos[0] - lock[0]))
+            pushed = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, 0.005),
+                margin=self._lock_length,
+                sigmoid="long_tail",
+            )
 
-        reward = 2 * ready_to_push + 8 * pushed
+            reward = 2 * ready_to_push + 8 * pushed
 
-        return (
-            reward,
-            float(np.linalg.norm(shoulder_to_lock)),
-            obs[3],
-            obj_to_target,
-            ready_to_push,
-            pushed,
-        )
+            return (
+                reward,
+                float(np.linalg.norm(shoulder_to_lock)),
+                obs[3],
+                obj_to_target,
+                ready_to_push,
+                pushed,
+            )

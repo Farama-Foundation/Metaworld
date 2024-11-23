@@ -21,6 +21,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -36,6 +37,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -159,45 +161,45 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
+        if self.reward_function_version == 'v2':
+            hand = obs[:3]
+            wrench = obs[4:7]
+            wrench_center = self._get_site_pos("RoundNut")
+            # `self._gripper_caging_reward` assumes that the target object can be
+            # approximated as a sphere. This is not true for the wrench handle, so
+            # to avoid re-writing the `self._gripper_caging_reward` we pass in a
+            # modified wrench position.
+            # This modified position's X value will perfect match the hand's X value
+            # as long as it's within a certain threshold
+            wrench_threshed = wrench.copy()
+            threshold = SawyerNutDisassembleEnvV3.WRENCH_HANDLE_LENGTH / 2.0
+            if abs(wrench[0] - hand[0]) < threshold:
+                wrench_threshed[0] = hand[0]
 
-        hand = obs[:3]
-        wrench = obs[4:7]
-        wrench_center = self._get_site_pos("RoundNut")
-        # `self._gripper_caging_reward` assumes that the target object can be
-        # approximated as a sphere. This is not true for the wrench handle, so
-        # to avoid re-writing the `self._gripper_caging_reward` we pass in a
-        # modified wrench position.
-        # This modified position's X value will perfect match the hand's X value
-        # as long as it's within a certain threshold
-        wrench_threshed = wrench.copy()
-        threshold = SawyerNutDisassembleEnvV3.WRENCH_HANDLE_LENGTH / 2.0
-        if abs(wrench[0] - hand[0]) < threshold:
-            wrench_threshed[0] = hand[0]
+            reward_quat = SawyerNutDisassembleEnvV3._reward_quat(obs)
+            reward_grab = self._gripper_caging_reward(
+                actions,
+                wrench_threshed,
+                object_reach_radius=0.01,
+                obj_radius=0.015,
+                pad_success_thresh=0.02,
+                xz_thresh=0.01,
+                high_density=True,
+            )
+            reward_in_place = SawyerNutDisassembleEnvV3._reward_pos(
+                wrench_center, self._target_pos
+            )
 
-        reward_quat = SawyerNutDisassembleEnvV3._reward_quat(obs)
-        reward_grab = self._gripper_caging_reward(
-            actions,
-            wrench_threshed,
-            object_reach_radius=0.01,
-            obj_radius=0.015,
-            pad_success_thresh=0.02,
-            xz_thresh=0.01,
-            high_density=True,
-        )
-        reward_in_place = SawyerNutDisassembleEnvV3._reward_pos(
-            wrench_center, self._target_pos
-        )
+            reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
+            # Override reward on success
+            success = obs[6] > self._target_pos[2]
+            if success:
+                reward = 10.0
 
-        reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
-        # Override reward on success
-        success = obs[6] > self._target_pos[2]
-        if success:
-            reward = 10.0
-
-        return (
-            reward,
-            reward_grab,
-            reward_quat,
-            reward_in_place,
-            success,
-        )
+            return (
+                reward,
+                reward_grab,
+                reward_quat,
+                reward_in_place,
+                success,
+            )

@@ -20,6 +20,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -35,6 +36,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: HammerInitConfigDict = {
             "hammer_init_pos": np.array([0, 0.5, 0.0]),
@@ -141,43 +143,44 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        hand = obs[:3]
-        hammer = obs[4:7]
-        hammer_head = hammer + np.array([0.16, 0.06, 0.0])
-        # `self._gripper_caging_reward` assumes that the target object can be
-        # approximated as a sphere. This is not true for the hammer handle, so
-        # to avoid re-writing the `self._gripper_caging_reward` we pass in a
-        # modified hammer position.
-        # This modified position's X value will perfect match the hand's X value
-        # as long as it's within a certain threshold
-        hammer_threshed = hammer.copy()
-        threshold = SawyerHammerEnvV3.HAMMER_HANDLE_LENGTH / 2.0
-        if abs(hammer[0] - hand[0]) < threshold:
-            hammer_threshed[0] = hand[0]
+        if self.reward_function_version == 'v2':
+            hand = obs[:3]
+            hammer = obs[4:7]
+            hammer_head = hammer + np.array([0.16, 0.06, 0.0])
+            # `self._gripper_caging_reward` assumes that the target object can be
+            # approximated as a sphere. This is not true for the hammer handle, so
+            # to avoid re-writing the `self._gripper_caging_reward` we pass in a
+            # modified hammer position.
+            # This modified position's X value will perfect match the hand's X value
+            # as long as it's within a certain threshold
+            hammer_threshed = hammer.copy()
+            threshold = SawyerHammerEnvV3.HAMMER_HANDLE_LENGTH / 2.0
+            if abs(hammer[0] - hand[0]) < threshold:
+                hammer_threshed[0] = hand[0]
 
-        reward_quat = SawyerHammerEnvV3._reward_quat(obs)
-        reward_grab = self._gripper_caging_reward(
-            actions,
-            hammer_threshed,
-            object_reach_radius=0.01,
-            obj_radius=0.015,
-            pad_success_thresh=0.02,
-            xz_thresh=0.01,
-            high_density=True,
-        )
-        reward_in_place = SawyerHammerEnvV3._reward_pos(hammer_head, self._target_pos)
+            reward_quat = SawyerHammerEnvV3._reward_quat(obs)
+            reward_grab = self._gripper_caging_reward(
+                actions,
+                hammer_threshed,
+                object_reach_radius=0.01,
+                obj_radius=0.015,
+                pad_success_thresh=0.02,
+                xz_thresh=0.01,
+                high_density=True,
+            )
+            reward_in_place = SawyerHammerEnvV3._reward_pos(hammer_head, self._target_pos)
 
-        reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
-        # Override reward on success. We check that reward is above a threshold
-        # because this env's success metric could be hacked easily
-        success = bool(self.data.joint("NailSlideJoint").qpos > 0.09)
-        if success and reward > 5.0:
-            reward = 10.0
+            reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
+            # Override reward on success. We check that reward is above a threshold
+            # because this env's success metric could be hacked easily
+            success = bool(self.data.joint("NailSlideJoint").qpos > 0.09)
+            if success and reward > 5.0:
+                reward = 10.0
 
-        return (
-            reward,
-            reward_grab,
-            reward_quat,
-            reward_in_place,
-            success,
-        )
+            return (
+                reward,
+                reward_grab,
+                reward_quat,
+                reward_in_place,
+                success,
+            )

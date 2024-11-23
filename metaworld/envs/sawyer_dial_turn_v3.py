@@ -21,6 +21,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -36,6 +37,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
@@ -117,46 +119,47 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        obj = self._get_pos_objects()
-        dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
-        tcp = self.tcp_center
-        target = self._target_pos.copy()
+        if self.reward_function_version == 'v2':
+            obj = self._get_pos_objects()
+            dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
+            tcp = self.tcp_center
+            target = self._target_pos.copy()
 
-        target_to_obj = obj - target
-        target_to_obj = float(np.linalg.norm(target_to_obj).item())
-        target_to_obj_init = self.dial_push_position - target
-        target_to_obj_init = np.linalg.norm(target_to_obj_init)
+            target_to_obj = obj - target
+            target_to_obj = float(np.linalg.norm(target_to_obj).item())
+            target_to_obj_init = self.dial_push_position - target
+            target_to_obj_init = np.linalg.norm(target_to_obj_init)
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=abs(target_to_obj_init - self.TARGET_RADIUS),
-            sigmoid="long_tail",
-        )
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=abs(target_to_obj_init - self.TARGET_RADIUS),
+                sigmoid="long_tail",
+            )
 
-        dial_reach_radius = 0.005
-        tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp).item())
-        tcp_to_obj_init = float(
-            np.linalg.norm(self.dial_push_position - self.init_tcp).item()
-        )
-        reach = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, dial_reach_radius),
-            margin=abs(tcp_to_obj_init - dial_reach_radius),
-            sigmoid="gaussian",
-        )
-        gripper_closed = min(max(0, action[-1]), 1)
+            dial_reach_radius = 0.005
+            tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp).item())
+            tcp_to_obj_init = float(
+                np.linalg.norm(self.dial_push_position - self.init_tcp).item()
+            )
+            reach = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, dial_reach_radius),
+                margin=abs(tcp_to_obj_init - dial_reach_radius),
+                sigmoid="gaussian",
+            )
+            gripper_closed = min(max(0, action[-1]), 1)
 
-        reach = reward_utils.hamacher_product(reach, gripper_closed)
-        tcp_opened = 0
-        object_grasped = reach
+            reach = reward_utils.hamacher_product(reach, gripper_closed)
+            tcp_opened = 0
+            object_grasped = reach
 
-        reward = 10 * reward_utils.hamacher_product(reach, in_place)
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            target_to_obj,
-            object_grasped,
-            in_place,
-        )
+            reward = 10 * reward_utils.hamacher_product(reach, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )

@@ -22,6 +22,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
@@ -37,6 +38,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.8, 0.02]),
@@ -231,28 +233,29 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        obj = obs[4:7]
-        tcp_opened = obs[3]
-        tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
-        target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-        target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
+        if self.reward_function_version == 'v2':
+            obj = obs[4:7]
+            tcp_opened = obs[3]
+            tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
+            target_to_obj = float(np.linalg.norm(obj - self._target_pos))
+            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
 
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=target_to_obj_init,
-            sigmoid="long_tail",
-        )
-        object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=target_to_obj_init,
+                sigmoid="long_tail",
+            )
+            object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
 
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
+            reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        if (
-            (tcp_to_obj < 0.01)
-            and (0 < tcp_opened < 0.55)
-            and (target_to_obj_init - target_to_obj > 0.01)
-        ):
-            reward += 1.0 + 5.0 * in_place
-        if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            if (
+                (tcp_to_obj < 0.01)
+                and (0 < tcp_opened < 0.55)
+                and (target_to_obj_init - target_to_obj > 0.01)
+            ):
+                reward += 1.0 + 5.0 * in_place
+            if target_to_obj < self.TARGET_RADIUS:
+                reward = 10.0
+            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)

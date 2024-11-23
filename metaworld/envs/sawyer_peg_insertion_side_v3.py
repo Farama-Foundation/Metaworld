@@ -37,6 +37,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_init_pos = (0, 0.6, 0.2)
 
@@ -54,6 +55,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -77,6 +79,8 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             np.array(goal_high) + np.array([0.03, 0.0, 0.13]),
             dtype=np.float64,
         )
+
+        self.liftThresh = 0.11
 
     @property
     def model_name(self) -> str:
@@ -137,90 +141,187 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
         self.model.body("box").pos = pos_box
         self._target_pos = pos_box + np.array([0.03, 0.0, 0.13])
         self.model.site("goal").pos = self._target_pos
+
+        self.objHeight = self.get_body_com("peg").copy()[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+
+        self.maxPlacingDist = (
+                np.linalg.norm(
+                    np.array(
+                        [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                    )
+                    - np.array(self._target_pos)
+                )
+                + self.heightTarget
+        )
+
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        obj_head = self._get_site_pos("pegHead")
-        tcp_opened: float = obs[3]
-        target = self._target_pos
-        tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        scale = np.array([1.0, 2.0, 2.0])
-        #  force agent to pick up object then insert
-        obj_to_target = float(np.linalg.norm((obj_head - target) * scale))
+        if self.reward_function_version == 'v2':
+            tcp = self.tcp_center
+            obj = obs[4:7]
+            obj_head = self._get_site_pos("pegHead")
+            tcp_opened: float = obs[3]
+            target = self._target_pos
+            tcp_to_obj = float(np.linalg.norm(obj - tcp))
+            scale = np.array([1.0, 2.0, 2.0])
+            #  force agent to pick up object then insert
+            obj_to_target = float(np.linalg.norm((obj_head - target) * scale))
 
-        in_place_margin = float(
-            np.linalg.norm((self.peg_head_pos_init - target) * scale)
-        )
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
-        ip_orig = in_place
-        brc_col_box_1 = self._get_site_pos("bottom_right_corner_collision_box_1")
-        tlc_col_box_1 = self._get_site_pos("top_left_corner_collision_box_1")
+            in_place_margin = float(
+                np.linalg.norm((self.peg_head_pos_init - target) * scale)
+            )
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=in_place_margin,
+                sigmoid="long_tail",
+            )
+            ip_orig = in_place
+            brc_col_box_1 = self._get_site_pos("bottom_right_corner_collision_box_1")
+            tlc_col_box_1 = self._get_site_pos("top_left_corner_collision_box_1")
 
-        brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
-        tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
-        collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
-            curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
-        )
-        collision_box_bottom_2 = reward_utils.rect_prism_tolerance(
-            curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2
-        )
-        collision_boxes = reward_utils.hamacher_product(
-            collision_box_bottom_2, collision_box_bottom_1
-        )
-        in_place = reward_utils.hamacher_product(in_place, collision_boxes)
+            brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
+            tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
+            collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
+                curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
+            )
+            collision_box_bottom_2 = reward_utils.rect_prism_tolerance(
+                curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2
+            )
+            collision_boxes = reward_utils.hamacher_product(
+                collision_box_bottom_2, collision_box_bottom_1
+            )
+            in_place = reward_utils.hamacher_product(in_place, collision_boxes)
 
-        pad_success_margin = 0.03
-        object_reach_radius = 0.01
-        x_z_margin = 0.005
-        obj_radius = 0.0075
+            pad_success_margin = 0.03
+            object_reach_radius = 0.01
+            x_z_margin = 0.005
+            obj_radius = 0.0075
 
-        object_grasped = self._gripper_caging_reward(
-            action,
-            obj,
-            object_reach_radius=object_reach_radius,
-            obj_radius=obj_radius,
-            pad_success_thresh=pad_success_margin,
-            xz_thresh=x_z_margin,
-            high_density=True,
-        )
-        if (
-            tcp_to_obj < 0.08
-            and (tcp_opened > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        ):
-            object_grasped = 1.0
-        in_place_and_object_grasped = reward_utils.hamacher_product(
-            object_grasped, in_place
-        )
-        reward = in_place_and_object_grasped
+            object_grasped = self._gripper_caging_reward(
+                action,
+                obj,
+                object_reach_radius=object_reach_radius,
+                obj_radius=obj_radius,
+                pad_success_thresh=pad_success_margin,
+                xz_thresh=x_z_margin,
+                high_density=True,
+            )
+            if (
+                tcp_to_obj < 0.08
+                and (tcp_opened > 0)
+                and (obj[2] - 0.01 > self.obj_init_pos[2])
+            ):
+                object_grasped = 1.0
+            in_place_and_object_grasped = reward_utils.hamacher_product(
+                object_grasped, in_place
+            )
+            reward = in_place_and_object_grasped
 
-        if (
-            tcp_to_obj < 0.08
-            and (tcp_opened > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        ):
-            reward += 1.0 + 5 * in_place
+            if (
+                tcp_to_obj < 0.08
+                and (tcp_opened > 0)
+                and (obj[2] - 0.01 > self.obj_init_pos[2])
+            ):
+                reward += 1.0 + 5 * in_place
 
-        if obj_to_target <= 0.07:
-            reward = 10.0
+            if obj_to_target <= 0.07:
+                reward = 10.0
 
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place,
-            collision_boxes,
-            ip_orig,
-        )
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+                collision_boxes,
+                ip_orig,
+            )
+        elif self.reward_function_version == 'v1':
+            objPos = obs[4:7]
+            pegHeadPos = self._get_site_pos("pegHead")
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            heightTarget = self.heightTarget
+            placingGoal = self._target_pos
+
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+
+            placingDistHead = np.linalg.norm(pegHeadPos - placingGoal)
+            placingDist = np.linalg.norm(objPos - placingGoal)
+
+            reachRew = -reachDist
+            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - self.init_tcp[-1])
+
+            if reachDistxy < 0.05:
+                reachRew = -reachDist
+            else:
+                reachRew = -reachDistxy - zRew
+
+            # incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(action[-1], 0) / 50
+
+            tolerance = 0.01
+            self.pickCompleted = objPos[2] >= (heightTarget - tolerance)
+
+            objDropped = (
+                    (objPos[2] < (self.objHeight + 0.005))
+                    and (placingDist > 0.02)
+                    and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
+
+            hScale = 100
+            if self.pickCompleted and not (objDropped):
+                pickRew = hScale * heightTarget
+            elif (reachDist < 0.1) and (objPos[2] > (self.objHeight + 0.005)):
+                pickRew = hScale * min(heightTarget, objPos[2])
+            else:
+                pickRew = 0
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+
+            objDropped = (
+                    (objPos[2] < (self.objHeight + 0.005))
+                    and (placingDist > 0.02)
+                    and (reachDist > 0.02)
+            )
+
+            cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
+
+            if cond:
+                if placingDistHead <= 0.05:
+                    placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
+                            np.exp(-(placingDist ** 2) / c2)
+                            + np.exp(-(placingDist ** 2) / c3)
+                    )
+                else:
+                    placeRew = 1000 * (self.maxPlacingDist - placingDistHead) + c1 * (
+                            np.exp(-(placingDistHead ** 2) / c2)
+                            + np.exp(-(placingDistHead ** 2) / c3)
+                    )
+                placeRew = max(placeRew, 0)
+                placeRew, placingDist = placeRew, placingDist
+            else:
+                placeRew, placingDist = [0, placingDist]
+
+            assert (placeRew >= 0) and (pickRew >= 0)
+            reward = reachRew + pickRew + placeRew
+
+            return reward, 0., 0., placingDist, 0., 0., 0., 0.
+

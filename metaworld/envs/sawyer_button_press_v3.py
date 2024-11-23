@@ -18,6 +18,7 @@ class SawyerButtonPressEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -31,6 +32,7 @@ class SawyerButtonPressEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0.0, 0.9, 0.115], dtype=np.float32),
@@ -119,30 +121,31 @@ class SawyerButtonPressEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        del action
-        obj = obs[4:7]
-        tcp = self.tcp_center
+        if self.reward_function_version == 'v2':
+            del action
+            obj = obs[4:7]
+            tcp = self.tcp_center
 
-        tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        tcp_to_obj_init = float(np.linalg.norm(obj - self.init_tcp))
-        obj_to_target = abs(self._target_pos[1] - obj[1])
+            tcp_to_obj = float(np.linalg.norm(obj - tcp))
+            tcp_to_obj_init = float(np.linalg.norm(obj - self.init_tcp))
+            obj_to_target = abs(self._target_pos[1] - obj[1])
 
-        tcp_closed = max(obs[3], 0.0)
-        near_button = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, 0.05),
-            margin=tcp_to_obj_init,
-            sigmoid="long_tail",
-        )
-        button_pressed = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.005),
-            margin=self._obj_to_target_init,
-            sigmoid="long_tail",
-        )
+            tcp_closed = max(obs[3], 0.0)
+            near_button = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, 0.05),
+                margin=tcp_to_obj_init,
+                sigmoid="long_tail",
+            )
+            button_pressed = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, 0.005),
+                margin=self._obj_to_target_init,
+                sigmoid="long_tail",
+            )
 
-        reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
-        if tcp_to_obj <= 0.05:
-            reward += 8 * button_pressed
+            reward = 2 * reward_utils.hamacher_product(tcp_closed, near_button)
+            if tcp_to_obj <= 0.05:
+                reward += 8 * button_pressed
 
-        return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+            return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)

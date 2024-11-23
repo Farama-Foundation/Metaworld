@@ -33,6 +33,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -48,6 +49,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -127,27 +129,50 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
+        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+
         return self._get_obs()
 
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float]:
         assert self._target_pos is not None
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        target = self._target_pos
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            # obj = obs[4:7]
+            # tcp_opened = obs[3]
+            target = self._target_pos
 
-        tcp_to_target = float(np.linalg.norm(tcp - target))
-        # obj_to_target = float(np.linalg.norm(obj - target))
+            tcp_to_target = float(np.linalg.norm(tcp - target))
+            # obj_to_target = float(np.linalg.norm(obj - target))
 
-        in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
-        in_place = reward_utils.tolerance(
-            tcp_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
+            in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
+            in_place = reward_utils.tolerance(
+                tcp_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=in_place_margin,
+                sigmoid="long_tail",
+            )
 
-        return (10 * in_place, tcp_to_target, in_place)
+            return (10 * in_place, tcp_to_target, in_place)
+        elif self.reward_function_version == 'v1':
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+            goal = self._target_pos
+
+            del actions
+            del obs
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            reachDist = np.linalg.norm(fingerCOM - goal)
+            reachRew = c1 * (self.maxReachDist - reachDist) + c1 * (
+                    np.exp(-(reachDist ** 2) / c2) + np.exp(-(reachDist ** 2) / c3)
+            )
+            reachRew = max(reachRew, 0)
+            reward = reachRew
+            return reward, reachDist, 0.

@@ -33,6 +33,7 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
@@ -48,6 +49,7 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -121,21 +123,22 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
-        target = self._target_pos
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            # obj = obs[4:7]
+            # tcp_opened = obs[3]
+            target = self._target_pos
 
-        tcp_to_target = float(np.linalg.norm(tcp - target))
-        # obj_to_target = float(np.linalg.norm(obj - target))
+            tcp_to_target = float(np.linalg.norm(tcp - target))
+            # obj_to_target = float(np.linalg.norm(obj - target))
 
-        in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
-        in_place = reward_utils.tolerance(
-            tcp_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
+            in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
+            in_place = reward_utils.tolerance(
+                tcp_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=in_place_margin,
+                sigmoid="long_tail",
+            )
 
-        return (10 * in_place, tcp_to_target, in_place)
+            return (10 * in_place, tcp_to_target, in_place)

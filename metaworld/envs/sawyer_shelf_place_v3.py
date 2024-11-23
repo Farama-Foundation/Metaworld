@@ -20,6 +20,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
@@ -35,6 +36,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -136,60 +138,61 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        _TARGET_RADIUS: float = 0.05
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened = obs[3]
-        target = self._target_pos
+        if self.reward_function_version == 'v2':
+            _TARGET_RADIUS: float = 0.05
+            tcp = self.tcp_center
+            obj = obs[4:7]
+            tcp_opened = obs[3]
+            target = self._target_pos
 
-        obj_to_target = float(np.linalg.norm(obj - target))
-        tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        in_place_margin = np.linalg.norm(self.obj_init_pos - target)
+            obj_to_target = float(np.linalg.norm(obj - target))
+            tcp_to_obj = float(np.linalg.norm(obj - tcp))
+            in_place_margin = np.linalg.norm(self.obj_init_pos - target)
 
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, _TARGET_RADIUS),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
-
-        object_grasped = self._gripper_caging_reward(
-            action=action,
-            obj_pos=obj,
-            obj_radius=0.02,
-            pad_success_thresh=0.05,
-            object_reach_radius=0.01,
-            xz_thresh=0.01,
-            high_density=False,
-        )
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
-
-        if (
-            0.0 < obj[2] < 0.24
-            and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
-            and ((target[1] - 3 * _TARGET_RADIUS) < obj[1] < target[1])
-        ):
-            z_scaling = (0.24 - obj[2]) / 0.24
-            y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (
-                3 * _TARGET_RADIUS
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, _TARGET_RADIUS),
+                margin=in_place_margin,
+                sigmoid="long_tail",
             )
-            bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
-            in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
-        if (
-            (0.0 < obj[2] < 0.24)
-            and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
-            and (obj[1] > target[1])
-        ):
-            in_place = 0.0
+            object_grasped = self._gripper_caging_reward(
+                action=action,
+                obj_pos=obj,
+                obj_radius=0.02,
+                pad_success_thresh=0.05,
+                object_reach_radius=0.01,
+                xz_thresh=0.01,
+                high_density=False,
+            )
+            reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        if (
-            tcp_to_obj < 0.025
-            and (tcp_opened > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        ):
-            reward += 1.0 + 5.0 * in_place
+            if (
+                0.0 < obj[2] < 0.24
+                and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
+                and ((target[1] - 3 * _TARGET_RADIUS) < obj[1] < target[1])
+            ):
+                z_scaling = (0.24 - obj[2]) / 0.24
+                y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (
+                    3 * _TARGET_RADIUS
+                )
+                bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
+                in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
-        if obj_to_target < _TARGET_RADIUS:
-            reward = 10.0
-        return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+            if (
+                (0.0 < obj[2] < 0.24)
+                and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
+                and (obj[1] > target[1])
+            ):
+                in_place = 0.0
+
+            if (
+                tcp_to_obj < 0.025
+                and (tcp_opened > 0)
+                and (obj[2] - 0.01 > self.obj_init_pos[2])
+            ):
+                reward += 1.0 + 5.0 * in_place
+
+            if obj_to_target < _TARGET_RADIUS:
+                reward = 10.0
+            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)

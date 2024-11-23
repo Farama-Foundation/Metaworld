@@ -19,6 +19,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -32,6 +33,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.85, 0.15], dtype=np.float32),
@@ -116,31 +118,32 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        del action
-        obj = obs[4:7]
-        tcp = self.get_body_com("leftpad")
+        if self.reward_function_version == 'v2':
+            del action
+            obj = obs[4:7]
+            tcp = self.get_body_com("leftpad")
 
-        scale = np.array([0.25, 1.0, 0.5])
-        tcp_to_obj = float(np.linalg.norm((obj - tcp) * scale))
-        tcp_to_obj_init = float(np.linalg.norm((obj - self.init_left_pad) * scale))
+            scale = np.array([0.25, 1.0, 0.5])
+            tcp_to_obj = float(np.linalg.norm((obj - tcp) * scale))
+            tcp_to_obj_init = float(np.linalg.norm((obj - self.init_left_pad) * scale))
 
-        obj_to_target = abs(self._target_pos[2] - obj[2])
+            obj_to_target = abs(self._target_pos[2] - obj[2])
 
-        tcp_opened = max(obs[3], 0.0)
-        near_lock = reward_utils.tolerance(
-            tcp_to_obj,
-            bounds=(0, 0.01),
-            margin=tcp_to_obj_init,
-            sigmoid="long_tail",
-        )
-        lock_pressed = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.005),
-            margin=self._lock_length,
-            sigmoid="long_tail",
-        )
+            tcp_opened = max(obs[3], 0.0)
+            near_lock = reward_utils.tolerance(
+                tcp_to_obj,
+                bounds=(0, 0.01),
+                margin=tcp_to_obj_init,
+                sigmoid="long_tail",
+            )
+            lock_pressed = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, 0.005),
+                margin=self._lock_length,
+                sigmoid="long_tail",
+            )
 
-        reward = 2 * reward_utils.hamacher_product(tcp_opened, near_lock)
-        reward += 8 * lock_pressed
+            reward = 2 * reward_utils.hamacher_product(tcp_opened, near_lock)
+            reward += 8 * lock_pressed
 
-        return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
+            return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)

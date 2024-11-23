@@ -31,6 +31,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -47,6 +48,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.12, 0.7, 0.02]),
@@ -142,75 +144,75 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         assert (
             self.obj_init_pos is not None and self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
+        if self.reward_function_version == 'v2':
+            hand = obs[:3]
+            obj = obs[4:7]
 
-        hand = obs[:3]
-        obj = obs[4:7]
+            target_to_obj = float(np.linalg.norm(obj - self._target_pos))
+            if self._target_to_obj_init is None:
+                self._target_to_obj_init = target_to_obj
 
-        target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-        if self._target_to_obj_init is None:
-            self._target_to_obj_init = target_to_obj
-
-        in_place = reward_utils.tolerance(
-            target_to_obj,
-            bounds=(0, self.TARGET_RADIUS),
-            margin=self._target_to_obj_init,
-            sigmoid="long_tail",
-        )
-
-        threshold = 0.03
-        radii = [
-            np.linalg.norm(hand[:2] - self.obj_init_pos[:2]),
-            np.linalg.norm(hand[:2] - self._target_pos[:2]),
-        ]
-        # floor is a *pair* of 3D funnels centered on (1) the object's initial
-        # position and (2) the desired final position
-        floor = min(
-            [
-                0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0
-                for radius in radii
-            ]
-        )
-        # prevent the hand from running into the edge of the bins by keeping
-        # it above the "floor"
-        above_floor = (
-            1.0
-            if hand[2] >= floor
-            else reward_utils.tolerance(
-                max(floor - hand[2], 0.0),
-                bounds=(0.0, 0.01),
-                margin=0.05,
+            in_place = reward_utils.tolerance(
+                target_to_obj,
+                bounds=(0, self.TARGET_RADIUS),
+                margin=self._target_to_obj_init,
                 sigmoid="long_tail",
             )
-        )
 
-        object_grasped = self._gripper_caging_reward(
-            action,
-            obj,
-            obj_radius=0.015,
-            pad_success_thresh=0.05,
-            object_reach_radius=0.01,
-            xz_thresh=0.01,
-            desired_gripper_effort=0.7,
-            high_density=True,
-        )
-        reward = reward_utils.hamacher_product(object_grasped, in_place)
+            threshold = 0.03
+            radii = [
+                np.linalg.norm(hand[:2] - self.obj_init_pos[:2]),
+                np.linalg.norm(hand[:2] - self._target_pos[:2]),
+            ]
+            # floor is a *pair* of 3D funnels centered on (1) the object's initial
+            # position and (2) the desired final position
+            floor = min(
+                [
+                    0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0
+                    for radius in radii
+                ]
+            )
+            # prevent the hand from running into the edge of the bins by keeping
+            # it above the "floor"
+            above_floor = (
+                1.0
+                if hand[2] >= floor
+                else reward_utils.tolerance(
+                    max(floor - hand[2], 0.0),
+                    bounds=(0.0, 0.01),
+                    margin=0.05,
+                    sigmoid="long_tail",
+                )
+            )
 
-        near_object = bool(np.linalg.norm(obj - hand) < 0.04)
-        pinched_without_obj = bool(obs[3] < 0.43)
-        lifted = bool(obj[2] - 0.02 > self.obj_init_pos[2])
-        # Increase reward when properly grabbed obj
-        grasp_success = near_object and lifted and not pinched_without_obj
-        if grasp_success:
-            reward += 1.0 + 5.0 * reward_utils.hamacher_product(above_floor, in_place)
-        # Maximize reward on success
-        if target_to_obj < self.TARGET_RADIUS:
-            reward = 10.0
+            object_grasped = self._gripper_caging_reward(
+                action,
+                obj,
+                obj_radius=0.015,
+                pad_success_thresh=0.05,
+                object_reach_radius=0.01,
+                xz_thresh=0.01,
+                desired_gripper_effort=0.7,
+                high_density=True,
+            )
+            reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-        return (
-            reward,
-            near_object,
-            grasp_success,
-            target_to_obj,
-            object_grasped,
-            in_place,
-        )
+            near_object = bool(np.linalg.norm(obj - hand) < 0.04)
+            pinched_without_obj = bool(obs[3] < 0.43)
+            lifted = bool(obj[2] - 0.02 > self.obj_init_pos[2])
+            # Increase reward when properly grabbed obj
+            grasp_success = near_object and lifted and not pinched_without_obj
+            if grasp_success:
+                reward += 1.0 + 5.0 * reward_utils.hamacher_product(above_floor, in_place)
+            # Maximize reward on success
+            if target_to_obj < self.TARGET_RADIUS:
+                reward = 10.0
+
+            return (
+                reward,
+                near_object,
+                grasp_success,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )

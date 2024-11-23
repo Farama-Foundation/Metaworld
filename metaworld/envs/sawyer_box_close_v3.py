@@ -19,6 +19,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -34,6 +35,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -187,30 +189,30 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
+        if self.reward_function_version == 'v2':
+            reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
+            reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
+            reward_steps = SawyerBoxCloseEnvV3._reward_pos(obs, self._target_pos)
 
-        reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
-        reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
-        reward_steps = SawyerBoxCloseEnvV3._reward_pos(obs, self._target_pos)
-
-        reward = sum(
-            (
-                2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
-                8.0 * reward_steps[1],
+            reward = sum(
+                (
+                    2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
+                    8.0 * reward_steps[1],
+                )
             )
-        )
 
-        # Override reward on success
-        success = bool(np.linalg.norm(obs[4:7] - self._target_pos) < 0.08)
-        if success:
-            reward = 10.0
+            # Override reward on success
+            success = bool(np.linalg.norm(obs[4:7] - self._target_pos) < 0.08)
+            if success:
+                reward = 10.0
 
-        # STRONG emphasis on proper lid orientation to prevent reward hacking
-        # (otherwise agent learns to kick-flip the lid onto the box)
-        reward *= reward_quat
+            # STRONG emphasis on proper lid orientation to prevent reward hacking
+            # (otherwise agent learns to kick-flip the lid onto the box)
+            reward *= reward_quat
 
-        return (
-            reward,
-            reward_grab,
-            *reward_steps,
-            success,
-        )
+            return (
+                reward,
+                reward_grab,
+                *reward_steps,
+                success,
+            )

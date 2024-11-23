@@ -18,6 +18,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        reward_function_version: str = "v2"
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -33,6 +34,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             camera_name=camera_name,
             camera_id=camera_id,
         )
+        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.225, 0.6, 0.05]),
@@ -112,51 +114,52 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened: float = obs[3]
-        target = self._target_pos
-        tcp_to_obj = float(np.linalg.norm(obj - tcp))
-        obj_to_target = float(np.linalg.norm(obj - target))
-        pad_success_margin = 0.05
-        object_reach_radius = 0.01
-        x_z_margin = 0.005
-        obj_radius = 0.025
+        if self.reward_function_version == 'v2':
+            tcp = self.tcp_center
+            obj = obs[4:7]
+            tcp_opened: float = obs[3]
+            target = self._target_pos
+            tcp_to_obj = float(np.linalg.norm(obj - tcp))
+            obj_to_target = float(np.linalg.norm(obj - target))
+            pad_success_margin = 0.05
+            object_reach_radius = 0.01
+            x_z_margin = 0.005
+            obj_radius = 0.025
 
-        object_grasped = self._gripper_caging_reward(
-            action,
-            obj,
-            object_reach_radius=object_reach_radius,
-            obj_radius=obj_radius,
-            pad_success_thresh=pad_success_margin,
-            xz_thresh=x_z_margin,
-            desired_gripper_effort=0.8,
-            high_density=True,
-        )
-        in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
+            object_grasped = self._gripper_caging_reward(
+                action,
+                obj,
+                object_reach_radius=object_reach_radius,
+                obj_radius=obj_radius,
+                pad_success_thresh=pad_success_margin,
+                xz_thresh=x_z_margin,
+                desired_gripper_effort=0.8,
+                high_density=True,
+            )
+            in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
 
-        in_place = reward_utils.tolerance(
-            obj_to_target,
-            bounds=(0, 0.05),
-            margin=in_place_margin,
-            sigmoid="long_tail",
-        )
-        grasp_success = tcp_opened > 0.5 and (obj[0] - self.obj_init_pos[0] > 0.015)
+            in_place = reward_utils.tolerance(
+                obj_to_target,
+                bounds=(0, 0.05),
+                margin=in_place_margin,
+                sigmoid="long_tail",
+            )
+            grasp_success = tcp_opened > 0.5 and (obj[0] - self.obj_init_pos[0] > 0.015)
 
-        reward = 2 * object_grasped
+            reward = 2 * object_grasped
 
-        if grasp_success and tcp_to_obj < 0.035:
-            reward = 1 + 2 * object_grasped + 5 * in_place
+            if grasp_success and tcp_to_obj < 0.035:
+                reward = 1 + 2 * object_grasped + 5 * in_place
 
-        if obj_to_target <= 0.05:
-            reward = 10.0
+            if obj_to_target <= 0.05:
+                reward = 10.0
 
-        return (
-            reward,
-            tcp_to_obj,
-            tcp_opened,
-            obj_to_target,
-            object_grasped,
-            in_place,
-            float(grasp_success),
-        )
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+                float(grasp_success),
+            )
