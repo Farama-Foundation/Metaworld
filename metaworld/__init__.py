@@ -550,6 +550,10 @@ def register_mw_envs() -> None:
         *args,
         **lamb_kwargs,
     ):
+        if 'num_goals' in lamb_kwargs:
+            global _N_GOALS
+            _N_GOALS = lamb_kwargs['num_goals']
+            del lamb_kwargs['num_goals']
         return make_mt_envs(  # type: ignore
             mt_bench,
             seed=seed,
