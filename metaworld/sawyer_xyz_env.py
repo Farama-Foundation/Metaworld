@@ -180,6 +180,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         render_mode: RenderMode | None = None,
         camera_id: int | None = None,
         camera_name: str | None = None,
+        reward_function_version: str | None = None,
     ) -> None:
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale

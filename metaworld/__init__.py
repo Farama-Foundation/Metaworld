@@ -6,7 +6,7 @@ import abc
 import pickle
 from collections import OrderedDict
 from functools import partial
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 import gymnasium as gym  # type: ignore
 import numpy as np
@@ -29,6 +29,8 @@ from metaworld.wrappers import (
     OneHotWrapper,
     PseudoRandomTaskSelectWrapper,
     RandomTaskSelectWrapper,
+    NormalizeRewardGymnasium,
+    NormalizeRewardsExponential
 )
 
 
@@ -361,7 +363,11 @@ def _init_each_env(
     env_id: int | None = None,
     num_tasks: int | None = None,
     task_select: Literal["random", "pseudorandom"] = "random",
-    reward_function_version: Literal['v1', 'v2'] = 'v2'
+    reward_function_version: Literal['v1', 'v2'] = 'v2',
+    reward_normalization_method: Union[Literal['gymnasium', 'exponential'], None] = None,
+    reward_alpha: float = 0.001,
+    *args,
+    **kwargs
 ) -> gym.Env:
     env: gym.Env = env_cls(reward_function_version=reward_function_version)
     if seed is not None:
@@ -369,15 +375,22 @@ def _init_each_env(
     env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
     env = AutoTerminateOnSuccessWrapper(env)
     env.toggle_terminate_on_success(terminate_on_success)
-    env = gym.wrappers.RecordEpisodeStatistics(env)
     if use_one_hot:
         assert env_id is not None, "Need to pass env_id through constructor"
         assert num_tasks is not None, "Need to pass num_tasks through constructor"
         env = OneHotWrapper(env, env_id, num_tasks)
+    if reward_normalization_method == 'gymnasium':
+        print('gymnasium ', env_cls)
+        env = NormalizeRewardGymnasium(env)
+    elif reward_normalization_method == 'exponential':
+        env = NormalizeRewardsExponential(reward_alpha=reward_alpha, env=env)
+    env = gym.wrappers.RecordEpisodeStatistics(env)
+
     if task_select != "random":
         env = PseudoRandomTaskSelectWrapper(env, tasks)
     else:
         env = RandomTaskSelectWrapper(env, tasks)
+
     env = CheckpointWrapper(env, f"{env_cls}_{env_id}")
     if seed is not None:
         env.action_space.seed(seed)
@@ -394,7 +407,9 @@ def make_mt_envs(
     terminate_on_success: bool = False,
     vector_strategy: Literal["sync", "async"] = "sync",
     task_select: Literal["random", "pseudorandom"] = "random",
-    reward_function_version: Literal['v1', 'v2'] = 'v2'
+    reward_function_version: Literal['v1', 'v2'] = 'v2',
+    *args,
+    **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
     benchmark: Benchmark
     if name in ALL_V3_ENVIRONMENTS.keys():
@@ -410,6 +425,8 @@ def make_mt_envs(
             num_tasks=num_tasks or 1,
             terminate_on_success=terminate_on_success,
             reward_function_version=reward_function_version,
+            *args,
+            **kwargs
         )
     elif name == "MT10" or name == "MT50":
         benchmark = globals()[name](seed=seed)
@@ -432,12 +449,14 @@ def make_mt_envs(
                     num_tasks=num_tasks or default_num_tasks,
                     terminate_on_success=terminate_on_success,
                     task_select=task_select,
-                    reward_function_version=reward_function_version
+                    reward_function_version=reward_function_version,
+                    *args,
+                    **kwargs
                 )
                 for env_id, (name, env_cls) in enumerate(
                     benchmark.train_classes.items()
                 )
-            ]
+            ]  # type: ignore
         )
     else:
         raise ValueError(
