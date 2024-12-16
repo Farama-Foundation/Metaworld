@@ -139,11 +139,11 @@ def _create_hidden_goal_envs(all_envs: EnvDict) -> EnvDict:
     for env_name, env_cls in all_envs.items():
         d = {}
 
-        def initialize(env, seed=None):
+        def initialize(env, seed=None, **render_kwargs):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
-            super(type(env), env).__init__()
+            super(type(env), env).__init__(**render_kwargs)
             env._partially_observable = True
             env._freeze_rand_vec = False
             env._set_task_called = True
@@ -179,22 +179,20 @@ def _create_observable_goal_envs(all_envs: EnvDict) -> EnvDict:
     for env_name, env_cls in all_envs.items():
         d = {}
 
-        def initialize(env, seed=None, render_mode=None):
+        def initialize(env, seed=None, **render_kwargs):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
-            super(type(env), env).__init__()
-
+            super(type(env), env).__init__(**render_kwargs)
             env._partially_observable = False
             env._freeze_rand_vec = False
             env._set_task_called = True
-            env.render_mode = render_mode
             env.reset()
             env._freeze_rand_vec = True
             if seed is not None:
                 env.seed(seed)
                 np.random.set_state(st0)
-
+        
         d["__init__"] = initialize
         og_env_name = re.sub(
             r"(^|[-])\s*([a-zA-Z])", lambda p: p.group(0).upper(), env_name

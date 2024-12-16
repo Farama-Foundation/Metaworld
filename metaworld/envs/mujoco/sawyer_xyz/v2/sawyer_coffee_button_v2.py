@@ -15,9 +15,7 @@ from metaworld.types import InitConfigDict
 class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
+        **render_kwargs: dict[str, Any] | None,
     ) -> None:
         self.max_dist = 0.03
 
@@ -33,9 +31,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
         super().__init__(
             hand_low=hand_low,
             hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
+            **render_kwargs,
         )
 
         self.init_config: InitConfigDict = {

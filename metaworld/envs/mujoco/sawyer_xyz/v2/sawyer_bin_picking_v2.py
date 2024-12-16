@@ -28,9 +28,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
+        **render_kwargs: dict[str, Any] | None,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -43,9 +41,7 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         super().__init__(
             hand_low=hand_low,
             hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
+            **render_kwargs,
         )
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,

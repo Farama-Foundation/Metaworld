@@ -19,9 +19,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
+        **render_kwargs: dict[str, Any] | None,
     ) -> None:
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -33,9 +31,7 @@ class SawyerSoccerEnvV2(SawyerXYZEnv):
         super().__init__(
             hand_low=hand_low,
             hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
+            **render_kwargs,
         )
 
         self.init_config: InitConfigDict = {
