@@ -124,7 +124,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
     @staticmethod
     def _reward_grab_effort(actions: npt.NDArray[Any]) -> float:
-        return float((np.clip(actions[3], -1, 1) + 1.0) / 2.0)
+        return float(np.clip(((np.clip(actions[3], -1, 1) + 1.0) / 2.0), 0.0, 1.0))
 
     @staticmethod
     def _reward_quat(obs) -> float:
