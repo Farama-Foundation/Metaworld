@@ -11,11 +11,15 @@ from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 
 class Agent(Protocol):
     def eval_action(
-        self, observation: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+        self, observations: npt.NDArray[np.float64]
+    ) -> npt.NDArray[np.float64]: ...
 
 
 class MetaLearningAgent(Agent):
+    def adapt_action(
+        self, observations: npt.NDArray[np.float64]
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+
     def adapt(self, rollouts: Rollout) -> None: ...
 
 
@@ -49,7 +53,7 @@ def evaluation(
         return all(len(r) >= num_episodes for _, r in returns.items())
 
     while not eval_done(episodic_returns):
-        actions, _ = agent.eval_action(obs)
+        actions = agent.eval_action(obs)
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:
@@ -106,7 +110,7 @@ def metalearning_evaluation(
 
         for _ in range(adaptation_steps):
             while not eval_buffer.ready:
-                actions, aux_policy_outs = agent.eval_action(obs)
+                actions, aux_policy_outs = agent.adapt_action(obs)
                 next_obs: npt.NDArray[np.float64]
                 rewards: npt.NDArray[np.float64]
                 next_obs, rewards, terminations, truncations, _ = eval_envs.step(

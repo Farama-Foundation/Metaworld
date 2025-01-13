@@ -25,19 +25,29 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
 
-    def eval_action(
-        self, obs: npt.NDArray[np.float64]
+    def adapt_action(
+        self, observations: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
         actions: list[npt.NDArray[np.float32]] = []
         num_envs = len(self.policies)
         for env_idx in range(num_envs):
-            actions.append(self.policies[env_idx].get_action(obs[env_idx]))
+            actions.append(self.policies[env_idx].get_action(observations[env_idx]))
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions, {
             "log_probs": np.ones((num_envs,)),
             "means": stacked_actions,
             "stds": np.zeros((num_envs,)),
         }
+
+    def eval_action(
+        self, observations: npt.NDArray[np.float64]
+    ) -> npt.NDArray[np.float64]:
+        actions: list[npt.NDArray[np.float32]] = []
+        num_envs = len(self.policies)
+        for env_idx in range(num_envs):
+            actions.append(self.policies[env_idx].get_action(observations[env_idx]))
+        stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
+        return stacked_actions
 
     def adapt(self, rollouts: evaluation.Rollout) -> None:
         assert self.num_rollouts is not None
@@ -97,7 +107,7 @@ def test_evaluation():
     assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.parametrize("benchmark", ("ML10", "ML45"))
 def test_metalearning_evaluation(benchmark):
     SEED = 42
