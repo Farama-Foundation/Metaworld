@@ -91,7 +91,7 @@ with structural similarity to the test tasks. Task IDs are not provided as
 input, requiring a meta-RL algorithm to identify the tasks from experience.
 
 ```{figure} ../_static/ml10.gif
-   :alt: Meta-RL 10 
+   :alt: Meta-RL 10
    :width: 500
 ```
 

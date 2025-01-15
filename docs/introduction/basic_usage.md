@@ -18,17 +18,13 @@ The ML1, ML10, and ML45 benchmarks are 3 meta-reinforcement learning benchmarks 
 The ML1 benchmark tests for few-shot adaptation to goal variations within a single task. The ML10 and ML45 both test few-shot adaptation to new tasks. ML10 comprises 10 train tasks with 5 test tasks, while ML45 comprises of 45 training tasks with 5 test tasks.
 
 
-## Creating Multi-Task Benchmarks
-
 ### MT1
 ```python
 import gymnasium as gym
 import metaworld
 
-seed = 42 # for reproducibility
-
-env = gym.make('Meta-World/reach-V3', seed=seed) # MT1 with the reach environment
-
+SEED = 0  # some seed number here
+env = gym.make('Meta-World/MT1-reach', seed=seed)
 obs, info = env.reset()
 
 a = env.action_space.sample() # randomly sample an action
@@ -106,7 +102,6 @@ Similar to the Multi-Task benchmarks, the ML10 and ML45 environments can be run 
 ```python
 import gymnasium as gym
 import metaworld
-
 train_envs = gym.make('Meta-World/ML10-train-sync', seed=seed) # or ML10-train-async
 test_envs = gym.make('Meta-World/ML10-test-sync', seed=seed) # or ML10-test-async
 ```

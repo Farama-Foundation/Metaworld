@@ -1,6 +1,6 @@
 ---
 layout: "contents"
-title: State Space 
+title: State Space
 firstpage:
 ---
 
