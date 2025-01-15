@@ -56,12 +56,6 @@ benchmark/resetting
 
 ```{toctree}
 :hidden:
-:caption: Evaluation of Policies
-evaluation/evaluation
-```
-
-```{toctree}
-:hidden:
 :caption: Development
 
 Github <https://github.com/Farama-Foundation/Metaworld>
