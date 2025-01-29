@@ -98,7 +98,7 @@ def test_evaluation():
         vector_strategy="async",
     )
     agent = ScriptedPolicyAgent(envs)
-    mean_success_rate, mean_returns, success_rate_per_task = evaluation.evaluation(
+    mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
         agent, envs, num_episodes=num_episodes
     )
     assert isinstance(mean_returns, float)

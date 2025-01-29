@@ -78,7 +78,7 @@ def evaluation(
 
     eval_envs.call("toggle_terminate_on_success", terminate_on_success)
 
-    return float(mean_success_rate), float(mean_returns), success_rate_per_task
+    return float(mean_success_rate), float(mean_returns), success_rate_per_task, episodic_returns
 
 
 def metalearning_evaluation(
