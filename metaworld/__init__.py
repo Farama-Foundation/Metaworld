@@ -369,7 +369,7 @@ def _init_each_env(
     *args,
     **kwargs
 ) -> gym.Env:
-    env: gym.Env = env_cls(reward_function_version=reward_function_version)
+    env: gym.Env = env_cls(reward_function_version=reward_function_version, render_mode='rgb_array', camera_name='corner2')
     if seed is not None:
         env.seed(seed)  # type: ignore
     env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
@@ -687,22 +687,20 @@ def register_mw_envs() -> None:
         vectorizer: type[gym.vector.VectorEnv] = getattr(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
-        return (
-            vectorizer(  # type: ignore
-                [
-                    partial(  # type: ignore
-                        make_mt_envs,
-                        env_name,
-                        num_tasks=len(envs_list),
-                        env_id=idx,
-                        seed=None if not seed else seed + idx,
-                        use_one_hot=use_one_hot,
-                        *args,
-                        **lamb_kwargs,
-                    )
-                    for idx, env_name in enumerate(envs_list)
-                ]
-            ),
+        return vectorizer(  # type: ignore
+            [
+                partial(  # type: ignore
+                    make_mt_envs,
+                    env_name,
+                    num_tasks=len(envs_list),
+                    env_id=idx,
+                    seed=None if not seed else seed + idx,
+                    use_one_hot=use_one_hot,
+                    *args,
+                    **lamb_kwargs,
+                )
+                for idx, env_name in enumerate(envs_list)
+            ]
         )
 
     register(
