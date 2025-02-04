@@ -366,10 +366,13 @@ def _init_each_env(
     reward_function_version: Literal["v1", "v2"] = "v2",
     reward_normalization_method: Literal["gymnasium", "exponential"] | None = None,
     reward_alpha: float = 0.001,
+    render_mode: str | None = None,
+    camera_name: str | None = None,
+    camera_id: int | None = None,
     *args,
     **kwargs,
 ) -> gym.Env:
-    env: gym.Env = env_cls(reward_function_version=reward_function_version, render_mode='rgb_array', camera_name='corner2')
+    env: gym.Env = env_cls(reward_function_version=reward_function_version, render_mode=render_mode, camera_name=camera_name, camera_id=camera_id) 
     if seed is not None:
         env.seed(seed)  # type: ignore
     env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
