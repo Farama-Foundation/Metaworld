@@ -184,3 +184,69 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
                 reward_in_place,
                 success,
             )
+        else:
+            hammerPos = obs[4:7]
+            hammerHeadPos = self.data.geom("HammerHead").xpos.copy()
+            objPos = self.data.site("nailHead").xpos
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            heightTarget = self.heightTarget
+
+            hammerDist = np.linalg.norm(objPos - hammerHeadPos)
+            screwDist = np.abs(objPos[1] - self._target_pos[1])
+            reachDist = np.linalg.norm(hammerPos - fingerCOM)
+
+            reachRew = -reachDist
+            # incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(actions[-1], 0) / 50
+
+
+            tolerance = 0.01
+            if hammerPos[2] >= (heightTarget - tolerance):
+                self.pickCompleted = True
+            else:
+                self.pickCompleted = False
+
+
+            objDropped = (
+                    (hammerPos[2] < (self.hammerHeight + 0.005))
+                    and (hammerDist > 0.02)
+                    and (reachDist > 0.02)
+                )
+                # Object on the ground, far away from the goal, and from the gripper
+                # Can tweak the margin limits
+
+            hScale = 100
+
+            if self.pickCompleted and not objDropped:
+                pickRew = hScale * heightTarget
+            elif (reachDist < 0.1) and (hammerPos[2] > (self.hammerHeight + 0.005)):
+                pickRew = hScale * min(heightTarget, hammerPos[2])
+            else:
+                pickRew = 0
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+
+            cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
+            if cond:
+                hammerRew = 1000 * (
+                    self.maxHammerDist - hammerDist - screwDist
+                ) + c1 * (
+                    np.exp(-((hammerDist + screwDist) ** 2) / c2)
+                    + np.exp(-((hammerDist + screwDist) ** 2) / c3)
+                )
+                hammerRew = max(hammerRew, 0)
+            else:
+                hammerRew, hammerDist, screwDist = [0, hammerDist, screwDist]
+
+            assert (hammerRew >= 0) and (pickRew >= 0)
+            reward = reachRew + pickRew + hammerRew
+            success = self.data.joint("NailSlideJoint").qpos > 0.09
+            return [reward, 0., 0., 0., success]

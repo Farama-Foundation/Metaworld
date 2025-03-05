@@ -234,3 +234,42 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
             return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+        else:
+            del action
+
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            pushGoal = self._target_pos
+
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+            pushDistxy = np.linalg.norm(objPos[:-1] - pushGoal[:-1])
+            reachRew = -reachDist
+
+            self.reachCompleted = reachDist < 0.05
+
+            if objPos[-1] < self.obj_init_pos[-1] - 0.05:
+                reachRew = 0
+                pushDistxy = 0
+                reachDist = 0
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            if self.reachCompleted:
+                pushRew = 1000 * (self.maxPushDist - pushDistxy) + c1 * (
+                    np.exp(-(pushDistxy**2) / c2)
+                    + np.exp(-(pushDistxy**2) / c3)
+                )
+                pushRew = max(pushRew, 0)
+                pushRew = pushRew
+            else:
+                pushRew = 0
+
+            reward = reachRew + pushRew
+
+            return reward, 0., 0., pushDistxy, 0., 0.

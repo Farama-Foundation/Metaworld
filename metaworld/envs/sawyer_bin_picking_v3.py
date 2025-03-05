@@ -216,3 +216,93 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                 object_grasped,
                 in_place,
             )
+        else:
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            heightTarget = self.heightTarget
+            placingGoal = self._target_pos
+
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+
+            placingDist = np.linalg.norm(objPos[:2] - placingGoal[:-1])
+
+            reachRew = -reachDist
+            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - self.init_tcp[-1])
+            if reachDistxy < 0.06:
+                reachRew = -reachDist
+            else:
+                reachRew = -reachDistxy - zRew
+
+            # incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(action[-1], 0) / 50
+
+
+
+            tolerance = 0.01
+            if objPos[2] >= (heightTarget - tolerance):
+                self.pickCompleted = True
+            else:
+                self.pickCompleted = False
+
+
+            objDropped = (
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
+            )
+                # Object on the ground, far away from the goal, and from the gripper
+                # Can tweak the margin limits
+
+            if (
+                abs(objPos[0] - placingGoal[0]) < 0.05
+                and abs(objPos[1] - placingGoal[1]) < 0.05
+                and objPos[2] < self.objHeight + 0.05
+            ):
+                self.placeCompleted = True
+            else:
+                self.placeCompleted = False
+
+
+            hScale = 100
+            if self.placeCompleted or (self.pickCompleted and not objDropped):
+                pickRew = hScale * heightTarget
+            elif (reachDist < 0.1) and (objPos[2] > (self.objHeight + 0.005)):
+                pickRew = hScale * min(heightTarget, objPos[2])
+            else:
+                pickRew = 0
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
+                np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+            )
+            placeRew = max(placeRew, 0)
+            cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
+
+            if self.placeCompleted:
+                return [-200 * action[-1] + placeRew, placingDist]
+            elif cond:
+                if (
+                    abs(objPos[0] - placingGoal[0]) < 0.05
+                    and abs(objPos[1] - placingGoal[1]) < 0.05
+                ):
+                    placeRew, placingDist = [-200 * action[-1] + placeRew, placingDist]
+                else:
+                    placeRew, placingDist = [placeRew, placingDist]
+            else:
+                placeRew, placingDist = [0, placingDist]
+
+            if self.placeCompleted:
+                reachRew = 0
+                reachDist = 0
+            reward = reachRew + pickRew + placeRew
+
+            return [reward, 0., 0., reachDist, 0., 0.]

@@ -163,3 +163,48 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
                 in_place,
                 float(grasp_success),
             )
+        else:
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            placingGoal = self._target_pos
+
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+
+            placingDist = np.linalg.norm(objPos[:-1] - placingGoal[:-1])
+
+            reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+            zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
+
+            if reachDistxy < 0.05:
+                reachRew = -reachDist
+            else:
+                reachRew = -reachDistxy - 2 * zRew
+
+            # incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(action[-1], 0) / 50
+
+            self.reachCompleted = reachDist < 0.05
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            if self.reachCompleted:
+                placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
+                    np.exp(-(placingDist**2) / c2)
+                    + np.exp(-(placingDist**2) / c3)
+                )
+                placeRew = max(placeRew, 0)
+                placeRew, placingDist = [placeRew, placingDist]
+            else:
+                placeRew, placingDist = [0, placingDist]
+
+            assert placeRew >= 0
+            reward = reachRew + placeRew
+
+            return [reward, 0., 0., placingDist, 0., 0., 0.]

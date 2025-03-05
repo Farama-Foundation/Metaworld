@@ -323,3 +323,72 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
                 object_grasped,
                 stick_in_place,
             )
+        else:
+            stickPos = obs[4:7]
+            objPos = obs[6:9]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            heightTarget = self.heightTarget
+            pushGoal = self._target_pos
+
+            pushDist = np.linalg.norm(objPos[:2] - pushGoal[:2])
+            placeDist = np.linalg.norm(objPos - stickPos)
+            reachDist = np.linalg.norm(stickPos - fingerCOM)
+
+            reachRew = -reachDist
+            # incentive to close fingers when reachDist is small
+            if reachDist < 0.05:
+                reachRew = -reachDist + max(action[-1], 0) / 50
+
+
+            tolerance = 0.01
+            self.pickCompleted = stickPos[2] >= (heightTarget - tolerance)
+
+
+
+            objDropped = (
+                    (stickPos[2] < (self.stickHeight + 0.005))
+                    and (pushDist > 0.02)
+                    and (reachDist > 0.02)
+                )
+                # Object on the ground, far away from the goal, and from the gripper
+                # Can tweak the margin limits
+
+            hScale = 100
+            if self.pickCompleted and not objDropped:
+                pickRew = hScale * heightTarget
+            elif (reachDist < 0.1) and (stickPos[2] > (self.stickHeight + 0.005)):
+                pickRew = hScale * min(heightTarget, stickPos[2])
+            else:
+                pickRew = 0
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
+            if cond:
+                pushRew = 1000 * (self.maxPlaceDist - placeDist) + c1 * (
+                    np.exp(-(placeDist**2) / c2) + np.exp(-(placeDist**2) / c3)
+                )
+                if placeDist < 0.05:
+                    c4 = 2000
+                    c5 = 0.001
+                    c6 = 0.0001
+                    pushRew += 1000 * (self.maxPushDist - pushDist) + c4 * (
+                        np.exp(-(pushDist**2) / c5)
+                        + np.exp(-(pushDist**2) / c6)
+                    )
+                pushRew = max(pushRew, 0)
+
+                pushRew, pushDist = [pushRew, pushDist]
+            else:
+                pushRew, pushDist = [0, pushDist]
+
+            assert (pushRew >= 0) and (pickRew >= 0)
+            reward = reachRew + pickRew + pushRew
+
+            return reward, 0., 0., pushDist, 0., 0.

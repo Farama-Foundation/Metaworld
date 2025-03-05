@@ -142,3 +142,28 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             )
 
             return (10 * in_place, tcp_to_target, in_place)
+        else:
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            heightTarget = self.heightTarget
+            goal = self._target_pos
+
+            del action
+            del obs
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            reachDist = np.linalg.norm(fingerCOM - goal)
+            reachRew = c1 * (self.maxReachDist - reachDist) + c1 * (
+                np.exp(-(reachDist**2) / c2) + np.exp(-(reachDist**2) / c3)
+            )
+            reachRew = max(reachRew, 0)
+            reward = reachRew
+
+            return [reward, reachDist, 0.]

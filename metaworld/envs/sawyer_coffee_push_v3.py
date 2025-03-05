@@ -179,3 +179,34 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
                 object_grasped,
                 in_place,
             )
+        else:
+            del action
+
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            goal = self._target_pos
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            assert np.all(goal == self._get_site_pos("coffee_goal"))
+            reachDist = np.linalg.norm(fingerCOM - objPos)
+            pushDist = np.linalg.norm(objPos[:2] - goal[:2])
+            reachRew = -reachDist
+
+            if reachDist < 0.05:
+                pushRew = 1000 * (self.maxPushDist - pushDist) + c1 * (
+                    np.exp(-(pushDist**2) / c2) + np.exp(-(pushDist**2) / c3)
+                )
+                pushRew = max(pushRew, 0)
+            else:
+                pushRew = 0
+
+            reward = reachRew + pushRew
+
+            return [reward, 0., 0., pushDist, 0., 0.]

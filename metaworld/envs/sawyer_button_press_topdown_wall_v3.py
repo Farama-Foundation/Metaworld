@@ -150,3 +150,35 @@ class SawyerButtonPressTopdownWallEnvV3(SawyerXYZEnv):
                 reward += 5 * button_pressed
 
             return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+        else:
+            del action
+
+            if isinstance(obs, dict):
+                obs = obs["state_observation"]
+
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            pressGoal = self._target_pos[2]
+
+            pressDist = np.abs(objPos[2] - pressGoal)
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+            reachRew = -reachDist
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            if reachDist < 0.05:
+                pressRew = 1000 * (self.maxDist - pressDist) + c1 * (
+                    np.exp(-(pressDist**2) / c2) + np.exp(-(pressDist**2) / c3)
+                )
+            else:
+                pressRew = 0
+            pressRew = max(pressRew, 0)
+            reward = reachRew + pressRew
+
+            return [reward, 0., 0., pressDist, 0., 0.]

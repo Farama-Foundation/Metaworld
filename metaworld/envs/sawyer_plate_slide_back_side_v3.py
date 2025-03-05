@@ -175,3 +175,33 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
             return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+        else:
+            del actions
+
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            pullGoal = self._target_pos
+
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+
+            pullDist = np.linalg.norm(objPos[:-1] - pullGoal[:-1])
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            if reachDist < 0.05:
+                pullRew = 1000 * (self.maxDist - pullDist) + c1 * (
+                    np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
+                )
+                pullRew = max(pullRew, 0)
+            else:
+                pullRew = 0
+
+            reward = -reachDist + pullRew
+
+            return [reward, 0., 0., pullDist, 0., 0.]

@@ -163,3 +163,37 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
                 object_grasped,
                 in_place,
             )
+        else:
+            del action
+
+            objPos = obs[4:7]
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            pullGoal = self._target_pos
+
+            pullDist = np.abs(objPos[1] - pullGoal[1])
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+            reachRew = -reachDist
+
+            self.reachCompleted = reachDist < 0.05
+
+            c1 = 1000
+            c2 = 0.001
+            c3 = 0.0001
+
+            if self.reachCompleted:
+                pullRew = 1000 * (self.maxPullDist - pullDist) + c1 * (
+                    np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
+                )
+                pullRew = max(pullRew, 0)
+                pullRew = pullRew
+            else:
+                pullRew = 0
+
+            reward = reachRew + pullRew
+
+            return [reward, 0., 0., pullDist, 0., 0.]

@@ -155,3 +155,30 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
                 reward += 8 * button_pressed
 
             return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+        else:
+            del action
+
+            objPos = obs[4:7]
+
+            leftFinger = self._get_site_pos("leftEndEffector")
+            fingerCOM = leftFinger
+
+            pressGoal = self._target_pos[1]
+
+            pressDist = np.abs(objPos[1] - pressGoal)
+            reachDist = np.linalg.norm(objPos - fingerCOM)
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            if reachDist < 0.05:
+                pressRew = 1000 * (self.maxDist - pressDist) + c1 * (
+                    np.exp(-(pressDist**2) / c2) + np.exp(-(pressDist**2) / c3)
+                )
+            else:
+                pressRew = 0
+
+            pressRew = max(pressRew, 0)
+            reward = -reachDist + pressRew
+
+            return [reward, 0., 0., pressDist, 0., 0.]

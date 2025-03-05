@@ -156,3 +156,31 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
             return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+        else:
+            del action
+
+            rightFinger, leftFinger = self._get_site_pos(
+                "rightEndEffector"
+            ), self._get_site_pos("leftEndEffector")
+            fingerCOM = (rightFinger + leftFinger) / 2
+
+            goal = self._target_pos
+
+            c1 = 1000
+            c2 = 0.01
+            c3 = 0.001
+            reachDist = np.linalg.norm(fingerCOM[:-1] - goal[:-1])
+            reachRew = -reachDist
+            reachDist_z = np.abs(fingerCOM[-1] - goal[-1])
+
+            if reachDist < 0.05:
+                reachNearRew = 1000 * (self.maxReachDist - reachDist_z) + c1 * (
+                    np.exp(-(reachDist_z**2) / c2) + np.exp(-(reachDist_z**2) / c3)
+                )
+            else:
+                reachNearRew = 0.0
+
+            reachNearRew = max(reachNearRew, 0)
+            reward = reachRew + reachNearRew
+
+            return [reward, 0., 0., reachDist, 0., 0.]
