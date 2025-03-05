@@ -4,7 +4,7 @@ firstpage:
 lastpage:
 ---
 
-```{project-logo} _static/metaworld-text.svg
+```{project-logo} ../metaworld-text.svg
 :alt: Metaworld Logo
 ```
 
