@@ -28,7 +28,7 @@ To create a benchmark and interact with it:
 import gymnasium as gym
 import metaworld
 
-env = gym.make("Meta-World/reach-V3")
+env = gym.make("Meta-World/MT1', env_name=reach-V3")
 
 observation, info = env.reset()
 for _ in range(500):
@@ -58,7 +58,7 @@ import metaworld
 
 seed = 42 # for reproducibility
 
-env = gym.make('Meta-World/reach-V3', seed=seed) # MT1 with the reach environment
+env = gym.make('Meta-World/MT1', env_name='reach-V3', seed=seed) # MT1 with the reach environment
 
 obs, info = env.reset()
 
@@ -67,7 +67,7 @@ obs, reward, truncate, terminate, info = env.step(a) # apply the randomly sample
 ```
 
 ### MT10
-MT10 has two different versions that can be returned by gym.make. The first version is the synchronous version of the benchmark where all environments are contained within the same process.
+MT10 has two different versions that can be returned by ```gym.make```. The first version is the synchronous version of the benchmark where all environments are contained within the same process.
 For users with limited compute resources, the synchronous option needs the least resources.
 ```python
 import gymnasium as gym
@@ -75,7 +75,7 @@ import metaworld
 
 seed = 42
 
-envs = gym.make('Meta-World/MT10-sync', seed=seed) # this returns a Synchronous Vector Environment with 10 environments
+envs = gym.make_vec('Meta-World/MT10', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 10 environments
 
 obs, info = envs.reset() # reset all 10 environments
 
@@ -86,7 +86,7 @@ obs, reward, truncate, terminate, info = envs.step(a) # step all 10 environments
 Alternatively, for users with more compute we also provide the asynchronous version of the MT10 benchmark where each environment is isolated in it's own process and must use inter-process messaging via pipes to communicate.
 
 ```python
-envs = gym.make('Meta-World/MT10-async', seed=seed) # this returns an Asynchronous Vector Environment with 10 environments
+envs = gym.make_vec('Meta-World/MT10', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 10 environments
 ```
 
 ### MT50
@@ -97,7 +97,7 @@ import metaworld
 
 seed = 42
 
-envs = gym.make('Meta-World/MT50-sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
+envs = gym.make('Meta-World/MT50', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
 
 obs, info = envs.reset() # reset all 50 environments
 
@@ -107,7 +107,7 @@ obs, reward, truncate, terminate, info = envs.step(a) # step all 50 environments
 ```
 
 ```python
-envs = gym.make('Meta-World/MT50-async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
+envs = gym.make('Meta-World/MT50', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
 ```
 
 
@@ -121,8 +121,8 @@ import metaworld
 
 seed = 42
 
-train_envs = gym.make('Meta-World/ML1-train-reach-V3', seed=seed)
-test_envs = gym.make('Meta-World/ML1-test-reach-V3', seed=seed)
+train_envs = gym.make('Meta-World/ML1-train', env_name=reach-V3', seed=seed)
+test_envs = gym.make('Meta-World/ML1-test', env_name='reach-V3', seed=seed)
 
 # training procedure use train_envs
 # testing procedure use test_envs
@@ -138,8 +138,8 @@ Similar to the Multi-Task benchmarks, the ML10 and ML45 environments can be run 
 import gymnasium as gym
 import metaworld
 
-train_envs = gym.make('Meta-World/ML10-train-sync', seed=seed) # or ML10-train-async
-test_envs = gym.make('Meta-World/ML10-test-sync', seed=seed) # or ML10-test-async
+train_envs = gym.make_vec('Meta-World/ML10-train', vector_strategy='sync', seed=seed) # or ML10-train-async
+test_envs = gym.make_vec('Meta-World/ML10-test', vector_strategy='sync', seed=seed) # or ML10-test-async
 ```
 
 
@@ -148,8 +148,8 @@ test_envs = gym.make('Meta-World/ML10-test-sync', seed=seed) # or ML10-test-asyn
 import gymnasium as gym
 import metaworld
 
-train_envs = gym.make('Meta-World/ML45-train-sync', seed=seed) # or ML45-train-async
-test_envs = gym.make('Meta-World/ML45-test-sync', seed=seed) # or ML45-test-async
+train_envs = gym.make_vec('Meta-World/ML45-train', vector_strategy='sync', seed=seed) # or ML45-train-async
+test_envs = gym.make_vec('Meta-World/ML45-test', vector_strategy='sync', seed=seed) # or ML45-test-async
 ```
 
 
@@ -164,7 +164,8 @@ In order to create a custom benchmark, the user must provide a list of environme
 import gymnasium as gym
 import metaworld
 
-envs = gym.make('Meta-World/mt-custom-sync', envs_list=['env_name_1-V3', 'env_name_2-V3', 'env_name_3-V3'], seed=seed)
+envs = gym.make_vec('Meta-World/custom-mt-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed)
+envs = gym.make_vec('Meta-World/custom-ml-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed)
 ```
 
 ## Development Roadmap
