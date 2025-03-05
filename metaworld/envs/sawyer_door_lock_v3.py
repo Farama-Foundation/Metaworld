@@ -147,7 +147,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
             reward += 8 * lock_pressed
 
             return (reward, tcp_to_obj, obs[3], obj_to_target, near_lock, lock_pressed)
-       else:
+        else:
             del action
 
             if isinstance(obs, dict):
