@@ -23,7 +23,7 @@ Meta-World is an open-source simulated benchmark for meta-reinforcement learning
 import gymnasium as gym
 import metaworld
 
-env = gym.make('MetaWorld/reach-v3')
+env = gym.make('Meta-World/MT1', env_name='reach-v3')
 
 obs = env.reset()
 a = env.action_space.sample()
