@@ -10,18 +10,6 @@ The benchmark provides a selection of tasks used to study generalization in rein
 Different combinations of tasks provide benchmark scenarios suitable for multi-task RL and meta-RL.
 Unlike usual RL benchmarks, the training of the agent is strictly split into training and testing phases.
 
-## Task Configuration
-
-Meta-World distinguishes between parametric and non-parametric variations.
-Parametric variations concern the configuration of the goal or object position, such as changing the location of the puck in the `push` task.
-
-```
-TODO: Add code snippets
-```
-
-Non-parametric variations are implemented by the settings containing multiple tasks, where the agent is faced with challenges like `push` and `open window` that necessitate a different set of skills.
-
-
 ## Multi-Task Problems
 
 The multi-task setting challenges the agent to learn a predefined set of skills simultaneously.
@@ -103,8 +91,6 @@ Similar to ML10, we hold out 5 tasks for testing and meta-train policies on 45
 tasks. Object and goal positions are randomized, and training tasks are
 selected for structural similarity to test tasks. As with ML10, task IDs are
 not provided, requiring the meta-RL algorithm to identify tasks from experience.
-
-<<<<<<< HEAD
 
 ```{figure} ../_static/ml45.gif
    :alt: Meta-RL 10

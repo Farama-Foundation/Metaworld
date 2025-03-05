@@ -17,11 +17,11 @@ by passing the `reward_func_version` keyword argument to `gym.make(...)`.
 
 ### Version 1
 
-Passing `reward_func_version=v1` configures the benchmark with the primary
+Passing `reward_func_version=v1` configures the benchmark with the original
 reward function of Meta-World, which is actually a version of the
-`pick-place-wall` task that is modified to also work for the other tasks.
-
+`pick-place-wall` task that is modified to also work for the other tasks. Any paper that reports results on the 'env-name-v1' environments, uses this reward function.
 
 ### Version 2
 
-TBA
+Passing `reward_func_version=v2` configures the benchmark with the updated
+reward functions of Meta-World. Any paper that reports results on the 'env-name-v2' environments, uses this reward function.
