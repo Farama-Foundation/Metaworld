@@ -159,6 +159,23 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
+        self.liftThresh = 0.04
+        self.stickHeight = self.get_body_com("stick").copy()[2]
+        self.heightTarget = self.stickHeight + self.liftThresh
+
+        assert self.obj_init_pos is not None and self.stick_init_pos is not None
+
+        self.maxPlaceDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self.stick_init_pos)
+            )
+            + self.heightTarget
+        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:2])
+
         return self._get_obs()
 
     def _gripper_caging_reward(

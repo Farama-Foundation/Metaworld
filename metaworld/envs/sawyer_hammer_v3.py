@@ -114,6 +114,28 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         self.nail_init_pos = self._get_site_pos("nailHead")
         self.obj_init_pos = self.hammer_init_pos.copy()
         self._set_hammer_xyz(self.hammer_init_pos)
+
+        self.liftThresh = 0.09
+        self.hammerHeight = self.get_body_com("hammer").copy()[2]
+        self.heightTarget = self.hammerHeight + self.liftThresh
+
+        self.maxHammerDist = (
+            np.linalg.norm(
+                np.array(
+                    [
+                        self.hammer_init_pos[0],
+                        self.hammer_init_pos[1],
+                        self.heightTarget,
+                    ]
+                )
+                - np.array(self.obj_init_pos)
+            )
+            + self.heightTarget
+            + np.abs(self.obj_init_pos[1] - self._target_pos[1])
+        )
+
+        self.pickCompleted = False
+
         return self._get_obs()
 
     @staticmethod
@@ -188,7 +210,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             )
         else:
             hammerPos = obs[4:7]
-            hammerHeadPos = self.data.geom("HammerHead").xpos.copy()
+            hammerHeadPos = self.data.site("HammerHead").xpos.copy()
             objPos = self.data.site("nailHead").xpos
 
             rightFinger, leftFinger = self._get_site_pos(

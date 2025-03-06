@@ -144,6 +144,30 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
+
+        self.liftThresh = 0.04
+        self.objHeight = self.data.geom("objGeom").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+
+        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+        self.maxPushDist = np.linalg.norm(
+            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
+        )
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
+        )
+        self.target_rewards = [
+            1000 * self.maxPlacingDist + 1000 * 2,
+            1000 * self.maxReachDist + 1000 * 2,
+            1000 * self.maxPushDist + 1000 * 2,
+        ]
+
         return self._get_obs()
 
     def compute_reward(

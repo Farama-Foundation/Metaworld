@@ -116,6 +116,22 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         self._target_pos = self.data.site("goal").xpos
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
+
+        self.liftThresh = 0.3
+        self.objHeight = self.data.geom("objGeom").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
+        )
+        self.pickCompleted = False
+
         return self._get_obs()
 
     def compute_reward(

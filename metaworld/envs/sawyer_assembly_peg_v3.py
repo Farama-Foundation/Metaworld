@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
@@ -117,6 +118,24 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.model.body("peg").pos = peg_pos
         self.model.site("pegTop").pos = self._target_pos
+
+        if self.reward_function_version == "v1":
+            self.obj_height = self.data.site_xpos[
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
+            ][2]
+            self.heightTarget = self.obj_height + 0.1
+            self.pickCompleted = False
+            self.placeCompleted = False
+            self.maxPlacingDist = (
+                np.linalg.norm(
+                    np.array(
+                        [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                    )
+                    - np.array(self._target_pos)
+                )
+                + self.heightTarget
+            )
+
         return self._get_obs()
 
     @staticmethod

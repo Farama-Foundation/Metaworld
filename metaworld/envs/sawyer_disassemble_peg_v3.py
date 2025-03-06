@@ -127,6 +127,22 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         self.model.site("pegTop").pos = peg_top_pos
         mujoco.mj_forward(self.model, self.data)
         self._set_obj_xyz(self.obj_init_pos)
+
+        # v1s
+        self.liftThresh = 0.05
+        self.objHeight = self.data.body("RoundNut").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
+        )
+        self.pickCompleted = False
+
         return self._get_obs()
 
     @staticmethod

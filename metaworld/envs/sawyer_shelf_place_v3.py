@@ -132,6 +132,20 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         assert self._target_pos is not None
         self._set_pos_site("goal", self._target_pos)
+
+        self.liftThresh = 0.04
+        self.objHeight = self.data.geom("objGeom").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
+        )
+
         return self._get_obs()
 
     def compute_reward(
