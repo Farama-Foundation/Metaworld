@@ -20,7 +20,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -143,7 +143,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             hand = obs[:3]
             hammer = obs[4:7]
             hammer_head = hammer + np.array([0.16, 0.06, 0.0])
@@ -168,7 +168,9 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
                 xz_thresh=0.01,
                 high_density=True,
             )
-            reward_in_place = SawyerHammerEnvV3._reward_pos(hammer_head, self._target_pos)
+            reward_in_place = SawyerHammerEnvV3._reward_pos(
+                hammer_head, self._target_pos
+            )
 
             reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
             # Override reward on success. We check that reward is above a threshold
@@ -196,6 +198,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
 
             heightTarget = self.heightTarget
 
+            assert objPos is not None and self._target_pos is not None
             hammerDist = np.linalg.norm(objPos - hammerHeadPos)
             screwDist = np.abs(objPos[1] - self._target_pos[1])
             reachDist = np.linalg.norm(hammerPos - fingerCOM)
@@ -205,21 +208,19 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             if reachDist < 0.05:
                 reachRew = -reachDist + max(actions[-1], 0) / 50
 
-
             tolerance = 0.01
             if hammerPos[2] >= (heightTarget - tolerance):
                 self.pickCompleted = True
             else:
                 self.pickCompleted = False
 
-
             objDropped = (
-                    (hammerPos[2] < (self.hammerHeight + 0.005))
-                    and (hammerDist > 0.02)
-                    and (reachDist > 0.02)
-                )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+                (hammerPos[2] < (self.hammerHeight + 0.005))
+                and (hammerDist > 0.02)
+                and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
 
@@ -249,4 +250,4 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             assert (hammerRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + hammerRew
             success = self.data.joint("NailSlideJoint").qpos > 0.09
-            return [reward, 0., 0., 0., success]
+            return float(reward), 0.0, 0.0, 0.0, bool(success)

@@ -35,7 +35,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -153,13 +153,13 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
         self.maxPlacingDist = (
-                np.linalg.norm(
-                    np.array(
-                        [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                    )
-                    - np.array(self._target_pos)
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
                 )
-                + self.heightTarget
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
         )
 
         return self._get_obs()
@@ -168,12 +168,14 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             tcp_opened = obs[3]
             tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
             target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
+            target_to_obj_init = float(
+                np.linalg.norm(self.obj_init_pos - self._target_pos)
+            )
 
             in_place = reward_utils.tolerance(
                 target_to_obj,
@@ -197,8 +199,15 @@ class SawyerPushEnvV3(SawyerXYZEnv):
                 reward += 1.0 + reward + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-        elif self.reward_function_version == 'v1':
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
+        else:
             objPos = obs[4:7]
 
             rightFinger, leftFinger = self._get_site_pos(
@@ -206,7 +215,6 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             ), self._get_site_pos("leftEndEffector")
             fingerCOM = (rightFinger + leftFinger) / 2
 
-            heightTarget = self.heightTarget
             goal = self._target_pos
 
             c1 = 1000
@@ -221,10 +229,10 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             reachRew = -reachDist
             if reachDist < 0.05:
                 pushRew = 1000 * (self.maxPushDist - pushDist) + c1 * (
-                        np.exp(-(pushDist ** 2) / c2) + np.exp(-(pushDist ** 2) / c3)
+                    np.exp(-(pushDist**2) / c2) + np.exp(-(pushDist**2) / c3)
                 )
                 pushRew = max(pushRew, 0)
             else:
                 pushRew = 0
             reward = reachRew + pushRew
-            return reward, 0., 0., pushDist, 0., 0.
+            return float(reward), 0.0, 0.0, float(pushDist), 0.0, 0.0

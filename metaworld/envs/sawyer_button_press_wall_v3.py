@@ -18,7 +18,7 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -126,7 +126,7 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
         del action
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             tcp = self.tcp_center
 
@@ -155,7 +155,14 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
                 reward = 2
                 reward += 2 * (1 + obs[3])
                 reward += 4 * button_pressed**2
-            return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+            return (
+                reward,
+                tcp_to_obj,
+                obs[3],
+                obj_to_target,
+                near_button,
+                button_pressed,
+            )
         else:
             del action
             objPos = obs[4:7]
@@ -177,4 +184,4 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
             pressRew = max(pressRew, 0)
             reward = -reachDist + pressRew
 
-            return [reward, 0., 0., pressDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pressDist), 0.0, 0.0

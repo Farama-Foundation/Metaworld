@@ -18,7 +18,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -114,7 +114,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             tcp = self.tcp_center
             obj = obs[4:7]
             tcp_opened: float = obs[3]
@@ -178,6 +178,9 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             placingDist = np.linalg.norm(objPos[:-1] - placingGoal[:-1])
 
             reachDistxy = np.linalg.norm(objPos[:-1] - fingerCOM[:-1])
+
+            assert fingerCOM is not None and self.hand_init_pos is not None
+
             zRew = np.linalg.norm(fingerCOM[-1] - self.hand_init_pos[-1])
 
             if reachDistxy < 0.05:
@@ -196,8 +199,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             c3 = 0.001
             if self.reachCompleted:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2)
-                    + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]
@@ -207,4 +209,4 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             assert placeRew >= 0
             reward = reachRew + placeRew
 
-            return [reward, 0., 0., placingDist, 0., 0., 0.]
+            return float(reward), 0.0, 0.0, float(placingDist), 0.0, 0.0, 0.0

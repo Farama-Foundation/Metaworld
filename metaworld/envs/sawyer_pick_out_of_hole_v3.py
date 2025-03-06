@@ -20,7 +20,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
@@ -121,13 +121,15 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             gripper = self.tcp_center
 
             obj_to_target = float(np.linalg.norm(obj - self._target_pos))
             tcp_to_obj = float(np.linalg.norm(obj - gripper))
-            in_place_margin = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
+            in_place_margin = float(
+                np.linalg.norm(self.obj_init_pos - self._target_pos)
+            )
 
             threshold = 0.03
             # floor is a 3D funnel centered on the initial object pos
@@ -158,7 +160,10 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
                 high_density=True,
             )
             in_place = reward_utils.tolerance(
-                obj_to_target, bounds=(0, 0.02), margin=in_place_margin, sigmoid="long_tail"
+                obj_to_target,
+                bounds=(0, 0.02),
+                margin=in_place_margin,
+                sigmoid="long_tail",
             )
             reward = reward_utils.hamacher_product(object_grasped, in_place)
 
@@ -168,7 +173,9 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             # Increase reward when properly grabbed obj
             grasp_success = near_object and lifted and not pinched_without_obj
             if grasp_success:
-                reward += 1.0 + 5.0 * reward_utils.hamacher_product(in_place, above_floor)
+                reward += 1.0 + 5.0 * reward_utils.hamacher_product(
+                    in_place, above_floor
+                )
             # Maximize reward on success
             if obj_to_target < self.TARGET_RADIUS:
                 reward = 10.0
@@ -210,12 +217,12 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             self.pickCompleted = objPos[2] >= (heightTarget - tolerance)
 
             objDropped = (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
-                )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -233,8 +240,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2)
-                    + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:
@@ -243,4 +249,4 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
 
-            return [reward, 0., 0., placingDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(placingDist), 0.0, 0.0

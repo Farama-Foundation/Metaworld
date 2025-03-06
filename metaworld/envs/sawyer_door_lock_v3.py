@@ -19,7 +19,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -118,7 +118,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             del action
             obj = obs[4:7]
             tcp = self.get_body_com("leftpad")
@@ -182,4 +182,4 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0., 0., pullDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

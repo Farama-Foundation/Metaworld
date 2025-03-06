@@ -21,7 +21,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -119,7 +119,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = self._get_pos_objects()
             dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
             tcp = self.tcp_center
@@ -196,4 +196,4 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0., 0., pullDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

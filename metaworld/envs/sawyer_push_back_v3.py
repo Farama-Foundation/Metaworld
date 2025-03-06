@@ -22,7 +22,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
@@ -233,12 +233,14 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             tcp_opened = obs[3]
             tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
             target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
+            target_to_obj_init = float(
+                np.linalg.norm(self.obj_init_pos - self._target_pos)
+            )
 
             in_place = reward_utils.tolerance(
                 target_to_obj,
@@ -258,7 +260,14 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 reward += 1.0 + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
         else:
             objPos = obs[4:7]
 
@@ -289,7 +298,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 else:
                     pushRew = 0
                 reward = reachRew + pushRew
-                return [reward, 0., 0., pushDist, 0., 0.]
+                return [reward, 0.0, 0.0, pushDist, 0.0, 0.0]
 
             def compute_reward_pick_place(actions, obs):
                 del obs
@@ -311,8 +320,6 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 if reachDist < 0.05:
                     reachRew = -reachDist + max(actions[-1], 0) / 50
 
-
-
                 def pickCompletionCriteria():
                     tolerance = 0.01
                     if objPos[2] >= (heightTarget - tolerance):
@@ -333,7 +340,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                     # Can tweak the margin limits
 
                 hScale = 100
-                if self.pickCompleted and not objDropped:
+                if self.pickCompleted and not objDropped():
                     pickRew = hScale * heightTarget
                 elif (reachDist < 0.1) and (objPos[2] > (self.objHeight + 0.005)):
                     pickRew = hScale * min(heightTarget, objPos[2])
@@ -342,9 +349,7 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 c1 = 1000
                 c2 = 0.01
                 c3 = 0.001
-                cond = (
-                    self.pickCompleted and (reachDist < 0.1) and not objDropped
-                )
+                cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
                 if cond:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
                         np.exp(-(placingDist**2) / c2)
@@ -358,6 +363,6 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 assert (placeRew >= 0) and (pickRew >= 0)
                 reward = reachRew + pickRew + placeRew
 
-                return [reward, 0., 0., placingDist, 0., 0.]
+                return [reward, 0.0, 0.0, placingDist, 0.0, 0.0]
 
             return compute_reward_push(action, obs)

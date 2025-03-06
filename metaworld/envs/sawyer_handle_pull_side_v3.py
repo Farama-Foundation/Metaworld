@@ -18,7 +18,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
@@ -123,7 +123,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.obj_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             # Force target to be slightly above basketball hoop
             target = self._target_pos.copy()
@@ -165,7 +165,14 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
                 reward += 1.0 + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
         else:
             del action
 
@@ -191,4 +198,4 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
             pressRew = max(pressRew, 0)
             reward = -reachDist + pressRew
 
-            return [reward, 0., 0., pressDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pressDist), 0.0, 0.0

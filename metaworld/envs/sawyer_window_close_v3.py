@@ -32,7 +32,7 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -130,7 +130,7 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             del actions
             obj = self._get_pos_objects()
             tcp = self.tcp_center
@@ -165,8 +165,15 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
 
             reward = 10 * reward_utils.hamacher_product(reach, in_place)
 
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-        elif self.reward_function_version == 'v1':
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
+        else:
             del actions
 
             objPos = obs[4:7]
@@ -190,10 +197,10 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
 
             if self.reachCompleted:
                 pullRew = 1000 * (self.maxPullDist - pullDist) + c1 * (
-                        np.exp(-(pullDist ** 2) / c2) + np.exp(-(pullDist ** 2) / c3)
+                    np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
                 )
             else:
                 pullRew = 0
             reward = reachRew + pullRew
 
-            return reward, 0., 0., pullDist, 0., 0.
+            return reward, 0.0, 0.0, pullDist, 0.0, 0.0

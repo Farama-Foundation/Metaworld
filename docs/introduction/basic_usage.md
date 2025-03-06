@@ -147,5 +147,5 @@ The gym.make command supports multiple arguments:
 | reward_function_version | Use the original reward functions from Meta-World or the updated ones | "v1" or "v2" |
 | reward_normalization_method | Apply a reward normalization wrapper | None or 'gymnasium' or 'exponential' |
 | render_mode | The render mode of each environment | None or 'human' or 'rgb_array' or 'depth_array' |
-| camera_name | The Mujoco name of the camera that should be used to render | 'corner' or 'topview' or 'behindGripper' or 'gripperPOV' or 'corner2' or 'corner3' | 
+| camera_name | The Mujoco name of the camera that should be used to render | 'corner' or 'topview' or 'behindGripper' or 'gripperPOV' or 'corner2' or 'corner3' |
 | camera_id | The Mujoco ID of the camera that should be used to render | int |

@@ -38,7 +38,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -150,7 +150,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -258,7 +258,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
                     pushRew = 0
 
                 reward = reachRew + pushRew
-                return [reward, 0., 0., pushDist, 0., 0.]
+                return [reward, 0.0, 0.0, pushDist, 0.0, 0.0]
 
             def compute_reward_pick_place(actions, obs):
                 del obs
@@ -279,7 +279,6 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
                 if reachDist < 0.05:
                     reachRew = -reachDist + max(actions[-1], 0) / 50
 
-
                 def pickCompletionCriteria():
                     tolerance = 0.01
                     return objPos[2] >= (heightTarget - tolerance)
@@ -296,33 +295,30 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
                     # Can tweak the margin limits
 
                 hScale = 100
-                if self.pickCompleted and not objDropped:
+                if self.pickCompleted and not objDropped():
                     pickRew = hScale * heightTarget
                 elif (reachDist < 0.1) and (objPos[2] > (self.objHeight + 0.005)):
                     pickRew = hScale * min(heightTarget, objPos[2])
                 else:
                     pickRew = 0
 
-
                 c1 = 1000
                 c2 = 0.01
                 c3 = 0.001
-                cond = (
-                    self.pickCompleted and (reachDist < 0.1) and not objDropped
-                )
+                cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
                 if cond:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
                         np.exp(-(placingDist**2) / c2)
                         + np.exp(-(placingDist**2) / c3)
                     )
                     placeRew = max(placeRew, 0)
-                    placeRew, placingDist =  [placeRew, placingDist]
+                    placeRew, placingDist = [placeRew, placingDist]
                 else:
-                    placeRew, placingDist =  [0, placingDist]
+                    placeRew, placingDist = [0, placingDist]
 
                 assert (placeRew >= 0) and (pickRew >= 0)
                 reward = reachRew + pickRew + placeRew
 
-                return [reward, 0., 0., placingDist, 0., 0.]
+                return [reward, 0.0, 0.0, placingDist, 0.0, 0.0]
 
             return compute_reward_push(action, obs)

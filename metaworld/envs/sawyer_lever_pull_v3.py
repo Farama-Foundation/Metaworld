@@ -35,7 +35,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -125,7 +125,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float]:
         assert self._lever_pos_init is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             gripper = obs[:3]
             lever = obs[4:7]
 
@@ -137,7 +137,9 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             offset = np.array([0.0, 0.055, 0.07])
 
             shoulder_to_lever = (gripper + offset - lever) * scale
-            shoulder_to_lever_init = (self.init_tcp + offset - self._lever_pos_init) * scale
+            shoulder_to_lever_init = (
+                self.init_tcp + offset - self._lever_pos_init
+            ) * scale
 
             # This `ready_to_lift` reward should be a *hint* for the agent, not an
             # end in itself. Make sure to devalue it compared to the value of
@@ -219,4 +221,4 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0., 0., pullDist, 0.]
+            return [reward, 0.0, 0.0, pullDist, 0.0]

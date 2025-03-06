@@ -21,7 +21,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -45,7 +45,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             "hand_init_pos": np.array([0.0, 0.6, 0.2]),
         }
         self.goal = np.array([0.0, 0.84, 0.02])
-        self.obj_init_pos = self.init_config["obj_init_pos"]
+        self.obj_init_pos = self.init_config["obj_init_pos"].tolist()
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
@@ -211,7 +211,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -238,8 +238,15 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
-        elif self.reward_func_version == 'v1':
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+            )
+        else:
             del action
 
             objPos = obs[4:7]
@@ -260,11 +267,13 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             reachRew = -reachDist
 
             self.reachCompleted = reachDist < 0.05
-
-            if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0:
-                reachRew = 0
-                reachDist = 0
-                pushDist = 0
+            assert objPos is not None and self.obj_init_pos is not None
+            if (
+                objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0
+            ):  # ignore: type
+                reachRew = 0.0  # type: ignore
+                reachDist = 0.0  # type: ignore
+                pushDist = 0.0  # type: ignore
 
             if self.reachCompleted:
                 pushRew = 1000 * (self.maxPushDist - pushDist) + c1 * (
@@ -275,4 +284,4 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
                 pushRew = 0
             reward = reachRew + pushRew
 
-            return reward, 0., 0., pushDist, 0., 0.
+            return reward, 0.0, 0.0, float(pushDist), 0.0, 0.0

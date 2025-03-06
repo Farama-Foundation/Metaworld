@@ -21,7 +21,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -161,7 +161,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
             wrench_center = self._get_site_pos("RoundNut")
@@ -237,10 +237,10 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
                 self.pickCompleted = False
 
             objDropped = (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
-                )
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
+            )
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -264,17 +264,16 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
             else:
                 placeRew, placingDist = [0, placingDist]
 
-
             peg_pos = self.model.body("peg").pos
             nut_pos = self.get_body_com("RoundNut")
             if (
                 abs(nut_pos[0] - peg_pos[0]) > 0.05
                 or abs(nut_pos[1] - peg_pos[1]) > 0.05
             ):
-                placingDist = 0
-                reachRew = 0
-                reachDist = 0
-                pickRew = heightTarget * 100
+                placingDist = 0  # type: ignore
+                reachRew = 0  # type: ignore
+                reachDist = 0  # type: ignore
+                pickRew = heightTarget * 100  # type: ignore
 
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
@@ -282,4 +281,4 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
                               abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05
                       ) or placingDist < 0.02"""
             success = obs[6] > self._target_pos[2]
-            return [reward, 0., 0., 0., float(success)]
+            return float(reward), 0.0, 0.0, 0.0, success

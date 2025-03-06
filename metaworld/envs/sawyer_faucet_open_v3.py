@@ -18,7 +18,7 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -120,7 +120,7 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             del action
             obj = obs[4:7] + np.array([-0.04, 0.0, 0.03])
             tcp = self.tcp_center
@@ -157,7 +157,14 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
 
             reward = 10 if target_to_obj <= self._target_radius else reward
 
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
         else:
             del action
 
@@ -174,7 +181,7 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
             reachDist = np.linalg.norm(objPos - fingerCOM)
             reachRew = -reachDist
 
-            self.reachCompleted = reachDist < 0.05
+            self.reachCompleted = bool(reachDist < 0.05)
 
             c1 = 1000
             c2 = 0.01
@@ -190,4 +197,4 @@ class SawyerFaucetOpenEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0., 0., pullDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

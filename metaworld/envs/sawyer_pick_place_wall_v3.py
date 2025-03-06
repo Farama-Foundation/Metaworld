@@ -34,7 +34,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
@@ -152,7 +152,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.obj_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -207,7 +207,9 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             ):
                 reward = in_place_and_object_grasped + 1.0 + 4.0 * in_place_part1
                 if obj[1] > 0.75:
-                    reward = in_place_and_object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
+                    reward = (
+                        in_place_and_object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
+                    )
 
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
@@ -256,12 +258,12 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             self.pickCompleted = pickCompletionCriteria()
 
             objDropped = (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
-                )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -274,13 +276,10 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             c1 = 1000
             c2 = 0.01
             c3 = 0.001
-            cond = (
-                self.pickCompleted and (reachDist < 0.1) and not objDropped
-            )
+            cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2)
-                    + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]
@@ -290,4 +289,4 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
 
-            return [reward, 0., 0., placingDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(placingDist), 0.0, 0.0

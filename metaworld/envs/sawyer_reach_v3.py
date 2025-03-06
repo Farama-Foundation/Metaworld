@@ -33,7 +33,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -137,7 +137,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float]:
         assert self._target_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             # obj = obs[4:7]
@@ -156,7 +156,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             )
 
             return (10 * in_place, tcp_to_target, in_place)
-        elif self.reward_function_version == 'v1':
+        else:
             rightFinger, leftFinger = self._get_site_pos(
                 "rightEndEffector"
             ), self._get_site_pos("leftEndEffector")
@@ -171,8 +171,8 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             c3 = 0.001
             reachDist = np.linalg.norm(fingerCOM - goal)
             reachRew = c1 * (self.maxReachDist - reachDist) + c1 * (
-                    np.exp(-(reachDist ** 2) / c2) + np.exp(-(reachDist ** 2) / c3)
+                np.exp(-(reachDist**2) / c2) + np.exp(-(reachDist**2) / c3)
             )
             reachRew = max(reachRew, 0)
             reward = reachRew
-            return reward, reachDist, 0.
+            return float(reward), float(reachDist), float(0.0)

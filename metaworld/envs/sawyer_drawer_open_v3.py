@@ -18,7 +18,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -114,7 +114,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             gripper = obs[:3]
             handle = obs[4:7]
 
@@ -152,7 +152,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
                 reward_for_caging,
                 reward_for_opening,
             )
-        elif self.reward_function_version == 'v1':
+        else:
             del action
 
             objPos = obs[4:7]
@@ -173,7 +173,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
 
             if self.reachCompleted:
                 pullRew = 1000 * (self.maxDist - pullDist) + c1 * (
-                        np.exp(-(pullDist ** 2) / c2) + np.exp(-(pullDist ** 2) / c3)
+                    np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
                 )
                 pullRew = max(pullRew, 0)
             else:
@@ -181,4 +181,4 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return reward, 0., 0., pullDist, 0., 0.
+            return reward, 0.0, 0.0, pullDist, 0.0, 0.0

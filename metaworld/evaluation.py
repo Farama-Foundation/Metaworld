@@ -12,15 +12,18 @@ from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 class Agent(Protocol):
     def eval_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> npt.NDArray[np.float64]: ...
+    ) -> npt.NDArray[np.float64]:
+        ...
 
 
 class MetaLearningAgent(Agent):
-    def adapt_action(
+    def adapt_action(  # type: ignore[empty-body]
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
+        ...
 
-    def adapt(self, rollouts: Rollout) -> None: ...
+    def adapt(self, rollouts: Rollout) -> None:
+        ...
 
 
 def _get_task_names(

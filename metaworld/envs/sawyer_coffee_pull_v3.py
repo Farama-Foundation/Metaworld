@@ -19,7 +19,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -133,7 +133,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()
 
@@ -196,7 +196,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
             pullDist = np.linalg.norm(objPos[:2] - goal[:2])
             reachRew = -reachDist
             reachDistxy = np.linalg.norm(
-                np.concatenate((objPos[:-1], [self.init_tcp[-1]])) - fingerCOM
+                np.concatenate((objPos[:-1], np.array([self.init_tcp[-1]])))
             )
 
             if reachDistxy < 0.05:  # 0.02
@@ -216,4 +216,4 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0., 0., pullDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

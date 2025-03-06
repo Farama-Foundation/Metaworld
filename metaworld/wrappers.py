@@ -193,13 +193,18 @@ class NormalizeRewardsExponential(gym.Wrapper):
     def __init__(self, reward_alpha, env):
         super().__init__(env)
         self._reward_alpha = reward_alpha
-        self._reward_mean = 0.
-        self._reward_var = 1.
+        self._reward_mean = 0.0
+        self._reward_var = 1.0
 
     def _update_reward_estimate(self, reward):
-        self._reward_mean = (1 - self._reward_alpha) * self._reward_mean + self._reward_alpha * reward
-        self._reward_var = (1 - self._reward_alpha) * self._reward_var + self._reward_alpha * \
-                           np.square(reward - self._reward_mean)
+        self._reward_mean = (
+            1 - self._reward_alpha
+        ) * self._reward_mean + self._reward_alpha * reward
+        self._reward_var = (
+            1 - self._reward_alpha
+        ) * self._reward_var + self._reward_alpha * np.square(
+            reward - self._reward_mean
+        )
 
     def _apply_normalize_reward(self, reward):
         self._update_reward_estimate(reward)
@@ -213,8 +218,8 @@ class NormalizeRewardsExponential(gym.Wrapper):
 
 
 def update_mean_var_count_from_moments(
-        mean, var, count,
-        batch_mean, batch_var, batch_count):
+    mean, var, count, batch_mean, batch_var, batch_count
+):
     delta = batch_mean - mean
     tot_count = count + batch_count
     new_mean = mean + delta * batch_count / tot_count
@@ -226,13 +231,12 @@ def update_mean_var_count_from_moments(
     return new_mean, new_var, new_count
 
 
-class NormalizeRewardGymnasium(
-    gym.Wrapper, gym.utils.RecordConstructorArgs
-):
+class NormalizeRewardGymnasium(gym.Wrapper, gym.utils.RecordConstructorArgs):
     """
     this reward normalization method is directly from gymnasium
 
     """
+
     def __init__(
         self,
         env: gym.Env,
@@ -251,7 +255,7 @@ class NormalizeRewardGymnasium(
         gym.Wrapper.__init__(self, env)
 
         self.return_rms = RunningMeanStd(shape=())
-        self.discounted_reward: np.array = np.array([0.0])
+        self.discounted_reward: np.array = np.array([0.0])  # type: ignore
         self.gamma = gamma
         self.epsilon = epsilon
         self._update_running_mean = True
@@ -267,9 +271,7 @@ class NormalizeRewardGymnasium(
         """Sets the property to freeze/continue the running mean calculation of the reward statistics."""
         self._update_running_mean = setting
 
-    def step(
-        self, action
-    ):
+    def step(self, action):
         """Steps through the environment, normalizing the reward returned."""
         obs, reward, terminated, truncated, info = super().step(action)
 
@@ -278,15 +280,15 @@ class NormalizeRewardGymnasium(
             1 - terminated
         ) + float(reward)
         if self._update_running_mean:
-            self.return_rms.update(self.discounted_reward) # type: ignore
+            self.return_rms.update(self.discounted_reward)  # type: ignore
 
         # We don't (reward - self.return_rms.mean) see https://github.com/openai/baselines/issues/538
         numerator = 0.0
         if self.sub_mean:
-            numerator = reward - self.return_rms.mean # type: ignore
+            numerator = reward - self.return_rms.mean  # type: ignore
         else:
             numerator = reward
-        normalized_reward = numerator / np.sqrt(self.return_rms.var + self.epsilon) # type: ignore
+        normalized_reward = numerator / np.sqrt(self.return_rms.var + self.epsilon)  # type: ignore
         return obs, normalized_reward, terminated, truncated, info
 
 
@@ -318,7 +320,7 @@ class RunningMeanStd:
             "tasks": self.tasks,
             "current_task_idx": self.current_task_idx,
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
-            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
+            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),  # type: ignore
         }
 
     def load_checkpoint(self, ckpt: dict):
@@ -330,7 +332,7 @@ class RunningMeanStd:
         self.tasks = ckpt["tasks"]
         self.current_task_idx = ckpt["current_task_idx"]
         self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
-        set_env_rng(self.unwrapped, ckpt["env_rng_state"])
+        set_env_rng(self.unwrapped, ckpt["env_rng_state"])  # type: ignore
 
 
 class CheckpointWrapper(gym.Wrapper):

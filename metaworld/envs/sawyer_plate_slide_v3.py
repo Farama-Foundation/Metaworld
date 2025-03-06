@@ -21,7 +21,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.1, 0.85, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -122,7 +122,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -140,7 +140,9 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
             )
 
             tcp_to_obj = float(np.linalg.norm(tcp - obj))
-            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
+            obj_grasped_margin = float(
+                np.linalg.norm(self.init_tcp - self.obj_init_pos)
+            )
 
             object_grasped = reward_utils.tolerance(
                 tcp_to_obj,
@@ -156,7 +158,14 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
 
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+            )
         else:
             del action
 
@@ -185,4 +194,4 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
                 pullRew = 0
             reward = -reachDist + pullRew
 
-            return [reward, 0., 0., pullDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

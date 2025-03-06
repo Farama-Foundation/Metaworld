@@ -20,7 +20,7 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
@@ -40,11 +40,11 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
-            "obj_init_pos": np.array([0.0, 0.6, 0.02]),
+            "obj_init_pos": np.array([0.0, 0.6, 0.02]),  # type: ignore
             "obj_init_angle": 0.3,
-            "hand_init_pos": np.array([0.0, 0.6, 0.2]),
+            "hand_init_pos": np.array([0.0, 0.6, 0.2]),  # type: ignore
         }
-        self.goal = np.array([0.5, 0.65, 0.01])
+        self.goal = np.array([0.5, 0.65, 0.01])  # type: ignore
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
@@ -52,9 +52,9 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.init_puck_z = init_puck_z
 
         self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
+            np.array(obj_low), np.array(obj_high), dtype=np.float64  # type: ignore
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)  # type: ignore
 
     @property
     def model_name(self) -> str:
@@ -99,7 +99,7 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate([obj_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([obj_pos[:2], [self.obj_init_pos[-1]]])  # type: ignore
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
@@ -168,7 +168,7 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
 
         assert y_caging >= 0 and y_caging <= 1
 
-        tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
+        tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])  # type: ignore
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         assert self.obj_init_pos is not None
@@ -206,7 +206,7 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -233,7 +233,14 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
 
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+            )
         else:
             del action
 
@@ -252,18 +259,19 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
 
             self.reachCompleted = reachDist < 0.05
 
-            if objPos[-1] < self.obj_init_pos[-1] - 0.05:
-                reachRew = 0
-                pushDistxy = 0
-                reachDist = 0
+            assert objPos is not None and self.obj_init_pos is not None
+
+            if float(objPos[-1]) < float(self.obj_init_pos[-1]) - 0.05:
+                reachRew = np.array(0.0)  # type: ignore
+                pushDistxy = np.array(0.0)  # type: ignore
+                reachDist = 0.0  # type: ignore
 
             c1 = 1000
             c2 = 0.01
             c3 = 0.001
             if self.reachCompleted:
                 pushRew = 1000 * (self.maxPushDist - pushDistxy) + c1 * (
-                    np.exp(-(pushDistxy**2) / c2)
-                    + np.exp(-(pushDistxy**2) / c3)
+                    np.exp(-(pushDistxy**2) / c2) + np.exp(-(pushDistxy**2) / c3)
                 )
                 pushRew = max(pushRew, 0)
                 pushRew = pushRew
@@ -272,4 +280,4 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pushRew
 
-            return reward, 0., 0., pushDistxy, 0., 0.
+            return reward, 0.0, 0.0, float(pushDistxy), 0.0, 0.0

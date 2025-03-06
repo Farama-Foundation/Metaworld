@@ -19,7 +19,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.35, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -177,7 +177,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             stick = obs[4:7]
@@ -203,7 +203,9 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             )
 
             stick_to_target = float(np.linalg.norm(stick - target))
-            stick_in_place_margin_2 = float(np.linalg.norm(self.stick_init_pos - target))
+            stick_in_place_margin_2 = float(
+                np.linalg.norm(self.stick_init_pos - target)
+            )
             stick_in_place_2 = reward_utils.tolerance(
                 stick_to_target,
                 bounds=(0, _TARGET_RADIUS),
@@ -212,7 +214,9 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             )
 
             container_to_target = float(np.linalg.norm(container - target))
-            container_in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
+            container_in_place_margin = float(
+                np.linalg.norm(self.obj_init_pos - target)
+            )
             container_in_place = reward_utils.tolerance(
                 container_to_target,
                 bounds=(0, _TARGET_RADIUS),
@@ -289,23 +293,21 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             tolerance = 0.01
             self.pickCompleted = stickPos[2] >= (heightTarget - tolerance)
 
-
-
             objDropped = (
-                    (stickPos[2] < (self.stickHeight + 0.005))
-                    and (pullDist > 0.02)
-                    and (reachDist > 0.02)
-                )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+                (stickPos[2] < (self.stickHeight + 0.005))
+                and (pullDist > 0.02)
+                and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
             if self.pickCompleted and not objDropped:
-                pickRew =  hScale * heightTarget
+                pickRew = hScale * heightTarget
             elif (reachDist < 0.1) and (stickPos[2] > (self.stickHeight + 0.005)):
-                pickRew =  hScale * min(heightTarget, stickPos[2])
+                pickRew = hScale * min(heightTarget, stickPos[2])
             else:
-                pickRew =  0
+                pickRew = 0
 
             c1 = 1000
             c2 = 0.01
@@ -318,8 +320,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
                 if placeDist < 0.05:
                     c4 = 2000
                     pullRew += 1000 * (self.maxPullDist - pullDist) + c4 * (
-                        np.exp(-(pullDist**2) / c2)
-                        + np.exp(-(pullDist**2) / c3)
+                        np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
                     )
 
                 pullRew = max(pullRew, 0)
@@ -329,4 +330,4 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
 
             assert (pullRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + pullRew
-            return (reward, 0., 0., pullDist, 0., 0.)
+            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0

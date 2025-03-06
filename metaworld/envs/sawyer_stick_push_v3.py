@@ -19,7 +19,7 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -262,7 +262,7 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.12
             tcp = self.tcp_center
             stick = obs[4:7] + np.array([0.015, 0.0, 0.0])
@@ -344,19 +344,16 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             if reachDist < 0.05:
                 reachRew = -reachDist + max(action[-1], 0) / 50
 
-
             tolerance = 0.01
             self.pickCompleted = stickPos[2] >= (heightTarget - tolerance)
 
-
-
             objDropped = (
-                    (stickPos[2] < (self.stickHeight + 0.005))
-                    and (pushDist > 0.02)
-                    and (reachDist > 0.02)
-                )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+                (stickPos[2] < (self.stickHeight + 0.005))
+                and (pushDist > 0.02)
+                and (reachDist > 0.02)
+            )
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -379,8 +376,7 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
                     c5 = 0.001
                     c6 = 0.0001
                     pushRew += 1000 * (self.maxPushDist - pushDist) + c4 * (
-                        np.exp(-(pushDist**2) / c5)
-                        + np.exp(-(pushDist**2) / c6)
+                        np.exp(-(pushDist**2) / c5) + np.exp(-(pushDist**2) / c6)
                     )
                 pushRew = max(pushRew, 0)
 
@@ -391,4 +387,4 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             assert (pushRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + pushRew
 
-            return reward, 0., 0., pushDist, 0., 0.
+            return float(reward), 0.0, 0.0, float(pushDist), 0.0, 0.0

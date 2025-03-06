@@ -20,7 +20,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -169,7 +169,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
             wrench_center = self._get_site_pos("RoundNut")
@@ -210,7 +210,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
                 reward_in_place,
                 success,
             )
-        elif self.reward_function_version == 'v1':
+        else:
             graspPos = obs[4:7]
             objPos = self.get_body_com("RoundNut")
 
@@ -302,7 +302,10 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
                 and abs(objPos[1] - placingGoal[1]) < 0.03
                 and placingDistFinal <= 0.04
             )
-            return [
-                reward, 0, 0, 0,
+            return (
+                float(reward),
+                0.0,
+                0.0,
+                0.0,
                 success,
-            ]
+            )

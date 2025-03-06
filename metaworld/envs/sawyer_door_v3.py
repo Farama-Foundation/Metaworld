@@ -19,7 +19,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -179,7 +179,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             theta = float(self.data.joint("doorjoint").qpos.item())
 
             reward_grab = SawyerDoorEnvV3._reward_grab_effort(actions)
@@ -199,7 +199,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
             val1, val2 = reward_steps
 
             return reward, reward_grab, val1, val2
-        elif self.reward_function_version == 'v1':
+        else:
             del actions
             objPos = obs[4:7]
 
@@ -222,7 +222,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
 
             if self.reachCompleted:
                 pullRew = 1000 * (self.maxPullDist - pullDist) + c1 * (
-                        np.exp(-(pullDist ** 2) / c2) + np.exp(-(pullDist ** 2) / c3)
+                    np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
                 )
                 pullRew = max(pullRew, 0)
             else:
@@ -230,4 +230,4 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return reward, 0., 0., 0.
+            return reward, 0.0, 0.0, 0.0

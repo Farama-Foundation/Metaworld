@@ -20,7 +20,7 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -124,11 +124,13 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
 
             target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
+            target_to_obj_init = float(
+                np.linalg.norm(self.obj_init_pos - self._target_pos)
+            )
 
             in_place = reward_utils.tolerance(
                 target_to_obj,
@@ -155,7 +157,14 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
                 reward += 1.0 + 7.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
         else:
             del action
 
@@ -183,4 +192,4 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             reachNearRew = max(reachNearRew, 0)
             reward = reachRew + reachNearRew
 
-            return [reward, 0., 0., reachDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(reachDist), 0.0, 0.0

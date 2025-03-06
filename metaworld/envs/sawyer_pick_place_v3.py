@@ -33,7 +33,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -158,13 +158,13 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + 0.04
 
         self.maxPlacingDist = (
-                np.linalg.norm(
-                    np.array(
-                        [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                    )
-                    - np.array(self._target_pos)
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
                 )
-                + self.heightTarget
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
         )
 
         self.maxPushDist = np.linalg.norm(
@@ -247,7 +247,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -279,8 +279,15 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
                 reward += 1.0 + 5.0 * in_place
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
-            return (reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place)
-        elif self.reward_function_version == 'v1':
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                obj_to_target,
+                object_grasped,
+                in_place,
+            )
+        else:
             objPos = obs[4:7]
 
             rightFinger, leftFinger = self._get_site_pos(
@@ -315,9 +322,9 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
                 self.pickCompleted = False
 
             objDropped = (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
             )
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
@@ -334,15 +341,15 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             c2 = 0.01
             c3 = 0.001
             objDropped = (
-                    (objPos[2] < (self.objHeight + 0.005))
-                    and (placingDist > 0.02)
-                    and (reachDist > 0.02)
+                (objPos[2] < (self.objHeight + 0.005))
+                and (placingDist > 0.02)
+                and (reachDist > 0.02)
             )
 
             cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist ** 2) / c2) + np.exp(-(placingDist ** 2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:
@@ -351,4 +358,4 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
 
-            return reward, 0., 0., placingDist, 0., 0.
+            return float(reward), 0.0, 0.0, float(placingDist), 0.0, 0.0

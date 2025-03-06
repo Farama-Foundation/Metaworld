@@ -19,7 +19,7 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -134,7 +134,7 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()
 
@@ -209,4 +209,4 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pushRew
 
-            return [reward, 0., 0., pushDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pushDist), 0.0, 0.0

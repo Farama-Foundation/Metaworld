@@ -92,7 +92,7 @@ def main() -> None:
         steps += 1
         current = time.time()
         print(
-            f"Progress: {(current - start) / BENCH_SECONDS * 100:.2f}%, SPS: {int(steps / (current - start))}",
+            f"Progress: {(current - start) / BENCH_SECONDS * 100 : .2f}%, SPS: {int(steps / (current - start))}",
             end="\r",
         )
         if current - start > BENCH_SECONDS:

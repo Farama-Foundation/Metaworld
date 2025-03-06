@@ -33,7 +33,7 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
@@ -130,7 +130,7 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             del actions
             obj = self._get_pos_objects()
             tcp = self.tcp_center
@@ -163,8 +163,15 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
             reward = reward_utils.hamacher_product(reach, in_place)
             reward = 1.0 if target_to_obj <= self.TARGET_RADIUS else reward
             reward *= 10
-            return (reward, tcp_to_obj, tcp_opened, target_to_obj, object_grasped, in_place)
-        elif self.reward_func_version == 'v1':
+            return (
+                reward,
+                tcp_to_obj,
+                tcp_opened,
+                target_to_obj,
+                object_grasped,
+                in_place,
+            )
+        else:
             del actions
 
             objPos = obs[4:7]
@@ -190,4 +197,4 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
             pressRew = max(pressRew, 0)
             reward = -reachDist + pressRew
 
-            return [reward, 0., 0., pressDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pressDist), 0.0, 0.0

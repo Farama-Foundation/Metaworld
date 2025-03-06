@@ -19,7 +19,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -189,7 +189,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
             reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
             reward_steps = SawyerBoxCloseEnvV3._reward_pos(obs, self._target_pos)
@@ -241,9 +241,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
             # incentive to close fingers when reachDist is small
             if reachDist < 0.05:
-                reachRew = -reachDist + max(action[-1], 0) / 50
-
-
+                reachRew = -reachDist + max(actions[-1], 0) / 50
 
             tolerance = 0.01
             if objPos[2] >= (heightTarget - tolerance):
@@ -251,14 +249,13 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-
             objDropped = (
                 (objPos[2] < (self.objHeight + 0.005))
                 and (placingDist > 0.02)
                 and (reachDist > 0.02)
             )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -274,16 +271,14 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2)
-                    + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]
             else:
                 placeRew, placingDist = [0, placingDist]
 
-
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
 
-            return reward, 0., 0., 0., float(placingDist < 0.08)
+            return float(reward), 0.0, 0.0, 0.0, bool(placingDist < 0.08)

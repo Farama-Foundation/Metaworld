@@ -19,7 +19,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (0.2, 0.65, 0.1499)
         goal_high = (0.3, 0.75, 0.1501)
@@ -113,7 +113,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None and self.hand_init_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
             obj = obs[4:7]
@@ -145,7 +145,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
                 reward = 10
 
             return (reward, obj_to_target, hand_in_place)
-        elif self.reward_func_version == 'v1':
+        else:
             del actions
             objPos = obs[4:7]
 
@@ -177,4 +177,4 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, pullDist, 0.]
+            return float(reward), float(pullDist), 0.0

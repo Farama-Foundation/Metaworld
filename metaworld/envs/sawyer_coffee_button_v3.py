@@ -18,7 +18,7 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         self.max_dist = 0.03
 
@@ -127,7 +127,7 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         assert (
             self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             del action
             obj = obs[4:7]
             tcp = self.tcp_center
@@ -154,7 +154,14 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
             if tcp_to_obj <= 0.05:
                 reward += 8 * button_pressed
 
-            return (reward, tcp_to_obj, obs[3], obj_to_target, near_button, button_pressed)
+            return (
+                reward,
+                tcp_to_obj,
+                obs[3],
+                obj_to_target,
+                near_button,
+                button_pressed,
+            )
         else:
             del action
 
@@ -181,4 +188,4 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
             pressRew = max(pressRew, 0)
             reward = -reachDist + pressRew
 
-            return [reward, 0., 0., pressDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pressDist), 0.0, 0.0

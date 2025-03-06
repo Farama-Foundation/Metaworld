@@ -22,7 +22,7 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         goal_low = (-0.1, 0.8, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -224,7 +224,7 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             obj = obs[4:7]
             tcp_opened: float = obs[3]
             x_scaling = np.array([3.0, 1.0, 1.0])
@@ -291,4 +291,4 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
                 pushRew = 0
             reward = reachRew + pushRew
 
-            return [reward, 0., 0., pushDist, 0., 0.]
+            return float(reward), 0.0, 0.0, float(pushDist), 0.0, 0.0

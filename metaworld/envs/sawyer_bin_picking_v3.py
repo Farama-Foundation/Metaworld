@@ -31,7 +31,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        reward_function_version: str = "v2"
+        reward_function_version: str = "v2",
     ) -> None:
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -144,7 +144,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         assert (
             self.obj_init_pos is not None and self._target_pos is not None
         ), "`reset_model()` must be called before `compute_reward()`."
-        if self.reward_function_version == 'v2':
+        if self.reward_function_version == "v2":
             hand = obs[:3]
             obj = obs[4:7]
 
@@ -168,7 +168,9 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             # position and (2) the desired final position
             floor = min(
                 [
-                    0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0
+                    0.02 * np.log(radius - threshold) + 0.2
+                    if radius > threshold
+                    else 0.0
                     for radius in radii
                 ]
             )
@@ -203,7 +205,9 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             # Increase reward when properly grabbed obj
             grasp_success = near_object and lifted and not pinched_without_obj
             if grasp_success:
-                reward += 1.0 + 5.0 * reward_utils.hamacher_product(above_floor, in_place)
+                reward += 1.0 + 5.0 * reward_utils.hamacher_product(
+                    above_floor, in_place
+                )
             # Maximize reward on success
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
@@ -243,22 +247,19 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             if reachDist < 0.05:
                 reachRew = -reachDist + max(action[-1], 0) / 50
 
-
-
             tolerance = 0.01
             if objPos[2] >= (heightTarget - tolerance):
                 self.pickCompleted = True
             else:
                 self.pickCompleted = False
 
-
             objDropped = (
                 (objPos[2] < (self.objHeight + 0.005))
                 and (placingDist > 0.02)
                 and (reachDist > 0.02)
             )
-                # Object on the ground, far away from the goal, and from the gripper
-                # Can tweak the margin limits
+            # Object on the ground, far away from the goal, and from the gripper
+            # Can tweak the margin limits
 
             if (
                 abs(objPos[0] - placingGoal[0]) < 0.05
@@ -268,7 +269,6 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                 self.placeCompleted = True
             else:
                 self.placeCompleted = False
-
 
             hScale = 100
             if self.placeCompleted or (self.pickCompleted and not objDropped):
@@ -288,7 +288,14 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
 
             if self.placeCompleted:
-                return [-200 * action[-1] + placeRew, placingDist]
+                return (
+                    float(-200 * action[-1] + placeRew),
+                    False,
+                    False,
+                    float(placingDist),
+                    0.0,
+                    0.0,
+                )
             elif cond:
                 if (
                     abs(objPos[0] - placingGoal[0]) < 0.05
@@ -305,4 +312,4 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                 reachDist = 0
             reward = reachRew + pickRew + placeRew
 
-            return [reward, 0., 0., reachDist, 0., 0.]
+            return float(reward), False, False, float(placingDist), 0.0, 0.0
