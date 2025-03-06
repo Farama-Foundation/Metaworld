@@ -138,8 +138,8 @@ Similar to the Multi-Task benchmarks, the ML10 and ML45 environments can be run 
 import gymnasium as gym
 import metaworld
 
-train_envs = gym.make_vec('Meta-World/ML10-train', vector_strategy='sync', seed=seed) # or ML10-train-async
-test_envs = gym.make_vec('Meta-World/ML10-test', vector_strategy='sync', seed=seed) # or ML10-test-async
+train_envs = gym.make_vec('Meta-World/ML10-train', vector_strategy='sync', seed=seed) # or vector_strategy='async'
+test_envs = gym.make_vec('Meta-World/ML10-test', vector_strategy='sync', seed=seed) # or vector_strategy='async'
 ```
 
 
@@ -148,8 +148,8 @@ test_envs = gym.make_vec('Meta-World/ML10-test', vector_strategy='sync', seed=se
 import gymnasium as gym
 import metaworld
 
-train_envs = gym.make_vec('Meta-World/ML45-train', vector_strategy='sync', seed=seed) # or ML45-train-async
-test_envs = gym.make_vec('Meta-World/ML45-test', vector_strategy='sync', seed=seed) # or ML45-test-async
+train_envs = gym.make_vec('Meta-World/ML45-train', vector_strategy='sync', seed=seed) # or vector_strategy='async'
+test_envs = gym.make_vec('Meta-World/ML45-test', vector_strategy='sync', seed=seed) # or vector_strategy='async'
 ```
 
 
@@ -164,8 +164,8 @@ In order to create a custom benchmark, the user must provide a list of environme
 import gymnasium as gym
 import metaworld
 
-envs = gym.make_vec('Meta-World/custom-mt-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed)
-envs = gym.make_vec('Meta-World/custom-ml-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed)
+envs = gym.make_vec('Meta-World/custom-mt-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed) # or vector_strategy='async'
+envs = gym.make_vec('Meta-World/custom-ml-envs',vector_strategy='sync', envs_list=['env_name_1-v3', 'env_name_2-v3', 'env_name_3-v3'], seed=seed) # or vector_strategy='async'
 ```
 
 ## Development Roadmap
