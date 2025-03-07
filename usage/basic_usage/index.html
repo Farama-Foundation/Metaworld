@@ -13,9 +13,9 @@
 
     <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.4.7 and Furo 2023.08.19.dev1 -->
         <title>Generate data with expert policies - Metaworld Documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=3e7f4c72" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=49cbaffd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=82c8b628" />
     
     
 
@@ -287,9 +287,9 @@
 <section id="using-expert-policies">
 <h2>Using Expert Policies<a class="headerlink" href="#using-expert-policies" title="Link to this heading">¶</a></h2>
 <p>The below example provides sample code for the reach environment. This code can be extended to the ML10/ML45/MT10/MT50 sets if a list of policies is maintained.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">metaworld</span> <span class="kn">import</span> <span class="n">MT1</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">metaworld</span><span class="w"> </span><span class="kn">import</span> <span class="n">MT1</span>
 
-<span class="kn">from</span> <span class="nn">metaworld.policies.sawyer_reach_v2_policy</span> <span class="kn">import</span> <span class="n">SawyerReachV2Policy</span> <span class="k">as</span> <span class="n">p</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">metaworld.policies.sawyer_reach_v2_policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">SawyerReachV2Policy</span> <span class="k">as</span> <span class="n">p</span>
 
 <span class="n">mt1</span> <span class="o">=</span> <span class="n">MT1</span><span class="p">(</span><span class="s1">&#39;reach-v2&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">mt1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="s1">&#39;reach-v2&#39;</span><span class="p">]()</span>

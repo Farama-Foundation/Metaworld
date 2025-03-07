@@ -13,9 +13,9 @@
 
     <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.4.7 and Furo 2023.08.19.dev1 -->
         <title>Basic Usage - Metaworld Documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=3e7f4c72" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=49cbaffd" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=82c8b628" />
     
     
 
@@ -304,7 +304,7 @@ respectively.
 <h3>Seeding a Benchmark Instance<a class="headerlink" href="#seeding-a-benchmark-instance" title="Link to this heading">¶</a></h3>
 <p>For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
 For example, for the ML1 benchmark environment with the ‘pick-place-v2’ environment, you can do so in the following way:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
 <span class="n">SEED</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># some seed number here</span>
 <span class="n">benchmark</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="p">(</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
@@ -313,8 +313,8 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 </section>
 <section id="running-ml1-or-mt1">
 <h3>Running ML1 or MT1<a class="headerlink" href="#running-ml1-or-mt1" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
-<span class="kn">import</span> <span class="nn">random</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="o">.</span><span class="n">ENV_NAMES</span><span class="p">)</span>  <span class="c1"># Check out the available environments</span>
 
@@ -334,8 +334,8 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 <section id="running-a-benchmark">
 <h3>Running a benchmark<a class="headerlink" href="#running-a-benchmark" title="Link to this heading">¶</a></h3>
 <p>Create an environment with train tasks (ML10, MT10, ML45, or MT50):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
-<span class="kn">import</span> <span class="nn">random</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 
 <span class="n">ml10</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML10</span><span class="p">()</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
 
@@ -354,8 +354,8 @@ For example, for the ML1 benchmark environment with the ‘pick-place-v2’ envi
 </pre></div>
 </div>
 <p>Create an environment with test tasks (this only works for ML10 and ML45, since MT10 and MT50 don’t have a separate set of test tasks):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metaworld</span>
-<span class="kn">import</span> <span class="nn">random</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 
 <span class="n">ml10</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML10</span><span class="p">()</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
 
@@ -382,12 +382,12 @@ We provide constructors for creating environments where the goal has been hidden
 the observation) and environments where the goal is observable. They are called GoalHidden and GoalObservable
 environments respectively.</p>
 <p>You can access them in the following way:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">metaworld.envs</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">metaworld.envs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE</span><span class="p">,</span>
                             <span class="n">ALL_V2_ENVIRONMENTS_GOAL_HIDDEN</span><span class="p">)</span>
                             <span class="c1"># these are ordered dicts where the key : value</span>
                             <span class="c1"># is env_name : env_constructor</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">door_open_goal_observable_cls</span> <span class="o">=</span> <span class="n">ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE</span><span class="p">[</span><span class="s2">&quot;door-open-v2-goal-observable&quot;</span><span class="p">]</span>
 <span class="n">door_open_goal_hidden_cls</span> <span class="o">=</span> <span class="n">ALL_V2_ENVIRONMENTS_GOAL_HIDDEN</span><span class="p">[</span><span class="s2">&quot;door-open-v2-goal-hidden&quot;</span><span class="p">]</span>
