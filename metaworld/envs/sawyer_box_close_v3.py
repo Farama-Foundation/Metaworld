@@ -57,6 +57,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         )
 
         self.init_obj_quat = None
+        self.liftThresh = 0.12
 
     @property
     def model_name(self) -> str:
@@ -120,6 +121,21 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
+
+        self.objHeight = self.data.geom("BoxHandleGeom").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array(
+                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
+                )
+                - np.array(self._target_pos)
+            )
+            + self.heightTarget
+        )
+        self.pickCompleted = False
+
         return self._get_obs()
 
     @staticmethod

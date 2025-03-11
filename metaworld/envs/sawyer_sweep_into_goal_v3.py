@@ -109,6 +109,11 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
+
+        self.maxPushDist = np.linalg.norm(
+            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
+        )
+
         return self._get_obs()
 
     def _gripper_caging_reward(

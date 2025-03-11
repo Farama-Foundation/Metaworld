@@ -210,7 +210,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             )
         else:
             hammerPos = obs[4:7]
-            hammerHeadPos = self.data.site("HammerHead").xpos.copy()
+            hammerHeadPos = self.data.geom("HammerHead").xpos.copy()
             objPos = self.data.site("nailHead").xpos
 
             rightFinger, leftFinger = self._get_site_pos(

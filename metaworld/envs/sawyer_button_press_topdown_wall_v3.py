@@ -114,6 +114,10 @@ class SawyerButtonPressTopdownWallEnvV3(SawyerXYZEnv):
             self._target_pos[2] - self._get_site_pos("buttonStart")[2]
         )
 
+        self.maxDist = np.abs(
+            self._get_site_pos("buttonStart")[2] - self._target_pos[2]
+        )
+
         return self._get_obs()
 
     def compute_reward(

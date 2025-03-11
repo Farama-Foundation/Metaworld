@@ -114,6 +114,9 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         self.obj_init_pos = self.data.body("lock_link").xpos
         self._target_pos = self.obj_init_pos + np.array([0.1, -0.04, 0.0])
 
+        assert self._target_pos is not None and self.obj_init_pos is not None
+        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
+
         return self._get_obs()
 
     def compute_reward(

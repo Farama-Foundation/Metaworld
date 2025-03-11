@@ -117,6 +117,10 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
             self._target_pos[1] - self._get_site_pos("buttonStart")[1]
         )
 
+        self.maxDist = np.abs(
+            self._get_site_pos("buttonStart")[2] - self._target_pos[2]
+        )
+
         return self._get_obs()
 
     def compute_reward(
@@ -164,7 +168,6 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
                 button_pressed,
             )
         else:
-            del action
             objPos = obs[4:7]
             leftFinger = self._get_site_pos("leftEndEffector")
             fingerCOM = leftFinger

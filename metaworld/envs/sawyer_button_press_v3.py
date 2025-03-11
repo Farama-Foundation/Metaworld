@@ -113,6 +113,10 @@ class SawyerButtonPressEnvV3(SawyerXYZEnv):
             self._target_pos[1] - self._get_site_pos("buttonStart")[1]
         )
 
+        self.maxDist = np.abs(
+            self._get_site_pos("buttonStart")[1] - self._target_pos[1]
+        )
+
         return self._get_obs()
 
     def compute_reward(

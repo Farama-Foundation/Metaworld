@@ -134,6 +134,10 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
+        self.maxDist = np.linalg.norm(
+            self.data.geom("puck").xpos[:-1] - self._target_pos[:-1]
+        )
+
         return self._get_obs()
 
     def compute_reward(

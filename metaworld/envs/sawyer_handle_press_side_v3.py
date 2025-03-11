@@ -122,6 +122,10 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         self._target_pos = self._get_site_pos("goalPress")
         self._handle_init_pos = self._get_pos_objects()
 
+        self.maxDist = np.abs(
+            self.data.site("handleStart").xpos[-1] - self._target_pos[-1]
+        )
+
         return self._get_obs()
 
     def compute_reward(

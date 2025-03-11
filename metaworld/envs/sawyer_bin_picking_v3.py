@@ -61,6 +61,8 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
 
         self._target_to_obj_init: float | None = None
 
+        self.liftThresh = 0.1
+
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
@@ -135,6 +137,20 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self._target_pos = self.get_body_com("bin_goal")
         self._target_to_obj_init = None
+
+        self.objHeight = self.data.body("obj").xpos[2]
+        self.heightTarget = self.objHeight + self.liftThresh
+
+        self.maxPlacingDist = (
+            np.linalg.norm(
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1]])
+                - np.array(self._target_pos)[:-1]
+            )
+            + self.heightTarget
+        )
+
+        self.placeCompleted = False
+        self.pickCompleted = False
 
         return self._get_obs()
 

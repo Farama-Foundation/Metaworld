@@ -110,6 +110,10 @@ class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
         )
         mujoco.mj_forward(self.model, self.data)
         self.model.site("goal_close").pos = self._target_pos
+
+        assert self._target_pos is not None and self.obj_init_pos is not None
+        self.maxPullDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
+
         return self._get_obs()
 
     def _reset_hand(self, steps: int = 50) -> None:

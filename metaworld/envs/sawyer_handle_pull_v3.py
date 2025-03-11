@@ -109,6 +109,10 @@ class SawyerHandlePullEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(np.array(-0.1))
         self._target_pos = self._get_site_pos("goalPull")
 
+        self.maxDist = np.abs(
+            self.model.site("handleStart").pos[-1] - self._target_pos[-1]
+        )
+
         return self._get_obs()
 
     def compute_reward(

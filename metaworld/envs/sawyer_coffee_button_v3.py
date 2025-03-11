@@ -119,6 +119,11 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         pos_button = self.obj_init_pos + np.array([0.0, -0.22, 0.3])
         self._target_pos = pos_button + np.array([0.0, self.max_dist, 0.0])
 
+        assert self._target_pos is not None
+        self.maxDist = np.abs(
+            self._get_site_pos("buttonStart")[1] - self._target_pos[1]
+        )
+
         return self._get_obs()
 
     def compute_reward(

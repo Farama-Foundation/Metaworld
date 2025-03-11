@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import mujoco
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
@@ -110,7 +109,10 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         self.model.body("dial").pos = self.obj_init_pos
         self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
         self.model.site("goal").pos = self._target_pos
-        mujoco.mj_forward(self.model, self.data)
+
+        assert self._target_pos is not None and self.obj_init_pos is not None
+        self.maxPullDist = np.abs(self._target_pos[1] - self.obj_init_pos[1])
+
         return self._get_obs()
 
     def compute_reward(

@@ -116,6 +116,10 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
+
+        assert self._target_pos is not None and self.hand_init_pos is not None
+        self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._target_pos[-1])
+
         return self._get_obs()
 
     def compute_reward(

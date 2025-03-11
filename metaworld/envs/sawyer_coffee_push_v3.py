@@ -126,6 +126,11 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
 
         self._target_pos = pos_mug_goal
         self.model.site("mug_goal").pos = self._target_pos
+
+        self.maxPushDist = np.linalg.norm(
+            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
+        )
+
         return self._get_obs()
 
     def compute_reward(

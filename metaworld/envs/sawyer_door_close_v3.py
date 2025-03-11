@@ -89,6 +89,12 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         # keep the door open after resetting initial positions
         self._set_obj_xyz(np.array(-1.5708))
         self.model.site("goal").pos = self._target_pos
+
+        assert self._target_pos is not None
+        self.maxPullDist = np.linalg.norm(
+            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
+        )
+
         return self._get_obs()
 
     @SawyerXYZEnv._Decorators.assert_task_is_set
