@@ -296,5 +296,6 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
+            success = bool(np.linalg.norm(obs[4:7] - self._target_pos) < 0.08)
 
-            return float(reward), 0.0, 0.0, 0.0, bool(placingDist < 0.08)
+            return float(reward), 0.0, 0.0, 0.0, success

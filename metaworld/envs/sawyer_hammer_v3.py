@@ -271,5 +271,10 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
 
             assert (hammerRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + hammerRew
-            success = self.data.joint("NailSlideJoint").qpos > 0.09
-            return float(reward), 0.0, 0.0, 0.0, bool(success)
+            return (
+                float(reward),
+                0.0,
+                0.0,
+                0.0,
+                bool(self.data.joint("NailSlideJoint").qpos > 0.09),
+            )

@@ -196,4 +196,11 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             reachNearRew = max(reachNearRew, 0)
             reward = reachRew + reachNearRew
 
-            return float(reward), 0.0, 0.0, float(reachDist), 0.0, 0.0
+            return (
+                float(reward),
+                0.0,
+                0.0,
+                float(np.linalg.norm(self.obj_init_pos - self._target_pos)),
+                0.0,
+                0.0,
+            )

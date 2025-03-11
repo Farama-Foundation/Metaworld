@@ -225,4 +225,4 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return [reward, 0.0, 0.0, pullDist, 0.0]
+            return reward, 0.0, 0.0, float(pullDist), 0.0

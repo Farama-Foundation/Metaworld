@@ -221,4 +221,11 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
             reward = reachRew + pullRew
 
-            return float(reward), 0.0, 0.0, float(pullDist), 0.0, 0.0
+            return (
+                float(reward),
+                0.0,
+                0.0,
+                float(np.linalg.norm(objPos - goal)),
+                0.0,
+                0.0,
+            )
