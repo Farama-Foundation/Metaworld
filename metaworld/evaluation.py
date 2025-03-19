@@ -128,6 +128,7 @@ def metalearning_evaluation(
                         log_probs=aux_policy_outs.get("log_probs"),
                         means=aux_policy_outs.get("means"),
                         stds=aux_policy_outs.get("stds"),
+                        values=aux_policy_outs.get("values"),
                     )
                 has_autoreset = np.logical_or(terminations, truncations)
                 obs = next_obs
@@ -166,6 +167,7 @@ class Rollout(NamedTuple):
     log_probs: npt.NDArray | None = None
     means: npt.NDArray | None = None
     stds: npt.NDArray | None = None
+    values: npt.NDArray | None = None
 
 
 class _MultiTaskRolloutBuffer:
@@ -248,6 +250,7 @@ class _MultiTaskRolloutBuffer:
         log_probs: npt.NDArray | None = None,
         means: npt.NDArray | None = None,
         stds: npt.NDArray | None = None,
+        values: npt.NDArray | None = None,
     ):
         """Add a batch of timesteps to the buffer. Multiple batch dims are supported, but they
         need to multiply to the buffer's meta batch size.
@@ -277,6 +280,10 @@ class _MultiTaskRolloutBuffer:
             stds = stds.copy()
             if stds.ndim > 2:
                 stds = stds.reshape(-1, *stds.shape[2:])
+        if values is not None:
+            values = values.copy()
+            if values.ndim > 2:
+                values = values.reshape(-1, *values.shape[2:])
 
         for i in range(self.num_tasks):
             timestep: tuple[npt.NDArray, ...] = (
@@ -291,6 +298,8 @@ class _MultiTaskRolloutBuffer:
                 timestep += (means[i],)
             if stds is not None:
                 timestep += (stds[i],)
+            if values is not None:
+                timestep += (values[i],)
             self._running_rollouts[i].append(timestep)
 
             if dones[i]:  # pop full rollouts into the rollouts buffer

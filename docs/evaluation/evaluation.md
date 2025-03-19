@@ -80,6 +80,8 @@ def metalearning_eval(agent, eval_envs, adaptation_steps = 1, adaptation_episode
                   buffer += [means]
                if (stds := misc_outs["stds"]):
                   buffer += [stds]
+               if (values := misc_outs["values"]):
+                  buffer += [values]
             rollout_buffer.append(buffer)
 
          agent.adapt(buffer)
@@ -123,6 +125,7 @@ For meta-reinforcement learning, the agent should also have an `adapt_action` me
 - `"log_probs"`: log probabilities of the actions taken
 - `"means"`: the modes of the distributions generated for each observation
 - `"stds"`: the standard deviations of the distributions generated for each observation.
+- `"values"`: the values computed from some value function for each observation.
 
 Additionally, the agent should also have an `adapt` method for meta-reinforcement learning that takes in a `Rollout` named tuple with numpy arrays containing batches of rollouts for a given data modality. This is to let the agent ingest the generated adaptation data and adapt to the new task.
 
@@ -138,6 +141,7 @@ class Rollout(NamedTuple):
     log_probs: npt.NDArray | None = None
     means: npt.NDArray | None = None
     stds: npt.NDArray | None = None
+    values: npt.NDArray | None = None
 ```
 
 ### Utility outputs
