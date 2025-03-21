@@ -143,9 +143,10 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
 
+
     def get_checkpoint(self) -> dict:
         return {
-            "tasks": self.tasks,
+            "tasks": [_serialize_task(task) for task in self.tasks],
             "current_task_idx": self.current_task_idx,
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
             "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
@@ -157,7 +158,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         assert "sample_tasks_on_reset" in ckpt
         assert "env_rng_state" in ckpt
 
-        self.tasks = ckpt["tasks"]
+        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
         self.current_task_idx = ckpt["current_task_idx"]
         self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
         set_env_rng(self.unwrapped, ckpt["env_rng_state"])
@@ -317,7 +318,7 @@ class RunningMeanStd:
 
     def get_checkpoint(self) -> dict:
         return {
-            "tasks": self.tasks,
+            "tasks": [_serialize_task(task) for task in self.tasks],
             "current_task_idx": self.current_task_idx,
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
             "env_rng_state": get_env_rng_checkpoint(self.unwrapped),  # type: ignore
@@ -329,7 +330,7 @@ class RunningMeanStd:
         assert "sample_tasks_on_reset" in ckpt
         assert "env_rng_state" in ckpt
 
-        self.tasks = ckpt["tasks"]
+        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
         self.current_task_idx = ckpt["current_task_idx"]
         self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
         set_env_rng(self.unwrapped, ckpt["env_rng_state"])  # type: ignore
