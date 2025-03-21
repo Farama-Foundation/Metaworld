@@ -148,3 +148,9 @@ Pipfile
 Pipfile.lock
 
 mujoco_migration.py
+
+# Nix
+flake.nix
+flake.lock
+.direnv
+.envrc
