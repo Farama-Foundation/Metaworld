@@ -84,7 +84,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
     def get_checkpoint(self) -> dict:
         return {
             "tasks": [_serialize_task(task) for task in self.tasks],
-            "rng_state": self.np_random.__getstate__(),
+            "rng_state": self.np_random.bit_generator.state,
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
             "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
         }
@@ -142,7 +142,6 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
         self._set_pseudo_random_task()
         return self.env.reset(seed=seed, options=options)
-
 
     def get_checkpoint(self) -> dict:
         return {
@@ -367,10 +366,10 @@ class CheckpointWrapper(gym.Wrapper):
 
 def get_env_rng_checkpoint(env: SawyerXYZEnv) -> dict[str, dict]:
     return {  # pyright: ignore [reportReturnType]
-        "np_random_state": env.np_random.__getstate__(),
-        "action_space_rng_state": env.action_space.np_random.__getstate__(),
-        "obs_space_rng_state": env.observation_space.np_random.__getstate__(),
-        "goal_space_rng_state": env.goal_space.np_random.__getstate__(),  # type: ignore
+        "np_random_state": env.np_random.bit_generator.state,
+        "action_space_rng_state": env.action_space.np_random.bit_generator.state,
+        "obs_space_rng_state": env.observation_space.np_random.bit_generator.state,
+        "goal_space_rng_state": env.goal_space.np_random.bit_generator.state,  # type: ignore
     }
 
 
@@ -380,7 +379,7 @@ def set_env_rng(env: SawyerXYZEnv, state: dict[str, dict]) -> None:
     assert "obs_space_rng_state" in state
     assert "goal_space_rng_state" in state
 
-    env.np_random.__setstate__(state["np_random_state"])
-    env.action_space.np_random.__setstate__(state["action_space_rng_state"])
-    env.observation_space.np_random.__setstate__(state["obs_space_rng_state"])
-    env.goal_space.np_random.__setstate__(state["goal_space_rng_state"])  # type: ignore
+    env.np_random.bit_generator.state = state["np_random_state"]
+    env.action_space.np_random.bit_generator.state = state["action_space_rng_state"]
+    env.observation_space.np_random.bit_generator.state = state["obs_space_rng_state"]
+    env.goal_space.np_random.bit_generator.state = state["goal_space_rng_state"]  # type: ignore
