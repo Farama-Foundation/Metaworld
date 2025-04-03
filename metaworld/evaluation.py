@@ -16,6 +16,8 @@ class Agent(Protocol):
 
 
 class MetaLearningAgent(Agent, Protocol):
+    def reset_state(self) -> None: ...
+
     def adapt_action(  # type: ignore[empty-body]
         self, observations: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
@@ -86,11 +88,11 @@ def evaluation(
 def metalearning_evaluation(
     agent: MetaLearningAgent,
     eval_envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
+    num_evals: int = 10,  # Assuming 40 goals per test task and meta batch size of 20
     adaptation_steps: int = 1,
-    max_episode_steps: int = 500,
     adaptation_episodes: int = 10,
-    num_episodes: int = 50,
-    num_evals: int = 1,
+    max_episode_steps: int = 500,
+    evaluation_episodes: int = 3,
 ) -> tuple[float, float, dict[str, float]]:
     task_names = _get_task_names(eval_envs)
 
@@ -99,22 +101,25 @@ def metalearning_evaluation(
 
     success_rate_per_task = np.zeros((num_evals, len(set(task_names))))
 
+    eval_buffer = _MultiTaskRolloutBuffer(
+        num_tasks=eval_envs.num_envs,
+        rollouts_per_task=adaptation_episodes,
+        max_episode_steps=max_episode_steps,
+        envs=eval_envs,
+    )
+
     for i in range(num_evals):
+        obs: npt.NDArray[np.float64]
+
         eval_envs.call("toggle_sample_tasks_on_reset", False)
         eval_envs.call("toggle_terminate_on_success", False)
         eval_envs.call("sample_tasks")
-        obs: npt.NDArray[np.float64]
-        obs, _ = eval_envs.reset()
-        obs = np.stack(obs)  # type: ignore
-        has_autoreset = np.full((eval_envs.num_envs,), False)
-        eval_buffer = _MultiTaskRolloutBuffer(
-            num_tasks=eval_envs.num_envs,
-            rollouts_per_task=adaptation_episodes,
-            max_episode_steps=max_episode_steps,
-            envs=eval_envs,
-        )
+        agent.reset_state()
 
         for _ in range(adaptation_steps):
+            obs, _ = eval_envs.reset()
+            eval_buffer.reset()
+            has_autoreset = np.full((eval_envs.num_envs,), False)
             while not eval_buffer.ready:
                 actions, aux_policy_outs = agent.adapt_action(obs)
                 next_obs: npt.NDArray[np.float64]
@@ -136,13 +141,11 @@ def metalearning_evaluation(
                 has_autoreset = np.logical_or(terminations, truncations)
                 obs = next_obs
 
-            rollouts = eval_buffer.get()
-            agent.adapt(rollouts)
-            eval_buffer.reset()
+            agent.adapt(eval_buffer.get())
 
         # Evaluation
         mean_success_rate, mean_return, _success_rate_per_task, _ = evaluation(
-            agent, eval_envs, num_episodes
+            agent, eval_envs, evaluation_episodes
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
