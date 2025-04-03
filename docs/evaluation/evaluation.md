@@ -49,20 +49,21 @@ def multi_task_eval(agent, envs, num_evaluation_episodes = 50, episode_horizon =
 
 ### Meta-Reinforcement Learning (ML1, ML10, ML45)
 
-The agent, trained on the set of training tasks and training goal positions from the benchmark, is evaluated for one episode per *testing goal position*, *per testing task*. In ML1, the task is the same between training and testing, but the set of goal positions is different and not seen during training. For ML10 and ML45, there are 5 held out testing tasks which are different from the training tasks, and each of them also has 50 goal positions never seen during training.
+The agent, trained on the set of training tasks and training goal positions from the benchmark, is evaluated for three episodes per *testing goal position*, *per testing task*. In ML1, the task is the same between training and testing, but the set of goal positions is different and not seen during training. For ML10 and ML45, there are 5 held out testing tasks which are different from the training tasks, and each of them also has 40 goal positions never seen during training.
 
-However, since meta-RL is all about adaptation, additionally the evaluation procedure also allows the agent to adapt. Specifically, one would collect `adaptation_steps * adaptation_episodes` number of episodes per testing task, per testing goal, and give them back to the network to adapt from, before computing the final post-adaptation evaluation metric (in a single episode) for that testing goal / task, in a similar fashion to the multi-task reinforcement learning setting. In practice, for each adaptation step, `adaptation_episodes` number of episodes is collected per testing task and given back to the network to adapt from as a batch of rollouts, so the agent can iteratively adapt.
+However, since meta-RL is all about adaptation, additionally the evaluation procedure also allows the agent to adapt. Specifically, one would collect `adaptation_steps * adaptation_episodes` number of episodes per testing task, per testing goal, and give them back to the network to adapt from, before computing the final post-adaptation evaluation metric (in three episodes) for that testing goal / task, in a similar fashion to the multi-task reinforcement learning setting. In practice, for each adaptation step, `adaptation_episodes` number of episodes is collected per testing goal and given back to the network to adapt from as a batch of rollouts, so the agent can iteratively adapt.
 
-Success is measured during each episode for each tasks the same way as it is in the multi-task setting: the agent is considered to have succeeded if the success flag is `1` at any point during the episode. And the final metric is likewise still the average success rate across all testing tasks and episodes.
+Success is measured during each episode for each goal the same way as it is in the multi-task setting: the agent is considered to have succeeded if the success flag is `1` at any point during the episode. And the final metric is likewise still the average success rate across all testing tasks and episodes.
 
 Here is python pseudocode for this procedure:
 
 ```python
-def metalearning_eval(agent, eval_envs, adaptation_steps = 1, adaptation_episodes = 10, num_evaluation_episodes = 50, episode_horizon):
+def metalearning_eval(agent, eval_envs, adaptation_steps = 1, adaptation_episodes = 10, num_evals = 40, episode_horizon):
    success_rate = 0.0
    initial_obs = eval_envs.reset()
 
-   for episode in range(num_evaluation_episodes):
+   for goal in range(num_evals):
+      agent.reset_state()
       eval_envs.iterate_goal_position()
 
       for step in range(adaptation_steps):
@@ -84,14 +85,26 @@ def metalearning_eval(agent, eval_envs, adaptation_steps = 1, adaptation_episode
                   buffer += [values]
             rollout_buffer.append(buffer)
 
-         agent.adapt(buffer)
+         agent.adapt(rollout_buffer)
 
-      success_rate += multi_task_eval(agent, eval_envs, num_evaluation_episodes=1)
+      success_rate += multi_task_eval(agent, eval_envs, num_evaluation_episodes=3)
 
-   success_rate /= num_evaluation_episodes
+   success_rate /= num_evals
 
    return success_rate
 ```
+
+#### The `num_evals` parameter, and meta batch size in Metaworld
+The pseudocode assumes a meta batch size of 1 and 40 total tasks to go through (`num_evals`). For example this could work for ML1 with 40 test goals. In practice, meta batch size would be higher, e.g. 20, and the value of `num_evals` becomes a bit less intuitive.
+
+In meta-reinforcement learning, we typically use a vectorised environment where each environment instance is assigned to a given task. The number of tasks we are processing in parallel at a given iteration is known as the **meta batch size**. In typical meta-reinforcement learning where we just have parametric task variations, the vector that specifies the variation is the task. In Metaworld, things are a little more complicated. We have both distinct tasks (e.g. `reach-v3` or `sweep-into-v3`) and different goal positions within each task. The task space in Metaworld is considered to be the combinatorial space of tasks and goal positions.
+
+For ML10 and ML45, we have 5 test tasks, each of which has 40 test goal positions. We can therefore use a meta batch size of 20, and create 4 instances of each task within the vectorised environment for this meta batch, each of which will have 10 distinct goal positions. Therefore, to iterate over all `(task,goal)` combinations during evaluation, we would need `num_evals=10`.
+
+For ML1, `num_evals` would depend on the meta batch size. We can either have a meta batch size of 1 (in which case `num_evals` would be 40), or a meta batch size of 20 (in which case `num_evals` would be 2).
+
+> [!NOTE]
+> The meta batch sizes and num evals values are suggestions and can be thought of as worked out examples to explain the evaluation logic. Feel free to use different values, as long as all `(task,goal)` combinations are covered during evaluation.
 
 ## Utility functions
 
@@ -111,6 +124,8 @@ class Agent(Protocol):
 
 
 class MetaLearningAgent(Agent):
+    def reset_state(self) -> None: ...
+
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
@@ -143,6 +158,8 @@ class Rollout(NamedTuple):
     stds: npt.NDArray | None = None
     values: npt.NDArray | None = None
 ```
+
+A meta-reinforcement learning agent should also have a `reset_state` method that resets the agent's state to a pre-adaptation state.
 
 ### Utility outputs
 
