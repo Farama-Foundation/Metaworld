@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Protocol
+from typing import NamedTuple, Protocol, Self
 
 import gymnasium as gym
 import numpy as np
@@ -16,13 +16,15 @@ class Agent(Protocol):
 
 
 class MetaLearningAgent(Agent, Protocol):
-    def reset_state(self) -> None: ...
+    def init(self) -> Self: ...
 
-    def adapt_action(  # type: ignore[empty-body]
+    def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+    ) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
 
-    def adapt(self, rollouts: Rollout) -> None: ...
+    def step(self, timestep: Timestep) -> Self: ...
+
+    def adapt(self) -> Self: ...
 
 
 def _get_task_names(
@@ -59,9 +61,9 @@ def evaluation(
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:
-                episodic_returns[task_names[i]].append(float(infos["episode"]["r"][i]))
+                episodic_returns[task_names[i]].append(float(infos["final_info"]["episode"]["r"][i]))
                 if len(episodic_returns[task_names[i]]) <= num_episodes:
-                    successes[task_names[i]] += int(infos["success"][i])
+                    successes[task_names[i]] += int(infos["final_info"]["success"][i])
 
     episodic_returns = {
         task_name: returns[:num_episodes]
@@ -91,61 +93,42 @@ def metalearning_evaluation(
     num_evals: int = 10,  # Assuming 40 goals per test task and meta batch size of 20
     adaptation_steps: int = 1,
     adaptation_episodes: int = 10,
-    max_episode_steps: int = 500,
     evaluation_episodes: int = 3,
 ) -> tuple[float, float, dict[str, float]]:
+    eval_envs.call("toggle_sample_tasks_on_reset", False)
+    eval_envs.call("toggle_terminate_on_success", False)
     task_names = _get_task_names(eval_envs)
 
     total_mean_success_rate = 0.0
     total_mean_return = 0.0
-
     success_rate_per_task = np.zeros((num_evals, len(set(task_names))))
-
-    eval_buffer = _MultiTaskRolloutBuffer(
-        num_tasks=eval_envs.num_envs,
-        rollouts_per_task=adaptation_episodes,
-        max_episode_steps=max_episode_steps,
-        envs=eval_envs,
-    )
 
     for i in range(num_evals):
         obs: npt.NDArray[np.float64]
 
-        eval_envs.call("toggle_sample_tasks_on_reset", False)
-        eval_envs.call("toggle_terminate_on_success", False)
         eval_envs.call("sample_tasks")
-        agent.reset_state()
+        adaptive_agent = agent.init()
 
         for _ in range(adaptation_steps):
             obs, _ = eval_envs.reset()
-            eval_buffer.reset()
-            has_autoreset = np.full((eval_envs.num_envs,), False)
-            while not eval_buffer.ready:
-                actions, aux_policy_outs = agent.adapt_action(obs)
-                next_obs: npt.NDArray[np.float64]
-                rewards: npt.NDArray[np.float64]
+            episodes_elapsed = np.zeros((eval_envs.num_envs,), dtype=np.uint16)
+
+            while not (episodes_elapsed >= adaptation_episodes).all():
+                adaptive_agent, actions, aux_policy_outs = adaptive_agent.adapt_action(obs)
                 next_obs, rewards, terminations, truncations, _ = eval_envs.step(
                     actions
                 )
-                if not has_autoreset.any():
-                    eval_buffer.add(
-                        obs,
-                        action=actions,
-                        reward=rewards,
-                        done=truncations,
-                        log_prob=aux_policy_outs.get("log_probs"),
-                        mean=aux_policy_outs.get("means"),
-                        std=aux_policy_outs.get("stds"),
-                        value=aux_policy_outs.get("values"),
-                    )
-                has_autoreset = np.logical_or(terminations, truncations)
+                adaptive_agent = adaptive_agent.step(
+                    Timestep(obs, actions, rewards, terminations, truncations, aux_policy_outs)
+                )
+                episodes_elapsed += np.logical_or(terminations, truncations)
                 obs = next_obs
 
-            agent.adapt(eval_buffer.get())
+            adaptive_agent = adaptive_agent.adapt()
 
         # Evaluation
         mean_success_rate, mean_return, _success_rate_per_task, _ = evaluation(
-            agent, eval_envs, evaluation_episodes
+            adaptive_agent, eval_envs, evaluation_episodes
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
@@ -163,127 +146,10 @@ def metalearning_evaluation(
     )
 
 
-class Rollout(NamedTuple):
-    observations: npt.NDArray
-    actions: npt.NDArray
-    rewards: npt.NDArray
-    dones: npt.NDArray
-
-    # Auxiliary policy outputs
-    log_probs: npt.NDArray | None = None
-    means: npt.NDArray | None = None
-    stds: npt.NDArray | None = None
-    values: npt.NDArray | None = None
-
-
-class _MultiTaskRolloutBuffer:
-    """A buffer to accumulate rollouts for multiple tasks.
-    Useful for ML1, ML10, ML45, or on-policy MTRL algorithms.
-
-    In Metaworld, all episodes are as long as the time limit (typically 500), thus in this buffer we assume
-    fixed-length episodes and leverage that for optimisations."""
-
-    rollouts: list[list[Rollout]]
-
-    def __init__(
-        self,
-        num_tasks: int,
-        rollouts_per_task: int,
-        max_episode_steps: int,
-        envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
-    ):
-        self.num_rollout_steps = rollouts_per_task * max_episode_steps
-        self.num_tasks = num_tasks
-        self._obs_shape = np.array(envs.single_observation_space.shape).prod()
-        self._action_shape = np.array(envs.single_action_space.shape).prod()
-
-        self.reset()
-
-    def reset(self) -> None:
-        """Reinitialize the buffer."""
-        self.observations = np.zeros(
-            (self.num_rollout_steps, self.num_tasks, self._obs_shape), dtype=np.float32
-        )
-        self.actions = np.zeros(
-            (self.num_rollout_steps, self.num_tasks, self._action_shape),
-            dtype=np.float32,
-        )
-        self.rewards = np.zeros(
-            (self.num_rollout_steps, self.num_tasks, 1), dtype=np.float32
-        )
-        self.dones = np.zeros(
-            (self.num_rollout_steps, self.num_tasks, 1), dtype=np.float32
-        )
-
-        self.log_probs = np.zeros(
-            (self.num_rollout_steps, self.num_tasks, 1), dtype=np.float32
-        )
-        self.values = np.zeros_like(self.rewards)
-        self.means = np.zeros_like(self.actions)
-        self.stds = np.zeros_like(self.actions)
-        self.pos = 0
-
-    @property
-    def ready(self) -> bool:
-        """Returns whether or not a full batch of rollouts for each task has been sampled."""
-        return self.pos == self.num_rollout_steps
-
-    def get(
-        self,
-    ) -> Rollout:
-        """Compute returns and advantages for the collected rollouts.
-
-        Returns a Rollout tuple where each array has the batch dimensions (Timestep,Task,).
-        The timesteps are multiple rollouts flattened into one time dimension."""
-        rollouts = Rollout(
-            self.observations,
-            self.actions,
-            self.rewards,
-            self.dones,
-            self.log_probs,
-            self.means,
-            self.stds,
-            self.values,
-        )
-
-        return rollouts
-
-    def add(
-        self,
-        obs: npt.NDArray,
-        action: npt.NDArray,
-        reward: npt.NDArray,
-        done: npt.NDArray,
-        value: npt.NDArray | None = None,
-        log_prob: npt.NDArray | None = None,
-        mean: npt.NDArray | None = None,
-        std: npt.NDArray | None = None,
-    ):
-        """Add a batch of timesteps to the buffer."""
-        # NOTE: assuming batch dim = task dim
-        assert (
-            obs.ndim == 2 and action.ndim == 2 and reward.ndim <= 2 and done.ndim <= 2
-        )
-        assert (
-            obs.shape[0]
-            == action.shape[0]
-            == reward.shape[0]
-            == done.shape[0]
-            == self.num_tasks
-        )
-
-        self.observations[self.pos] = obs.copy()
-        self.actions[self.pos] = action.copy()
-        self.rewards[self.pos] = reward.copy().reshape(-1, 1)
-        self.dones[self.pos] = done.copy().reshape(-1, 1)
-
-        if value is not None:
-            self.values[self.pos] = value.copy()
-        if log_prob is not None:
-            self.log_probs[self.pos] = log_prob.reshape(-1, 1).copy()
-        if mean is not None:
-            self.means[self.pos] = mean.copy()
-        if std is not None:
-            self.stds[self.pos] = std.copy()
-
-        self.pos += 1
+class Timestep(NamedTuple):
+    observation: npt.NDArray
+    action: npt.NDArray
+    reward: npt.NDArray
+    terminated: npt.NDArray
+    truncated: npt.NDArray
+    aux_policy_outputs: dict[str, npt.NDArray]

@@ -464,7 +464,8 @@ def make_mt_envs(
                 for env_id, (name, env_cls) in enumerate(
                     benchmark.train_classes.items()
                 )
-            ]  # type: ignore
+            ],  # type: ignore
+            autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
         )
     else:
         raise ValueError(
@@ -519,7 +520,8 @@ def _make_ml_envs_inner(
                 task_select=task_select,
             )
             for env_cls, tasks in env_tuples
-        ]
+        ],
+        autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
     )
 
 
@@ -708,7 +710,8 @@ def register_mw_envs() -> None:
                     **lamb_kwargs,
                 )
                 for idx, env_name in enumerate(envs_list)
-            ]
+            ],
+            autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
         )
 
     register(

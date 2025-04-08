@@ -53,6 +53,8 @@ The agent, trained on the set of training tasks and training goal positions from
 
 However, since meta-RL is all about adaptation, additionally the evaluation procedure also allows the agent to adapt. Specifically, one would collect `adaptation_steps * adaptation_episodes` number of episodes per testing task, per testing goal, and give them back to the network to adapt from, before computing the final post-adaptation evaluation metric (in three episodes) for that testing goal / task, in a similar fashion to the multi-task reinforcement learning setting. In practice, for each adaptation step, `adaptation_episodes` number of episodes is collected per testing goal and given back to the network to adapt from as a batch of rollouts, so the agent can iteratively adapt.
 
+The agent can either adapt continously each timestep (e.g. sequence-model based metalearners), or each adaptation step (e.g. gradient-based metalearners), or both, or both.
+
 Success is measured during each episode for each goal the same way as it is in the multi-task setting: the agent is considered to have succeeded if the success flag is `1` at any point during the episode. And the final metric is likewise still the average success rate across all testing tasks and episodes.
 
 Here is python pseudocode for this procedure:
@@ -63,31 +65,20 @@ def metalearning_eval(agent, eval_envs, adaptation_steps = 1, adaptation_episode
    initial_obs = eval_envs.reset()
 
    for goal in range(num_evals):
-      agent.reset_state()
       eval_envs.iterate_goal_position()
+      adaptive_agent = agent.init()
 
       for step in range(adaptation_steps):
-         rollout_buffer = []
          for _ in range(adaptation_episodes):
             obs = eval_envs.reset()
-            buffer = [obs]
             for _ in range(episode_horizon):
-               action, misc_outs = agent.adapt_action(obs)
+               adaptive_agent, action, misc_outs = adaptive_agent.adapt_action(obs)
                next_obs, reward, terminated, truncated, info = eval_envs.step(action)
-               buffer += [action, reward, next_obs]
-               if (log_probs := misc_outs["log_probs"]):
-                  buffer += [log_probs]
-               if (means := misc_outs["means"]):
-                  buffer += [means]
-               if (stds := misc_outs["stds"]):
-                  buffer += [stds]
-               if (values := misc_outs["values"]):
-                  buffer += [values]
-            rollout_buffer.append(buffer)
+               adaptive_agent = adaptive_agent.step(obs, action, reward, terminated, truncated, next_obs, misc_outs)
 
-         agent.adapt(rollout_buffer)
+         adaptive_agent = adaptive_agent.adapt()
 
-      success_rate += multi_task_eval(agent, eval_envs, num_evaluation_episodes=3)
+      success_rate += multi_task_eval(adaptive_agent, eval_envs, num_evaluation_episodes=3)
 
    success_rate /= num_evals
 
@@ -124,42 +115,35 @@ class Agent(Protocol):
 
 
 class MetaLearningAgent(Agent):
-    def reset_state(self) -> None: ...
+    def init(self) -> Self: ...
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+    ) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
 
-    def adapt(self, rollouts: Rollout) -> None: ...
+    def step(self, timestep: Timestep) -> Self: ...
+
+    def adapt(self) -> Self: ...
 ```
 
 For both multi-task and meta-reinforcement learning evaluations, the agent object should have a `eval_action` method that takes in a numpy array of some observations and outputs actions. One should think of this as the action the agent takes when it is being evaluated and therefore this should probably be deterministic.
 
-For meta-reinforcement learning, the agent should also have an `adapt_action` method that takes in a numpy array of some observations and outputs a tuple of actions and miscellaneous policy outputs that might be needed during adaptation. This latter part should be a python dictionary with string keys and numpy array values. Currently supported miscellaneous policy outputs include:
+For meta-reinforcement learning, we adopt a functional programming-inspired design for the agent interface to make agent mutations explicit during adaptation. It is possible to simply use `return self` to return a reference to the current agent if you want to instead handle mutation in-place in your agent implementation. A meta-learning agent should therefore have the following additional methods:
+- `init() -> Self`: initialises a new instance of the agent ready for adaptation. This method will be called on the initial `agent` object passed to the evaluation function during each evaluation iteration. Therefore if you plan to handle mutation in-place, you should make sure this method resets the agent back to the pre-adaptation state.
+- `adapt_action(observations: npt.NDArray[np.float64]) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]`: takes in observations from the vectorised evaluation environment and outputs a tuple of actions and miscellaneous policy outputs that might be needed during adaptation.
+- `step(timestep: Timestep) -> Self`: takes in a `Timestep`, which contains data from the current env transitions, and returns a new agent that has adapted to or stored this experience. 
+- `adapt() -> Self`: a method called at the end of each adaptation step. The agent can use this as a signal to process the experience ingested through `step()`, for example in gradient-based methods.
 
-- `"log_probs"`: log probabilities of the actions taken
-- `"means"`: the modes of the distributions generated for each observation
-- `"stds"`: the standard deviations of the distributions generated for each observation.
-- `"values"`: the values computed from some value function for each observation.
-
-Additionally, the agent should also have an `adapt` method for meta-reinforcement learning that takes in a `Rollout` named tuple with numpy arrays containing batches of rollouts for a given data modality. This is to let the agent ingest the generated adaptation data and adapt to the new task.
-
-The `Rollout` named tuple that the agent will be given at the end of each adaptation step looks like so:
+The `Timestep` named tuple that the agent will be given at the end of each adaptation step looks like so:
 ```python
 class Rollout(NamedTuple):
-    observations: npt.NDArray
-    actions: npt.NDArray
-    rewards: npt.NDArray
-    dones: npt.NDArray
-
-    # Auxiliary policy outputs
-    log_probs: npt.NDArray | None = None
-    means: npt.NDArray | None = None
-    stds: npt.NDArray | None = None
-    values: npt.NDArray | None = None
+    observation: npt.NDArray
+    action: npt.NDArray
+    reward: npt.NDArray
+    terminated: npt.NDArray
+    truncated: npt.NDArray
+    aux_policy_outputs: dict[str, npt.NDArray]
 ```
-
-A meta-reinforcement learning agent should also have a `reset_state` method that resets the agent's state to a pre-adaptation state.
 
 ### Utility outputs
 
@@ -167,6 +151,7 @@ The evaluation utilities output multiple items, not just the overall success rat
 - `mean_success_rate`: the aforementioned success rate. This is a float scalar.
 - `mean_returns`: the returns achieved during evaluation averaged across all goal positions / tasks. This is a float scalar.
 - `success_rate_per_task`: the success rate achieved for each task evaluated. This is a dictionary keyed by the task name as a string and a float scalar as a value. This scalar is the success rate averaged across goal positions for the given task.
+- `returns_per_task`: the returns achieved for each task evaluated. This is a dictionary keyed by the task name as a string and a float scalar as a value. This scalar is the returns averaged across goal positions for the given task.
 
 ### Other assumptions
 

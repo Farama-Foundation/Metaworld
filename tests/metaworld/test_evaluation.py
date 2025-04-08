@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from typing import Self
 
 import gymnasium as gym
 import numpy as np
@@ -24,20 +25,31 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.num_rollouts = num_rollouts
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
+        self.step_calls = 0
+
+    def init(self) -> Self:
+        return self
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
+    ) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]:
         actions: list[npt.NDArray[np.float32]] = []
         num_envs = len(self.policies)
         for env_idx in range(num_envs):
             actions.append(self.policies[env_idx].get_action(observations[env_idx]))
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
-        return stacked_actions, {
+        return self, stacked_actions, {
             "log_probs": np.ones((num_envs,)),
             "means": stacked_actions,
             "stds": np.zeros((num_envs,)),
         }
+
+    def step(self, timestep: evaluation.Timestep) -> Self:
+        assert "log_probs" in timestep.aux_policy_outputs
+        assert "means" in timestep.aux_policy_outputs
+        assert "stds" in timestep.aux_policy_outputs
+        self.step_calls += 1
+        return self
 
     def eval_action(
         self, observations: npt.NDArray[np.float64]
@@ -49,24 +61,9 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions
 
-    def adapt(self, rollouts: evaluation.Rollout) -> None:
-        assert self.num_rollouts is not None
-
-        for key in [
-            "observations",
-            "rewards",
-            "actions",
-            "dones",
-            "log_probs",
-            "means",
-            "stds",
-        ]:
-            assert len(getattr(rollouts, key).shape) >= 3
-            assert getattr(rollouts, key).shape[0] == len(self.policies)
-            assert getattr(rollouts, key).shape[1] == self.num_rollouts
-            assert getattr(rollouts, key).shape[2] == self.max_episode_steps
-
+    def adapt(self) -> Self:
         self.adapt_calls += 1
+        return self
 
 
 class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):
@@ -138,8 +135,7 @@ def test_metalearning_evaluation(benchmark):
     ) = evaluation.metalearning_evaluation(
         agent,
         envs,
-        max_episode_steps=max_episode_steps,
-        num_episodes=num_episodes,
+        evaluation_episodes=num_episodes,
         adaptation_episodes=adaptation_episodes,
         adaptation_steps=adaptation_steps,
         num_evals=num_evals,
@@ -149,3 +145,4 @@ def test_metalearning_evaluation(benchmark):
     assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
     assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
     assert agent.adapt_calls == num_evals * adaptation_steps
+    assert agent.step_calls == num_evals * adaptation_steps * adaptation_episodes * max_episode_steps
