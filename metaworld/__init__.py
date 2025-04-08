@@ -483,6 +483,7 @@ def _make_ml_envs_inner(
     terminate_on_success: bool = False,
     task_select: Literal["random", "pseudorandom"] = "pseudorandom",
     vector_strategy: Literal["sync", "async"] = "sync",
+    reward_function_version: Literal["v1", "v2"] = "v2",
 ):
     all_classes = (
         benchmark.train_classes if split == "train" else benchmark.test_classes
@@ -518,6 +519,7 @@ def _make_ml_envs_inner(
                 max_episode_steps=max_episode_steps,
                 terminate_on_success=terminate_on_success,
                 task_select=task_select,
+                reward_function_version=reward_function_version,
             )
             for env_cls, tasks in env_tuples
         ],
@@ -535,6 +537,7 @@ def make_ml_envs(
     terminate_on_success: bool = False,
     task_select: Literal["random", "pseudorandom"] = "pseudorandom",
     vector_strategy: Literal["sync", "async"] = "sync",
+    reward_function_version: Literal["v1", "v2"] = "v2",
 ) -> gym.vector.VectorEnv:
     benchmark: Benchmark
     if name in ALL_V3_ENVIRONMENTS.keys():
@@ -555,6 +558,7 @@ def make_ml_envs(
         terminate_on_success=terminate_on_success,
         task_select=task_select,
         vector_strategy=vector_strategy,
+        reward_function_version=reward_function_version,
     )
 
 
