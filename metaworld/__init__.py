@@ -226,6 +226,25 @@ class MT10(Benchmark):
         self._test_classes = []
 
 
+class MT25(Benchmark):
+    """
+    The MT25 benchmark.
+    Contains 25 tasks in its train set.
+    Has an empty test set.
+    """
+
+    def __init__(self, seed=None):
+        super().__init__()
+        self._train_classes = _env_dict.MT25_V3
+        train_kwargs = _env_dict.MT25_V3_ARGS_KWARGS
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+        )
+
+        self._test_tasks = []
+        self._test_classes = []
+
+
 class MT50(Benchmark):
     """
     The MT50 benchmark.
@@ -436,12 +455,18 @@ def make_mt_envs(
             reward_function_version=reward_function_version,
             **kwargs,
         )
-    elif name == "MT10" or name == "MT50":
+    elif name == "MT10" or name == "MT25" or name == "MT50":
         benchmark = globals()[name](seed=seed)
         vectorizer: type[gym.vector.VectorEnv] = getattr(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
-        default_num_tasks = 10 if name == "MT10" else 50
+        if name == "MT10":
+            default_num_tasks = 10 
+        elif name == "MT25":
+            default_num_tasks = 25
+        else:
+            default_num_tasks = 50
+        
         return vectorizer(  # type: ignore
             [
                 partial(
@@ -658,7 +683,7 @@ def register_mw_envs() -> None:
         kwargs={},
     )
 
-    for mt_bench in ["MT10", "MT50"]:
+    for mt_bench in ["MT10", "MT25", "MT50"]:
         register(
             id=f"Meta-World/{mt_bench}",
             vector_entry_point=lambda vector_strategy="sync", seed=None, use_one_hot=False, *args, _mt_bench=mt_bench, **kwargs: _mt_bench_vector_entry_point(
