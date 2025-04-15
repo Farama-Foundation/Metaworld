@@ -27,29 +27,28 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.adapt_calls = 0
         self.step_calls = 0
 
-    def init(self) -> Self:
-        return self
+    def init(self) -> None:
+        return
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]:
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
         actions: list[npt.NDArray[np.float32]] = []
         num_envs = len(self.policies)
         for env_idx in range(num_envs):
             actions.append(self.policies[env_idx].get_action(observations[env_idx]))
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
-        return self, stacked_actions, {
+        return stacked_actions, {
             "log_probs": np.ones((num_envs,)),
             "means": stacked_actions,
             "stds": np.zeros((num_envs,)),
         }
 
-    def step(self, timestep: evaluation.Timestep) -> Self:
+    def step(self, timestep: evaluation.Timestep) -> None:
         assert "log_probs" in timestep.aux_policy_outputs
         assert "means" in timestep.aux_policy_outputs
         assert "stds" in timestep.aux_policy_outputs
         self.step_calls += 1
-        return self
 
     def eval_action(
         self, observations: npt.NDArray[np.float64]
@@ -61,9 +60,8 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions
 
-    def adapt(self) -> Self:
+    def adapt(self) -> None:
         self.adapt_calls += 1
-        return self
 
 
 class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):

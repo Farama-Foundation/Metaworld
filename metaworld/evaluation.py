@@ -16,15 +16,15 @@ class Agent(Protocol):
 
 
 class MetaLearningAgent(Agent, Protocol):
-    def init(self) -> Self: ...
+    def init(self) -> None: ...
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[Self, npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
 
-    def step(self, timestep: Timestep) -> Self: ...
+    def step(self, timestep: Timestep) -> None: ...
 
-    def adapt(self) -> Self: ...
+    def adapt(self) -> None: ...
 
 
 def _get_task_names(
@@ -61,7 +61,9 @@ def evaluation(
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
         for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
             if env_ended:
-                episodic_returns[task_names[i]].append(float(infos["final_info"]["episode"]["r"][i]))
+                episodic_returns[task_names[i]].append(
+                    float(infos["final_info"]["episode"]["r"][i])
+                )
                 if len(episodic_returns[task_names[i]]) <= num_episodes:
                     successes[task_names[i]] += int(infos["final_info"]["success"][i])
 
@@ -107,28 +109,35 @@ def metalearning_evaluation(
         obs: npt.NDArray[np.float64]
 
         eval_envs.call("sample_tasks")
-        adaptive_agent = agent.init()
+        agent.init()
 
         for _ in range(adaptation_steps):
             obs, _ = eval_envs.reset()
             episodes_elapsed = np.zeros((eval_envs.num_envs,), dtype=np.uint16)
 
             while not (episodes_elapsed >= adaptation_episodes).all():
-                adaptive_agent, actions, aux_policy_outs = adaptive_agent.adapt_action(obs)
+                actions, aux_policy_outs = agent.adapt_action(obs)
                 next_obs, rewards, terminations, truncations, _ = eval_envs.step(
                     actions
                 )
-                adaptive_agent = adaptive_agent.step(
-                    Timestep(obs, actions, rewards, terminations, truncations, aux_policy_outs)
+                agent.step(
+                    Timestep(
+                        obs,
+                        actions,
+                        rewards,
+                        terminations,
+                        truncations,
+                        aux_policy_outs,
+                    )
                 )
                 episodes_elapsed += np.logical_or(terminations, truncations)
                 obs = next_obs
 
-            adaptive_agent = adaptive_agent.adapt()
+            agent.adapt()
 
         # Evaluation
         mean_success_rate, mean_return, _success_rate_per_task, _ = evaluation(
-            adaptive_agent, eval_envs, evaluation_episodes
+            agent, eval_envs, evaluation_episodes
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
