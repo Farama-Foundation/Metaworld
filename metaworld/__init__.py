@@ -322,6 +322,29 @@ class ML10(Benchmark):
         )
 
 
+class ML25(Benchmark):
+    """
+    The ML10 benchmark.
+    Contains 25 tasks in its train set and 5 tasks in its test set.
+    The goal position is not part of the observation.
+    """
+
+    def __init__(self, seed=None):
+        super().__init__()
+        self._train_classes = _env_dict.ML25_V3["train"]
+        self._test_classes = _env_dict.ML25_V3["test"]
+        train_kwargs = _env_dict.ML25_ARGS_KWARGS["train"]
+
+        test_kwargs = _env_dict.ML25_ARGS_KWARGS["test"]
+        self._train_tasks = _make_tasks(
+            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+        )
+
+        self._test_tasks = _make_tasks(
+            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+        )
+
+
 class ML45(Benchmark):
     """
     The ML45 benchmark.
@@ -461,12 +484,12 @@ def make_mt_envs(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
         if name == "MT10":
-            default_num_tasks = 10 
+            default_num_tasks = 10
         elif name == "MT25":
             default_num_tasks = 25
         else:
             default_num_tasks = 50
-        
+
         return vectorizer(  # type: ignore
             [
                 partial(
@@ -565,11 +588,11 @@ def make_ml_envs(
     benchmark: Benchmark
     if name in ALL_V3_ENVIRONMENTS.keys():
         benchmark = ML1(name, seed=seed)
-    elif name == "ML10" or name == "ML45":
+    elif name == "ML10" or name == "ML45" or name == "ML25":
         benchmark = globals()[name](seed=seed)
     else:
         raise ValueError(
-            "Invalid ML env name. Must either be a valid Metaworld task name (e.g. 'reach-v3'), 'ML10' or 'ML45'."
+            "Invalid ML env name. Must either be a valid Metaworld task name (e.g. 'reach-v3'), 'ML10', 'ML25', or 'ML45'."
         )
     return _make_ml_envs_inner(
         benchmark,
@@ -697,7 +720,7 @@ def register_mw_envs() -> None:
             kwargs={},
         )
 
-    for ml_bench in ["ML10", "ML45"]:
+    for ml_bench in ["ML10", "ML25", "ML45"]:
         for split in ["train", "test"]:
             register(
                 id=f"Meta-World/{ml_bench}-{split}",  # Fixed f-string
