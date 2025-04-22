@@ -47,6 +47,41 @@ def _deserialize_task(task_dict: dict[str, str]) -> Task:
     )
 
 
+class RNNBasedMetaRLWrapper(gym.Wrapper):
+    """A Gymnasium Wrapper to automatically include prev_action / reward / done info in the observation.
+    For use with RNN-based meta-RL algorithms."""
+
+    def __init__(self, env: Env):
+        super().__init__(env)
+        assert isinstance(self.env.observation_space, gym.spaces.Box)
+        assert isinstance(self.env.action_space, gym.spaces.Box)
+        obs_flat_dim = int(np.prod(self.env.observation_space.shape))
+        action_flat_dim = int(np.prod(self.env.action_space.shape))
+        self._observation_space = gym.spaces.Box(
+            low=-np.inf, high=np.inf, shape=(obs_flat_dim + action_flat_dim + 1 + 1,)
+        )
+
+    def step(self, action):
+        next_obs, reward, terminate, truncate, info = self.env.step(action)
+        recurrent_obs = np.concatenate(
+            [
+                next_obs,
+                action,
+                [float(reward)],
+                [float(np.logical_or(terminate, truncate))],
+            ]
+        )
+        return recurrent_obs, reward, terminate, truncate, info
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        assert isinstance(self.env.action_space, gym.spaces.Box)
+        obs, info = self.env.reset(seed=seed, options=options)
+        recurrent_obs = np.concatenate(
+            [obs, np.zeros(self.env.action_space.shape), [0.0], [0.0]]
+        )
+        return recurrent_obs, info
+
+
 class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
