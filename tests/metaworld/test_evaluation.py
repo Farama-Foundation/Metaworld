@@ -26,6 +26,10 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
         self.step_calls = 0
+        self.resets = 0
+
+    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None:
+        self.resets += np.sum(env_mask)
 
     def init(self) -> None:
         return
@@ -143,4 +147,7 @@ def test_metalearning_evaluation(benchmark):
     assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
     assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
     assert agent.adapt_calls == num_evals * adaptation_steps
-    assert agent.step_calls == num_evals * adaptation_steps * adaptation_episodes * max_episode_steps
+    assert (
+        agent.step_calls
+        == num_evals * adaptation_steps * adaptation_episodes * max_episode_steps
+    )

@@ -113,6 +113,8 @@ class Agent(Protocol):
         self, observations: npt.NDArray[np.float64]
     ) -> npt.NDArray[np.float64]: ...
 
+    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None: ...
+
 
 class MetaLearningAgent(Agent):
     def init(self) -> None: ...
@@ -126,9 +128,9 @@ class MetaLearningAgent(Agent):
     def adapt(self) -> None: ...
 ```
 
-For both multi-task and meta-reinforcement learning evaluations, the agent object should have a `eval_action` method that takes in a numpy array of some observations and outputs actions. One should think of this as the action the agent takes when it is being evaluated and therefore this should probably be deterministic.
+For both multi-task and meta-reinforcement learning evaluations, the `Agent` object should have a `eval_action` method that takes in a numpy array of some observations and outputs actions. One should think of this as the action the agent takes when it is being evaluated and therefore this should probably be deterministic. It should also have a `reset` method that resets the agent state for individual envs that have terminated. The method can be empty if the agent is stateless, but it should still be present on the `Agent` object.
 
-For meta-reinforcement learning, an agent should have the following additional methods:
+For meta-reinforcement learning, an agent should have the following additional methods implemented:
 - `init()`: re-initialises the agent for adaptation. This method resets the agent back to the pre-adaptation state.
 - `adapt_action(observations: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]`: takes in observations from the vectorised evaluation environment and outputs a tuple of actions and miscellaneous policy outputs that might be needed during adaptation.
 - `step(timestep: Timestep)`: takes in a `Timestep`, which contains data from the current transitions, and handles any logic that ingests this data for adaptation (e.g. storing in a buffer, advancing RNN state, etc.)

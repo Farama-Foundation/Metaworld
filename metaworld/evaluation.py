@@ -14,6 +14,8 @@ class Agent(Protocol):
         self, observations: npt.NDArray[np.float64]
     ) -> npt.NDArray[np.float64]: ...
 
+    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None: ...
+
 
 class MetaLearningAgent(Agent, Protocol):
     def init(self) -> None: ...
@@ -47,6 +49,8 @@ def evaluation(
 
     obs: npt.NDArray[np.float64]
     obs, _ = eval_envs.reset()
+    agent.reset(np.ones(eval_envs.num_envs, dtype=np.bool_))
+
     task_names = _get_task_names(eval_envs)
     successes = {task_name: 0 for task_name in set(task_names)}
     episodic_returns: dict[str, list[float]] = {
@@ -59,7 +63,11 @@ def evaluation(
     while not eval_done(episodic_returns):
         actions = agent.eval_action(obs)
         obs, _, terminations, truncations, infos = eval_envs.step(actions)
-        for i, env_ended in enumerate(np.logical_or(terminations, truncations)):
+
+        dones = np.logical_or(terminations, truncations)
+        agent.reset(dones)
+
+        for i, env_ended in enumerate(dones):
             if env_ended:
                 episodic_returns[task_names[i]].append(
                     float(infos["final_info"]["episode"]["r"][i])
