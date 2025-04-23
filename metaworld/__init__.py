@@ -488,6 +488,8 @@ def _make_ml_envs_inner(
     recurrent_info_in_obs: bool = False,
     vector_strategy: Literal["sync", "async"] = "sync",
     reward_function_version: Literal["v1", "v2"] = "v2",
+    *args,
+    **kwargs,
 ):
     all_classes = (
         benchmark.train_classes if split == "train" else benchmark.test_classes
@@ -517,6 +519,7 @@ def _make_ml_envs_inner(
         [
             partial(
                 _init_each_env,
+                *args,
                 env_cls=env_cls,
                 tasks=tasks,
                 seed=seed,
@@ -525,6 +528,7 @@ def _make_ml_envs_inner(
                 task_select=task_select,
                 reward_function_version=reward_function_version,
                 recurrent_info_in_obs=recurrent_info_in_obs,
+                **kwargs,
             )
             for env_cls, tasks in env_tuples
         ],
@@ -544,6 +548,8 @@ def make_ml_envs(
     task_select: Literal["random", "pseudorandom"] = "pseudorandom",
     vector_strategy: Literal["sync", "async"] = "sync",
     reward_function_version: Literal["v1", "v2"] = "v2",
+    *args,
+    **kwargs,
 ) -> gym.vector.VectorEnv:
     benchmark: Benchmark
     if name in ALL_V3_ENVIRONMENTS.keys():
@@ -556,6 +562,7 @@ def make_ml_envs(
         )
     return _make_ml_envs_inner(
         benchmark,
+        *args,
         meta_batch_size=meta_batch_size,
         seed=seed,
         total_tasks_per_cls=total_tasks_per_cls,
@@ -566,6 +573,7 @@ def make_ml_envs(
         vector_strategy=vector_strategy,
         reward_function_version=reward_function_version,
         recurrent_info_in_obs=recurrent_info_in_obs,
+        **kwargs,
     )
 
 
