@@ -51,7 +51,7 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically include prev_action / reward / done info in the observation.
     For use with RNN-based meta-RL algorithms."""
 
-    def __init__(self, env: Env):
+    def __init__(self, env: Env, normalize_reward: bool = True):
         super().__init__(env)
         assert isinstance(self.env.observation_space, gym.spaces.Box)
         assert isinstance(self.env.action_space, gym.spaces.Box)
@@ -60,14 +60,20 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
         self._observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_flat_dim + action_flat_dim + 1 + 1,)
         )
+        self._normalize_reward = normalize_reward
 
     def step(self, action):
         next_obs, reward, terminate, truncate, info = self.env.step(action)
+        if self._normalize_reward:
+            reward = float(reward) / 10.0
+        else:
+            reward = float(reward)
+
         recurrent_obs = np.concatenate(
             [
                 next_obs,
                 action,
-                [float(reward)],
+                [reward],
                 [float(np.logical_or(terminate, truncate))],
             ]
         )
