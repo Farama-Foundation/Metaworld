@@ -363,6 +363,7 @@ def _init_each_env(
     env_id: int | None = None,
     num_tasks: int | None = None,
     recurrent_info_in_obs: bool = False,
+    normalize_reward_in_recurrent_info: bool = True,
     task_select: Literal["random", "pseudorandom"] = "random",
     reward_function_version: Literal["v1", "v2"] = "v2",
     reward_normalization_method: Literal["gymnasium", "exponential"] | None = None,
@@ -387,12 +388,12 @@ def _init_each_env(
         assert env_id is not None, "Need to pass env_id through constructor"
         assert num_tasks is not None, "Need to pass num_tasks through constructor"
         env = OneHotWrapper(env, env_id, num_tasks)
+    if recurrent_info_in_obs:
+        env = RNNBasedMetaRLWrapper(env, normalize_reward=normalize_reward_in_recurrent_info)
     if reward_normalization_method == "gymnasium":
         env = gym.wrappers.NormalizeReward(env)
     elif reward_normalization_method == "exponential":
         env = NormalizeRewardsExponential(reward_alpha=reward_alpha, env=env)
-    if recurrent_info_in_obs:
-        env = RNNBasedMetaRLWrapper(env)
     if normalize_observations:
         env = gym.wrappers.NormalizeObservation(env)
     env = gym.wrappers.RecordEpisodeStatistics(env)

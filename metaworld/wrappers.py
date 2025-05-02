@@ -65,15 +65,15 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
     def step(self, action):
         next_obs, reward, terminate, truncate, info = self.env.step(action)
         if self._normalize_reward:
-            reward = float(reward) / 10.0
+            obs_reward = float(reward) / 10.0
         else:
-            reward = float(reward)
+            obs_reward = float(reward)
 
         recurrent_obs = np.concatenate(
             [
                 next_obs,
                 action,
-                [reward],
+                [obs_reward],
                 [float(np.logical_or(terminate, truncate))],
             ]
         )
