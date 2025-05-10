@@ -291,6 +291,38 @@ MT10_V3 = _get_env_dict(
 )
 MT10_V3_ARGS_KWARGS = _get_args_kwargs(ALL_V3_ENVIRONMENTS, MT10_V3)
 
+MT25_V3 = _get_env_dict(
+    [
+        "reach-v3",
+        "push-v3",
+        "pick-place-v3",
+        "door-open-v3",
+        "drawer-open-v3",
+        "drawer-close-v3",
+        "button-press-topdown-v3",
+        "peg-insert-side-v3",
+        "window-open-v3",
+        "window-close-v3",
+        "coffee-pull-v3",
+        "pick-out-of-hole-v3",
+        "disassemble-v3",
+        "pick-place-wall-v3",
+        "basketball-v3",
+        "stick-pull-v3",
+        "button-press-wall-v3",
+        "faucet-open-v3",
+        "door-lock-v3",
+        "lever-pull-v3",
+        "sweep-into-v3",
+        "faucet-close-v3",
+        "coffee-button-v3",
+        "button-press-topdown-wall-v3",
+        "dial-turn-v3",
+    ]
+)
+MT25_V3_ARGS_KWARGS = _get_args_kwargs(ALL_V3_ENVIRONMENTS, MT25_V3)
+
+
 MT50_V3 = ALL_V3_ENVIRONMENTS
 MT50_V3_ARGS_KWARGS = _get_args_kwargs(ALL_V3_ENVIRONMENTS, MT50_V3)
 
@@ -326,6 +358,50 @@ ML10_ARGS_KWARGS = {
     "train": _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML10_V3["train"]),
     "test": _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML10_V3["test"]),
 }
+
+
+ML25_V3 = _get_train_test_env_dict(
+    train_env_names=[
+        "reach-v3",
+        "push-v3",
+        "pick-place-v3",
+        "door-open-v3",
+        "drawer-open-v3",
+        "drawer-close-v3",
+        "button-press-topdown-v3",
+        "peg-insert-side-v3",
+        "window-open-v3",
+        "window-close-v3",
+        "coffee-pull-v3",
+        "pick-out-of-hole-v3",
+        "disassemble-v3",
+        "pick-place-wall-v3",
+        "basketball-v3",
+        "stick-pull-v3",
+        "button-press-wall-v3",
+        "faucet-open-v3",
+        "door-lock-v3",
+        "lever-pull-v3",
+        "sweep-into-v3",
+        "faucet-close-v3",
+        "coffee-button-v3",
+        "button-press-topdown-wall-v3",
+        "dial-turn-v3",
+    ],
+    test_env_names=[
+        "basketball-v3",
+        "door-close-v3",
+        "shelf-place-v3",
+        "sweep-v3",
+        "button-press-v3",
+    ],
+)
+
+ML25_ARGS_KWARGS = {
+    "train": _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML25_V3["train"]),
+    "test": _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML25_V3["test"]),
+}
+
 
 ML45_V3 = _get_train_test_env_dict(
     train_env_names=[
