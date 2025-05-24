@@ -56,5 +56,5 @@ if __name__ == "__main__":
     max_usage = profile_hard_mode_shared()
     mean_shared = max_usage / len(ALL_V3_ENVIRONMENTS)
     print(
-        f"Mean memory footprint (n = {len(ALL_V2_ENVIRONMENTS)}): {mean_shared : .1f} MB"
+        f"Mean memory footprint (n = {len(ALL_V3_ENVIRONMENTS)}): {mean_shared : .1f} MB"
     )
