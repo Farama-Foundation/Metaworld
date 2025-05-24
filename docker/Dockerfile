@@ -16,7 +16,8 @@ COPY . /usr/local/metaworld/
 WORKDIR /usr/local/metaworld/
 RUN free -g
 RUN pip install .[testing]
-RUN pip install "gymnasium>1.0.0"
+RUN git clone https://github.com/Farama-Foundation/Gymnasium.git
+RUN pip install -e Gymnasium
 
 
 ENTRYPOINT ["/usr/local/metaworld/docker/entrypoint"]
