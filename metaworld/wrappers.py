@@ -47,6 +47,47 @@ def _deserialize_task(task_dict: dict[str, str]) -> Task:
     )
 
 
+class RNNBasedMetaRLWrapper(gym.Wrapper):
+    """A Gymnasium Wrapper to automatically include prev_action / reward / done info in the observation.
+    For use with RNN-based meta-RL algorithms."""
+
+    def __init__(self, env: Env, normalize_reward: bool = True):
+        super().__init__(env)
+        assert isinstance(self.env.observation_space, gym.spaces.Box)
+        assert isinstance(self.env.action_space, gym.spaces.Box)
+        obs_flat_dim = int(np.prod(self.env.observation_space.shape))
+        action_flat_dim = int(np.prod(self.env.action_space.shape))
+        self._observation_space = gym.spaces.Box(
+            low=-np.inf, high=np.inf, shape=(obs_flat_dim + action_flat_dim + 1 + 1,)
+        )
+        self._normalize_reward = normalize_reward
+
+    def step(self, action):
+        next_obs, reward, terminate, truncate, info = self.env.step(action)
+        if self._normalize_reward:
+            obs_reward = float(reward) / 10.0
+        else:
+            obs_reward = float(reward)
+
+        recurrent_obs = np.concatenate(
+            [
+                next_obs,
+                action,
+                [obs_reward],
+                [float(np.logical_or(terminate, truncate))],
+            ]
+        )
+        return recurrent_obs, reward, terminate, truncate, info
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        assert isinstance(self.env.action_space, gym.spaces.Box)
+        obs, info = self.env.reset(seed=seed, options=options)
+        recurrent_obs = np.concatenate(
+            [obs, np.zeros(self.env.action_space.shape), [0.0], [0.0]]
+        )
+        return recurrent_obs, info
+
+
 class RandomTaskSelectWrapper(gym.Wrapper):
     """A Gymnasium Wrapper to automatically set / reset the environment to a random
     task."""
@@ -229,110 +270,6 @@ def update_mean_var_count_from_moments(
     new_var = M2 / tot_count
     new_count = tot_count
     return new_mean, new_var, new_count
-
-
-class NormalizeRewardGymnasium(gym.Wrapper, gym.utils.RecordConstructorArgs):
-    """
-    this reward normalization method is directly from gymnasium
-
-    """
-
-    def __init__(
-        self,
-        env: gym.Env,
-        gamma: float = 0.99,
-        epsilon: float = 1e-8,
-        sub_mean: bool = False,
-    ):
-        """This wrapper will normalize immediate rewards s.t. their exponential moving average has a fixed variance.
-
-        Args:
-            env (env): The environment to apply the wrapper
-            epsilon (float): A stability parameter
-            gamma (float): The discount factor that is used in the exponential moving average.
-        """
-        gym.utils.RecordConstructorArgs.__init__(self, gamma=gamma, epsilon=epsilon)
-        gym.Wrapper.__init__(self, env)
-
-        self.return_rms = RunningMeanStd(shape=())
-        self.discounted_reward: np.array = np.array([0.0])  # type: ignore
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self._update_running_mean = True
-        self.sub_mean = sub_mean
-
-    @property
-    def update_running_mean(self) -> bool:
-        """Property to freeze/continue the running mean calculation of the reward statistics."""
-        return self._update_running_mean
-
-    @update_running_mean.setter
-    def update_running_mean(self, setting: bool):
-        """Sets the property to freeze/continue the running mean calculation of the reward statistics."""
-        self._update_running_mean = setting
-
-    def step(self, action):
-        """Steps through the environment, normalizing the reward returned."""
-        obs, reward, terminated, truncated, info = super().step(action)
-
-        # Using the `discounted_reward` rather than `reward` makes no sense but for backward compatibility, it is being kept
-        self.discounted_reward = self.discounted_reward * self.gamma * (
-            1 - terminated
-        ) + float(reward)
-        if self._update_running_mean:
-            self.return_rms.update(self.discounted_reward)  # type: ignore
-
-        # We don't (reward - self.return_rms.mean) see https://github.com/openai/baselines/issues/538
-        numerator = 0.0
-        if self.sub_mean:
-            numerator = reward - self.return_rms.mean  # type: ignore
-        else:
-            numerator = reward
-        normalized_reward = numerator / np.sqrt(self.return_rms.var + self.epsilon)  # type: ignore
-        return obs, normalized_reward, terminated, truncated, info
-
-
-class RunningMeanStd:
-    """Tracks the mean, variance and count of values."""
-
-    # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
-    def __init__(self, epsilon=1e-4, shape=(), dtype=np.float64):
-        """Tracks the mean, variance and count of values."""
-        self.mean = np.zeros(shape, dtype=dtype)
-        self.var = np.ones(shape, dtype=dtype)
-        self.count = epsilon
-
-    def update(self, x):
-        """Updates the mean, var and count from a batch of samples."""
-        batch_mean = np.mean(x, axis=0)
-        batch_var = np.var(x, axis=0)
-        batch_count = x.shape[0]
-        self.update_from_moments(batch_mean, batch_var, batch_count)
-
-    def update_from_moments(self, batch_mean, batch_var, batch_count):
-        """Updates from batch mean, variance and count moments."""
-        self.mean, self.var, self.count = update_mean_var_count_from_moments(
-            self.mean, self.var, self.count, batch_mean, batch_var, batch_count
-        )
-
-    def get_checkpoint(self) -> dict:
-        return {
-            "tasks": [_serialize_task(task) for task in self.tasks],
-            "current_task_idx": self.current_task_idx,
-            "sample_tasks_on_reset": self.sample_tasks_on_reset,
-            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),  # type: ignore
-        }
-
-    def load_checkpoint(self, ckpt: dict):
-        assert "tasks" in ckpt
-        assert "current_task_idx" in ckpt
-        assert "sample_tasks_on_reset" in ckpt
-        assert "env_rng_state" in ckpt
-
-        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
-        self.current_task_idx = ckpt["current_task_idx"]
-        self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
-        set_env_rng(self.unwrapped, ckpt["env_rng_state"])  # type: ignore
 
 
 class CheckpointWrapper(gym.Wrapper):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from typing import Self
 
 import gymnasium as gym
 import numpy as np
@@ -24,6 +25,14 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.num_rollouts = num_rollouts
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
+        self.step_calls = 0
+        self.resets = 0
+
+    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None:
+        self.resets += np.sum(env_mask)
+
+    def init(self) -> None:
+        return
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
@@ -39,6 +48,12 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
             "stds": np.zeros((num_envs,)),
         }
 
+    def step(self, timestep: evaluation.Timestep) -> None:
+        assert "log_probs" in timestep.aux_policy_outputs
+        assert "means" in timestep.aux_policy_outputs
+        assert "stds" in timestep.aux_policy_outputs
+        self.step_calls += 1
+
     def eval_action(
         self, observations: npt.NDArray[np.float64]
     ) -> npt.NDArray[np.float64]:
@@ -49,23 +64,7 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions
 
-    def adapt(self, rollouts: evaluation.Rollout) -> None:
-        assert self.num_rollouts is not None
-
-        for key in [
-            "observations",
-            "rewards",
-            "actions",
-            "dones",
-            "log_probs",
-            "means",
-            "stds",
-        ]:
-            assert len(getattr(rollouts, key).shape) >= 3
-            assert getattr(rollouts, key).shape[0] == len(self.policies)
-            assert getattr(rollouts, key).shape[1] == self.num_rollouts
-            assert getattr(rollouts, key).shape[2] == self.max_episode_steps
-
+    def adapt(self) -> None:
         self.adapt_calls += 1
 
 
@@ -138,8 +137,7 @@ def test_metalearning_evaluation(benchmark):
     ) = evaluation.metalearning_evaluation(
         agent,
         envs,
-        max_episode_steps=max_episode_steps,
-        num_episodes=num_episodes,
+        evaluation_episodes=num_episodes,
         adaptation_episodes=adaptation_episodes,
         adaptation_steps=adaptation_steps,
         num_evals=num_evals,
@@ -149,3 +147,7 @@ def test_metalearning_evaluation(benchmark):
     assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
     assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
     assert agent.adapt_calls == num_evals * adaptation_steps
+    assert (
+        agent.step_calls
+        == num_evals * adaptation_steps * adaptation_episodes * max_episode_steps
+    )
