@@ -1,6 +1,6 @@
 [![Python](https://img.shields.io/pypi/pyversions/metaworld.svg)](https://badge.fury.io/py/metaworld)
 [![PyPI](https://badge.fury.io/py/metaworld.svg)](https://badge.fury.io/py/metaworld.svg)
-[![arXiv](https://img.shields.io/badge/arXiv-1910.10897-b31b1b.svg)](https://arxiv.org/pdf/1910.10897)
+[![arXiv](https://img.shields.io/badge/arXiv-2505.11289-b31b1b.svg)](https://arxiv.org/pdf/2505.11289)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
