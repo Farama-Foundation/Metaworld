@@ -8,7 +8,7 @@ name = "metaworld"
 version = "2.0.0"
 description = "Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning."
 readme = "README.md"
-requires-python = ">= 3.9"
+requires-python = ">= 3.10"
 authors = [{ name = "Farama Foundation", email = "contact@farama.org" }]
 license = { text = "MIT License" }
 keywords = ["Reinforcement Learning", "game", "RL", "AI", "gymnasium"]
