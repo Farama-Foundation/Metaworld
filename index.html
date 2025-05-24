@@ -213,9 +213,18 @@
   <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="introduction/basic_usage/">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation/">Evaluation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation/installation/">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rendering/rendering/">Rendering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage/basic_usage/">Generate data with expert policies</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Benchmark Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/action_space/">Action Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/state_space/">State Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/benchmark_descriptions/">Benchmark Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/task_descriptions/">Task Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/reward_functions/">Reward Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark/expert_trajectories/">Expert Trajectories</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -279,7 +288,7 @@
           <article role="main">
             
             <figure class="farama-project-logo align-default">
-<img alt="Metaworld Logo" src="_images/metaworld-text.svg" />
+<img alt="Metaworld Logo" src="_images/metaworld-text-banner.svg" />
 </figure>
 <div class="docutils container">
 <h2 class='farama-project-heading'>
@@ -291,21 +300,17 @@ Meta-World is an open-source simulated benchmark for meta-reinforcement learning
 </a>
 </figure>
 <p><strong>Basic example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="o">.</span><span class="n">ENV_NAMES</span><span class="p">)</span>  <span class="c1"># Check out the available environments</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT1&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;reach-v3&#39;</span><span class="p">)</span>
 
-<span class="n">ml1</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="p">(</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">)</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
-
-<span class="n">env</span> <span class="o">=</span> <span class="n">ml1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">]()</span>  <span class="c1"># Create an environment with task `pick_place`</span>
-<span class="n">task</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">ml1</span><span class="o">.</span><span class="n">train_tasks</span><span class="p">)</span>
-<span class="n">env</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>  <span class="c1"># Set task</span>
-
-<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+<span class="n">next_obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
 </div>

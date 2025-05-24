@@ -8,7 +8,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning" />
     <meta property="og:url" content="https://metaworld.farama.org/introduction/basic_usage.html" /><meta property="og:image" content="https://metaworld.farama.org/_static/img/metaworld_black-github.png" /><meta name="twitter:card" content="summary_large_image"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Installation" href="../../installation/installation/" /><link rel="prev" title="&lt;no title&gt;" href="../../" />
+<link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Evaluation" href="../../evaluation/evaluation/" /><link rel="prev" title="&lt;no title&gt;" href="../../" />
         <link rel="canonical" href="https://metaworld.farama.org/introduction/basic_usage.html" />
 
     <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.4.7 and Furo 2023.08.19.dev1 -->
@@ -213,9 +213,18 @@
   <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation/">Evaluation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation/installation/">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../rendering/rendering/">Rendering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../usage/basic_usage/">Generate data with expert policies</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Benchmark Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/action_space/">Action Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/state_space/">State Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/benchmark_descriptions/">Benchmark Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/task_descriptions/">Task Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/reward_functions/">Reward Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/expert_trajectories/">Expert Trajectories</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -282,149 +291,192 @@
 <h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h1>
 <section id="using-the-benchmark">
 <h2>Using the benchmark<a class="headerlink" href="#using-the-benchmark" title="Link to this heading">¶</a></h2>
-<p>Here is a list of benchmark environments for meta-RL (ML*) and multi-task-RL (MT*):</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://meta-world.github.io/figures/ml1.gif"><strong>ML1</strong></a> is a meta-RL benchmark environment which tests few-shot adaptation to goal variation within single task. You can choose to test variation within any of <a class="reference external" href="https://meta-world.github.io/figures/ml45-1080p.gif">50 tasks</a> for this benchmark.</p></li>
-<li><p><a class="reference external" href="https://meta-world.github.io/figures/ml10.gif"><strong>ML10</strong></a> is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 10 meta-train tasks, and 3 test tasks.</p></li>
-<li><p><a class="reference external" href="https://meta-world.github.io/figures/ml45-1080p.gif"><strong>ML45</strong></a> is a meta-RL benchmark which tests few-shot adaptation to new tasks. It comprises 45 meta-train tasks and 5 test tasks.</p></li>
-<li><p><a class="reference external" href="https://meta-world.github.io/figures/mt10.gif"><strong>MT10</strong></a>, <strong>MT1</strong>, and <strong>MT50</strong> are multi-task-RL benchmark environments for learning a multi-task policy that perform 10, 1, and 50 training tasks respectively. <strong>MT1</strong> is similar to <strong>ML1</strong> because you can choose to test variation within any of <a class="reference external" href="https://meta-world.github.io/figures/ml45-1080p.gif">50 tasks</a> for this benchmark.  In the original Meta-World experiments, we augment MT10 and MT50 environment observations with a one-hot vector which identifies the task. We don’t enforce how users utilize task one-hot vectors, however one solution would be to use a Gym wrapper such as <a class="reference external" href="https://github.com/rlworkgroup/garage/blob/master/src/garage/envs/multi_env_wrapper.py">this one</a></p></li>
-</ul>
-<section id="basics">
-<h3>Basics<a class="headerlink" href="#basics" title="Link to this heading">¶</a></h3>
-<p>We provide a <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code> API, that allows constructing environments following the <a class="reference external" href="https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/core.py#L21"><code class="docutils literal notranslate"><span class="pre">gymnasium.Env</span></code></a> interface.</p>
-<p>To use a <code class="docutils literal notranslate"><span class="pre">Benchmark</span></code>, first construct it (this samples the tasks allowed for one run of an algorithm on the benchmark).
-Then, construct at least one instance of each environment listed in <code class="docutils literal notranslate"><span class="pre">benchmark.train_classes</span></code> and <code class="docutils literal notranslate"><span class="pre">benchmark.test_classes</span></code>.
-For each of those environments, a task must be assigned to it using
-<code class="docutils literal notranslate"><span class="pre">env.set_task(task)</span></code> from <code class="docutils literal notranslate"><span class="pre">benchmark.train_tasks</span></code> and <code class="docutils literal notranslate"><span class="pre">benchmark.test_tasks</span></code>,
-respectively.
-<code class="docutils literal notranslate"><span class="pre">Tasks</span></code> can only be assigned to environments which have a key in
-<code class="docutils literal notranslate"><span class="pre">benchmark.train_classes</span></code> or <code class="docutils literal notranslate"><span class="pre">benchmark.test_classes</span></code> matching <code class="docutils literal notranslate"><span class="pre">task.env_name</span></code>.</p>
+<p>There are 6 major benchmarks pre-packaged into Meta-World with support for making your own custom benchmarks. The benchmarks are divided into Multi-Task and Meta reinforcement learning benchmarks.</p>
+<section id="multi-task-benchmarks">
+<h3>Multi-Task Benchmarks<a class="headerlink" href="#multi-task-benchmarks" title="Link to this heading">¶</a></h3>
+<p>The MT1, MT10, and MT50 benchmarks are the Multi-Task Benchmarks. These benchmarks are used to learn a multi-task policy that can learn 1, 10, or 50 training tasks simultaneously. MT1 benchmarks can be created with any of the 50 tasks available in Meta-World.
+In the MT10 and MT50 benchmarks, the observations returned by the benchmark will come with one-hot task IDs appended to the state.</p>
 </section>
-<section id="seeding-a-benchmark-instance">
-<h3>Seeding a Benchmark Instance<a class="headerlink" href="#seeding-a-benchmark-instance" title="Link to this heading">¶</a></h3>
-<p>For the purposes of reproducibility, it may be important to you to seed your benchmark instance.
-For example, for the ML1 benchmark environment with the ‘pick-place-v2’ environment, you can do so in the following way:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+<section id="meta-learning-benchmarks">
+<h3>Meta-Learning Benchmarks<a class="headerlink" href="#meta-learning-benchmarks" title="Link to this heading">¶</a></h3>
+<p>The ML1, ML10, and ML45 benchmarks are 3 meta-reinforcement learning benchmarks available in Meta-World. The ML1 benchmark can be used with any of the 50 tasks available in Meta-World.
+The ML1 benchmark tests for few-shot adaptation to goal variations within a single task. The ML10 and ML45 both test few-shot adaptation to new tasks. ML10 comprises 10 train tasks with 5 test tasks, while ML45 comprises of 45 training tasks with 5 test tasks.</p>
+</section>
+<section id="mt1">
+<h3>MT1<a class="headerlink" href="#mt1" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
 <span class="n">SEED</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># some seed number here</span>
-<span class="n">benchmark</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="p">(</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT1&#39;</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;reach-v3&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># randomly sample an action</span>
+<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># apply the randomly sampled action</span>
 </pre></div>
 </div>
 </section>
-<section id="running-ml1-or-mt1">
-<h3>Running ML1 or MT1<a class="headerlink" href="#running-ml1-or-mt1" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<section id="mt10">
+<h3>MT10<a class="headerlink" href="#mt10" title="Link to this heading">¶</a></h3>
+<p>MT10 has two different versions that can be returned by <code class="docutils literal notranslate"><span class="pre">gym.make</span></code>. The first version is the synchronous version of the benchmark where all environments are contained within the same process.
+For users with limited compute resources, the synchronous option needs the least resources.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="o">.</span><span class="n">ENV_NAMES</span><span class="p">)</span>  <span class="c1"># Check out the available environments</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
 
-<span class="n">ml1</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="p">(</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">)</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
+<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT10&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns a Synchronous Vector Environment with 10 environments</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">ml1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="s1">&#39;pick-place-v2&#39;</span><span class="p">]()</span>  <span class="c1"># Create an environment with task `pick_place`</span>
-<span class="n">task</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">ml1</span><span class="o">.</span><span class="n">train_tasks</span><span class="p">)</span>
-<span class="n">env</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>  <span class="c1"># Set task</span>
+<span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># reset all 10 environments</span>
 
-<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
+
+<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># step all 10 environments</span>
 </pre></div>
 </div>
-<p><strong>MT1</strong> can be run the same way except that it does not contain any <code class="docutils literal notranslate"><span class="pre">test_tasks</span></code></p>
+<p>Alternatively, for users with more compute we also provide the asynchronous version of the MT10 benchmark where each environment is isolated in it’s own process and must use inter-process messaging via pipes to communicate.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT10&#39;</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;async&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns an Asynchronous Vector Environment with 10 environments</span>
+</pre></div>
+</div>
 </section>
-<section id="running-a-benchmark">
-<h3>Running a benchmark<a class="headerlink" href="#running-a-benchmark" title="Link to this heading">¶</a></h3>
-<p>Create an environment with train tasks (ML10, MT10, ML45, or MT50):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<section id="mt50">
+<h3>MT50<a class="headerlink" href="#mt50" title="Link to this heading">¶</a></h3>
+<p>MT50 also contains two different versions, a synchronous and an asynchronous version, of the environments.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
-<span class="n">ml10</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML10</span><span class="p">()</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
 
-<span class="n">training_envs</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">env_cls</span> <span class="ow">in</span> <span class="n">ml10</span><span class="o">.</span><span class="n">train_classes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-  <span class="n">env</span> <span class="o">=</span> <span class="n">env_cls</span><span class="p">()</span>
-  <span class="n">task</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">task</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">ml10</span><span class="o">.</span><span class="n">train_tasks</span>
-                        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">env_name</span> <span class="o">==</span> <span class="n">name</span><span class="p">])</span>
-  <span class="n">env</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
-  <span class="n">training_envs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT50&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns a Synchronous Vector Environment with 50 environments</span>
 
-<span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">training_envs</span><span class="p">:</span>
-  <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-  <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
+<span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># reset all 50 environments</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
+
+<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># step all 50 environments</span>
 </pre></div>
 </div>
-<p>Create an environment with test tasks (this only works for ML10 and ML45, since MT10 and MT50 don’t have a separate set of test tasks):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
-
-<span class="n">ml10</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML10</span><span class="p">()</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
-
-<span class="n">testing_envs</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">env_cls</span> <span class="ow">in</span> <span class="n">ml10</span><span class="o">.</span><span class="n">test_classes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-  <span class="n">env</span> <span class="o">=</span> <span class="n">env_cls</span><span class="p">()</span>
-  <span class="n">task</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">task</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">ml10</span><span class="o">.</span><span class="n">test_tasks</span>
-                        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">env_name</span> <span class="o">==</span> <span class="n">name</span><span class="p">])</span>
-  <span class="n">env</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
-  <span class="n">testing_envs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">testing_envs</span><span class="p">:</span>
-  <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-  <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT50&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;async&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns an Asynchronous Vector Environment with 50 environments</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="accessing-single-goal-environments">
-<h2>Accessing Single Goal Environments<a class="headerlink" href="#accessing-single-goal-environments" title="Link to this heading">¶</a></h2>
-<p>You may wish to only access individual environments used in the Meta-World benchmark for your research.
-We provide constructors for creating environments where the goal has been hidden (by zeroing out the goal in
-the observation) and environments where the goal is observable. They are called GoalHidden and GoalObservable
-environments respectively.</p>
-<p>You can access them in the following way:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">metaworld.envs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE</span><span class="p">,</span>
-                            <span class="n">ALL_V2_ENVIRONMENTS_GOAL_HIDDEN</span><span class="p">)</span>
-                            <span class="c1"># these are ordered dicts where the key : value</span>
-                            <span class="c1"># is env_name : env_constructor</span>
+<section id="id1">
+<h2>Meta-Learning Benchmarks<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>Each Meta-reinforcement learning benchmark has training and testing environments. These environments must be created separately as follows.</p>
+<section id="ml1">
+<h3>ML1<a class="headerlink" href="#ml1" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
 
-<span class="n">door_open_goal_observable_cls</span> <span class="o">=</span> <span class="n">ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE</span><span class="p">[</span><span class="s2">&quot;door-open-v2-goal-observable&quot;</span><span class="p">]</span>
-<span class="n">door_open_goal_hidden_cls</span> <span class="o">=</span> <span class="n">ALL_V2_ENVIRONMENTS_GOAL_HIDDEN</span><span class="p">[</span><span class="s2">&quot;door-open-v2-goal-hidden&quot;</span><span class="p">]</span>
+<span class="n">train_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML1-train&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;reach-V3&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">test_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML1-test&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;reach-V3&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">door_open_goal_hidden_cls</span><span class="p">()</span>
-<span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-<span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
-<span class="k">assert</span> <span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># goal will be zeroed out because env is HiddenGoal</span>
-
-<span class="c1"># You can choose to initialize the random seed of the environment.</span>
-<span class="c1"># The state of your rng will remain unaffected after the environment is constructed.</span>
-<span class="n">env1</span> <span class="o">=</span> <span class="n">door_open_goal_observable_cls</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="n">env2</span> <span class="o">=</span> <span class="n">door_open_goal_observable_cls</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-
-<span class="n">env1</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-<span class="n">env2</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="n">a1</span> <span class="o">=</span> <span class="n">env1</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-<span class="n">a2</span> <span class="o">=</span> <span class="n">env2</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
-<span class="n">next_obs1</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env1</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
-
-<span class="n">next_obs2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env2</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span>
-<span class="k">assert</span> <span class="p">(</span><span class="n">next_obs1</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">next_obs2</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># 2 envs initialized with the same seed will have the same goal</span>
-<span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">next_obs2</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>   <span class="c1"># The env&#39;s are goal observable, meaning the goal is not zero&#39;d out</span>
-
-<span class="n">env3</span> <span class="o">=</span> <span class="n">door_open_goal_observable_cls</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Construct an environment with a different seed</span>
-<span class="n">env1</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
-<span class="n">env3</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="n">a1</span> <span class="o">=</span> <span class="n">env1</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
-<span class="n">a3</span> <span class="o">=</span> <span class="n">env3</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
-<span class="n">next_obs1</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env1</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>  <span class="c1"># Step the environment with the sampled random action</span>
-<span class="n">next_obs3</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env3</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a3</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">next_obs1</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">next_obs3</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="c1"># 2 envs initialized with different seeds will have different goals</span>
-<span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">next_obs1</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>   <span class="c1"># The env&#39;s are goal observable, meaning the goal is not zero&#39;d out</span>
+<span class="c1"># training procedure use train_envs</span>
+<span class="c1"># testing procedure use test_envs</span>
 
 </pre></div>
+</div>
+</section>
+<section id="ml10">
+<h3>ML10<a class="headerlink" href="#ml10" title="Link to this heading">¶</a></h3>
+<p>Similar to the Multi-Task benchmarks, the ML10 and ML45 environments can be run in synchronous or asynchronous modes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+<span class="n">train_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML10-train&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">test_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML10-test&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ml45">
+<h3>ML45<a class="headerlink" href="#ml45" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+
+<span class="n">train_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML45-train&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">test_envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/ML45-test&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="custom-benchmarks">
+<h2>Custom Benchmarks<a class="headerlink" href="#custom-benchmarks" title="Link to this heading">¶</a></h2>
+<p>Finally, we also provide support for creating custom benchmarks by combining any number of Meta-World environments.</p>
+<p>The prefix ‘mt’ will return environments that are goal observable for Multi-Task reinforcement learning, while the prefix ‘ml’ will return environments that are partially observable for Meta-reinforcement learning.
+Like the included MT and ML benchmarks, these environments can also be run in synchronous or asynchronous mode.
+In order to create a custom benchmark, the user must provide a list of environment names with the suffix ‘-V3’.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
+
+<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/custom-mt-envs&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">envs_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;env_name_1-v3&#39;</span><span class="p">,</span> <span class="s1">&#39;env_name_2-v3&#39;</span><span class="p">,</span> <span class="s1">&#39;env_name_3-v3&#39;</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/custom-ml-envs&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">envs_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;env_name_1-v3&#39;</span><span class="p">,</span> <span class="s1">&#39;env_name_2-v3&#39;</span><span class="p">,</span> <span class="s1">&#39;env_name_3-v3&#39;</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading">¶</a></h2>
+<p>The gym.make command supports multiple arguments:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Usage</p></th>
+<th class="head"><p>Values</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>seed</p></td>
+<td><p>The number to seed the random number generator with</p></td>
+<td><p>None or int</p></td>
+</tr>
+<tr class="row-odd"><td><p>max_episode_steps</p></td>
+<td><p>The maximum number of steps per episode</p></td>
+<td><p>None or int</p></td>
+</tr>
+<tr class="row-even"><td><p>use_one_hot</p></td>
+<td><p>Whether the one hot wrapper should be use to add the task ID to the observation</p></td>
+<td><p>True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_tasks</p></td>
+<td><p>The number of parametric variations to sample (default:50)</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-even"><td><p>terminate_on_success</p></td>
+<td><p>Whether to terminate the episode during training when the success signal is seen</p></td>
+<td><p>True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p>vector_strategy</p></td>
+<td><p>What kind of vector strategy the environments should be wrapped in</p></td>
+<td><p>‘sync’ or ‘async’</p></td>
+</tr>
+<tr class="row-even"><td><p>task_select</p></td>
+<td><p>How parametric variations should be selected</p></td>
+<td><p>“random” or “pseudorandom”</p></td>
+</tr>
+<tr class="row-odd"><td><p>reward_function_version</p></td>
+<td><p>Use the original reward functions from Meta-World or the updated ones</p></td>
+<td><p>“v1” or “v2”</p></td>
+</tr>
+<tr class="row-even"><td><p>reward_normalization_method</p></td>
+<td><p>Apply a reward normalization wrapper</p></td>
+<td><p>None or ‘gymnasium’ or ‘exponential’</p></td>
+</tr>
+<tr class="row-odd"><td><p>render_mode</p></td>
+<td><p>The render mode of each environment</p></td>
+<td><p>None or ‘human’ or ‘rgb_array’ or ‘depth_array’</p></td>
+</tr>
+<tr class="row-even"><td><p>camera_name</p></td>
+<td><p>The Mujoco name of the camera that should be used to render</p></td>
+<td><p>‘corner’ or ‘topview’ or ‘behindGripper’ or ‘gripperPOV’ or ‘corner2’ or ‘corner3’</p></td>
+</tr>
+<tr class="row-odd"><td><p>camera_id</p></td>
+<td><p>The Mujoco ID of the camera that should be used to render</p></td>
+<td><p>int</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 </section>
@@ -434,12 +486,12 @@ environments respectively.</p>
         <footer>
           
           <div class="related-pages">
-            <a class="next-page" href="../../installation/installation/">
+            <a class="next-page" href="../../evaluation/evaluation/">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Installation</div>
+                <div class="title">Evaluation</div>
               </div>
               <svg class="furo-related-icon">
                 <use href="#svg-arrow-right"></use>
@@ -488,13 +540,21 @@ environments respectively.</p>
               <ul>
 <li><a class="reference internal" href="#">Basic Usage</a><ul>
 <li><a class="reference internal" href="#using-the-benchmark">Using the benchmark</a><ul>
-<li><a class="reference internal" href="#basics">Basics</a></li>
-<li><a class="reference internal" href="#seeding-a-benchmark-instance">Seeding a Benchmark Instance</a></li>
-<li><a class="reference internal" href="#running-ml1-or-mt1">Running ML1 or MT1</a></li>
-<li><a class="reference internal" href="#running-a-benchmark">Running a benchmark</a></li>
+<li><a class="reference internal" href="#multi-task-benchmarks">Multi-Task Benchmarks</a></li>
+<li><a class="reference internal" href="#meta-learning-benchmarks">Meta-Learning Benchmarks</a></li>
+<li><a class="reference internal" href="#mt1">MT1</a></li>
+<li><a class="reference internal" href="#mt10">MT10</a></li>
+<li><a class="reference internal" href="#mt50">MT50</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#accessing-single-goal-environments">Accessing Single Goal Environments</a></li>
+<li><a class="reference internal" href="#id1">Meta-Learning Benchmarks</a><ul>
+<li><a class="reference internal" href="#ml1">ML1</a></li>
+<li><a class="reference internal" href="#ml10">ML10</a></li>
+<li><a class="reference internal" href="#ml45">ML45</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#custom-benchmarks">Custom Benchmarks</a></li>
+<li><a class="reference internal" href="#arguments">Arguments</a></li>
 </ul>
 </li>
 </ul>

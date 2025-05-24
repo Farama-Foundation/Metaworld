@@ -8,7 +8,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:description" content="Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning" />
     <meta property="og:url" content="https://metaworld.farama.org/rendering/rendering.html" /><meta property="og:image" content="https://metaworld.farama.org/_static/img/metaworld_black-github.png" /><meta name="twitter:card" content="summary_large_image"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Generate data with expert policies" href="../../usage/basic_usage/" /><link rel="prev" title="Installation" href="../../installation/installation/" />
+<link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Action Space" href="../../benchmark/action_space/" /><link rel="prev" title="Installation" href="../../installation/installation/" />
         <link rel="canonical" href="https://metaworld.farama.org/rendering/rendering.html" />
 
     <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.4.7 and Furo 2023.08.19.dev1 -->
@@ -213,9 +213,18 @@
   <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../introduction/basic_usage/">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation/">Evaluation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation/installation/">Installation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Rendering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../usage/basic_usage/">Generate data with expert policies</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Benchmark Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/action_space/">Action Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/state_space/">State Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/benchmark_descriptions/">Benchmark Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/task_descriptions/">Task Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/reward_functions/">Reward Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/expert_trajectories/">Expert Trajectories</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -281,22 +290,16 @@
             <section class="tex2jax_ignore mathjax_ignore" id="rendering">
 <h1>Rendering<a class="headerlink" href="#rendering" title="Link to this heading">¶</a></h1>
 <p>Each Meta-World environment uses Gymnasium to handle the rendering functions following the <a class="reference external" href="https://github.com/Farama-Foundation/Gymnasium/blob/94a7909042e846c496bcf54f375a5d0963da2b31/gymnasium/envs/mujoco/mujoco_env.py#L184"><code class="docutils literal notranslate"><span class="pre">gymnasium.MujocoEnv</span></code></a> interface.</p>
-<p>Upon environment creation a user can select a render mode in (‘rgb_array’, ‘human’).</p>
+<p>Upon environment creation a user can select a render mode in <code class="docutils literal notranslate"><span class="pre">('rgb_array',</span> <span class="pre">'human')</span></code>.</p>
 <p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="o">.</span><span class="n">ENV_NAMES</span><span class="p">)</span>  <span class="c1"># Check out the available environments</span>
 
 <span class="n">env_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># Pick an environment name</span>
 
 <span class="n">render_mode</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># set a render mode</span>
 
-<span class="n">ml1</span> <span class="o">=</span> <span class="n">metaworld</span><span class="o">.</span><span class="n">ML1</span><span class="p">(</span><span class="n">env_name</span><span class="p">)</span> <span class="c1"># Construct the benchmark, sampling tasks</span>
-
-<span class="n">env</span> <span class="o">=</span> <span class="n">ml1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="n">env_name</span><span class="p">](</span><span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span>
-<span class="n">task</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">ml1</span><span class="o">.</span><span class="n">train_tasks</span><span class="p">)</span>
-<span class="n">env</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>  <span class="c1"># Set task</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT1&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span>
 
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
@@ -308,7 +311,7 @@
 <p>In addition to the base render functions, Meta-World supports multiple camera positions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">camera_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># one of: [&#39;corner&#39;, &#39;corner2&#39;, &#39;corner3&#39;, &#39;topview&#39;, &#39;behindGripper&#39;, &#39;gripperPOV&#39;]</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">ml1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="n">env_name</span><span class="p">](</span><span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_name</span><span class="o">=</span><span class="n">camera_name</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_name</span><span class="o">=</span><span class="n">camera_name</span><span class="p">)</span>
 
 </pre></div>
 </div>
@@ -316,7 +319,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="n">camera_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># this is an integer that represents the camera ID from Mujoco</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">ml1</span><span class="o">.</span><span class="n">train_classes</span><span class="p">[</span><span class="n">env_name</span><span class="p">](</span><span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_id</span><span class="o">=</span><span class="n">camera_id</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_id</span><span class="o">=</span><span class="n">camera_id</span><span class="p">)</span>
 
 </pre></div>
 </div>
@@ -328,12 +331,12 @@
         <footer>
           
           <div class="related-pages">
-            <a class="next-page" href="../../usage/basic_usage/">
+            <a class="next-page" href="../../benchmark/action_space/">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Generate data with expert policies</div>
+                <div class="title">Action Space</div>
               </div>
               <svg class="furo-related-icon">
                 <use href="#svg-arrow-right"></use>

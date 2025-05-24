@@ -1,0 +1,745 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning">
+    <meta property="og:title" content="Metaworld Documentation" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning" />
+    <meta property="og:url" content="https://metaworld.farama.org/evaluation/evaluation.html" /><meta property="og:image" content="https://metaworld.farama.org/_static/img/metaworld_black-github.png" /><meta name="twitter:card" content="summary_large_image"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex/" /><link rel="search" title="Search" href="../../search/" /><link rel="next" title="Installation" href="../../installation/installation/" /><link rel="prev" title="Basic Usage" href="../../introduction/basic_usage/" />
+        <link rel="canonical" href="https://metaworld.farama.org/evaluation/evaluation.html" />
+
+    <link rel="shortcut icon" href="../../_static/favicon.svg"/><!-- Generated with Sphinx 7.4.7 and Furo 2023.08.19.dev1 -->
+        <title>Evaluation - Metaworld Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=3e7f4c72" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=82c8b628" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    <header class="farama-header" aria-label="Farama header">
+      <div class="farama-header__container">
+        <div class="farama-header__left--mobile">
+          <label class="nav-overlay-icon" for="__navigation">
+            <div class="visually-hidden">Toggle site navigation sidebar</div>
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <defs></defs>
+              <line x1="0.5" y1="4" x2="23.5" y2="4"></line>
+              <line x1="0.232" y1="12" x2="23.5" y2="12"></line>
+              <line x1="0.232" y1="20" x2="23.5" y2="20"></line>
+            </svg>
+          </label>
+        </div>
+        <div class="farama-header__left farama-header__center--mobile">
+          <a href="../../">
+              <img class="farama-header__logo only-light" src="../../_static/img/metaworld_black.svg" alt="Light Logo"/>
+              <img class="farama-header__logo only-dark" src="../../_static/img/metaworld_white.svg" alt="Dark Logo"/>
+            <span class="farama-header__title">Metaworld Documentation</span>
+          </a>
+        </div>
+        <div class="farama-header__right">
+          <div class="farama-header-menu">
+            <button class="farama-header-menu__btn" aria-label="Open Farama Menu" aria-expanded="false" aria-haspopup="true" aria-controls="farama-menu">
+              <img class="farama-black-logo-invert" src="../../_static/img/farama-logo-header.svg">
+              <svg viewBox="0 0 24 24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <polyline style="stroke-linecap: round; stroke-linejoin: round; fill: none; stroke-width: 2px;" points="1 7 12 18 23 7"></polyline>
+              </svg>
+            </button>
+            <div class="farama-header-menu-container farama-hidden" aria-hidden="true" id="farama-menu">
+              <div class="farama-header-menu__header">
+                <a href="https://farama.org">
+                  <img class="farama-header-menu__logo farama-white-logo-invert" src="../../_static/img/farama_solid_white.svg" alt="Farama Foundation logo">
+                  <span>Farama Foundation</span>
+                </a>
+                <div class="farama-header-menu-header__right">
+                  <button id="farama-close-menu">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-close">
+                      <line x1="3" y1="21" x2="21" y2="3"></line>
+                      <line x1="3" y1="3" x2="21" y2="21"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="farama-header-menu__body">
+                <!-- Response from farama.org/api/projects.json -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<div class="page">
+  <!--<header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../"><div class="brand">Metaworld Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>-->
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="farama-sidebar__title" href="../../">
+      <img class="farama-header__logo only-light" src="../../_static/img/metaworld_black.svg" alt="Light Logo"/>
+      <img class="farama-header__logo only-dark" src="../../_static/img/metaworld_white.svg" alt="Dark Logo"/>
+    <span class="farama-header__title">Metaworld Documentation</span>
+  </a><form class="sidebar-search-container" method="get" action="../../search/" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/basic_usage/">Basic Usage</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation/installation/">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rendering/rendering/">Rendering</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Benchmark Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/action_space/">Action Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/state_space/">State Space</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/benchmark_descriptions/">Benchmark Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/task_descriptions/">Task Descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/reward_functions/">Reward Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark/expert_trajectories/">Expert Trajectories</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/Farama-Foundation/Metaworld">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation/">Citation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/Farama-Foundation/Metaworld/blob/main/docs/README.md">Contribute to the Docs</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main-container">
+
+    
+
+    
+
+    <div class="main">
+      <div class="content">
+        <div class="article-container">
+          <a href="#" class="back-to-top muted-link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+            </svg>
+            <span>Back to top</span>
+          </a>
+          <div class="content-icon-container"><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/Farama-Foundation/Metaworld/edit/master/docs/evaluation/evaluation.md" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+              <button class="theme-toggle" title="Toggle color theme">
+                <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+                <svg class="theme-icon-when-auto">
+                  <use href="#svg-sun-half"></use>
+                </svg>
+                <svg class="theme-icon-when-dark">
+                  <use href="#svg-moon"></use>
+                </svg>
+                <svg class="theme-icon-when-light">
+                  <use href="#svg-sun"></use>
+                </svg>
+              </button>
+            </div>
+            <label class="toc-overlay-icon toc-content-icon" for="__toc">
+              <div class="visually-hidden">Toggle table of contents sidebar</div>
+              <i class="icon"><svg>
+                  <use href="#svg-toc"></use>
+                </svg></i>
+            </label>
+          </div>
+          <article role="main">
+            
+            <section class="tex2jax_ignore mathjax_ignore" id="evaluation">
+<h1>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading">¶</a></h1>
+<p>In Metaworld, agents are to be evaluated using their <strong>success rate</strong> on a set of tasks and goal positions, not the episodic reward achieved during training.</p>
+<p>Each environment computes a success flag which is available through the <code class="docutils literal notranslate"><span class="pre">info</span></code> dictionary’s <code class="docutils literal notranslate"><span class="pre">&quot;success&quot;</span></code> key, which is <code class="docutils literal notranslate"><span class="pre">0</span></code> when the task has not yet been accomplished, and <code class="docutils literal notranslate"><span class="pre">1</span></code> when success has been achieved.</p>
+<p>To aid in easier evaluation of agents, the benchmark provides two evaluation utility functions through the <code class="docutils literal notranslate"><span class="pre">metaworld.evaluation</span></code> package, one for multi-task reinforcement learning and one for meta-reinforcement learning respectively.</p>
+<section id="methodology">
+<h2>Methodology<a class="headerlink" href="#methodology" title="Link to this heading">¶</a></h2>
+<p>Specifically, success rate is measured in the following way for each benchmark:</p>
+<section id="multi-task-reinforcement-learning-mt1-mt10-mt50">
+<h3>Multi-Task Reinforcement Learning (MT1, MT10, MT50)<a class="headerlink" href="#multi-task-reinforcement-learning-mt1-mt10-mt50" title="Link to this heading">¶</a></h3>
+<p>The agent, trained on the set of training tasks and training goal positions from the benchmark, is evaluated for one episode per training goal position, per training task. Meaning it is in practice evaluated for 50 episodes (one for each of the 50 goals) for each training task, and these goal positions are the same ones seen during training. During this episode, the agent is considered to have succeeded if the success flag is <code class="docutils literal notranslate"><span class="pre">1</span></code> <em>at any point during the episode</em>, not just at the end of the episode.</p>
+<p>The final metric is the average success rate achieved across all tasks and episodes.</p>
+<p>Here is python pseudocode for this procedure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">multi_task_eval</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">envs</span><span class="p">,</span> <span class="n">num_evaluation_episodes</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">episode_horizon</span> <span class="o">=</span> <span class="mi">500</span><span class="p">):</span>
+   <span class="n">success_rate</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+   <span class="k">for</span> <span class="n">episode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_evaluation_episodes</span><span class="p">):</span>
+      <span class="n">envs</span><span class="o">.</span><span class="n">iterate_goal_position</span><span class="p">()</span>
+      <span class="n">obs</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">envs</span><span class="p">:</span>
+         <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episode_horizon</span><span class="p">):</span>
+            <span class="n">action</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">eval_action</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">next_obs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">next_obs</span>
+
+            <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+               <span class="n">success_rate</span> <span class="o">+=</span> <span class="mi">1</span>
+               <span class="k">break</span>
+
+   <span class="n">success_rate</span> <span class="o">/=</span> <span class="p">(</span><span class="n">num_evaluation_episodes</span> <span class="o">*</span> <span class="n">envs</span><span class="o">.</span><span class="n">num_envs</span><span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">success_rate</span>
+</pre></div>
+</div>
+</section>
+<section id="meta-reinforcement-learning-ml1-ml10-ml45">
+<h3>Meta-Reinforcement Learning (ML1, ML10, ML45)<a class="headerlink" href="#meta-reinforcement-learning-ml1-ml10-ml45" title="Link to this heading">¶</a></h3>
+<p>The agent, trained on the set of training tasks and training goal positions from the benchmark, is evaluated for three episodes per <em>testing goal position</em>, <em>per testing task</em>. In ML1, the task is the same between training and testing, but the set of goal positions is different and not seen during training. For ML10 and ML45, there are 5 held out testing tasks which are different from the training tasks, and each of them also has 40 goal positions never seen during training.</p>
+<p>However, since meta-RL is all about adaptation, additionally the evaluation procedure also allows the agent to adapt. Specifically, one would collect <code class="docutils literal notranslate"><span class="pre">adaptation_steps</span> <span class="pre">*</span> <span class="pre">adaptation_episodes</span></code> number of episodes per testing task, per testing goal, and give them back to the network to adapt from, before computing the final post-adaptation evaluation metric (in three episodes) for that testing goal / task, in a similar fashion to the multi-task reinforcement learning setting. In practice, for each adaptation step, <code class="docutils literal notranslate"><span class="pre">adaptation_episodes</span></code> number of episodes is collected per testing goal and given back to the network to adapt from as a batch of rollouts, so the agent can iteratively adapt.</p>
+<p>The agent can either adapt continuously each timestep (e.g. sequence-model based metalearners), or each adaptation step (e.g. gradient-based metalearners), or both.</p>
+<p>Success is measured during each episode for each goal the same way as it in the multi-task setting: the agent is considered to have succeeded if the success flag is <code class="docutils literal notranslate"><span class="pre">1</span></code> at any point during the episode. And the final metric is likewise still the average success rate across all testing tasks and episodes.</p>
+<p>Here is python pseudocode for this procedure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">metalearning_eval</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">eval_envs</span><span class="p">,</span> <span class="n">adaptation_steps</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">adaptation_episodes</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">num_evals</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span> <span class="n">episode_horizon</span><span class="p">):</span>
+   <span class="n">success_rate</span> <span class="o">=</span> <span class="mf">0.0</span>
+   <span class="n">initial_obs</span> <span class="o">=</span> <span class="n">eval_envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+   <span class="k">for</span> <span class="n">goal</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_evals</span><span class="p">):</span>
+      <span class="n">eval_envs</span><span class="o">.</span><span class="n">iterate_goal_position</span><span class="p">()</span>
+      <span class="n">agent</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+
+      <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">adaptation_steps</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">adaptation_episodes</span><span class="p">):</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">eval_envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">episode_horizon</span><span class="p">):</span>
+               <span class="n">action</span><span class="p">,</span> <span class="n">misc_outs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">adapt_action</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+               <span class="n">next_obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">eval_envs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+               <span class="n">agent</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">next_obs</span><span class="p">,</span> <span class="n">misc_outs</span><span class="p">)</span>
+
+         <span class="n">agent</span><span class="o">.</span><span class="n">adapt</span><span class="p">()</span>
+
+      <span class="n">success_rate</span> <span class="o">+=</span> <span class="n">multi_task_eval</span><span class="p">(</span><span class="n">adaptive_agent</span><span class="p">,</span> <span class="n">eval_envs</span><span class="p">,</span> <span class="n">num_evaluation_episodes</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+   <span class="n">success_rate</span> <span class="o">/=</span> <span class="n">num_evals</span>
+
+   <span class="k">return</span> <span class="n">success_rate</span>
+</pre></div>
+</div>
+<section id="the-num-evals-parameter-and-meta-batch-size-in-metaworld">
+<h4>The <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> parameter, and meta batch size in Metaworld<a class="headerlink" href="#the-num-evals-parameter-and-meta-batch-size-in-metaworld" title="Link to this heading">¶</a></h4>
+<p>The pseudocode assumes a meta batch size of 1 and 40 total tasks to go through (<code class="docutils literal notranslate"><span class="pre">num_evals</span></code>). For example this could work for ML1 with 40 test goals. In practice, meta batch size would be higher, e.g. 20, and the value of <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> becomes a bit less intuitive.</p>
+<p>In meta-reinforcement learning, we typically use a vectorised environment where each environment instance is assigned to a given task. The number of tasks we are processing in parallel at a given iteration is known as the <strong>meta batch size</strong>. In typical meta-reinforcement learning where we just have parametric task variations, the vector that specifies the variation is the task. In Metaworld, things are a little more complicated. We have both distinct tasks (e.g. <code class="docutils literal notranslate"><span class="pre">reach-v3</span></code> or <code class="docutils literal notranslate"><span class="pre">sweep-into-v3</span></code>) and different goal positions within each task. The task space in Metaworld is considered to be the combinatorial space of tasks and goal positions.</p>
+<p>For ML10 and ML45, we have 5 test tasks, each of which has 40 test goal positions. We can therefore use a meta batch size of 20, and create 4 instances of each task within the vectorised environment for this meta batch, each of which will have 10 distinct goal positions. Therefore, to iterate over all <code class="docutils literal notranslate"><span class="pre">(task,goal)</span></code> combinations during evaluation, we would need <code class="docutils literal notranslate"><span class="pre">num_evals=10</span></code>.</p>
+<p>For ML1, <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> would depend on the meta batch size. We can either have a meta batch size of 1 (in which case <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> would be 40), or a meta batch size of 20 (in which case <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> would be 2).</p>
+<blockquote>
+<div><p>[!NOTE]
+The meta batch sizes and num evals values are suggestions and can be thought of as worked out examples to explain the evaluation logic. Feel free to use different values, as long as all <code class="docutils literal notranslate"><span class="pre">(task,goal)</span></code> combinations are covered during evaluation.</p>
+</div></blockquote>
+</section>
+</section>
+</section>
+<section id="utility-functions">
+<h2>Utility functions<a class="headerlink" href="#utility-functions" title="Link to this heading">¶</a></h2>
+<p>To avoid the need to implement the evaluation procedure from scratch, implementations for both the multi-task and meta-reinforcement learning evaluation procedures can be found in the <code class="docutils literal notranslate"><span class="pre">metaworld.evaluation</span></code> package under the functions <code class="docutils literal notranslate"><span class="pre">evaluation</span></code> and <code class="docutils literal notranslate"><span class="pre">metalearning_evaluation</span></code> respectively.</p>
+<section id="the-agent-metalearningagent-protocols">
+<h3>The <code class="docutils literal notranslate"><span class="pre">Agent</span></code> / <code class="docutils literal notranslate"><span class="pre">MetaLearningAgent</span></code> protocols<a class="headerlink" href="#the-agent-metalearningagent-protocols" title="Link to this heading">¶</a></h3>
+<p>The evaluation utilities are agnostic to your agent’s architecture and implementation framework, but in their signature they both expect an object that adheres to a given protocol as the first argument (<code class="docutils literal notranslate"><span class="pre">agent</span></code>).</p>
+<p>Specifically, this is the protocol each evaluation function respectively expects:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Agent</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eval_action</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MetaLearningAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">adapt_action</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]]:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">Timestep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">adapt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>For both multi-task and meta-reinforcement learning evaluations, the <code class="docutils literal notranslate"><span class="pre">Agent</span></code> object should have a <code class="docutils literal notranslate"><span class="pre">eval_action</span></code> method that takes in a numpy array of some observations and outputs actions. One should think of this as the action the agent takes when it is being evaluated and therefore this should probably be deterministic. It should also have a <code class="docutils literal notranslate"><span class="pre">reset</span></code> method that resets the agent state for individual envs that have terminated. The method can be empty if the agent is stateless, but it should still be present on the <code class="docutils literal notranslate"><span class="pre">Agent</span></code> object.</p>
+<p>For meta-reinforcement learning, an agent should have the following additional methods implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">init()</span></code>: re-initialises the agent for adaptation. This method resets the agent back to the pre-adaptation state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adapt_action(observations:</span> <span class="pre">npt.NDArray[np.float64])</span> <span class="pre">-&gt;</span> <span class="pre">tuple[npt.NDArray[np.float64],</span> <span class="pre">dict[str,</span> <span class="pre">npt.NDArray]]</span></code>: takes in observations from the vectorised evaluation environment and outputs a tuple of actions and miscellaneous policy outputs that might be needed during adaptation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step(timestep:</span> <span class="pre">Timestep)</span></code>: takes in a <code class="docutils literal notranslate"><span class="pre">Timestep</span></code>, which contains data from the current transitions, and handles any logic that ingests this data for adaptation (e.g. storing in a buffer, advancing RNN state, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adapt()</span></code>: a method called at the end of each adaptation step. The agent can use this as a signal to process the experience ingested through <code class="docutils literal notranslate"><span class="pre">step()</span></code>, (e.g. gradient update from stored experience in MAML).</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">Timestep</span></code> named tuple that the agent will be given at each adaptation timestep looks like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Timestep</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">observation</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span>
+    <span class="n">action</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span>
+    <span class="n">reward</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span>
+    <span class="n">terminated</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span>
+    <span class="n">truncated</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span>
+    <span class="n">aux_policy_outputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="utility-outputs">
+<h3>Utility outputs<a class="headerlink" href="#utility-outputs" title="Link to this heading">¶</a></h3>
+<p>The evaluation utilities output multiple items, not just the overall success rate. Specifically, they return a tuple of three items:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mean_success_rate</span></code>: the aforementioned success rate. This is a float scalar.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mean_returns</span></code>: the returns achieved during evaluation averaged across all goal positions / tasks. This is a float scalar.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">success_rate_per_task</span></code>: the success rate achieved for each task evaluated. This is a dictionary keyed by the task name as a string and a float scalar as a value. This scalar is the success rate averaged across goal positions for the given task.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">returns_per_task</span></code>: the returns achieved for each task evaluated. This is a dictionary keyed by the task name as a string and a float scalar as a value. This scalar is the returns averaged across goal positions for the given task.</p></li>
+</ul>
+</section>
+<section id="other-assumptions">
+<h3>Other assumptions<a class="headerlink" href="#other-assumptions" title="Link to this heading">¶</a></h3>
+<p>The evaluation utilities assume that you have instantiated the environments required using <code class="docutils literal notranslate"><span class="pre">gym.make</span></code>. If not, then these are the implicit assumptions for the <code class="docutils literal notranslate"><span class="pre">envs</span></code> / <code class="docutils literal notranslate"><span class="pre">eval_envs</span></code> provided into the utilities:</p>
+<ul class="simple">
+<li><p>The object is <code class="docutils literal notranslate"><span class="pre">SyncVectorEnv</span></code> or <code class="docutils literal notranslate"><span class="pre">AsyncVectorEnv</span></code>.</p></li>
+<li><p>Each sub-env has the following wrappers:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">metaworld.wrappers.RandomTaskSelectWrapper</span></code> or <code class="docutils literal notranslate"><span class="pre">metaworld.wrappers.PseudoRandomTaskSelectWrapper</span></code>, which have been initialised with the correct set of tasks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metaworld.wrappers.AutoTerminateOnSuccessWrapper</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+
+          </article>
+        </div>
+        <footer>
+          
+          <div class="related-pages">
+            <a class="next-page" href="../../installation/installation/">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Installation</div>
+              </div>
+              <svg class="furo-related-icon">
+                <use href="#svg-arrow-right"></use>
+              </svg>
+            </a>
+            
+          </div>
+          <div class="bottom-of-page">
+            <div class="left-details">
+              <div class="copyright">
+                Copyright &#169; 2023 Farama Foundation
+              </div>
+              <!--
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            -->
+            </div>
+            <div class="right-details">
+              <div class="icons">
+                <a class="muted-link" href="https://github.com/Farama-Foundation/Metaworld/"
+                  aria-label="On GitHub">
+                  <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                      d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                    </path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+        </footer>
+      </div>
+      <aside class="toc-drawer">
+        
+        
+        <div class="toc-sticky toc-scroll">
+          <div class="toc-title-container">
+            <span class="toc-title">
+              On this page
+            </span>
+          </div>
+          <div class="toc-tree-container">
+            <div class="toc-tree">
+              <ul>
+<li><a class="reference internal" href="#">Evaluation</a><ul>
+<li><a class="reference internal" href="#methodology">Methodology</a><ul>
+<li><a class="reference internal" href="#multi-task-reinforcement-learning-mt1-mt10-mt50">Multi-Task Reinforcement Learning (MT1, MT10, MT50)</a></li>
+<li><a class="reference internal" href="#meta-reinforcement-learning-ml1-ml10-ml45">Meta-Reinforcement Learning (ML1, ML10, ML45)</a><ul>
+<li><a class="reference internal" href="#the-num-evals-parameter-and-meta-batch-size-in-metaworld">The <code class="docutils literal notranslate"><span class="pre">num_evals</span></code> parameter, and meta batch size in Metaworld</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#utility-functions">Utility functions</a><ul>
+<li><a class="reference internal" href="#the-agent-metalearningagent-protocols">The <code class="docutils literal notranslate"><span class="pre">Agent</span></code> / <code class="docutils literal notranslate"><span class="pre">MetaLearningAgent</span></code> protocols</a></li>
+<li><a class="reference internal" href="#utility-outputs">Utility outputs</a></li>
+<li><a class="reference internal" href="#other-assumptions">Other assumptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+        
+        
+      </aside>
+    </div>
+  </div>
+</div>
+    <script>
+      const toggleMenu = () => {
+        const menuBtn = document.querySelector(".farama-header-menu__btn");
+        const menuContainer = document.querySelector(".farama-header-menu-container");
+        if (document.querySelector(".farama-header-menu").classList.contains("active")) {
+          menuBtn.setAttribute("aria-expanded", "false");
+          menuContainer.setAttribute("aria-hidden", "true");
+        } else {
+          menuBtn.setAttribute("aria-expanded", "true");
+          menuContainer.setAttribute("aria-hidden", "false");
+        }
+        document.querySelector(".farama-header-menu").classList.toggle("active");
+      }
+
+      document.querySelector(".farama-header-menu__btn").addEventListener("click", toggleMenu);
+      document.getElementById("farama-close-menu").addEventListener("click", toggleMenu);
+    </script>
+
+    
+    
+
+    <script src="../../_static/documentation_options.js?v=b59dc8fc"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=7660844c"></script>
+    
+    <script>
+
+      const createProjectsList = (projects, displayImages) => {
+        const ulElem = Object.assign(document.createElement('ul'),
+          {
+            className:'farama-header-menu-list',
+          }
+        )
+        for (let project of projects) {
+          const liElem = document.createElement("li");
+          const aElem = Object.assign(document.createElement("a"),
+            {
+              href: project.link
+            }
+          );
+          liElem.appendChild(aElem);
+          if (displayImages) {
+            const imgElem = Object.assign(document.createElement("img"),
+              {
+                src: project.image ? imagesBasepath + project.image : imagesBasepath + "/farama_black.svg",
+                alt: `${project.name} logo`,
+                className: "farama-black-logo-invert"
+              }
+            );
+            aElem.appendChild(imgElem);
+          }
+          aElem.appendChild(document.createTextNode(project.name));
+          ulElem.appendChild(liElem);
+        }
+        return ulElem;
+      }
+
+      // Create menu with Farama projects by using the API at farama.org/api/projects.json
+      const createCORSRequest = (method, url) => {
+        let xhr = new XMLHttpRequest();
+        xhr.responseType = 'json';
+
+        if ("withCredentials" in xhr) {
+          xhr.open(method, url, true);
+        } else if (typeof XDomainRequest != "undefined") {
+          // IE8 & IE9
+          xhr = new XDomainRequest();
+          xhr.open(method, url);
+        } else {
+          // CORS not supported.
+          xhr = null;
+        }
+        return xhr;
+      };
+
+      const url = 'https://farama.org/api/projects.json';
+      const imagesBasepath = "https://farama.org/assets/images"
+      const method = 'GET';
+      let xhr = createCORSRequest(method, url);
+
+      xhr.onload = () => {
+        const jsonResponse = xhr.response;
+        const sections = {
+          "Core Projects": [],
+          "Mature Projects": {
+            "Documentation": [],
+            "Repositories": [],
+          },
+          "Incubating Projects": {
+            "Documentation": [],
+            "Repositories": [],
+          },
+          "Foundation": [
+            {
+              name: "About",
+              link: "https://farama.org/about"
+            },
+            {
+              name: "Standards",
+              link: "https://farama.org/project_standards",
+            },
+            {
+              name: "Donate",
+              link: "https://farama.org/donations"
+            }
+          ]
+        }
+
+        // Categorize projects
+        Object.keys(jsonResponse).forEach(key => {
+          projectJson = jsonResponse[key];
+          if (projectJson.website !== null) {
+            projectJson.link = projectJson.website;
+          } else {
+            projectJson.link = projectJson.github;
+          }
+          if (projectJson.type === "core") {
+            sections["Core Projects"].push(projectJson)
+          } else if (projectJson.type == "mature") {
+            if (projectJson.website !== null) {
+              sections["Mature Projects"]["Documentation"].push(projectJson)
+            } else {
+              sections["Mature Projects"]["Repositories"].push(projectJson)
+            }
+          } else {
+            if (projectJson.website !== null) {
+              sections["Incubating Projects"]["Documentation"].push(projectJson)
+            } else {
+              sections["Incubating Projects"]["Repositories"].push(projectJson)
+            }
+          }
+        })
+
+        const menuContainer = document.querySelector(".farama-header-menu__body");
+
+        Object.keys(sections).forEach((key, i) => {
+          const sectionElem = Object.assign(
+            document.createElement('div'), {
+              className:'farama-header-menu__section',
+            }
+          )
+          sectionElem.appendChild(Object.assign(document.createElement('span'),
+            {
+              className:'farama-header-menu__section-title' ,
+              innerText: key
+            }
+          ))
+          // is not a list
+          if (sections[key].constructor !== Array) {
+            const subSections = sections[key];
+            const subSectionContainerElem = Object.assign(
+                document.createElement('div'), {
+                  className:'farama-header-menu__subsections-container',
+                  style: 'display: flex'
+                }
+            )
+            Object.keys(subSections).forEach((subKey, i) => {
+              const subSectionElem = Object.assign(
+                document.createElement('div'), {
+                  className:'farama-header-menu__subsection',
+                }
+              )
+              subSectionElem.appendChild(Object.assign(document.createElement('span'),
+                {
+                  className:'farama-header-menu__subsection-title' ,
+                  innerText: subKey
+                }
+              ))
+              const ulElem = createProjectsList(subSections[subKey], key !== 'Foundation');
+              subSectionElem.appendChild(ulElem);
+              subSectionContainerElem.appendChild(subSectionElem);
+            })
+            sectionElem.appendChild(subSectionContainerElem);
+          } else {
+            const projects = sections[key];
+            const ulElem = createProjectsList(projects, true);
+            sectionElem.appendChild(ulElem);
+          }
+          menuContainer.appendChild(sectionElem)
+        });
+      }
+
+      xhr.onerror = function() {
+        console.error("Unable to load projects");
+      };
+
+      xhr.send();
+    </script>
+
+    
+    <script>
+      const versioningConfig = {
+        githubUser: 'Farama-Foundation',
+        githubRepo: 'Metaworld',
+      };
+      fetch('/main/_static/versioning/versioning_menu.html').then(response => {
+        if (response.status === 200) {
+            response.text().then(text => {
+                const container = document.createElement("div");
+                container.innerHTML = text;
+                document.querySelector("body").appendChild(container);
+                // innerHtml doenst evaluate scripts, we need to add them dynamically
+                Array.from(container.querySelectorAll("script")).forEach(oldScript => {
+                    const newScript = document.createElement("script");
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            });
+        } else {
+            console.warn("Unable to load versioning menu", response);
+        }
+      });
+    </script>
+
+    </body>
+</html>
