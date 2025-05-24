@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-from typing import Self
 
 import gymnasium as gym
 import numpy as np
@@ -29,7 +28,7 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.resets = 0
 
     def reset(self, env_mask: npt.NDArray[np.bool_]) -> None:
-        self.resets += np.sum(env_mask)
+        self.resets += np.sum(env_mask)  # type: ignore
 
     def init(self) -> None:
         return

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Protocol, Self
+from typing import NamedTuple, Protocol
 
 import gymnasium as gym
 import numpy as np
@@ -12,21 +12,27 @@ from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 class Agent(Protocol):
     def eval_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> npt.NDArray[np.float64]: ...
+    ) -> npt.NDArray[np.float64]:
+        ...
 
-    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None: ...
+    def reset(self, env_mask: npt.NDArray[np.bool_]) -> None:
+        ...
 
 
 class MetaLearningAgent(Agent, Protocol):
-    def init(self) -> None: ...
+    def init(self) -> None:
+        ...
 
     def adapt_action(
         self, observations: npt.NDArray[np.float64]
-    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]: ...
+    ) -> tuple[npt.NDArray[np.float64], dict[str, npt.NDArray]]:
+        ...
 
-    def step(self, timestep: Timestep) -> None: ...
+    def step(self, timestep: Timestep) -> None:
+        ...
 
-    def adapt(self) -> None: ...
+    def adapt(self) -> None:
+        ...
 
 
 def _get_task_names(

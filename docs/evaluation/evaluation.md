@@ -53,7 +53,7 @@ The agent, trained on the set of training tasks and training goal positions from
 
 However, since meta-RL is all about adaptation, additionally the evaluation procedure also allows the agent to adapt. Specifically, one would collect `adaptation_steps * adaptation_episodes` number of episodes per testing task, per testing goal, and give them back to the network to adapt from, before computing the final post-adaptation evaluation metric (in three episodes) for that testing goal / task, in a similar fashion to the multi-task reinforcement learning setting. In practice, for each adaptation step, `adaptation_episodes` number of episodes is collected per testing goal and given back to the network to adapt from as a batch of rollouts, so the agent can iteratively adapt.
 
-The agent can either adapt continously each timestep (e.g. sequence-model based metalearners), or each adaptation step (e.g. gradient-based metalearners), or both.
+The agent can either adapt continuously each timestep (e.g. sequence-model based metalearners), or each adaptation step (e.g. gradient-based metalearners), or both.
 
 Success is measured during each episode for each goal the same way as it in the multi-task setting: the agent is considered to have succeeded if the success flag is `1` at any point during the episode. And the final metric is likewise still the average success rate across all testing tasks and episodes.
 
