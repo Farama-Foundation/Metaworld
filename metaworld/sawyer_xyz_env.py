@@ -47,8 +47,8 @@ class SawyerMocapBase(mjenv_gym):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
-        width: int = 640,
-        height: int = 640,
+        width: int = 480,
+        height: int = 480,
     ) -> None:
         mjenv_gym.__init__(
             self,
@@ -185,8 +185,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         camera_id: int | None = None,
         camera_name: str | None = None,
         reward_function_version: str | None = None,
-        width: int = 640,
-        height: int = 640,
+        width: int = 480,
+        height: int = 480,
     ) -> None:
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
