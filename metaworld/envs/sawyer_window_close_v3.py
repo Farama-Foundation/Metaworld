@@ -33,6 +33,8 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
         camera_name: str | None = None,
         camera_id: int | None = None,
         reward_function_version: str = "v2",
+        height: int = 480,
+        width: int = 480,
     ) -> None:
         liftThresh = 0.02
         hand_low = (-0.5, 0.40, 0.05)
@@ -46,6 +48,8 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
             render_mode=render_mode,
             camera_name=camera_name,
             camera_id=camera_id,
+            height=height,
+            width=width,
         )
         self.reward_function_version = reward_function_version
 
