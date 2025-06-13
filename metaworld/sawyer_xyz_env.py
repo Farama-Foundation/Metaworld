@@ -47,6 +47,8 @@ class SawyerMocapBase(mjenv_gym):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        width: int = 480,
+        height: int = 480,
     ) -> None:
         mjenv_gym.__init__(
             self,
@@ -56,6 +58,8 @@ class SawyerMocapBase(mjenv_gym):
             render_mode=render_mode,
             camera_name=camera_name,
             camera_id=camera_id,
+            width=width,
+            height=height,
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
@@ -181,6 +185,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         camera_id: int | None = None,
         camera_name: str | None = None,
         reward_function_version: str | None = None,
+        width: int = 480,
+        height: int = 480,
     ) -> None:
         self.action_scale = action_scale
         self.action_rot_scale = action_rot_scale
@@ -200,6 +206,9 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.current_seed: int | None = None
         self.obj_init_pos: npt.NDArray[Any] | None = None
 
+        self.width = width
+        self.height = height
+
         # TODO Probably needs to be removed
         self.discrete_goal_space: Box | None = None
         self.discrete_goals: list = []
@@ -215,6 +224,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             render_mode=render_mode,
             camera_name=camera_name,
             camera_id=camera_id,
+            width=width,
+            height=height,
         )
 
         mujoco.mj_forward(

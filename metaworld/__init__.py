@@ -414,12 +414,16 @@ def _init_each_env(
     render_mode: Literal["human", "rgb_array", "depth_array"] | None = None,
     camera_name: str | None = None,
     camera_id: int | None = None,
+    width: int = 480,
+    height: int = 480,
 ) -> gym.Env:
     env: gym.Env = env_cls(
         reward_function_version=reward_function_version,
         render_mode=render_mode,
         camera_name=camera_name,
         camera_id=camera_id,
+        width=width,
+        height=height,
     )
     if seed is not None:
         env.seed(seed)  # type: ignore
