@@ -23,6 +23,8 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         camera_name: str | None = None,
         camera_id: int | None = None,
         reward_function_version: str = "v2",
+        height: int = 480,
+        width: int = 480,
     ) -> None:
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
@@ -37,6 +39,8 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
             render_mode=render_mode,
             camera_name=camera_name,
             camera_id=camera_id,
+            height=height,
+            width=width,
         )
         self.reward_function_version = reward_function_version
 
