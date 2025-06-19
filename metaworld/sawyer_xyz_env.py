@@ -47,6 +47,7 @@ class SawyerMocapBase(mjenv_gym):
         render_mode: RenderMode | None = None,
         camera_name: str | None = None,
         camera_id: int | None = None,
+        use_jax : bool | None = False,
     ) -> None:
         mjenv_gym.__init__(
             self,
@@ -56,6 +57,7 @@ class SawyerMocapBase(mjenv_gym):
             render_mode=render_mode,
             camera_name=camera_name,
             camera_id=camera_id,
+            use_jax=use_jax,
         )
         self.reset_mocap_welds()
         self.frame_skip = frame_skip
