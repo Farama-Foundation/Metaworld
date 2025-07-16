@@ -139,7 +139,7 @@ class SawyerButtonPressTopdownWallEnvV3(SawyerXYZEnv):
             tcp_to_obj_init = float(np.linalg.norm(obj - self.init_tcp))
             obj_to_target = abs(self._target_pos[2] - obj[2])
 
-            tcp_closed = 1 - obs[3]
+            tcp_closed = max(obs[3], 0.0)
             near_button = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, 0.01),
