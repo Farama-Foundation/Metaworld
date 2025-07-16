@@ -28,7 +28,7 @@ To create a benchmark and interact with it:
 import gymnasium as gym
 import metaworld
 
-env = gym.make("Meta-World/MT1', env_name=reach-V3")
+env = gym.make("Meta-World/MT1", env_name="reach-v3")
 
 observation, info = env.reset()
 for _ in range(500):
