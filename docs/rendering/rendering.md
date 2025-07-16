@@ -26,7 +26,7 @@ obs, reward, terminate, truncate, info = env.step(a)  # Step the environment wit
 In addition to the base render functions, Meta-World supports multiple camera positions.
 
 ```python
-camera_name = '' # one of: ['corner', 'corner2', 'corner3', 'topview', 'behindGripper', 'gripperPOV']
+camera_name = '' # one of: ['corner', 'corner2', 'corner3', 'corner4', 'topview', 'behindGripper', 'gripperPOV']
 
 env = gym.make(env_name=env_name, render_mode=render_mode, camera_name=camera_name)
 
