@@ -98,7 +98,7 @@ import metaworld
 
 seed = 42
 
-envs = gym.make('Meta-World/MT50', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
+envs = gym.make_vec('Meta-World/MT50', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
 
 obs, info = envs.reset() # reset all 50 environments
 
@@ -108,7 +108,7 @@ obs, reward, truncate, terminate, info = envs.step(a) # step all 50 environments
 ```
 
 ```python
-envs = gym.make('Meta-World/MT50', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
+envs = gym.make_vec('Meta-World/MT50', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
 ```
 
 
