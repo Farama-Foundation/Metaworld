@@ -28,6 +28,7 @@ To create a benchmark and interact with it:
 import gymnasium as gym
 import metaworld
 
+
 env = gym.make("Meta-World/MT1", env_name="reach-v3")
 
 observation, info = env.reset()
@@ -58,7 +59,7 @@ import metaworld
 
 seed = 42 # for reproducibility
 
-env = gym.make('Meta-World/MT1', env_name='reach-V3', seed=seed) # MT1 with the reach environment
+env = gym.make('Meta-World/MT1', env_name='reach-v3', seed=seed) # MT1 with the reach environment
 
 obs, info = env.reset()
 
@@ -97,7 +98,7 @@ import metaworld
 
 seed = 42
 
-envs = gym.make('Meta-World/MT50', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
+envs = gym.make_vec('Meta-World/MT50', vector_strategy='sync', seed=seed) # this returns a Synchronous Vector Environment with 50 environments
 
 obs, info = envs.reset() # reset all 50 environments
 
@@ -107,7 +108,7 @@ obs, reward, truncate, terminate, info = envs.step(a) # step all 50 environments
 ```
 
 ```python
-envs = gym.make('Meta-World/MT50', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
+envs = gym.make_vec('Meta-World/MT50', vector_strategy='async', seed=seed) # this returns an Asynchronous Vector Environment with 50 environments
 ```
 
 
@@ -120,6 +121,7 @@ import gymnasium as gym
 import metaworld
 
 seed = 42
+
 
 train_envs = gym.make('Meta-World/ML1-train', env_name='reach-V3', seed=seed)
 test_envs = gym.make('Meta-World/ML1-test', env_name='reach-V3', seed=seed)
@@ -158,7 +160,7 @@ Finally, we also provide support for creating custom benchmarks by combining any
 
 The prefix 'mt' will return environments that are goal observable for Multi-Task reinforcement learning, while the prefix 'ml' will return environments that are partially observable for Meta-reinforcement learning.
 Like the included MT and ML benchmarks, these environments can also be run in synchronous or asynchronous mode.
-In order to create a custom benchmark, the user must provide a list of environment names with the suffix '-V3'.
+In order to create a custom benchmark, the user must provide a list of environment names with the suffix '-v3'.
 
 ```python
 import gymnasium as gym
