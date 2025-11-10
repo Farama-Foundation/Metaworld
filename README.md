@@ -180,7 +180,7 @@ Code for producing results found in the paper can be found at: https://github.co
 
 ## Citation
 
-You can cite Meta-World using our related paper (https://arxiv.org/abs/2505.11289v1) as:
+You can cite Meta-World using our related paper (https://openreview.net/forum?id=1de3azE606) as:
 
 ```
 @inproceedings{
