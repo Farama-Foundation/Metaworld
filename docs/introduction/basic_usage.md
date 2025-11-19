@@ -24,7 +24,7 @@ import gymnasium as gym
 import metaworld
 
 SEED = 0  # some seed number here
-env = gym.make('Meta-World/MT1' env_name='reach-v3', seed=seed)
+env = gym.make('Meta-World/MT1', env_name='reach-v3', seed=seed)
 obs, info = env.reset()
 
 a = env.action_space.sample() # randomly sample an action
