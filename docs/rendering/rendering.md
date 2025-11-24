@@ -46,7 +46,7 @@ env = gym.make(env_name=env_name, render_mode=render_mode, camera_id=camera_id)
 
 **corner** or **id: 1**
 ```{figure} ../_static/rendering/corner.png
-   :alt: Camera Name Corner 
+   :alt: Camera Name Corner
    :width: 200
 
 ```
