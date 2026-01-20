@@ -124,7 +124,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         self.model.body("peg").pos = peg_pos
         self.model.site("pegTop").pos = self._target_pos
 
-        if self.reward_function_version == "v1":
+        if self.reward_function_version != "v2":
             self.obj_height = self.data.site_xpos[
                 mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
             ][2]
