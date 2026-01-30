@@ -95,14 +95,29 @@ def test_evaluation():
         max_episode_steps=max_episode_steps,
         vector_strategy="async",
     )
+    num_envs = envs.num_envs
     agent = ScriptedPolicyAgent(envs)
     mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
         agent, envs, num_episodes=num_episodes
     )
+    envs.close()
     assert isinstance(mean_returns, float)
-    assert mean_success_rate >= 0.80
-    assert len(success_rate_per_task) == envs.num_envs
-    assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
+    assert len(success_rate_per_task) == num_envs
+    worst_accepted_fail_rate = 0.8
+    failed_envs_names = []
+    failed_envs_rates = []
+    for task_name, success_rate in success_rate_per_task.items():
+        if success_rate < worst_accepted_fail_rate:
+            failed_envs_names.append(task_name)
+            failed_envs_rates.append(success_rate)
+    if len(failed_envs_names) > 0:
+        print(
+            f"The following environments failed the success rate threshold of {worst_accepted_fail_rate*100}%:"
+        )
+        for name, rate in zip(failed_envs_names, failed_envs_rates):
+            print(f"- {name}: {rate*100}% success rate")
+        assert False, "Some environments did not meet the success rate threshold."
+    assert mean_success_rate >= worst_accepted_fail_rate
 
 
 # @pytest.mark.skip
