@@ -471,8 +471,11 @@ def make_mt_envs(
     **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
     benchmark: Benchmark
+
+    num_goals = kwargs.pop("num_goals", _DEFAULT_NUM_GOALS)
+
     if name in ALL_V3_ENVIRONMENTS.keys():
-        benchmark = MT1(name, seed=seed)
+        benchmark = MT1(name, seed=seed, num_goals=num_goals)
         tasks = [task for task in benchmark.train_tasks]
         return _init_each_env(  # type: ignore[misc]
             env_cls=benchmark.train_classes[name],
@@ -482,7 +485,7 @@ def make_mt_envs(
             **kwargs,
         )
     elif name == "MT10" or name == "MT25" or name == "MT50":
-        benchmark = globals()[name](seed=seed)
+        benchmark = globals()[name](seed=seed, num_goals=num_goals)
         vectorizer: type[gym.vector.VectorEnv] = getattr(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
@@ -579,10 +582,13 @@ def make_ml_envs(
     **kwargs,
 ) -> gym.vector.VectorEnv:
     benchmark: Benchmark
+
+    num_goals = kwargs.pop("num_goals", _DEFAULT_NUM_GOALS)
+
     if name in ALL_V3_ENVIRONMENTS.keys():
-        benchmark = ML1(name, seed=seed)
+        benchmark = ML1(name, seed=seed, num_goals=num_goals)
     elif name == "ML10" or name == "ML45" or name == "ML25":
-        benchmark = globals()[name](seed=seed)
+        benchmark = globals()[name](seed=seed, num_goals=num_goals)
     else:
         raise ValueError(
             "Invalid ML env name. Must either be a valid Metaworld task name (e.g. 'reach-v3'), 'ML10', 'ML25', or 'ML45'."
