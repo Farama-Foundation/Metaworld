@@ -94,7 +94,7 @@ _ML_OVERRIDE = dict(partially_observable=True)
 _MT_OVERRIDE = dict(partially_observable=False)
 """The overrides for the Multi-Task benchmarks. Enables the inclusion of the goal position in the observation."""
 
-_N_GOALS = 50
+_DEFAULT_NUM_GOALS = 50
 """The number of goals to generate for each environment."""
 
 
@@ -115,6 +115,7 @@ def _make_tasks(
     classes: _env_dict.EnvDict,
     args_kwargs: _env_dict.EnvArgsKwargsDict,
     kwargs_override: dict,
+    num_goals: int,
     seed: int | None = None,
 ) -> list[Task]:
     """Initialises goals for a given set of environments.
@@ -126,7 +127,7 @@ def _make_tasks(
         seed: The random seed to use.
 
     Returns:
-        A flat list of `Task` objects, `_N_GOALS` for each environment in `classes`.
+        A flat list of `Task` objects, `num_goals` for each environment in `classes`.
     """
     # Cache existing random state
     if seed is not None:
@@ -149,14 +150,14 @@ def _make_tasks(
         del kwargs["task_id"]
         env._set_task_inner(**kwargs)
 
-        for _ in range(_N_GOALS):  # Generate random goals
+        for _ in range(num_goals):  # Generate random goals
             env.reset()
             assert env._last_rand_vec is not None
             rand_vecs.append(env._last_rand_vec)
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
         assert (
-            unique_task_rand_vecs.shape[0] == _N_GOALS
-        ), f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {_N_GOALS}"
+            unique_task_rand_vecs.shape[0] == num_goals
+        ), f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {num_goals}"
         env.close()
 
         # Create a task for each random goal
@@ -190,7 +191,7 @@ class MT1(Benchmark):
 
     ENV_NAMES = list(_env_dict.ALL_V3_ENVIRONMENTS.keys())
 
-    def __init__(self, env_name, seed=None):
+    def __init__(self, env_name, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         if env_name not in _env_dict.ALL_V3_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V3 environment")
@@ -200,7 +201,7 @@ class MT1(Benchmark):
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
         self._train_tasks = _make_tasks(
-            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed
+            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = []
@@ -213,13 +214,13 @@ class MT10(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT10_V3
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT10_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _MT_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = []
@@ -233,12 +234,12 @@ class MT25(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT25_V3
         train_kwargs = _env_dict.MT25_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _MT_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = []
@@ -252,13 +253,13 @@ class MT50(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT50_V3
         self._test_classes = OrderedDict()
         train_kwargs = _env_dict.MT50_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _MT_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = []
@@ -278,7 +279,7 @@ class ML1(Benchmark):
 
     ENV_NAMES = list(_env_dict.ALL_V3_ENVIRONMENTS.keys())
 
-    def __init__(self, env_name, seed=None):
+    def __init__(self, env_name, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         if env_name not in _env_dict.ALL_V3_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V3 environment")
@@ -289,12 +290,13 @@ class ML1(Benchmark):
         args_kwargs = _env_dict.ML1_args_kwargs[env_name]
 
         self._train_tasks = _make_tasks(
-            self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, seed=seed
+            self._train_classes, {env_name: args_kwargs}, _ML_OVERRIDE, num_goals, seed=seed,
         )
         self._test_tasks = _make_tasks(
             self._test_classes,
             {env_name: args_kwargs},
             _ML_OVERRIDE,
+            num_goals,
             seed=(seed + 1 if seed is not None else seed),
         )
 
@@ -306,7 +308,7 @@ class ML10(Benchmark):
     The goal position is not part of the observation.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.ML10_V3["train"]
         self._test_classes = _env_dict.ML10_V3["test"]
@@ -314,11 +316,11 @@ class ML10(Benchmark):
 
         test_kwargs = _env_dict.ML10_ARGS_KWARGS["test"]
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = _make_tasks(
-            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+            self._test_classes, test_kwargs, _ML_OVERRIDE,  num_goals, seed=seed,
         )
 
 
@@ -329,7 +331,7 @@ class ML25(Benchmark):
     The goal position is not part of the observation.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.ML25_V3["train"]
         self._test_classes = _env_dict.ML25_V3["test"]
@@ -337,11 +339,11 @@ class ML25(Benchmark):
 
         test_kwargs = _env_dict.ML25_ARGS_KWARGS["test"]
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
 
         self._test_tasks = _make_tasks(
-            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+            self._test_classes, test_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
 
 
@@ -352,7 +354,7 @@ class ML45(Benchmark):
     The goal position is not part of the observation.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         super().__init__()
         self._train_classes = _env_dict.ML45_V3["train"]
         self._test_classes = _env_dict.ML45_V3["test"]
@@ -360,10 +362,10 @@ class ML45(Benchmark):
         test_kwargs = _env_dict.ML45_ARGS_KWARGS["test"]
 
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
         self._test_tasks = _make_tasks(
-            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+            self._test_classes, test_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
 
 
@@ -373,9 +375,10 @@ class CustomML(Benchmark):
     Provide the desired train and test env names during initialisation.
     """
 
-    def __init__(self, train_envs: list[str], test_envs: list[str], seed=None):
+    def __init__(self, train_envs: list[str], test_envs: list[str], seed=None, num_goals: int = _DEFAULT_NUM_GOALS):
         if len(set(train_envs).intersection(set(test_envs))) != 0:
-            raise ValueError("The test tasks cannot contain any of the train tasks.")
+            raise ValueError(
+                "The test tasks cannot contain any of the train tasks.")
 
         self._train_classes = _env_dict._get_env_dict(train_envs)
         train_kwargs = _env_dict._get_args_kwargs(
@@ -388,10 +391,10 @@ class CustomML(Benchmark):
         )
 
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _ML_OVERRIDE, seed=seed
+            self._train_classes, train_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
         self._test_tasks = _make_tasks(
-            self._test_classes, test_kwargs, _ML_OVERRIDE, seed=seed
+            self._test_classes, test_kwargs, _ML_OVERRIDE, num_goals, seed=seed,
         )
 
 
@@ -408,7 +411,8 @@ def _init_each_env(
     normalize_reward_in_recurrent_info: bool = True,
     task_select: Literal["random", "pseudorandom"] = "random",
     reward_function_version: Literal["v1", "v2"] = "v2",
-    reward_normalization_method: Literal["gymnasium", "exponential"] | None = None,
+    reward_normalization_method: Literal["gymnasium",
+                                         "exponential"] | None = None,
     normalize_observations: bool = False,
     reward_alpha: float = 0.001,
     render_mode: Literal["human", "rgb_array", "depth_array"] | None = None,
@@ -427,7 +431,8 @@ def _init_each_env(
     )
     if seed is not None:
         env.seed(seed)  # type: ignore
-    env = gym.wrappers.TimeLimit(env, max_episode_steps or env.max_path_length)  # type: ignore
+    env = gym.wrappers.TimeLimit(
+        env, max_episode_steps or env.max_path_length)  # type: ignore
     env = AutoTerminateOnSuccessWrapper(env)
     env.toggle_terminate_on_success(terminate_on_success)
     if use_one_hot:
@@ -537,7 +542,8 @@ def _make_ml_envs_inner(
         tasks = [task for task in all_tasks if task.env_name == env_name]
         if total_tasks_per_cls is not None:
             tasks = tasks[:total_tasks_per_cls]
-        subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
+        subenv_tasks = [tasks[i::tasks_per_env]
+                        for i in range(0, tasks_per_env)]
         for tasks_for_subenv in subenv_tasks:
             assert (
                 len(tasks_for_subenv) == len(tasks) // tasks_per_env
@@ -615,10 +621,6 @@ def register_mw_envs() -> None:
         num_envs=None,
         **lamb_kwargs,
     ):
-        if "num_goals" in lamb_kwargs:
-            global _N_GOALS
-            _N_GOALS = lamb_kwargs["num_goals"]
-            del lamb_kwargs["num_goals"]
         return make_mt_envs(  # type: ignore
             mt_bench,
             seed=seed,

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import metaworld  # noqa: F401
-from metaworld import _N_GOALS, SawyerXYZEnv
+from metaworld import _DEFAULT_NUM_GOALS, SawyerXYZEnv
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
     ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
@@ -25,7 +25,8 @@ from metaworld.env_dict import (
 def _get_task_names(
     envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
 ) -> list[str]:
-    metaworld_cls_to_task_name = {v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
+    metaworld_cls_to_task_name = {
+        v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
     return [
         metaworld_cls_to_task_name[task_name]
         for task_name in envs.get_attr("task_name")
@@ -63,7 +64,7 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
     # Assert every env has N_GOALS goals
     envs_tasks = envs.get_attr("tasks")
     for env_tasks in envs_tasks:
-        assert len(env_tasks) == _N_GOALS
+        assert len(env_tasks) == _DEFAULT_NUM_GOALS
 
     # Test wrappers: one hot obs, task sampling, max path length
     obs, _ = envs.reset()
@@ -73,7 +74,7 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
     for _ in range(max_episode_steps + 1):
         obs, _, _, truncated, _ = envs.step(envs.action_space.sample())
         print(obs)
-        env_one_hots = obs[:, -envs.num_envs :]
+        env_one_hots = obs[:, -envs.num_envs:]
         env_ids = np.argmax(env_one_hots, axis=1)
         assert set(env_ids) == set(range(envs.num_envs))
 
@@ -95,10 +96,11 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
 
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
 def test_mt1(env_name: str):
-    metaworld_cls_to_task_name = {v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
+    metaworld_cls_to_task_name = {
+        v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
     env = gym.make("Meta-World/MT1", env_name=env_name)
     assert isinstance(env.unwrapped, SawyerXYZEnv)
-    assert len(env.get_wrapper_attr("tasks")) == _N_GOALS
+    assert len(env.get_wrapper_attr("tasks")) == _DEFAULT_NUM_GOALS
     assert metaworld_cls_to_task_name[env.unwrapped.task_name] == env_name
 
     env.reset()
@@ -149,7 +151,7 @@ def test_ml1(env_name, split, vector_strategy):
 
     envs_tasks = envs.get_attr("tasks")
     total_tasks = sum([len(env_tasks) for env_tasks in envs_tasks])
-    assert total_tasks == _N_GOALS
+    assert total_tasks == _DEFAULT_NUM_GOALS
 
     partially_observable = all(envs.get_attr("_partially_observable"))
     assert partially_observable
@@ -165,7 +167,7 @@ def test_ml_benchmarks(
     vector_strategy: str,
 ):
     meta_batch_size = 20 if benchmark != "ML45" else 45
-    total_tasks_per_cls = _N_GOALS
+    total_tasks_per_cls = _DEFAULT_NUM_GOALS
     if benchmark == "ML45":
         total_tasks_per_cls = 45
     elif benchmark == "ML10" and split == "test":
