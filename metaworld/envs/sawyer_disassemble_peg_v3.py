@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "nut-disassemble-v3"
+    ENV_NAME: str = "disassemble-v3"
 
     WRENCH_HANDLE_LENGTH: float = 0.02
 

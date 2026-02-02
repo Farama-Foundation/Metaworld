@@ -616,7 +616,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.current_step = 0
 
         if seed is not None:
-            self.current_seed = seed
+            self.current_seed = int(seed)
 
         self._seed(self.current_seed)
 

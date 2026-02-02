@@ -52,7 +52,10 @@ class ExpertPolicyMetaworldAgent(MetaworldAgent):
 def run_agent_episode_in_env(env: gym.Env,
                              agent: MetaworldAgent,
                              max_episode_steps: int,
-                             record_keys: set[str],) -> dict:
+                             record_keys: set[str] | None = None,) -> dict:
+
+    if record_keys is None:
+        record_keys = set()
 
     # If we run N steps, we record N+1 observations (initial + N results).
     buffer_size = max_episode_steps + 1
@@ -164,11 +167,13 @@ def run_agent_episode(env_name,
                       seed,
                       agent: MetaworldAgent,
                       max_episode_steps: int,
-                      record_keys: set[str],) -> dict:
+                      record_keys: set[str] | None = None,
+                      reward_function_version: str = 'v2',
+                      ) -> dict:
     env = gym.make('Meta-World/MT1',
                    env_name=env_name,
                    seed=seed,
-                   reward_function_version='v2',
+                   reward_function_version=reward_function_version,
                    max_episode_steps=max_episode_steps,
                    num_seeds_per_env=1,
                    )

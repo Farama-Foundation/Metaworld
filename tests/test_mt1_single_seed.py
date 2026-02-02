@@ -23,33 +23,33 @@ def test_mt1_single_seed(env_name):
                    num_seeds_per_env=1,
                    max_episode_steps=max_episode_steps,)
 
-    first_run = run_agent_episode_in_env(
+    first_ep = run_agent_episode_in_env(
         env=env,
         agent=agent,
         max_episode_steps=max_episode_steps,
         record_keys=record_keys,
     )
     # Verify that for the num_seeds_per_env=1 and MT1 env the seed is the same as the one passed
-    assert first_run['env_seed'] == seed, f"Env seed {first_run['env_seed']} does not match passed seed {seed}"
+    assert first_ep['env_seed'] == seed, f"Env seed {first_ep['env_seed']} does not match passed seed {seed}"
 
     # Reset the env and run everything again
-    second_run = run_agent_episode_in_env(
+    second_ep = run_agent_episode_in_env(
         env=env,
         agent=agent,
         max_episode_steps=max_episode_steps,
         record_keys=record_keys,
     )
     # Verify that the seed is still the same
-    assert second_run['env_seed'] == seed, f"Env seed {second_run['env_seed']} does not match passed seed {seed}"
+    assert second_ep['env_seed'] == seed, f"Env seed {second_ep['env_seed']} does not match passed seed {seed}"
 
     # Verify that the observations are the same across both runs
-    obs_first = first_run['observations']
-    obs_second = second_run['observations']
+    obs_first = first_ep['observations']
+    obs_second = second_ep['observations']
     assert np.array_equal(np.array(obs_first), np.array(obs_second)), \
         f"Observations do not match for env {env_name} with single seed"
 
     # --- Do another run with a new env to verify that it also matches ---
-    third_run = run_agent_episode(
+    third_ep = run_agent_episode(
         env_name=env_name,
         agent=agent,
         max_episode_steps=max_episode_steps,
@@ -57,8 +57,8 @@ def test_mt1_single_seed(env_name):
         seed=seed,
     )
     # Verify that the seed is still the same
-    assert third_run['env_seed'] == seed, f"Env seed {third_run['env_seed']} does not match passed seed {seed}"
+    assert third_ep['env_seed'] == seed, f"Env seed {third_ep['env_seed']} does not match passed seed {seed}"
 
-    obs_third = third_run['observations']
+    obs_third = third_ep['observations']
     assert np.array_equal(np.array(obs_first), np.array(obs_third)), \
         f"Observations do not match for env {env_name} with single seed"
