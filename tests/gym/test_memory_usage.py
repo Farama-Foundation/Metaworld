@@ -1,14 +1,11 @@
-import multiprocessing as mp
-
 import memory_profiler
 import pytest
 import gymnasium as gym
+from concurrent.futures import ProcessPoolExecutor
 
 from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 
 from tests.gym.helpers import run_agent_episode_in_env, RandomMetaworldAgent
-
-mp.set_start_method('spawn', force=True)
 
 
 def _build_env_and_run_eps(env_name):
@@ -31,10 +28,18 @@ def _build_env_and_run_eps(env_name):
     env.close()
 
 
-@pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
-def test_env_memory_profiler(env_name):
+def _profile_env_memory(env_name):
     target = (_build_env_and_run_eps, [env_name], {})
     memory_usage = memory_profiler.memory_usage(target)
+    return memory_usage
+
+
+@pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
+def test_env_memory_profiler(env_name):
+    # Create a separate process to be able to accurately measure memory usage
+    with ProcessPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(_profile_env_memory, env_name)
+    memory_usage = future.result()
 
     # Max memory usage per env in MB
     env_max_memory_usage_threshold = 300

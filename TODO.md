@@ -10,3 +10,4 @@
 * Evaluation
 * Add test for one hot
 * Add test for all benchmarks
+* Introduce wrapper for goal observability instead of handling it downstream!
