@@ -4,7 +4,7 @@ import gymnasium as gym
 
 from metaworld.env_dict import (
     ENV_NAMES,
-    ALL_V3_ENVIRONMENTS,
+    ENV_CLASS_MAP,
     MT_BENCHMARKS_TRAIN_ENV_NAMES,
     ML_BENCHMARKS
 )
@@ -53,14 +53,14 @@ def _verify_goal_observability(env_instance, expected_observable: bool):
 @pytest.mark.parametrize("env_name", ENV_NAMES)
 def test_v3_env_explicit_goal_observability(env_name, goal_observable):
     """Test explicit goal observability flags on individual V3 environments."""
-    env = ALL_V3_ENVIRONMENTS[env_name](goal_observable=goal_observable)
+    env = ENV_CLASS_MAP[env_name](goal_observable=goal_observable)
     _verify_goal_observability(env, goal_observable)
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
 def test_v3_env_default_goal_observability(env_name):
     """Test default goal observability behavior (should be observable) on V3 environments."""
-    env = ALL_V3_ENVIRONMENTS[env_name]()
+    env = ENV_CLASS_MAP[env_name]()
     _verify_goal_observability(env, expected_observable=True)
 
 

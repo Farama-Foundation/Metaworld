@@ -10,6 +10,7 @@ import pytest
 import metaworld  # noqa: F401
 from metaworld import evaluation
 from metaworld.policies import ENV_POLICY_MAP
+from metaworld.env_dict import ML_BENCHMARKS
 
 
 class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
@@ -109,7 +110,7 @@ def test_evaluation():
 
 
 # @pytest.mark.skip
-@pytest.mark.parametrize("benchmark", ("ML10", "ML45"))
+@pytest.mark.parametrize("benchmark", ML_BENCHMARKS.keys())
 def test_metalearning_evaluation(benchmark):
     SEED = 42
 

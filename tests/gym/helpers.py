@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Protocol
 
 import numpy as np
 
@@ -7,7 +8,7 @@ from metaworld.policies import ENV_POLICY_MAP
 import gymnasium as gym
 
 
-class MetaworldAgent(ABC):
+class MetaworldAgent(ABC, Protocol):
     @abstractmethod
     def get_action(self, obs: np.ndarray, info: dict, task_name: str, action_space) -> np.ndarray:
         pass

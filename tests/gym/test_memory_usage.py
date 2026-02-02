@@ -3,7 +3,7 @@ import pytest
 import gymnasium as gym
 from concurrent.futures import ProcessPoolExecutor
 
-from metaworld.env_dict import ALL_V3_ENVIRONMENTS
+from metaworld.env_dict import ENV_CLASS_MAP
 
 from tests.gym.helpers import run_agent_episode_in_env, RandomMetaworldAgent
 
@@ -34,7 +34,7 @@ def _profile_env_memory(env_name):
     return memory_usage
 
 
-@pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
+@pytest.mark.parametrize("env_name", ENV_CLASS_MAP.keys())
 def test_env_memory_profiler(env_name):
     # Create a separate process to be able to accurately measure memory usage
     with ProcessPoolExecutor(max_workers=1) as executor:

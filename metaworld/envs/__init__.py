@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from metaworld.envs.sawyer_assembly_peg_v3 import SawyerNutAssemblyEnvV3
 from metaworld.envs.sawyer_basketball_v3 import SawyerBasketballEnvV3
 from metaworld.envs.sawyer_bin_picking_v3 import SawyerBinPickingEnvV3

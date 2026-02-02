@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, NamedTuple, Tuple
+from typing import Any, Tuple
 
 import numpy as np
 import numpy.typing as npt

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from metaworld.env_dict import ALL_V3_ENVIRONMENTS
+from metaworld.env_dict import ENV_CLASS_MAP
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, move
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
@@ -44,7 +44,7 @@ def sample_spherical(num_points, radius=1.0):
 
 @pytest.mark.parametrize("target", sample_spherical(100, 10.0))
 def test_reaching_limit(target):
-    env = ALL_V3_ENVIRONMENTS["reach-v3"](goal_observable=True)
+    env = ENV_CLASS_MAP["reach-v3"](goal_observable=True)
 
     policy = SawyerRandomReachPolicy(target)
 

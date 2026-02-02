@@ -5,9 +5,8 @@ from typing import NamedTuple, Protocol
 import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
-from tqdm import tqdm
 
-from metaworld.env_dict import ALL_V3_ENVIRONMENTS, envs_get_env_names
+from metaworld.env_dict import ENV_CLASS_MAP, envs_get_env_names
 
 
 class Agent(Protocol):
