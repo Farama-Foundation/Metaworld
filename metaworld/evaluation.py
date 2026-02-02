@@ -6,7 +6,7 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from metaworld.env_dict import ENV_CLASS_MAP, envs_get_env_names
+from metaworld.env_dict import ENV_CLASS_MAP
 
 
 class Agent(Protocol):
@@ -48,7 +48,7 @@ def evaluation(
     obs, _ = eval_envs.reset()
     agent.reset(np.ones(eval_envs.num_envs, dtype=np.bool_))
 
-    env_names = envs_get_env_names(eval_envs)
+    env_names = eval_envs.get_attr('ENV_NAME')
     successes = {env_name: 0 for env_name in set(env_names)}
     episodic_returns: dict[str, list[float]] = {
         env_name: [] for env_name in set(env_names)
@@ -111,7 +111,7 @@ def metalearning_evaluation(
 ) -> tuple[float, float, dict[str, float]]:
     eval_envs.call("toggle_sample_tasks_on_reset", False)
     eval_envs.call("toggle_terminate_on_success", False)
-    env_names = envs_get_env_names(eval_envs)
+    env_names = eval_envs.get_attr('ENV_NAME')
 
     total_mean_success_rate = 0.0
     total_mean_return = 0.0

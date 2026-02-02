@@ -250,21 +250,3 @@ ML_BENCHMARKS = {
 }
 
 MLXv3Benchmarks = Literal['ML10-v3', 'ML25-v3', 'ML45-v3']
-
-
-def envs_get_env_names(
-    envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
-) -> list[str]:
-    '''
-    Get the environment names for each environment in a vectorized env.
-
-    Args:
-        envs: A vectorized gym environment containing Meta-World environments.
-    Returns:
-        A list of environment names corresponding to each environment in the vectorized env.
-    '''
-    # TODO: Remove or use consistently
-    return [
-        env_name
-        for env_name in envs.get_attr('ENV_NAME')
-    ]
