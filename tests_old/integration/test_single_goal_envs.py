@@ -4,7 +4,7 @@ from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
     ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE,
 )
-from tests.helpers import step_env
+from tests.helpers import check_multiple_env_steps
 
 
 def test_hidden_goal_envs():
@@ -14,7 +14,8 @@ def test_hidden_goal_envs():
         state_before = np.random.get_state()
         env = env_cls(seed=5)
         enV3 = env_cls(seed=5)
-        step_env(env, max_path_length=3, iterations=3, render=False)
+        check_multiple_env_steps(
+            env, max_episode_steps=3, iterations=3, render=False)
 
         first_target = env._target_pos
         env.reset()
@@ -41,7 +42,8 @@ def test_observable_goal_envs():
         state_before = np.random.get_state()
         env = env_cls(seed=10)
         enV3 = env_cls(seed=10)
-        step_env(env, max_path_length=3, iterations=3, render=False)
+        check_multiple_env_steps(
+            env, max_episode_steps=3, iterations=3, render=False)
 
         first_target = env._target_pos
         env.reset()

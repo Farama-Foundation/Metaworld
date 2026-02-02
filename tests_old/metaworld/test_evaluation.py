@@ -19,8 +19,9 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         num_rollouts: int | None = None,
         max_episode_steps: int | None = None,
     ):
-        env_task_names = evaluation._get_task_names(envs)
-        self.policies = [ENV_POLICY_MAP[task]() for task in env_task_names]  # type: ignore
+        env_names = evaluation.envs_get_env_names(envs)
+        self.policies = [ENV_POLICY_MAP[env_name]()
+                         for env_name in env_names]  # type: ignore
         self.num_rollouts = num_rollouts
         self.max_episode_steps = max_episode_steps
         self.adapt_calls = 0
@@ -39,7 +40,8 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         actions: list[npt.NDArray[np.float32]] = []
         num_envs = len(self.policies)
         for env_idx in range(num_envs):
-            actions.append(self.policies[env_idx].get_action(observations[env_idx]))
+            actions.append(self.policies[env_idx].get_action(
+                observations[env_idx]))
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions, {
             "log_probs": np.ones((num_envs,)),
@@ -59,7 +61,8 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         actions: list[npt.NDArray[np.float32]] = []
         num_envs = len(self.policies)
         for env_idx in range(num_envs):
-            actions.append(self.policies[env_idx].get_action(observations[env_idx]))
+            actions.append(self.policies[env_idx].get_action(
+                observations[env_idx]))
         stacked_actions = np.stack(actions, axis=0, dtype=np.float64)
         return stacked_actions
 
@@ -78,7 +81,7 @@ class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):
         return self.env.call(name, *args, **kwargs)
 
     def step(self, actions):
-        self.env.set_attr("_partially_observable", False)
+        self.env.set_attr("_goal_observable", True)
         return super().step(actions)
 
 
@@ -129,7 +132,8 @@ def test_metalearning_evaluation(benchmark):
     meta_batch_size = 10  # Number of parallel envs
 
     adaptation_steps = 2  # Number of adaptation iterations
-    adaptation_episodes = 2  # Number of train episodes per task in meta_batch_size per adaptation iteration
+    # Number of train episodes per task in meta_batch_size per adaptation iteration
+    adaptation_episodes = 2
     num_evals = 50  # Number of different task vectors tested for each task
     num_episodes = 1  # Number of test episodes per task vector
 
@@ -158,7 +162,8 @@ def test_metalearning_evaluation(benchmark):
     )
     assert isinstance(mean_returns, float)
     assert mean_success_rate >= 0.80
-    assert len(success_rate_per_task) == len(set(evaluation._get_task_names(envs)))
+    assert len(success_rate_per_task) == len(
+        set(evaluation.envs_get_env_names(envs)))
     assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
     assert agent.adapt_calls == num_evals * adaptation_steps
     assert (

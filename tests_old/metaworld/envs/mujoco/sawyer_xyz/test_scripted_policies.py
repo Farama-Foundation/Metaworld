@@ -15,12 +15,10 @@ def test_policy(env_name):
 
     mt1 = MT1(env_name, seed=SEED)
     env = mt1.train_classes[env_name]()
-    env.seed(SEED)
     p = ENV_POLICY_MAP[env_name]()
     completed = 0
     for task in mt1.train_tasks:
-        env.set_task(task)
-        obs, info = env.reset()
+        obs, info = env.reset(seed=task.env_seed)
         done = False
         count = 0
         while count < 500 and not done:

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import metaworld  # noqa: F401
-from metaworld import _DEFAULT_NUM_GOALS, SawyerXYZEnv
+from metaworld import _DEFAULT_NUM_SEEDS_PER_ENV, SawyerXYZEnv
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
     ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
@@ -19,18 +19,8 @@ from metaworld.env_dict import (
     MT50_V3,
     EnvDict,
     TrainTestEnvDict,
+    envs_get_env_names,
 )
-
-
-def _get_task_names(
-    envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
-) -> list[str]:
-    metaworld_cls_to_task_name = {
-        v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
-    return [
-        metaworld_cls_to_task_name[task_name]
-        for task_name in envs.get_attr("task_name")
-    ]
 
 
 @pytest.mark.parametrize("benchmark,env_dict", (("MT10", MT10_V3), ("MT50", MT50_V3)))
@@ -57,14 +47,14 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
     assert isinstance(envs, expected_vectorisation)
 
     # Assert envs are correct
-    task_names = _get_task_names(envs)
+    env_names = envs_get_env_names(envs)
     assert envs.num_envs == len(env_dict.keys())
-    assert set(task_names) == set(env_dict.keys())
+    assert set(env_names) == set(env_dict.keys())
 
     # Assert every env has N_GOALS goals
     envs_tasks = envs.get_attr("tasks")
     for env_tasks in envs_tasks:
-        assert len(env_tasks) == _DEFAULT_NUM_GOALS
+        assert len(env_tasks) == _DEFAULT_NUM_SEEDS_PER_ENV
 
     # Test wrappers: one hot obs, task sampling, max path length
     obs, _ = envs.reset()
@@ -90,21 +80,19 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
             task_has_changed = True
     assert task_has_changed
 
-    partially_observable = all(envs.get_attr("_partially_observable"))
-    assert not partially_observable
+    goal_observable = all(envs.get_attr("_goal_observable"))
+    assert goal_observable
 
 
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
 def test_mt1(env_name: str):
-    metaworld_cls_to_task_name = {
-        v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
     env = gym.make("Meta-World/MT1", env_name=env_name)
     assert isinstance(env.unwrapped, SawyerXYZEnv)
-    assert len(env.get_wrapper_attr("tasks")) == _DEFAULT_NUM_GOALS
-    assert metaworld_cls_to_task_name[env.unwrapped.task_name] == env_name
+    assert len(env.get_wrapper_attr("tasks")) == _DEFAULT_NUM_SEEDS_PER_ENV
+    assert env.unwrapped.ENV_NAME == env_name
 
     env.reset()
-    assert not env.unwrapped._partially_observable
+    assert not env.unwrapped._goal_observable
 
 
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS_GOAL_HIDDEN.keys())
@@ -113,7 +101,7 @@ def test_goal_hidden(env_name: str):
     assert isinstance(env.unwrapped, SawyerXYZEnv)
 
     env.reset()
-    assert env.unwrapped._partially_observable
+    assert env.unwrapped._goal_observable
 
 
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE.keys())
@@ -122,7 +110,7 @@ def test_goal_observable(env_name: str):
     assert isinstance(env.unwrapped, SawyerXYZEnv)
 
     env.reset()
-    assert not env.unwrapped._partially_observable
+    assert not env.unwrapped._goal_observable
 
 
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS.keys())
@@ -140,8 +128,8 @@ def test_ml1(env_name, split, vector_strategy):
         max_episode_steps=max_episode_steps,
     )
     assert envs.num_envs == meta_batch_size
-    task_names = _get_task_names(envs)
-    assert all([task_name == env_name for task_name in task_names])
+    env_names = envs_get_env_names(envs)
+    assert all([actual_env_name == env_name for actual_env_name in env_names])
 
     # Assert vec is correct
     expected_vectorisation = getattr(
@@ -151,10 +139,10 @@ def test_ml1(env_name, split, vector_strategy):
 
     envs_tasks = envs.get_attr("tasks")
     total_tasks = sum([len(env_tasks) for env_tasks in envs_tasks])
-    assert total_tasks == _DEFAULT_NUM_GOALS
+    assert total_tasks == _DEFAULT_NUM_SEEDS_PER_ENV
 
-    partially_observable = all(envs.get_attr("_partially_observable"))
-    assert partially_observable
+    goal_observable = all(envs.get_attr("_goal_observable"))
+    assert not goal_observable
 
 
 @pytest.mark.parametrize("benchmark,env_dict", (("ML10", ML10_V3), ("ML45", ML45_V3)))
@@ -167,11 +155,11 @@ def test_ml_benchmarks(
     vector_strategy: str,
 ):
     meta_batch_size = 20 if benchmark != "ML45" else 45
-    total_tasks_per_cls = _DEFAULT_NUM_GOALS
+    num_seeds_per_env = _DEFAULT_NUM_SEEDS_PER_ENV
     if benchmark == "ML45":
-        total_tasks_per_cls = 45
+        num_seeds_per_env = 45
     elif benchmark == "ML10" and split == "test":
-        total_tasks_per_cls = 40
+        num_seeds_per_env = 40
     max_episode_steps = 10
 
     envs = gym.make_vec(
@@ -179,11 +167,11 @@ def test_ml_benchmarks(
         vector_strategy=vector_strategy,
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
-        total_tasks_per_cls=total_tasks_per_cls,
+        num_seeds_per_env=num_seeds_per_env,
     )
     assert envs.num_envs == meta_batch_size
-    task_names = _get_task_names(envs)  # type: ignore
-    assert set(task_names) == set(env_dict[split].keys())
+    env_names = envs_get_env_names(envs)  # type: ignore
+    assert set(env_names) == set(env_dict[split].keys())
 
     # Assert vec is correct
     expected_vectorisation = getattr(
@@ -196,11 +184,11 @@ def test_ml_benchmarks(
     for task in env_dict[split].keys():
         tasks_per_env[task] = 0
 
-    for env_tasks, env_name in zip(envs_tasks, task_names):
+    for env_tasks, env_name in zip(envs_tasks, env_names):
         tasks_per_env[env_name] += len(env_tasks)
 
     for task in env_dict[split].keys():
-        assert tasks_per_env[task] == total_tasks_per_cls
+        assert tasks_per_env[task] == num_seeds_per_env
 
-    partially_observable = all(envs.get_attr("_partially_observable"))
-    assert partially_observable
+    goal_observable = all(envs.get_attr("_goal_observable"))
+    assert not goal_observable

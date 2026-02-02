@@ -14,14 +14,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerCoffeePushEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "coffee-push-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,17 +26,6 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.65, +0.001)
         goal_low = (-0.05, 0.7, -0.001)
         goal_high = (0.05, 0.75, +0.001)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -56,13 +42,19 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_coffee.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -119,7 +111,8 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
 
         pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
         while np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2]) < 0.15:
-            pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
+            pos_mug_init, pos_mug_goal = np.split(
+                self._get_state_rand_vec(), 2)
 
         self._set_obj_xyz(pos_mug_init)
         self.obj_init_pos = pos_mug_init
@@ -184,7 +177,8 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
                 reward,
                 tcp_to_obj,
                 tcp_opened,
-                float(np.linalg.norm(obj - target)),  # recompute to avoid `scale` above
+                # recompute to avoid `scale` above
+                float(np.linalg.norm(obj - target)),
                 object_grasped,
                 in_place,
             )

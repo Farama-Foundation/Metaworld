@@ -27,33 +27,18 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
             This ensures that the target point is above the table.
     """
+    ENV_NAME: str = "lever-pull-v3"
 
     LEVER_RADIUS = 0.2
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.7, 0.0)
         obj_high = (0.1, 0.8, 0.0)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
@@ -64,19 +49,25 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
         self._lever_pos_init = None
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
+        goal_low = hand_low
+        goal_high = hand_high
 
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_lever_pull.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -179,7 +170,8 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
 
             target = self._target_pos
             obj_to_target = float(np.linalg.norm(lever - target))
-            in_place_margin = float(np.linalg.norm(self._lever_pos_init - target))
+            in_place_margin = float(np.linalg.norm(
+                self._lever_pos_init - target))
 
             in_place = reward_utils.tolerance(
                 obj_to_target,
@@ -189,7 +181,8 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             )
 
             # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
-            reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
+            reward = 10.0 * \
+                reward_utils.hamacher_product(ready_to_lift, in_place)
             return (
                 reward,
                 float(np.linalg.norm(shoulder_to_lever)),

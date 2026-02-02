@@ -28,15 +28,11 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
             (for consistency with other environments)
         - (6/22/20) Cabinet now sits on ground, instead of .02 units above it
     """
+    ENV_NAME: str = "plate-slide-back-side-v3"
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.05, 0.6, 0.015)
         goal_high = (0.15, 0.6, 0.015)
@@ -44,17 +40,6 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, 0.0)
         obj_high = (-0.25, 0.6, 0.0)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -71,13 +56,19 @@ class SawyerPlateSlideBackSideEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_plate_slide_sideway.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:

@@ -13,14 +13,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "door-unlock-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
@@ -28,17 +25,6 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.85, 0.15)
         goal_low = (0.0, 0.64, 0.2100)
         goal_high = (0.2, 0.7, 0.2111)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.85, 0.15]),
@@ -53,13 +39,19 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_door_lock.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -139,7 +131,8 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
             scale = np.array([0.25, 1.0, 0.5])
             shoulder_to_lock = (gripper + offset - lock) * scale
-            shoulder_to_lock_init = (self.init_tcp + offset - self.obj_init_pos) * scale
+            shoulder_to_lock_init = (
+                self.init_tcp + offset - self.obj_init_pos) * scale
 
             # This `ready_to_push` reward should be a *hint* for the agent, not an
             # end in itself. Make sure to devalue it compared to the value of

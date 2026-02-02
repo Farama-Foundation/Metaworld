@@ -2,12 +2,13 @@ import memory_profiler
 import pytest
 
 from metaworld.env_dict import ALL_V3_ENVIRONMENTS
-from tests.helpers import step_env
+from tests.helpers import check_multiple_env_steps
 
 
 def build_and_step(env_cls):
     env = env_cls()
-    step_env(env, max_path_length=150, iterations=10, render=False)
+    check_multiple_env_steps(env, max_episode_steps=150,
+                             iterations=10, render=False)
     env.close()
 
 

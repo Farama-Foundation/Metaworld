@@ -27,15 +27,11 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+    ENV_NAME: str = "reach-v3"
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -43,17 +39,6 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -72,13 +57,19 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_reach_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -119,7 +110,8 @@ class SawyerReachEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.fix_extreme_obj_pos(
+            self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -133,7 +125,8 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
-        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(
+            self.init_tcp - np.array(self._target_pos))
 
         return self._get_obs()
 
@@ -151,7 +144,8 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             tcp_to_target = float(np.linalg.norm(tcp - target))
             # obj_to_target = float(np.linalg.norm(obj - target))
 
-            in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
+            in_place_margin = float(
+                np.linalg.norm(self.hand_init_pos - target))
             in_place = reward_utils.tolerance(
                 tcp_to_target,
                 bounds=(0, _TARGET_RADIUS),

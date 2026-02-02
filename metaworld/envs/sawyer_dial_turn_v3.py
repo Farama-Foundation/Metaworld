@@ -13,16 +13,13 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDialTurnEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "dial-turn-v3"
+
     TARGET_RADIUS: float = 0.07
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -30,17 +27,6 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.8, 0.0)
         goal_low = (-0.1, 0.73, 0.0299)
         goal_high = (0.1, 0.83, 0.0301)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.7, 0.0]),
@@ -53,13 +39,19 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_dial.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -89,7 +81,8 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
         offset = np.array(
-            [np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0]
+            [np.sin(dial_angle_rad).item(), -
+             np.cos(dial_angle_rad).item(), 0.0]
         )
         dial_radius = 0.05
 
@@ -111,7 +104,8 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
         self._target_pos = final_pos
         self.model.body("dial").pos = self.obj_init_pos
-        self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
+        self.dial_push_position = self._get_pos_objects() + \
+            np.array([0.05, 0.02, 0.09])
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.obj_init_pos is not None
@@ -127,7 +121,8 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         ), "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = self._get_pos_objects()
-            dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
+            dial_push_position = self._get_pos_objects() + \
+                np.array([0.05, 0.02, 0.09])
             tcp = self.tcp_center
             target = self._target_pos.copy()
 

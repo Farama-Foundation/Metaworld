@@ -12,20 +12,21 @@ from metaworld.types import Task
 
 
 class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
-    def __init__(self, env: Env, task_idx: int, num_tasks: int):
+    def __init__(self, env: Env, env_id: int, num_env_ids: int):
         gym.utils.RecordConstructorArgs.__init__(self)
         gym.ObservationWrapper.__init__(self, env)
         assert isinstance(env.observation_space, gym.spaces.Box)
         env_lb = env.observation_space.low
         env_ub = env.observation_space.high
-        one_hot_ub = np.ones(num_tasks)
-        one_hot_lb = np.zeros(num_tasks)
+        one_hot_ub = np.ones(num_env_ids)
+        one_hot_lb = np.zeros(num_env_ids)
 
-        self.one_hot = np.zeros(num_tasks)
-        self.one_hot[task_idx] = 1.0
+        self.one_hot = np.zeros(num_env_ids)
+        self.one_hot[env_id] = 1.0
 
         self._observation_space = gym.spaces.Box(
-            np.concatenate([env_lb, one_hot_lb]), np.concatenate([env_ub, one_hot_ub])
+            np.concatenate([env_lb, one_hot_lb]), np.concatenate(
+                [env_ub, one_hot_ub])
         )
 
     def observation(self, obs: NDArray) -> NDArray:
@@ -43,7 +44,8 @@ def _deserialize_task(task_dict: dict[str, str]) -> Task:
     assert "env_name" in task_dict and "data" in task_dict
 
     return Task(
-        env_name=task_dict["env_name"], data=base64.b64decode(task_dict["data"])
+        env_name=task_dict["env_name"], data=base64.b64decode(
+            task_dict["data"])
     )
 
 
@@ -97,7 +99,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
 
     def _set_random_task(self):
         task_idx = self.np_random.choice(len(self.tasks))
-        self.unwrapped.set_task(self.tasks[task_idx])
+        self.unwrapped.reset(seed=self.tasks[task_idx].env_seed)
 
     def __init__(
         self,
@@ -114,13 +116,17 @@ class RandomTaskSelectWrapper(gym.Wrapper):
         self.sample_tasks_on_reset = on
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
+        if seed is not None:
+            raise NotImplementedError(
+                "Seeding is not supported when using RandomTaskSelectWrapper."
+            )
         if self.sample_tasks_on_reset:
             self._set_random_task()
-        return self.env.reset(seed=seed, options=options)
+        return self.env.reset(seed=None, options=options)
 
     def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
         self._set_random_task()
-        return self.env.reset(seed=seed, options=options)
+        return self.env.reset(seed=None, options=options)
 
     def get_checkpoint(self) -> dict:
         return {
@@ -158,8 +164,9 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
     def _set_pseudo_random_task(self):
         self.current_task_idx = (self.current_task_idx + 1) % len(self.tasks)
         if self.current_task_idx == 0:
-            self.np_random.shuffle(self.tasks)  # pyright: ignore [reportArgumentType]
-        self.unwrapped.set_task(self.tasks[self.current_task_idx])
+            # pyright: ignore [reportArgumentType]
+            self.np_random.shuffle(self.tasks)
+        self.unwrapped.reset(seed=self.tasks[self.current_task_idx].env_seed)
 
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
@@ -176,13 +183,17 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         self.current_task_idx = -1
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
+        if seed is not None:
+            raise NotImplementedError(
+                "Seeding is not supported when using PseudoRandomTaskSelectWrapper."
+            )
         if self.sample_tasks_on_reset:
             self._set_pseudo_random_task()
-        return self.env.reset(seed=seed, options=options)
+        return self.env.reset(seed=None, options=options)
 
     def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
         self._set_pseudo_random_task()
-        return self.env.reset(seed=seed, options=options)
+        return self.env.reset(seed=None, options=options)
 
     def get_checkpoint(self) -> dict:
         return {
@@ -277,7 +288,8 @@ class CheckpointWrapper(gym.Wrapper):
 
     def __init__(self, env: gym.Env, env_id: str):
         super().__init__(env)
-        assert hasattr(self.env, "get_checkpoint") and callable(self.env.get_checkpoint)
+        assert hasattr(self.env, "get_checkpoint") and callable(
+            self.env.get_checkpoint)
         assert hasattr(self.env, "load_checkpoint") and callable(
             self.env.load_checkpoint
         )
@@ -319,4 +331,5 @@ def set_env_rng(env: SawyerXYZEnv, state: dict[str, dict]) -> None:
     env.np_random.bit_generator.state = state["np_random_state"]
     env.action_space.np_random.bit_generator.state = state["action_space_rng_state"]
     env.observation_space.np_random.bit_generator.state = state["obs_space_rng_state"]
-    env.goal_space.np_random.bit_generator.state = state["goal_space_rng_state"]  # type: ignore
+    # type: ignore
+    env.goal_space.np_random.bit_generator.state = state["goal_space_rng_state"]

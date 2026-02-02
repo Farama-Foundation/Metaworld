@@ -59,7 +59,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
         (float, bool, dict): Reward, Done flag, Info dictionary
     """
     action_space_ptp = env.action_space.high - env.action_space.low
-    env._partially_observable = True
+    env._goal_observable = True
     env.reset()
     env.reset_model()
     o, info = env.reset()
@@ -67,7 +67,7 @@ def trajectory_generator(env, policy, act_noise_pct, render=False):
     assert env.observation_space.contains(o), obs_space_error_text(env, o)
     last_info = None
     print(act_noise_pct * action_space_ptp)
-    for _ in range(env.max_path_length):
+    for _ in range(env.max_episode_steps):
         a = policy.get_action(o)
         a = np.random.normal(a, act_noise_pct * action_space_ptp)
 

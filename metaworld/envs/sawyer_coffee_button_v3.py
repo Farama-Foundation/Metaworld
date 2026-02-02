@@ -13,14 +13,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "coffee-button-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         self.max_dist = 0.03
 
@@ -32,17 +29,6 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         # few steps after reset(). In that time, it could be .01
         goal_low = obj_low + np.array([-0.001, -0.22 + self.max_dist, 0.299])
         goal_high = obj_high + np.array([+0.001, -0.22 + self.max_dist, 0.301])
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.9, 0.28]),
@@ -57,13 +43,19 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_coffee.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:

@@ -27,15 +27,11 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+    ENV_NAME: str = "pick-place-v3"
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -43,17 +39,6 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -72,16 +57,19 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
 
-        self.num_resets = 0
-        self.obj_init_pos = None
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_pick_place_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -141,7 +129,8 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.fix_extreme_obj_pos(
+            self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -222,14 +211,17 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         # compute the tcp_obj distance in the x_z plane
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
-        tcp_obj_norm_x_z = float(np.linalg.norm(tcp_xz - obj_position_x_z, ord=2))
+        tcp_obj_norm_x_z = float(np.linalg.norm(
+            tcp_xz - obj_position_x_z, ord=2))
 
         # used for computing the tcp to object object margin in the x_z plane
         assert self.obj_init_pos is not None
-        init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
+        init_obj_x_z = self.obj_init_pos + \
+            np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
         tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z,
+                           ord=2) - x_z_success_margin
         )
 
         x_z_caging = reward_utils.tolerance(
@@ -350,10 +342,12 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
                 and (reachDist > 0.02)
             )
 
-            cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
+            cond = self.pickCompleted and (
+                reachDist < 0.1) and not (objDropped)
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) +
+                    np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:

@@ -14,14 +14,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerStickPushEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "stick-push-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,17 +26,6 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         obj_high = (-0.03, 0.62, 0.001)
         goal_low = (0.399, 0.55, 0.1319)
         goal_high = (0.401, 0.6, 0.1321)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: StickInitConfigDict = {
             "stick_init_pos": np.array([-0.1, 0.6, 0.02]),
@@ -52,19 +38,26 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         # For now, fix the object initial position.
         self.obj_init_pos = np.array([0.2, 0.6, 0.0])
         self.obj_init_qpos = np.array([0.0, 0.0])
-        self.obj_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.obj_space = Box(np.array(obj_low), np.array(
+            obj_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
 
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
+
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_stick_obj.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -152,7 +145,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
-        self.stick_init_pos = np.concatenate([goal_pos[:2], [self.stick_init_pos[-1]]])
+        self.stick_init_pos = np.concatenate(
+            [goal_pos[:2], [self.stick_init_pos[-1]]])
         self._target_pos = np.concatenate(
             [goal_pos[-3:-1], [self._get_site_pos("insertion")[-1]]]
         )
@@ -178,7 +172,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             )
             + self.heightTarget
         )
-        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:2])
+        self.maxPushDist = np.linalg.norm(
+            self.obj_init_pos[:2] - self._target_pos[:2])
 
         return self._get_obs()
 
@@ -213,7 +208,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             medium_density(bool): flag for medium-density. Cannot be used with high-density.
         """
         if high_density and medium_density:
-            raise ValueError("Can only be either high_density or medium_density")
+            raise ValueError(
+                "Can only be either high_density or medium_density")
         # MARK: Left-right gripper information for caging reward----------------
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
@@ -230,7 +226,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             reward_utils.tolerance(
                 pad_to_obj_lr[i],  # "x" in the description above
                 bounds=(obj_radius, pad_success_thresh),
-                margin=caging_lr_margin[i],  # "margin" in the description above
+                # "margin" in the description above
+                margin=caging_lr_margin[i],
                 sigmoid="long_tail",
             )
             for i in range(2)
@@ -241,7 +238,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         tcp = self.tcp_center
         xz = [0, 2]
 
-        caging_xz_margin = np.linalg.norm(self.stick_init_pos[xz] - self.init_tcp[xz])
+        caging_xz_margin = np.linalg.norm(
+            self.stick_init_pos[xz] - self.init_tcp[xz])
         caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
             float(
@@ -254,7 +252,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
 
         # MARK: Closed-extent gripper information for caging reward-------------
         gripper_closed = (
-            min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
+            min(max(0, action[-1]), desired_gripper_effort) /
+            desired_gripper_effort
         )
 
         # MARK: Combine components----------------------------------------------
@@ -267,7 +266,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         if medium_density:
             tcp = self.tcp_center
             tcp_to_obj = np.linalg.norm(obj_pos - tcp)
-            tcp_to_obj_init = np.linalg.norm(self.stick_init_pos - self.init_tcp)
+            tcp_to_obj_init = np.linalg.norm(
+                self.stick_init_pos - self.init_tcp)
             reach_margin = abs(tcp_to_obj_init - object_reach_radius)
             reach = reward_utils.tolerance(
                 float(tcp_to_obj),
@@ -397,7 +397,8 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
                     c5 = 0.001
                     c6 = 0.0001
                     pushRew += 1000 * (self.maxPushDist - pushDist) + c4 * (
-                        np.exp(-(pushDist**2) / c5) + np.exp(-(pushDist**2) / c6)
+                        np.exp(-(pushDist**2) / c5) +
+                        np.exp(-(pushDist**2) / c6)
                     )
                 pushRew = max(pushRew, 0)
 

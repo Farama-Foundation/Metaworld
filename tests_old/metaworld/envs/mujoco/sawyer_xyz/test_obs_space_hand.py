@@ -20,7 +20,8 @@ class SawyerRandomReachPolicy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._target, p=25.0)
+        action["delta_pos"] = move(
+            o_d["hand_pos"], to_xyz=self._target, p=25.0)
         action["grab_effort"] = 0.0
 
         return action.array
@@ -44,9 +45,7 @@ def sample_spherical(num_points, radius=1.0):
 @pytest.mark.parametrize("target", sample_spherical(100, 10.0))
 def test_reaching_limit(target):
     env = ALL_V3_ENVIRONMENTS["reach-v3"]()
-    env._partially_observable = False
-    env._freeze_rand_vec = False
-    env._set_task_called = True
+    env._goal_observable = False
 
     policy = SawyerRandomReachPolicy(target)
 
@@ -54,7 +53,7 @@ def test_reaching_limit(target):
     env.reset_model()
     o_prev, info = env.reset()
 
-    for _ in range(env.max_path_length):
+    for _ in range(env.max_episode_steps):
         a = policy.get_action(o_prev)
         o = env.step(a)[0]
         if np.linalg.norm(o[:3] - o_prev[:3]) < 0.001:

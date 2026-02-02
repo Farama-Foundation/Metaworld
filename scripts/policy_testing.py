@@ -17,11 +17,7 @@ random.seed(seed)
 ml1 = metaworld.MT50(seed=seed)
 env = ml1.train_classes[env_name]()
 task = [t for t in ml1.train_tasks if t.env_name == env_name][0]
-env.set_task(task)
-env.seed(seed)
-env.action_space.seed(seed)
-env.observation_space.seed(seed)
-obs, _ = env.reset()
+obs, _ = env.reset(seed=seed)
 
 p = policy()
 count = 0

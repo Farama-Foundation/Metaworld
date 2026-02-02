@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-from metaworld.env_dict import ALL_V3_ENVIRONMENTS
+from metaworld.env_dict import ALL_V3_ENVIRONMENTS, envs_get_env_names
 
 
 class Agent(Protocol):
@@ -36,32 +36,23 @@ class MetaLearningAgent(Agent, Protocol):
         ...
 
 
-def _get_task_names(
-    envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
-) -> list[str]:
-    metaworld_cls_to_task_name = {v.__name__: k for k, v in ALL_V3_ENVIRONMENTS.items()}
-    return [
-        metaworld_cls_to_task_name[task_name]
-        for task_name in envs.get_attr("task_name")
-    ]
-
-
 def evaluation(
     agent: Agent,
     eval_envs: gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv,
     num_episodes: int = 50,
 ) -> tuple[float, float, dict[str, float], dict[str, list[float]]]:
-    terminate_on_success = np.all(eval_envs.get_attr("terminate_on_success")).item()
+    terminate_on_success = np.all(
+        eval_envs.get_attr("terminate_on_success")).item()
     eval_envs.call("toggle_terminate_on_success", True)
 
     obs: npt.NDArray[np.float64]
     obs, _ = eval_envs.reset()
     agent.reset(np.ones(eval_envs.num_envs, dtype=np.bool_))
 
-    task_names = _get_task_names(eval_envs)
-    successes = {task_name: 0 for task_name in set(task_names)}
+    env_names = envs_get_env_names(eval_envs)
+    successes = {env_name: 0 for env_name in set(env_names)}
     episodic_returns: dict[str, list[float]] = {
-        task_name: [] for task_name in set(task_names)
+        env_name: [] for env_name in set(env_names)
     }
 
     pbar_envs_done = tqdm(total=len(set(task_names)) *
@@ -79,24 +70,24 @@ def evaluation(
 
         for i, env_ended in enumerate(dones):
             if env_ended:
-                task = task_names[i]
-                current_count = len(episodic_returns[task])
+                env = env_names[i]
+                current_count = len(episodic_returns[env])
                 if current_count < num_episodes:
                     pbar_envs_done.update(1)
-                episodic_returns[task_names[i]].append(
+                episodic_returns[env].append(
                     float(infos["final_info"]["episode"]["r"][i])
                 )
-                if len(episodic_returns[task_names[i]]) <= num_episodes:
-                    successes[task_names[i]] += int(infos["final_info"]["success"][i])
+                if len(episodic_returns[env]) <= num_episodes:
+                    successes[env] += int(infos["final_info"]["success"][i])
 
     episodic_returns = {
-        task_name: returns[:num_episodes]
-        for task_name, returns in episodic_returns.items()
+        env_name: returns[:num_episodes]
+        for env_name, returns in episodic_returns.items()
     }
 
     success_rate_per_task = {
-        task_name: task_successes / num_episodes
-        for task_name, task_successes in successes.items()
+        env_name: task_successes / num_episodes
+        for env_name, task_successes in successes.items()
     }
     mean_success_rate = np.mean(list(success_rate_per_task.values()))
     mean_returns = np.mean(list(episodic_returns.values()))
@@ -121,11 +112,11 @@ def metalearning_evaluation(
 ) -> tuple[float, float, dict[str, float]]:
     eval_envs.call("toggle_sample_tasks_on_reset", False)
     eval_envs.call("toggle_terminate_on_success", False)
-    task_names = _get_task_names(eval_envs)
+    env_names = envs_get_env_names(eval_envs)
 
     total_mean_success_rate = 0.0
     total_mean_return = 0.0
-    success_rate_per_task = np.zeros((num_evals, len(set(task_names))))
+    success_rate_per_task = np.zeros((num_evals, len(set(env_names))))
 
     for i in range(num_evals):
         obs: npt.NDArray[np.float64]
@@ -163,17 +154,18 @@ def metalearning_evaluation(
         )
         total_mean_success_rate += mean_success_rate
         total_mean_return += mean_return
-        success_rate_per_task[i] = np.array(list(_success_rate_per_task.values()))
+        success_rate_per_task[i] = np.array(
+            list(_success_rate_per_task.values()))
 
     success_rates = (success_rate_per_task).mean(axis=0)
-    task_success_rates = {
-        task_name: success_rates[i] for i, task_name in enumerate(set(task_names))
+    env_success_rates = {
+        env_name: success_rates[i] for i, env_name in enumerate(set(env_names))
     }
 
     return (
         total_mean_success_rate / num_evals,
         total_mean_return / num_evals,
-        task_success_rates,
+        env_success_rates,
     )
 
 

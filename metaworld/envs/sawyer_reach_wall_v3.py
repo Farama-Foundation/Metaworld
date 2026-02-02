@@ -27,15 +27,11 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             points from the end effector to the goal coordinate.
             i.e. (self._target_pos - pos_hand)
     """
+    ENV_NAME: str = "reach-wall-v3"
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.05, 0.85, 0.05)
         goal_high = (0.05, 0.9, 0.3)
@@ -43,17 +39,6 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
         obj_high = (0.05, 0.65, 0.015)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -72,15 +57,19 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
 
-        self.num_resets = 0
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_reach_wall_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -126,7 +115,8 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(
+            self.init_tcp - np.array(self._target_pos))
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
@@ -156,7 +146,8 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             tcp_to_target = float(np.linalg.norm(tcp - target))
             # obj_to_target = float(np.linalg.norm(obj - target))
 
-            in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
+            in_place_margin = float(
+                np.linalg.norm(self.hand_init_pos - target))
             in_place = reward_utils.tolerance(
                 tcp_to_target,
                 bounds=(0, _TARGET_RADIUS),

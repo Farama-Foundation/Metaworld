@@ -14,17 +14,14 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPushBackEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "push-back-v3"
+
     OBJ_RADIUS: float = 0.007
     TARGET_RADIUS: float = 0.05
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.6, 0.0199)
         goal_high = (0.1, 0.7, 0.0201)
@@ -32,17 +29,6 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.02)
         obj_high = (0.1, 0.85, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.8, 0.02]),
@@ -59,13 +45,19 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_push_back_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -109,29 +101,34 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
+        diff = self.get_body_com("obj")[:2] - \
+            self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
         return np.array(
-            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
+            [adjustedPos[0], adjustedPos[1],
+                self.data.geom("objGeom").xpos[-1]]
         )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.adjust_initObjPos(
+            self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         assert self.obj_init_pos is not None
         goal_pos = self._get_state_rand_vec()
-        self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
+        self._target_pos = np.concatenate(
+            [goal_pos[-3:-1], [self.obj_init_pos[-1]]])
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = np.concatenate(
                 [goal_pos[-3:-1], [self.obj_init_pos[-1]]]
             )
-        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate(
+            [goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
@@ -141,7 +138,8 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(
+            self.init_tcp - np.array(self._target_pos))
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
@@ -215,7 +213,8 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         assert left_caging >= 0 and left_caging <= 1
 
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
-        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
+        y_gripping = reward_utils.hamacher_product(
+            right_gripping, left_gripping)
 
         assert y_caging >= 0 and y_caging <= 1
 
@@ -223,11 +222,13 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         assert self.obj_init_pos is not None
-        init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
+        init_obj_x_z = self.obj_init_pos + \
+            np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
         tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z,
+                           ord=2) - x_z_success_margin
         )
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
@@ -272,7 +273,8 @@ class SawyerPushBackEnvV3(SawyerXYZEnv):
                 margin=target_to_obj_init,
                 sigmoid="long_tail",
             )
-            object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+            object_grasped = self._gripper_caging_reward(
+                action, obj, self.OBJ_RADIUS)
 
             reward = reward_utils.hamacher_product(object_grasped, in_place)
 

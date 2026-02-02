@@ -25,33 +25,18 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         - (8/05/20) Updated to new XML
         - (6/30/20) Increased goal's Z coordinate by 0.01 in XML
     """
+    ENV_NAME: str = "handle-press-side-v3"
 
     TARGET_RADIUS: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1.0, 0.5)
         obj_low = (-0.35, 0.65, -0.001)
         obj_high = (-0.25, 0.75, 0.001)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.3, 0.7, 0.0]),
@@ -63,19 +48,25 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        goal_low = self.hand_low
-        goal_high = self.hand_high
+        goal_low = hand_low
+        goal_high = hand_high
 
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_handle_press_sideways.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -158,7 +149,8 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
 
             handle_radius = 0.02
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
-            tcp_to_obj_init = np.linalg.norm(self._handle_init_pos - self.init_tcp)
+            tcp_to_obj_init = np.linalg.norm(
+                self._handle_init_pos - self.init_tcp)
             reach = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, handle_radius),

@@ -13,16 +13,13 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "pick-out-of-hole-v3"
+
     _TARGET_RADIUS: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, -0.05)
         hand_high = (0.5, 1, 0.5)
@@ -30,17 +27,6 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
         obj_high = (0, 0.75, 0.02)
         goal_low = (-0.1, 0.5, 0.15)
         goal_high = (0.1, 0.6, 0.3)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.0]),
@@ -57,13 +43,19 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_pick_out_of_hole.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -258,7 +250,8 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) +
+                    np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:

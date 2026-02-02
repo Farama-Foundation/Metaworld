@@ -14,7 +14,6 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
-    TARGET_RADIUS: float = 0.07
     """
     Motivation for V3:
         V1 was difficult to solve because the observation didn't say where
@@ -31,15 +30,13 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
         - (6/16/20) Used existing goal_low and goal_high values to constrain
             the hole's position, as opposed to hand_low and hand_high
     """
+    ENV_NAME: str = "peg-insert-side-v3"
+
+    TARGET_RADIUS: float = 0.07
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_init_pos = (0, 0.6, 0.2)
 
@@ -49,17 +46,6 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
         obj_high = (0.2, 0.7, 0.02)
         goal_low = (-0.35, 0.4, -0.001)
         goal_high = (-0.25, 0.7, 0.001)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -86,11 +72,16 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
 
         self.liftThresh = 0.11
 
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
+
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_peg_insertion_side.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -186,11 +177,15 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
             ip_orig = in_place
-            brc_col_box_1 = self._get_site_pos("bottom_right_corner_collision_box_1")
-            tlc_col_box_1 = self._get_site_pos("top_left_corner_collision_box_1")
+            brc_col_box_1 = self._get_site_pos(
+                "bottom_right_corner_collision_box_1")
+            tlc_col_box_1 = self._get_site_pos(
+                "top_left_corner_collision_box_1")
 
-            brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
-            tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
+            brc_col_box_2 = self._get_site_pos(
+                "bottom_right_corner_collision_box_2")
+            tlc_col_box_2 = self._get_site_pos(
+                "top_left_corner_collision_box_2")
             collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
                 curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
             )
@@ -306,7 +301,8 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                 and (reachDist > 0.02)
             )
 
-            cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
+            cond = self.pickCompleted and (
+                reachDist < 0.1) and not (objDropped)
 
             if cond:
                 if placingDistHead <= 0.05:

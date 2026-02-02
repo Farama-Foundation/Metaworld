@@ -15,14 +15,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "shelf-place-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.8, 0.299)
         goal_high = (0.1, 0.9, 0.301)
@@ -30,17 +27,6 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.5, 0.019)
         obj_high = (0.1, 0.6, 0.021)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.6, 0.02]),
@@ -52,20 +38,24 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self.num_resets = 0
-
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_shelf_placing.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -109,7 +99,8 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
+        diff = self.get_body_com("obj")[:2] - \
+            self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
@@ -117,7 +108,8 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
-        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.adjust_initObjPos(
+            self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -130,7 +122,8 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
 
         self.model.body("shelf").pos = base_shelf_pos[-3:]
         mujoco.mj_forward(self.model, self.data)
-        self._target_pos = self.model.site("goal").pos + self.model.body("shelf").pos
+        self._target_pos = self.model.site(
+            "goal").pos + self.model.body("shelf").pos
 
         assert self.obj_init_pos is not None
         self._set_obj_xyz(self.obj_init_pos)
@@ -194,7 +187,8 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
                 y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (
                     3 * _TARGET_RADIUS
                 )
-                bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
+                bound_loss = reward_utils.hamacher_product(
+                    y_scaling, z_scaling)
                 in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
             if (
@@ -274,7 +268,8 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) +
+                    np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

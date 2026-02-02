@@ -13,14 +13,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "peg-unplug-side-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -28,17 +25,6 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         obj_high = (-0.15, 0.8, 0.001)
         goal_low = obj_low + np.array([0.194, 0.0, 0.131])
         goal_high = obj_high + np.array([0.194, 0.0, 0.131])
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([-0.225, 0.6, 0.05]),
@@ -51,13 +37,19 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_peg_unplug_side.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -114,7 +106,8 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.obj_init_pos is not None
-        self.maxPlacingDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
+        self.maxPlacingDist = np.linalg.norm(
+            self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -152,7 +145,8 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
                 margin=in_place_margin,
                 sigmoid="long_tail",
             )
-            grasp_success = tcp_opened > 0.5 and (obj[0] - self.obj_init_pos[0] > 0.015)
+            grasp_success = tcp_opened > 0.5 and (
+                obj[0] - self.obj_init_pos[0] > 0.015)
 
             reward = 2 * object_grasped
 
@@ -207,7 +201,8 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             c3 = 0.001
             if self.reachCompleted:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) +
+                    np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

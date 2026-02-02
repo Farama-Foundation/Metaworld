@@ -26,14 +26,11 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         - (11/23/20) Updated reward function to new pick-place style
     """
 
+    ENV_NAME: str = "bin-picking-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -43,16 +40,6 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         goal_low = np.array([0.1199, 0.699, -0.001])
         goal_high = np.array([0.1201, 0.701, +0.001])
 
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.12, 0.7, 0.02]),
@@ -68,8 +55,8 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         self.liftThresh = 0.1
 
         self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((hand_low, obj_low)),
+            np.hstack((hand_high, obj_high)),
             dtype=np.float64,
         )
 
@@ -86,11 +73,16 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             dtype=np.float64,
         )
 
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
+
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_bin_picking.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -321,7 +313,8 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                     abs(objPos[0] - placingGoal[0]) < 0.05
                     and abs(objPos[1] - placingGoal[1]) < 0.05
                 ):
-                    placeRew, placingDist = [-200 * action[-1] + placeRew, placingDist]
+                    placeRew, placingDist = [-200 *
+                                             action[-1] + placeRew, placingDist]
                 else:
                     placeRew, placingDist = [placeRew, placingDist]
             else:

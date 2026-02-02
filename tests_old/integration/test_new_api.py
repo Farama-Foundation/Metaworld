@@ -1,18 +1,32 @@
-import pickle
-
 import numpy as np
 import pytest
 
 import metaworld
-from metaworld import ML1, ML10, ML45, MT10, MT50
-from tests.helpers import step_env
+from metaworld import ENV_NAMES
+from tests.helpers import check_multiple_env_steps
+
+import gymnasium as gym
 
 STEPS = 3
 
 
-@pytest.mark.parametrize("env_name", ML1.ENV_NAMES)
+def _test_env_pair(train_envs, test_envs):
+    pass
+
+
+@pytest.mark.parametrize("env_name", ENV_NAMES)
 def test_all_ml1(env_name):
-    ml1 = ML1(env_name)
+    seed = 42
+    train_envs = gym.make_vec("Meta-World/MT1-train",
+                              env_name=env_name,
+                              seed=seed,
+                              vector_strategy='async')
+    test_envs = gym.make_vec("Meta-World/MT1-test",
+                             env_name=env_name,
+                             seed=seed,
+                             vector_strategy='sync')
+    _test_env_pair(train_envs, test_envs)
+
     train_env_instances = {
         env_name: env_cls() for (env_name, env_cls) in ml1.train_classes.items()
     }
@@ -20,11 +34,10 @@ def test_all_ml1(env_name):
         ml1.train_tasks, ml1._train_classes.keys())
     for task in ml1.train_tasks:
         env = train_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
+        env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
@@ -38,15 +51,16 @@ def test_all_ml1(env_name):
         ml1.test_tasks, ml1._test_classes.keys())
     for task in ml1.test_tasks:
         env = test_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
+        env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in test_env_instances.values():
         env.close()
+    del test_env_instances
+
     train_test_rand_vecs = set()
     for rand_vecs in train_env_rand_vecs.values():
         for rand_vec in rand_vecs:
@@ -57,9 +71,8 @@ def test_all_ml1(env_name):
     assert (
         len(train_test_rand_vecs)
         == (len(ml1.test_classes.keys()) + len(ml1.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_GOALS
+        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
     )
-    del test_env_instances
 
 
 def test_all_ml10():
@@ -72,14 +85,13 @@ def test_all_ml10():
     )
     for task in ml10.train_tasks:
         env = train_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
+        env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
     for env in train_env_instances.values():
         env.close()
     del train_env_instances
@@ -91,16 +103,17 @@ def test_all_ml10():
         ml10.test_tasks, ml10._test_classes.keys())
     for task in ml10.test_tasks:
         env = test_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
+        env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
     for env in test_env_instances.values():
         env.close()
+    del test_env_instances
+
     train_test_rand_vecs = set()
     for rand_vecs in train_env_rand_vecs.values():
         for rand_vec in rand_vecs:
@@ -111,9 +124,8 @@ def test_all_ml10():
     assert (
         len(train_test_rand_vecs)
         == (len(ml10.test_classes.keys()) + len(ml10.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_GOALS
+        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
     )
-    del test_env_instances
 
 
 def test_all_ml45():
@@ -126,11 +138,10 @@ def test_all_ml45():
     )
     for task in ml45.train_tasks:
         env = train_env_instances[task.env_name]
-        env.set_task(task)
-        obs, info = env.reset()
+        obs, info = env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
@@ -145,13 +156,12 @@ def test_all_ml45():
         ml45.test_tasks, ml45._test_classes.keys())
     for task in ml45.test_tasks:
         env = test_env_instances[task.env_name]
-        env.set_task(task)
-        obs, info = env.reset()
+        obs, info = env.reset(seed=task.env_seed)
         assert np.all(obs[-3:] == np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in test_env_instances.values():
@@ -166,7 +176,7 @@ def test_all_ml45():
     assert (
         len(train_test_rand_vecs)
         == (len(ml45.test_classes.keys()) + len(ml45.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_GOALS
+        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
     )
     del test_env_instances
 
@@ -181,11 +191,10 @@ def test_all_mt10():
     )
     for task in mt10.train_tasks:
         env = train_env_instances[task.env_name]
-        env.set_task(task)
-        env.reset()
+        env.reset(seed=task.env_seed)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     for env in train_env_instances.values():
@@ -211,13 +220,12 @@ def test_all_mt50():
     )
     for task in mt50.train_tasks:
         env = train_env_instances[task.env_name]
-        env.set_task(task)
-        obs, info = env.reset()
+        obs, info = env.reset(seed=task.env_seed)
         assert np.any(obs[-3:] != np.array([0, 0, 0]))
         assert env.observation_space.shape == (39,)
         old_obj_init = env.obj_init_pos
         old_target_pos = env._target_pos
-        step_env(env, max_path_length=STEPS, render=False)
+        check_multiple_env_steps(env, max_episode_steps=STEPS, render=False)
         assert np.all(np.allclose(old_obj_init, env.obj_init_pos))
         assert np.all(np.allclose(old_target_pos, env._target_pos))
     # only needs to be done for 50 environments once
@@ -248,7 +256,7 @@ def check_tasks_unique(tasks, env_names):
         )
         unique_task_rand_vecs = np.unique(
             np.array(env_to_rand_vecs[env_name]), axis=0)
-        assert unique_task_rand_vecs.shape[0] == metaworld._DEFAULT_NUM_GOALS
+        assert unique_task_rand_vecs.shape[0] == metaworld._DEFAULT_NUM_SEEDS_PER_ENV
     return env_to_rand_vecs
 
 
@@ -276,7 +284,7 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
         state_goals = np.array(state_goals)
         unique_target_poss = np.unique(state_goals, axis=0)
         assert (
-            unique_target_poss.shape[0] == metaworld._DEFAULT_NUM_GOALS == len(
+            unique_target_poss.shape[0] == metaworld._DEFAULT_NUM_SEEDS_PER_ENV == len(
                 rand_vecs)
         ), env_name
 

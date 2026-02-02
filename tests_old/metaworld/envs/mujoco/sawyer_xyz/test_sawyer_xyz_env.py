@@ -3,12 +3,12 @@ import random
 import numpy as np
 
 import metaworld
+import gymnasium as gym
 
 
 def test_reset_returns_same_obj_and_goal():
-    benchmark = metaworld.MT50()
-    env_dict = benchmark.train_classes
-    tasks = benchmark.train_tasks
+    envs = gym.make_vec('Meta-World/MT50')
+
     initial_obj_poses = {name: [] for name in env_dict.keys()}
     goal_poses = {name: [] for name in env_dict.keys()}
 
@@ -17,12 +17,12 @@ def test_reset_returns_same_obj_and_goal():
         # Create environment and set task.
         env = env_cls()
         env_tasks = [t for t in tasks if t.env_name == env_name]
-        env.set_task(random.choice(env_tasks))
+        env_seed = (random.choice(env_tasks)).env_seed
 
         # Step through environment for a fixed number of episodes.
         for _ in range(2):
             # Reset environment and extract initial object position.
-            obs, info = env.reset()
+            obs, info = env.reset(seed=env_seed)
             goal = obs[-3:]
             goal_poses[env_name].append(goal)
             initial_obj_pos = obs[3:9]

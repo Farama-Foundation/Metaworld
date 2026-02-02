@@ -4,17 +4,13 @@ import concurrent.futures
 import gymnasium as gym
 import numpy as np
 
-import metaworld  # noqa: F401
+import metaworld
 
-
-def random_action(action_space, rng):
-    low = action_space.low
-    high = action_space.high
-    return rng.uniform(low, high)
+from tests.helpers import RandomMetaworldAgent
 
 
 def _run_episode(seed):
-    rng = np.random.default_rng(seed)
+    agent = RandomMetaworldAgent(seed=seed)
     env = gym.make('Meta-World/MT1',
                    env_name="reach-v3",
                    seed=seed,
@@ -22,14 +18,15 @@ def _run_episode(seed):
                    reward_function_version='v2',
                    max_episode_steps=None,
                    terminate_on_success=False,
-                   num_goals=1,
+                   num_seeds_per_env=1,
                    )
     steps = 200
     observarions = []
-    obs, _ = env.reset()
+    agent.reset()
+    obs, info = env.reset()
     observarions.append(obs)
     for _ in range(steps):
-        action = random_action(env.action_space, rng)
+        action = agent.get_action(obs, info, env.action_space)
         obs, _, done, truncated, _ = env.step(action)
         observarions.append(obs)
         if done or truncated:

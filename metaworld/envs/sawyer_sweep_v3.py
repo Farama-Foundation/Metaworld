@@ -13,16 +13,13 @@ from metaworld.utils import reward_utils
 
 
 class SawyerSweepEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "sweep-v3"
+
     OBJ_RADIUS: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         init_puck_z = 0.1
         hand_low = (-0.5, 0.40, 0.05)
@@ -31,17 +28,6 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.7, 0.02)
         goal_low = (0.49, 0.6, 0.00)
         goal_high = (0.51, 0.7, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),  # type: ignore
@@ -56,15 +42,22 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.init_puck_z = init_puck_z
 
         self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64  # type: ignore
+            # type: ignore
+            np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)  # type: ignore
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)  # type: ignore
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_sweep_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -103,7 +96,8 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.objHeight = self._get_pos_objects()[2]
 
         obj_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate([obj_pos[:2], [self.obj_init_pos[-1]]])  # type: ignore
+        self.obj_init_pos = np.concatenate(
+            [obj_pos[:2], [self.obj_init_pos[-1]]])  # type: ignore
         self._target_pos[1] = obj_pos.copy()[1]
 
         self._set_obj_xyz(self.obj_init_pos)
@@ -113,7 +107,8 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(
+            self.init_tcp - np.array(self._target_pos))
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
@@ -187,7 +182,8 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         assert left_caging >= 0 and left_caging <= 1
 
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
-        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
+        y_gripping = reward_utils.hamacher_product(
+            right_gripping, left_gripping)
 
         assert y_caging >= 0 and y_caging <= 1
 
@@ -195,11 +191,13 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         assert self.obj_init_pos is not None
-        init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
+        init_obj_x_z = self.obj_init_pos + \
+            np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
         tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z,
+                           ord=2) - x_z_success_margin
         )
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
@@ -247,7 +245,8 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
 
-            object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
+            object_grasped = self._gripper_caging_reward(
+                action, obj, self.OBJ_RADIUS)
             in_place_and_object_grasped = reward_utils.hamacher_product(
                 object_grasped, in_place
             )
@@ -294,7 +293,8 @@ class SawyerSweepEnvV3(SawyerXYZEnv):
             c3 = 0.001
             if self.reachCompleted:
                 pushRew = 1000 * (self.maxPushDist - pushDistxy) + c1 * (
-                    np.exp(-(pushDistxy**2) / c2) + np.exp(-(pushDistxy**2) / c3)
+                    np.exp(-(pushDistxy**2) / c2) +
+                    np.exp(-(pushDistxy**2) / c3)
                 )
                 pushRew = max(pushRew, 0)
                 pushRew = pushRew

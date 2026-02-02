@@ -14,14 +14,11 @@ from metaworld.utils import reward_utils
 
 
 class SawyerBoxCloseEnvV3(SawyerXYZEnv):
+    ENV_NAME: str = "box-close-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,17 +26,6 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         obj_high = (0.05, 0.55, 0.02)
         goal_low = (-0.1, 0.7, 0.133)
         goal_high = (0.1, 0.8, 0.133)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -53,7 +39,8 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
         self._target_to_obj_init = None
 
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(
+            goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -63,11 +50,16 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         self.init_obj_quat = None
         self.liftThresh = 0.12
 
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
+
     @property
-    def model_name(self) -> str:
+    def model_path(self) -> str:
         return full_V3_path_for("sawyer_xyz/sawyer_box.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -113,7 +105,8 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
             goal_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate(
+            [goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
         self.model.body("boxbody").pos = np.concatenate(
@@ -212,11 +205,14 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         if self.reward_function_version == "v2":
             reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
             reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
-            reward_steps = SawyerBoxCloseEnvV3._reward_pos(obs, self._target_pos)
+            reward_steps = SawyerBoxCloseEnvV3._reward_pos(
+                obs, self._target_pos)
 
             reward = sum(
                 (
-                    2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
+                    2.0 *
+                    reward_utils.hamacher_product(
+                        reward_grab, reward_steps[0]),
                     8.0 * reward_steps[1],
                 )
             )
@@ -291,7 +287,8 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) +
+                    np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]
