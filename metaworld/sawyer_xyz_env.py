@@ -12,7 +12,6 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.envs.mujoco import MujocoEnv as mjenv_gym
 from gymnasium.spaces import Box, Space
-from gymnasium.utils import seeding
 from gymnasium.utils.ezpickle import EzPickle
 from typing_extensions import TypeAlias
 
@@ -276,10 +275,12 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         """
         assert seed is not None
-        self.np_random, seed = seeding.np_random(seed)
+        # Reset the gymnasium rng
+        super().reset(seed=seed)
+
+        # Reset other spaces
         self.action_space.seed(seed)
         self.observation_space.seed(seed)
-        assert self.goal_space is not None
         self.goal_space.seed(seed)
 
     def set_xyz_action(self, action: npt.NDArray[Any]) -> None:

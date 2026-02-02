@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import metaworld  # noqa: F401
-from metaworld import _DEFAULT_NUM_SEEDS_PER_ENV, SawyerXYZEnv
+from metaworld import _DEFAULT_NUM_TASKS_PER_ENV, SawyerXYZEnv
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
     ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
@@ -54,7 +54,7 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
     # Assert every env has N_GOALS goals
     envs_tasks = envs.get_attr("tasks")
     for env_tasks in envs_tasks:
-        assert len(env_tasks) == _DEFAULT_NUM_SEEDS_PER_ENV
+        assert len(env_tasks) == _DEFAULT_NUM_TASKS_PER_ENV
 
     # Test wrappers: one hot obs, task sampling, max path length
     obs, _ = envs.reset()
@@ -88,7 +88,7 @@ def test_mt_benchmarks(benchmark: str, env_dict: EnvDict, vector_strategy: str):
 def test_mt1(env_name: str):
     env = gym.make("Meta-World/MT1", env_name=env_name)
     assert isinstance(env.unwrapped, SawyerXYZEnv)
-    assert len(env.get_wrapper_attr("tasks")) == _DEFAULT_NUM_SEEDS_PER_ENV
+    assert len(env.get_wrapper_attr("tasks")) == _DEFAULT_NUM_TASKS_PER_ENV
     assert env.unwrapped.ENV_NAME == env_name
 
     env.reset()
@@ -139,7 +139,7 @@ def test_ml1(env_name, split, vector_strategy):
 
     envs_tasks = envs.get_attr("tasks")
     total_tasks = sum([len(env_tasks) for env_tasks in envs_tasks])
-    assert total_tasks == _DEFAULT_NUM_SEEDS_PER_ENV
+    assert total_tasks == _DEFAULT_NUM_TASKS_PER_ENV
 
     goal_observable = all(envs.get_attr("_goal_observable"))
     assert not goal_observable
@@ -155,11 +155,11 @@ def test_ml_benchmarks(
     vector_strategy: str,
 ):
     meta_batch_size = 20 if benchmark != "ML45" else 45
-    num_seeds_per_env = _DEFAULT_NUM_SEEDS_PER_ENV
+    num_tasks_per_env = _DEFAULT_NUM_TASKS_PER_ENV
     if benchmark == "ML45":
-        num_seeds_per_env = 45
+        num_tasks_per_env = 45
     elif benchmark == "ML10" and split == "test":
-        num_seeds_per_env = 40
+        num_tasks_per_env = 40
     max_episode_steps = 10
 
     envs = gym.make_vec(
@@ -167,7 +167,7 @@ def test_ml_benchmarks(
         vector_strategy=vector_strategy,
         meta_batch_size=meta_batch_size,
         max_episode_steps=max_episode_steps,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
     assert envs.num_envs == meta_batch_size
     env_names = envs_get_env_names(envs)  # type: ignore
@@ -188,7 +188,7 @@ def test_ml_benchmarks(
         tasks_per_env[env_name] += len(env_tasks)
 
     for task in env_dict[split].keys():
-        assert tasks_per_env[task] == num_seeds_per_env
+        assert tasks_per_env[task] == num_tasks_per_env
 
     goal_observable = all(envs.get_attr("_goal_observable"))
     assert not goal_observable

@@ -175,7 +175,7 @@ def run_agent_episode(env_name,
                    seed=seed,
                    reward_function_version=reward_function_version,
                    max_episode_steps=max_episode_steps,
-                   num_seeds_per_env=1,
+                   num_tasks_per_env=1,
                    )
 
     return run_agent_episode_in_env(

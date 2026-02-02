@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import asdict
 
 import gymnasium as gym
 import numpy as np
@@ -9,6 +10,7 @@ from numpy.typing import NDArray
 
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.benchmark import Task
+from metaworld.utils.numpy import randint
 
 
 class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
@@ -91,26 +93,34 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
 
 
 class RandomTaskSelectWrapper(gym.Wrapper):
-    """A Gymnasium Wrapper to automatically set / reset the environment to a random
-    task."""
+    """
+    A Gymnasium Wrapper to automatically sample a new random task from the provided list of tasks.
+    It might yield collisions (i.e., the same task might be sampled multiple times in a row or multiple times
+    before all tasks have been sampled).
+    """
 
     tasks: list[Task]
-    sample_tasks_on_reset: bool = True
+    sample_tasks_on_reset: bool
+    forked_rng: np.random.Generator
 
     def _set_random_task(self):
-        task_idx = self.np_random.choice(len(self.tasks))
+        task_idx = self.forked_rng.choice(len(self.tasks))
         self.unwrapped.reset(seed=self.tasks[task_idx].env_seed)
 
     def __init__(
         self,
         env: Env,
         tasks: list[Task],
-        sample_tasks_on_reset: bool = True,
+        sample_tasks_on_reset: bool,
     ):
         super().__init__(env)
         self.unwrapped: SawyerXYZEnv
         self.tasks = tasks
         self.sample_tasks_on_reset = sample_tasks_on_reset
+
+        # Fork off a new RNG so that task sampling is independent from env RNG
+        # The env RNG gets seeded on env reset!
+        self.forked_rng = np.random.default_rng(randint(self.np_random) + 42)
 
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
@@ -124,48 +134,45 @@ class RandomTaskSelectWrapper(gym.Wrapper):
             self._set_random_task()
         return self.env.reset(seed=None, options=options)
 
-    def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
+    def sample_tasks(self):
         self._set_random_task()
-        return self.env.reset(seed=None, options=options)
+        return self.env.reset(seed=None)
 
     def get_checkpoint(self) -> dict:
         return {
-            "tasks": [_serialize_task(task) for task in self.tasks],
-            "rng_state": self.np_random.bit_generator.state,
+            "tasks": [asdict(task) for task in self.tasks],
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
-            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
+            "forked_rng": self.forked_rng.bit_generator.state,
         }
 
     def load_checkpoint(self, ckpt: dict):
         assert "tasks" in ckpt
-        assert "rng_state" in ckpt
         assert "sample_tasks_on_reset" in ckpt
-        assert "env_rng_state" in ckpt
+        assert "forked_rng" in ckpt
 
-        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
-        self.np_random.__setstate__(ckpt["rng_state"])
+        self.tasks = [Task(**task) for task in ckpt["tasks"]]
         self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
-        set_env_rng(self.unwrapped, ckpt["env_rng_state"])
+        self.forked_rng.bit_generator.state = ckpt["forked_rng"]
 
 
 class PseudoRandomTaskSelectWrapper(gym.Wrapper):
-    """A Gymnasium Wrapper to automatically reset the environment to a *pseudo*random task when explicitly called.
+    """
+    A Gymnasium Wrapper to automatically reset the environment to a *pseudo*random task.
 
     Pseudorandom implies no collisions therefore the next task in the list will be used cyclically.
     However, the tasks will be shuffled every time the last task of the previous shuffle is reached.
-
-    Doesn't sample new tasks on reset by default.
     """
 
     tasks: list[Task]
     current_task_idx: int
-    sample_tasks_on_reset: bool = False
+    sample_tasks_on_reset: bool
+    forked_rng: np.random.Generator
 
     def _set_pseudo_random_task(self):
         self.current_task_idx = (self.current_task_idx + 1) % len(self.tasks)
         if self.current_task_idx == 0:
             # pyright: ignore [reportArgumentType]
-            self.np_random.shuffle(self.tasks)
+            self.forked_rng.shuffle(self.tasks)
         self.unwrapped.reset(seed=self.tasks[self.current_task_idx].env_seed)
 
     def toggle_sample_tasks_on_reset(self, on: bool):
@@ -175,12 +182,17 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         self,
         env: Env,
         tasks: list[Task],
-        sample_tasks_on_reset: bool = False,
+        sample_tasks_on_reset: bool,
     ):
         super().__init__(env)
         self.sample_tasks_on_reset = sample_tasks_on_reset
         self.tasks = tasks
         self.current_task_idx = -1
+
+        # Fork off a new RNG so that task sampling is independent from env RNG
+        # The env RNG gets seeded on env reset!
+        self.forked_rng = np.random.default_rng(randint(self.np_random) + 42)
+        self.forked_rng.shuffle(self.tasks)
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         if seed is not None:
@@ -191,28 +203,28 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
             self._set_pseudo_random_task()
         return self.env.reset(seed=None, options=options)
 
-    def sample_tasks(self, *, seed: int | None = None, options: dict | None = None):
+    def sample_tasks(self):
         self._set_pseudo_random_task()
-        return self.env.reset(seed=None, options=options)
+        return self.env.reset(seed=None)
 
     def get_checkpoint(self) -> dict:
         return {
-            "tasks": [_serialize_task(task) for task in self.tasks],
-            "current_task_idx": self.current_task_idx,
+            "tasks": [asdict(task) for task in self.tasks],
             "sample_tasks_on_reset": self.sample_tasks_on_reset,
-            "env_rng_state": get_env_rng_checkpoint(self.unwrapped),
+            "current_task_idx": self.current_task_idx,
+            "forked_rng": self.forked_rng.bit_generator.state,
         }
 
     def load_checkpoint(self, ckpt: dict):
         assert "tasks" in ckpt
-        assert "current_task_idx" in ckpt
         assert "sample_tasks_on_reset" in ckpt
-        assert "env_rng_state" in ckpt
+        assert "current_task_idx" in ckpt
+        assert "forked_rng" in ckpt
 
-        self.tasks = [_deserialize_task(task) for task in ckpt["tasks"]]
-        self.current_task_idx = ckpt["current_task_idx"]
+        self.tasks = [Task(**task) for task in ckpt["tasks"]]
         self.sample_tasks_on_reset = ckpt["sample_tasks_on_reset"]
-        set_env_rng(self.unwrapped, ckpt["env_rng_state"])
+        self.current_task_idx = ckpt["current_task_idx"]
+        self.forked_rng.bit_generator.state = ckpt["forked_rng"]
 
 
 class AutoTerminateOnSuccessWrapper(gym.Wrapper):
@@ -284,6 +296,10 @@ def update_mean_var_count_from_moments(
 
 
 class CheckpointWrapper(gym.Wrapper):
+    """
+    A Gymnasium Wrapper to enable checkpointing of environments within a larger multi-environment setup.
+    Checkpointing is only supported between episodes (i.e., after reset()).
+    """
     env_id: str
 
     def __init__(self, env: gym.Env, env_id: str):
@@ -311,25 +327,3 @@ class CheckpointWrapper(gym.Wrapper):
                 [env_id for env_id, _ in ckpts],
             )
         self.env.load_checkpoint(my_ckpt)
-
-
-def get_env_rng_checkpoint(env: SawyerXYZEnv) -> dict[str, dict]:
-    return {  # pyright: ignore [reportReturnType]
-        "np_random_state": env.np_random.bit_generator.state,
-        "action_space_rng_state": env.action_space.np_random.bit_generator.state,
-        "obs_space_rng_state": env.observation_space.np_random.bit_generator.state,
-        "goal_space_rng_state": env.goal_space.np_random.bit_generator.state,  # type: ignore
-    }
-
-
-def set_env_rng(env: SawyerXYZEnv, state: dict[str, dict]) -> None:
-    assert "np_random_state" in state
-    assert "action_space_rng_state" in state
-    assert "obs_space_rng_state" in state
-    assert "goal_space_rng_state" in state
-
-    env.np_random.bit_generator.state = state["np_random_state"]
-    env.action_space.np_random.bit_generator.state = state["action_space_rng_state"]
-    env.observation_space.np_random.bit_generator.state = state["obs_space_rng_state"]
-    # type: ignore
-    env.goal_space.np_random.bit_generator.state = state["goal_space_rng_state"]

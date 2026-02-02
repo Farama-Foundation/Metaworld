@@ -71,7 +71,7 @@ def test_all_ml1(env_name):
     assert (
         len(train_test_rand_vecs)
         == (len(ml1.test_classes.keys()) + len(ml1.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
+        * metaworld._DEFAULT_NUM_TASKS_PER_ENV
     )
 
 
@@ -124,7 +124,7 @@ def test_all_ml10():
     assert (
         len(train_test_rand_vecs)
         == (len(ml10.test_classes.keys()) + len(ml10.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
+        * metaworld._DEFAULT_NUM_TASKS_PER_ENV
     )
 
 
@@ -176,7 +176,7 @@ def test_all_ml45():
     assert (
         len(train_test_rand_vecs)
         == (len(ml45.test_classes.keys()) + len(ml45.train_classes.keys()))
-        * metaworld._DEFAULT_NUM_SEEDS_PER_ENV
+        * metaworld._DEFAULT_NUM_TASKS_PER_ENV
     )
     del test_env_instances
 
@@ -256,7 +256,7 @@ def check_tasks_unique(tasks, env_names):
         )
         unique_task_rand_vecs = np.unique(
             np.array(env_to_rand_vecs[env_name]), axis=0)
-        assert unique_task_rand_vecs.shape[0] == metaworld._DEFAULT_NUM_SEEDS_PER_ENV
+        assert unique_task_rand_vecs.shape[0] == metaworld._DEFAULT_NUM_TASKS_PER_ENV
     return env_to_rand_vecs
 
 
@@ -284,7 +284,7 @@ def check_target_poss_unique(env_instances, env_rand_vecs):
         state_goals = np.array(state_goals)
         unique_target_poss = np.unique(state_goals, axis=0)
         assert (
-            unique_target_poss.shape[0] == metaworld._DEFAULT_NUM_SEEDS_PER_ENV == len(
+            unique_target_poss.shape[0] == metaworld._DEFAULT_NUM_TASKS_PER_ENV == len(
                 rand_vecs)
         ), env_name
 

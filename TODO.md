@@ -7,3 +7,6 @@
 * Scripts
 * tests
 * Docs
+* Evaluation
+* Add test for one hot
+* Add test for all benchmarks

@@ -20,7 +20,7 @@ def test_mt1_single_seed(env_name):
     env = gym.make("Meta-World/MT1",
                    env_name=env_name,
                    seed=seed,
-                   num_seeds_per_env=1,
+                   num_tasks_per_env=1,
                    max_episode_steps=max_episode_steps,)
 
     first_ep = run_agent_episode_in_env(
@@ -29,7 +29,7 @@ def test_mt1_single_seed(env_name):
         max_episode_steps=max_episode_steps,
         record_keys=record_keys,
     )
-    # Verify that for the num_seeds_per_env=1 and MT1 env the seed is the same as the one passed
+    # Verify that for the num_tasks_per_env=1 and MT1 env the seed is the same as the one passed
     assert first_ep['env_seed'] == seed, f"Env seed {first_ep['env_seed']} does not match passed seed {seed}"
 
     # Reset the env and run everything again

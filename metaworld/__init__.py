@@ -45,7 +45,8 @@ def _init_env_with_wrappers(
     num_env_ids: int | None = None,
     recurrent_info_in_obs: bool = False,
     normalize_reward_in_recurrent_info: bool = True,
-    task_select: Literal["random", "pseudorandom"] = "random",
+    task_sampler: Literal["random", "pseudorandom"] = "random",
+    sample_tasks_on_reset: bool = True,
     reward_normalization_method: Literal["gymnasium",
                                          "exponential"] | None = None,
     normalize_observations: bool = False,
@@ -61,6 +62,9 @@ def _init_env_with_wrappers(
         max_episode_steps=max_episode_steps,
         **kw_args,
     )
+    # Ensure we have a consistent starting rng state
+    env.reset(seed=tasks[0].env_seed)
+
     env = gym.wrappers.TimeLimit(
         env, max_episode_steps)  # type: ignore
     env = AutoTerminateOnSuccessWrapper(env)
@@ -83,10 +87,14 @@ def _init_env_with_wrappers(
         env = gym.wrappers.NormalizeObservation(env)
     env = gym.wrappers.RecordEpisodeStatistics(env)
 
-    if task_select != "random":
-        env = PseudoRandomTaskSelectWrapper(env, tasks)
+    if task_sampler == "pseudorandom":
+        env = PseudoRandomTaskSelectWrapper(env, tasks, sample_tasks_on_reset)
+    elif task_sampler == "random":
+        env = RandomTaskSelectWrapper(env, tasks, sample_tasks_on_reset)
     else:
-        env = RandomTaskSelectWrapper(env, tasks)
+        raise ValueError(
+            f"Invalid task_sampler option: {task_sampler}. Must be 'random' or 'pseudorandom'."
+        )
 
     env = CheckpointWrapper(env, f"{env_cls}_{env_id}")
     return env
@@ -161,13 +169,13 @@ def _vectorize_task_set(
 def _mt1_entry_point(
     env_name: str,
     seed: int | None = None,
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ):
     mt1_benchmark = get_mt1_benchmark(
         env_name,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
     task_set = mt1_benchmark.generate_train_task_set()
     tasks = task_set.tasks_dict[env_name]
@@ -182,13 +190,13 @@ def _mt1_entry_point(
 def _mtX_vector_entry_point(
     mt_bench: Literal["MT10", "MT25", "MT50"],
     seed: int | None = None,
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
     mtX_benchmark = get_mtX_benchmark(
         mt_bench,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
 
     task_set = mtX_benchmark.generate_train_task_set()
@@ -202,13 +210,13 @@ def _mtX_vector_entry_point(
 def _mtCustom_vector_entry_point(
     train_envs: list[str],
     seed: int | None = None,
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
     mtX_benchmark = get_mtCustom_benchmark(
         train_envs,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
 
     task_set = mtX_benchmark.generate_train_task_set()
@@ -223,13 +231,13 @@ def _ml1_vector_entry_point(
     env_name: str,
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ):
     ml1_benchmark = get_ml1_benchmark(
         env_name,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
 
     task_set = ml1_benchmark.generate_task_set(split=split)
@@ -244,13 +252,13 @@ def _mlX_vector_entry_point(
     ml_bench: Literal["ML10", "ML25", "ML45"],
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ):
     mlX_benchmark = get_mlX_benchmark(
         ml_bench,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
 
     task_set = mlX_benchmark.generate_task_set(split=split)
@@ -266,14 +274,14 @@ def _mlCustom_vector_entry_point(
     test_envs: list[str],
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
     **kwargs,
 ):
     mlX_benchmark = get_mlCustom_benchmark(
         train_envs,
         test_envs,
         seed,
-        num_seeds_per_env,
+        num_tasks_per_env,
     )
 
     task_set = mlX_benchmark.generate_task_set(split=split)

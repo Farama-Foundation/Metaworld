@@ -1,5 +1,6 @@
-from typing import Any, NamedTuple, Sequence
+from typing import Any, Sequence
 from typing_extensions import Literal
+from dataclasses import dataclass
 
 import copy
 
@@ -14,11 +15,12 @@ _ML_ENV_KWARGS_OVERRIDE = dict(goal_observable=False)
 _MT_ENV_KWARGS_OVERRIDE = dict(goal_observable=True)
 """The overrides for the Multi-Task benchmarks. Enables the inclusion of the goal position in the observation."""
 
-_DEFAULT_NUM_SEEDS_PER_ENV = 50
+_DEFAULT_NUM_TASKS_PER_ENV = 50
 """The number of seeds to generate for each environment."""
 
 
-class Task(NamedTuple):
+@dataclass(frozen=True)
+class Task:
     """
     All data necessary to fully describe a single environment.
     """
@@ -27,7 +29,8 @@ class Task(NamedTuple):
     env_seed: int
 
 
-class TaskSet(NamedTuple):
+@dataclass(frozen=True)
+class TaskSet:
     """
     A collection of tasks.
     """
@@ -50,7 +53,7 @@ class TaskSet(NamedTuple):
 def _generate_task_set(
     env_names: Sequence[str],
     benchmark_seed: int | None,
-    num_seeds_per_env: int | None = _DEFAULT_NUM_SEEDS_PER_ENV,
+    num_tasks_per_env: int | None = _DEFAULT_NUM_TASKS_PER_ENV,
     env_kwargs_overrides: dict[str, dict] | None = None,
 ) -> TaskSet:
     """Generates seeds for a given set of environments.
@@ -58,7 +61,7 @@ def _generate_task_set(
     Args:
         env_names: The environment names as a sequence of strings.
         benchmark_seed: The random seed to use for the benchmark.
-        num_seeds_per_env: The number of seeds to generate per environment.
+        num_tasks_per_env: The number of seeds to generate per environment.
         env_kwargs_overrides: The environment kwargs overrides to use for all environments.
 
     Returns:
@@ -74,7 +77,7 @@ def _generate_task_set(
         env_name: [] for env_name in env_names
     }
 
-    if num_seeds_per_env == 1 and len(env_names) == 1:
+    if num_tasks_per_env == 1 and len(env_names) == 1:
         # Directly use the benchmark seed.
         # This only happens if the user requests a single seed for a single env.
         for env_name in env_names:
@@ -84,7 +87,7 @@ def _generate_task_set(
             benchmark_seed) if benchmark_seed is not None else np.random.default_rng()
 
         for env_name in env_names:
-            seeds = np.atleast_1d(randint(seed_rng, size=num_seeds_per_env))
+            seeds = np.atleast_1d(randint(seed_rng, size=num_tasks_per_env))
 
             for seed in seeds:
                 tasks_dict[env_name].append(Task(env_name, seed))
@@ -104,7 +107,7 @@ class Benchmark:
                  seed: int | None = None,
                  test_train_same_seed: bool = False,
                  env_kwargs_overrides: dict[str, Any] | None = None,
-                 num_seeds_per_env: int | None = None):
+                 num_tasks_per_env: int | None = None):
         self.name = name
         self.test_env_names = test_env_names
         self.train_env_names = train_env_names
@@ -113,7 +116,7 @@ class Benchmark:
         self.seed = seed
         self.test_train_same_seed = test_train_same_seed
         self.env_kwargs_overrides = env_kwargs_overrides
-        self.num_seeds_per_env = num_seeds_per_env
+        self.num_tasks_per_env = num_tasks_per_env
 
     def generate_task_set(self, split: Literal["train", "test"]) -> TaskSet:
         if split == "train":
@@ -127,12 +130,13 @@ class Benchmark:
         else:
             raise ValueError(f"Invalid split: {split}")
 
-        return _generate_task_set(
+        task_set = _generate_task_set(
             env_names,
             actual_seed,
-            self.num_seeds_per_env,
+            self.num_tasks_per_env,
             self.env_kwargs_overrides,
         )
+        return task_set
 
     def generate_train_task_set(self) -> TaskSet:
         return self.generate_task_set(split="train")
@@ -141,7 +145,7 @@ class Benchmark:
         return self.generate_task_set(split="test")
 
 
-def get_mt1_benchmark(env_name: str, seed: int | None = None, num_seeds_per_env: int | None = None) -> Benchmark:
+def get_mt1_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the MT1 benchmark for a given environment name.
 
     MT1 is a goal-conditioned RL environment for a single Metaworld task.
@@ -164,13 +168,13 @@ def get_mt1_benchmark(env_name: str, seed: int | None = None, num_seeds_per_env:
         seed=seed,
         test_train_same_seed=True,
         env_kwargs_overrides=_MT_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
 
 
 def get_mtX_benchmark(mt_bench: Literal["MT10", "MT25", "MT50"],
                       seed: int | None = None,
-                      num_seeds_per_env: int | None = None) -> Benchmark:
+                      num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the MTX benchmark for a given MT benchmark name.
 
     The MTX benchmarks are multi-task RL environments for multiple Metaworld tasks.
@@ -201,14 +205,14 @@ def get_mtX_benchmark(mt_bench: Literal["MT10", "MT25", "MT50"],
         seed=seed,
         test_train_same_seed=True,
         env_kwargs_overrides=_MT_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
 
 
 def get_mtCustom_benchmark(
     env_names: list[str],
     seed: int | None = None,
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
 ) -> Benchmark:
     """Returns a custom MT benchmark for a given list of environment names.
 
@@ -231,11 +235,11 @@ def get_mtCustom_benchmark(
         seed=seed,
         test_train_same_seed=True,
         env_kwargs_overrides=_MT_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
 
 
-def get_ml1_benchmark(env_name: str, seed: int | None = None, num_seeds_per_env: int | None = None) -> Benchmark:
+def get_ml1_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the ML1 benchmark for a given environment name.
 
     The ML1 benchmark is a goal-conditioned RL environment for a single Metaworld task.
@@ -258,13 +262,13 @@ def get_ml1_benchmark(env_name: str, seed: int | None = None, num_seeds_per_env:
         seed=seed,
         test_train_same_seed=False,
         env_kwargs_overrides=_ML_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
 
 
 def get_mlX_benchmark(ml_bench: Literal["ML10", "ML25", "ML45"],
                       seed: int | None = None,
-                      num_seeds_per_env: int | None = None) -> Benchmark:
+                      num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the MLX benchmark for a given ML benchmark name.
 
     The MLX benchmarks are multi-task RL environments for multiple Metaworld tasks.
@@ -294,7 +298,7 @@ def get_mlX_benchmark(ml_bench: Literal["ML10", "ML25", "ML45"],
         seed=seed,
         test_train_same_seed=False,
         env_kwargs_overrides=_ML_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
 
 
@@ -302,7 +306,7 @@ def get_mlCustom_benchmark(
     train_envs: list[str],
     test_envs: list[str],
     seed: int | None = None,
-    num_seeds_per_env: int | None = None,
+    num_tasks_per_env: int | None = None,
 ) -> Benchmark:
     """Returns a custom ML benchmark for given lists of training and testing environment names.
 
@@ -325,5 +329,5 @@ def get_mlCustom_benchmark(
         seed=seed,
         test_train_same_seed=False,
         env_kwargs_overrides=_ML_ENV_KWARGS_OVERRIDE,
-        num_seeds_per_env=num_seeds_per_env,
+        num_tasks_per_env=num_tasks_per_env,
     )
