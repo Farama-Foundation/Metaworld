@@ -44,20 +44,17 @@ def sample_spherical(num_points, radius=1.0):
 
 @pytest.mark.parametrize("target", sample_spherical(100, 10.0))
 def test_reaching_limit(target):
-    env = ALL_V3_ENVIRONMENTS["reach-v3"]()
-    env._goal_observable = False
+    env = ALL_V3_ENVIRONMENTS["reach-v3"](goal_observable=True)
 
     policy = SawyerRandomReachPolicy(target)
 
-    env.reset()
-    env.reset_model()
-    o_prev, info = env.reset()
+    init_obs, info = env.reset()
 
     for _ in range(env.max_episode_steps):
-        a = policy.get_action(o_prev)
-        o = env.step(a)[0]
-        if np.linalg.norm(o[:3] - o_prev[:3]) < 0.001:
+        a = policy.get_action(init_obs)
+        obs = env.step(a)[0]
+        if np.linalg.norm(obs[:3] - init_obs[:3]) < 0.001:
             break
-        o_prev = o
+        init_obs = obs
 
-    assert SawyerXYZEnv._HAND_SPACE.contains(o[:3])
+    assert SawyerXYZEnv._HAND_SPACE.contains(obs[:3])

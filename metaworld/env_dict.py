@@ -22,7 +22,7 @@ EnvArgsKwargsDict: TypeAlias = (
     "Dict[str, Dict[Literal['args', 'kwargs'], Union[List, Dict]]]"
 )
 
-ALL_V3_ENVIRONMENTS = OrderedDict([
+ALL_V3_ENVIRONMENTS: OrderedDict[str, type[SawyerXYZEnv]] = OrderedDict([
     (getattr(env_class, 'ENV_NAME'), env_class)
     for env_class in [
         envs.SawyerNutAssemblyEnvV3,

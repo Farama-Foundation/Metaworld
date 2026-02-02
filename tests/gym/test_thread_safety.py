@@ -6,7 +6,7 @@ import numpy.testing as npt
 
 import metaworld
 
-from tests.helpers import RandomMetaworldAgent, run_agent_episode
+from tests.gym.helpers import RandomMetaworldAgent, run_agent_episode
 
 
 def _run_episode(seed: int, env_name: str) -> dict:

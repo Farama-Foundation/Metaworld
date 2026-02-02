@@ -6,7 +6,7 @@ from metaworld.env_dict import ENV_NAMES
 
 import gymnasium as gym
 
-from tests.helpers import RandomMetaworldAgent, run_agent_episode, run_agent_episode_in_env
+from tests.gym.helpers import RandomMetaworldAgent, run_agent_episode, run_agent_episode_in_env
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
@@ -41,6 +41,8 @@ def test_env_mt1_single_seed(env_name):
     )
     # Verify that the seed is still the same
     assert second_ep['env_seed'] == seed, f"Env seed {second_ep['env_seed']} does not match passed seed {seed}"
+
+    env.close()
 
     # Verify that the observations are the same across both runs
     obs_first = first_ep['observations']

@@ -134,8 +134,6 @@ def run_agent_episode_in_env(env: gym.Env,
 
         agent_step += 1
 
-    env.close()
-
     # Determine slice indices
     obs_slice = agent_step + 1
     trans_slice = agent_step
@@ -177,10 +175,11 @@ def run_agent_episode(env_name,
                    max_episode_steps=max_episode_steps,
                    num_tasks_per_env=1,
                    )
-
-    return run_agent_episode_in_env(
+    episode_results = run_agent_episode_in_env(
         env=env,
         agent=agent,
         max_episode_steps=max_episode_steps,
         record_keys=record_keys,
     )
+    env.close()
+    return episode_results

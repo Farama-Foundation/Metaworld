@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 
 import metaworld
@@ -6,7 +5,7 @@ from metaworld.env_dict import ENV_NAMES
 
 import gymnasium as gym
 
-from tests.helpers import ExpertPolicyMetaworldAgent, run_agent_episode_in_env
+from tests.gym.helpers import ExpertPolicyMetaworldAgent, run_agent_episode_in_env
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
@@ -37,6 +36,8 @@ def test_policies(env_name, reward_function_version):
         )
         ep_seeds.append(ep_results['env_seed'])
         successes += int(ep_results['agent_first_success_step'] is not None)
+
+    env.close()
 
     success_rate = successes / num_episodes
     good_policy_success_rate = 0.8

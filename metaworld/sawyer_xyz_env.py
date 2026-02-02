@@ -207,7 +207,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.current_step: int = 0
         self.max_episode_steps = max_episode_steps
 
-        self.current_seed = randint(np.random.default_rng())
+        self.current_seed = int(randint(np.random.default_rng()))
 
         self.obj_init_pos: npt.NDArray[Any] | None  # OVERRIDE ME
 

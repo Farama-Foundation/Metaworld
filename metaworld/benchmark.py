@@ -303,8 +303,8 @@ def get_mlX_benchmark(ml_bench: Literal["ML10", "ML25", "ML45"],
 
 
 def get_mlCustom_benchmark(
-    train_envs: list[str],
-    test_envs: list[str],
+    train_env_names: list[str],
+    test_env_names: list[str],
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
 ) -> Benchmark:
@@ -324,8 +324,8 @@ def get_mlCustom_benchmark(
 
     return Benchmark(
         name="custom-ml-envs",
-        train_env_names=train_envs,
-        test_env_names=test_envs,
+        train_env_names=train_env_names,
+        test_env_names=test_env_names,
         seed=seed,
         test_train_same_seed=False,
         env_kwargs_overrides=_ML_ENV_KWARGS_OVERRIDE,
