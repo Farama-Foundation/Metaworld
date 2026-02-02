@@ -22,6 +22,7 @@ from metaworld.benchmark import (
 )
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
+    MT_BENCHMARKS_TRAIN_ENV_NAMES,
 )
 from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
 from metaworld.wrappers import (
@@ -175,12 +176,24 @@ def _vectorize_task_set(
     )
 
 
+def _use_one_hot_guard(
+    use_one_hot: bool,
+):
+    if use_one_hot:
+        raise ValueError(
+            "The one-hot wrapper can only be used with the MTX/MTCustom benchmarks except MT1."
+        )
+
+
 def _mt1_entry_point(
     env_name: str,
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
+    use_one_hot: bool = False,
     **kwargs,
 ):
+    _use_one_hot_guard(use_one_hot)
+
     mt1_benchmark = get_mt1_benchmark(
         env_name,
         seed,
@@ -244,8 +257,11 @@ def _ml1_vector_entry_point(
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
+    use_one_hot: bool = False,
     **kwargs,
 ):
+    _use_one_hot_guard(use_one_hot)
+
     ml1_benchmark = get_ml1_benchmark(
         env_name,
         seed,
@@ -265,8 +281,11 @@ def _mlX_vector_entry_point(
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
+    use_one_hot: bool = False,
     **kwargs,
 ):
+    _use_one_hot_guard(use_one_hot)
+
     mlX_benchmark = get_mlX_benchmark(
         ml_bench,
         seed,
@@ -287,8 +306,11 @@ def _mlCustom_vector_entry_point(
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
+    use_one_hot: bool = False,
     **kwargs,
 ):
+    _use_one_hot_guard(use_one_hot)
+
     mlX_benchmark = get_mlCustom_benchmark(
         train_env_names,
         test_env_names,
@@ -313,7 +335,7 @@ def _register_mw_envs() -> None:
         entry_point=_mt1_entry_point,
     )
 
-    for mt_bench in ["MT10", "MT25", "MT50"]:
+    for mt_bench in MT_BENCHMARKS_TRAIN_ENV_NAMES.keys():
         register(
             id=f"Meta-World/{mt_bench}",
             vector_entry_point=partial(
