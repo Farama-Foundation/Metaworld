@@ -70,21 +70,6 @@ class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
         self.adapt_calls += 1
 
 
-class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):
-    def get_attr(self, name):
-        return self.env.get_attr(name)
-
-    def set_attr(self, name, values):
-        return self.env.set_attr(name, values)
-
-    def call(self, name, *args, **kwargs):
-        return self.env.call(name, *args, **kwargs)
-
-    def step(self, actions):
-        self.env.set_attr("_goal_observable", True)
-        return super().step(actions)
-
-
 def test_evaluation():
     SEED = 42
     max_episode_steps = 300  # To speed up the test

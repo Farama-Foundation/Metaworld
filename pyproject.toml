@@ -34,7 +34,13 @@ dependencies = [
 [dependency-groups]
 dev = ["black", "isort", "mypy"]
 coverage = ["pytest-cov"]
-testing = ["ipdb", "memory_profiler", "pyquaternion==0.9.5", "pytest>=4.4.0"]
+testing = [
+    "ipdb",
+    "memory_profiler",
+    "pyquaternion==0.9.5",
+    "pytest>=4.4.0",
+    "pytest-xdist",
+]
 
 [project.urls]
 Homepage = "https://farama.org"

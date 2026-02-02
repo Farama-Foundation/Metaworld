@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v3
       - run: |
-           docker build -f docker/Dockerfile \
-             --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
-             --tag metaworld-docker .
+          docker build -f docker/Dockerfile \
+            --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
+            --tag metaworld-docker .
       - name: Run tests
-        run: docker run metaworld-docker pytest tests/*
+        run: docker run metaworld-docker pytest -n auto tests/*
 #      - name: Run doctests
 #        run: docker run metaworld-docker pytest --doctest-modules metaworld/
