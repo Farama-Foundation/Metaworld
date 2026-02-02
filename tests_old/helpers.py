@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def check_multiple_env_steps(env, max_episode_steps=100, iterations=1, render=True):
+def check_multiple_env_steps(env, max_episode_steps=100, episodes=1, render=True):
     """
     Resets and steps through the environment multiple times, checking that
     the observations are consistent with the internal state of the environment.
@@ -12,7 +12,7 @@ def check_multiple_env_steps(env, max_episode_steps=100, iterations=1, render=Tr
         iterations: Number of episodes to run. To test consistency across resets.
         render: Whether to render the environment during stepping.
     """
-    for _ in range(iterations):
+    for _ in range(episodes):
         obs, info = env.reset()
         for _ in range(max_episode_steps):
             next_obs, _, terminated, truncated, info = env.step(

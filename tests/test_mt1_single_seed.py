@@ -10,7 +10,7 @@ from tests.helpers import RandomMetaworldAgent, run_agent_episode, run_agent_epi
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_mt1_single_seed(env_name):
+def test_env_mt1_single_seed(env_name):
     agent = RandomMetaworldAgent(seed=42)
 
     max_episode_steps = 200
