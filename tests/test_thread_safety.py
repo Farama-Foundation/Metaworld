@@ -26,7 +26,8 @@ def _run_episode(seed):
     obs, info = env.reset()
     observarions.append(obs)
     for _ in range(steps):
-        action = agent.get_action(obs, info, env.action_space)
+        action = agent.get_action(
+            obs, info, env.unwrapped.ENV_NAME, env.action_space)
         obs, _, done, truncated, _ = env.step(action)
         observarions.append(obs)
         if done or truncated:

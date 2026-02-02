@@ -8,7 +8,7 @@ from gymnasium import Env
 from numpy.typing import NDArray
 
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
-from metaworld.types import Task
+from metaworld.benchmark import Task
 
 
 class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):

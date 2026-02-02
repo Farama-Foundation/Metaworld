@@ -3,22 +3,27 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Literal, Sequence
+from typing import Any, Literal
 
 import gymnasium as gym  # type: ignore
-import numpy as np
 
 # noqa: D104
 from gymnasium.envs.registration import register
 
+from metaworld.benchmark import (
+    get_mt1_benchmark,
+    get_mtX_benchmark,
+    get_mlCustom_benchmark,
+    get_ml1_benchmark,
+    get_mlX_benchmark,
+    get_mtCustom_benchmark,
+    TaskSet,
+    Task,
+)
 from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
-    MT_BENCHMARKS_TRAIN_ENV_NAMES,
-    ML_BENCHMARKS,
 )
 from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
-from metaworld.types import Task, TaskSet  # type: ignore
-from metaworld.utils.numpy import randint
 from metaworld.wrappers import (
     AutoTerminateOnSuccessWrapper,
     CheckpointWrapper,
@@ -28,50 +33,6 @@ from metaworld.wrappers import (
     RandomTaskSelectWrapper,
     RNNBasedMetaRLWrapper,
 )
-
-_ML_ENV_KWARGS_OVERRIDE = dict(goal_observable=False)
-"""The overrides for the Meta-Learning benchmarks. Disables the inclusion of the goal position in the observation."""
-
-_MT_ENV_KWARGS_OVERRIDE = dict(goal_observable=True)
-"""The overrides for the Multi-Task benchmarks. Enables the inclusion of the goal position in the observation."""
-
-_DEFAULT_NUM_SEEDS_PER_ENV = 50
-"""The number of seeds to generate for each environment."""
-
-
-def _generate_task_set(
-    env_names: Sequence[str],
-    benchmark_seed: int | None,
-    num_seeds_per_env: int | None = _DEFAULT_NUM_SEEDS_PER_ENV,
-) -> TaskSet:
-    """Generates seeds for a given set of environments.
-
-    Args:
-        env_names: The environment names as a sequence of strings.
-        benchmark_seed: The random seed to use for the benchmark.
-        num_seeds_per_env: The number of seeds to generate per environment.
-
-    Returns:
-        A TaskSet containing all of the generated tasks.
-    """
-
-    seed_rng = np.random.default_rng(
-        benchmark_seed) if benchmark_seed is not None else np.random.default_rng()
-
-    tasks_dict: dict[str, list[Task]] = {
-        env_name: [] for env_name in env_names
-    }
-
-    for env_name in env_names:
-        seeds = np.atleast_1d(randint(seed_rng, size=num_seeds_per_env))
-
-        for seed in seeds:
-            tasks_dict[env_name].append(Task(env_name, seed))
-
-    return TaskSet(
-        tasks_dict=tasks_dict,
-        env_names=list(env_names),
-    )
 
 
 def _init_env_with_wrappers(
@@ -147,12 +108,18 @@ def _vectorizer_from_strategy(
 
 def _vectorize_task_set(
     task_set: TaskSet,
-    meta_batch_size: int,
+    meta_batch_size: int | None = None,
     vector_strategy: Literal["sync",
                              "async"] | type[gym.vector.VectorEnv] | None = None,
     autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
     **kwargs,
 ) -> gym.vector.VectorEnv:
+
+    num_env_ids = len(task_set.env_names)
+
+    if meta_batch_size is None:
+        meta_batch_size = num_env_ids
+
     assert (
         meta_batch_size % len(task_set.env_names) == 0
     ), "meta_batch_size must be divisible by the environment count"
@@ -182,6 +149,7 @@ def _vectorize_task_set(
                 env_id=env_name_to_id[env_name],
                 num_env_ids=len(task_set.env_names),
                 tasks=tasks,
+                **task_set.env_kwargs_overrides,
                 **kwargs,
             )
             for env_name, tasks in tasks_per_parallel_env
@@ -196,49 +164,57 @@ def _mt1_entry_point(
     num_seeds_per_env: int | None = None,
     **kwargs,
 ):
-    if num_seeds_per_env == 1:
-        # Patch the seed directly into the environment
-        tasks = [Task(env_name, seed)]
-    else:
-        tasks = list(_generate_task_set(
-            [env_name], seed, num_seeds_per_env
-        ).tasks_dict[env_name])
+    mt1_benchmark = get_mt1_benchmark(
+        env_name,
+        seed,
+        num_seeds_per_env,
+    )
+    task_set = mt1_benchmark.generate_train_task_set()
+    tasks = task_set.tasks_dict[env_name]
     return _init_env_with_wrappers(
         env_name=env_name,
         tasks=tasks,
+        **task_set.env_kwargs_overrides,
         **kwargs,
     )
 
 
-def _mt1_vector_entry_point(
-    env_name: str,
-):
-    return _mtX_vector_entry_point(
-        env_names=[env_name],
-    )
-
-
 def _mtX_vector_entry_point(
-    env_names: list[str],
+    mt_bench: Literal["MT10", "MT25", "MT50"],
     seed: int | None = None,
     num_seeds_per_env: int | None = None,
-    meta_batch_size: int | None = None,
     **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
-    task_set = _generate_task_set(
-        env_names,
+    mtX_benchmark = get_mtX_benchmark(
+        mt_bench,
         seed,
         num_seeds_per_env,
     )
 
-    num_env_ids = len(task_set.env_names)
-
-    if meta_batch_size is None:
-        meta_batch_size = num_env_ids
+    task_set = mtX_benchmark.generate_train_task_set()
 
     return _vectorize_task_set(
         task_set,
-        meta_batch_size=meta_batch_size,
+        **kwargs,
+    )
+
+
+def _mtCustom_vector_entry_point(
+    train_envs: list[str],
+    seed: int | None = None,
+    num_seeds_per_env: int | None = None,
+    **kwargs,
+) -> gym.Env | gym.vector.VectorEnv:
+    mtX_benchmark = get_mtCustom_benchmark(
+        train_envs,
+        seed,
+        num_seeds_per_env,
+    )
+
+    task_set = mtX_benchmark.generate_train_task_set()
+
+    return _vectorize_task_set(
+        task_set,
         **kwargs,
     )
 
@@ -247,27 +223,63 @@ def _ml1_vector_entry_point(
     env_name: str,
     seed: int | None = None,
     split: Literal["train", "test"] = "train",
+    num_seeds_per_env: int | None = None,
     **kwargs,
 ):
-    if seed is not None and split == "test":
-        seed = seed + 1
+    ml1_benchmark = get_ml1_benchmark(
+        env_name,
+        seed,
+        num_seeds_per_env,
+    )
 
-    return _mtX_vector_entry_point(
-        env_names=[env_name],
-        seed=seed,
+    task_set = ml1_benchmark.generate_task_set(split=split)
+
+    return _vectorize_task_set(
+        task_set,
         **kwargs,
     )
 
 
-def _custom_ml_vector_entry_point(
-    train_envs: list[str],
-    test_envs: list[str],
+def _mlX_vector_entry_point(
+    ml_bench: Literal["ML10", "ML25", "ML45"],
+    seed: int | None = None,
     split: Literal["train", "test"] = "train",
+    num_seeds_per_env: int | None = None,
     **kwargs,
 ):
-    env_names = train_envs if split == "train" else test_envs
-    return _mtX_vector_entry_point(
-        env_names=env_names,
+    mlX_benchmark = get_mlX_benchmark(
+        ml_bench,
+        seed,
+        num_seeds_per_env,
+    )
+
+    task_set = mlX_benchmark.generate_task_set(split=split)
+
+    return _vectorize_task_set(
+        task_set,
+        **kwargs,
+    )
+
+
+def _mlCustom_vector_entry_point(
+    train_envs: list[str],
+    test_envs: list[str],
+    seed: int | None = None,
+    split: Literal["train", "test"] = "train",
+    num_seeds_per_env: int | None = None,
+    **kwargs,
+):
+    mlX_benchmark = get_mlCustom_benchmark(
+        train_envs,
+        test_envs,
+        seed,
+        num_seeds_per_env,
+    )
+
+    task_set = mlX_benchmark.generate_task_set(split=split)
+
+    return _vectorize_task_set(
+        task_set,
         **kwargs,
     )
 
@@ -279,8 +291,6 @@ def _register_mw_envs() -> None:
     register(
         id="Meta-World/MT1",
         entry_point=_mt1_entry_point,
-        vector_entry_point=_mt1_vector_entry_point,
-        kwargs=_MT_ENV_KWARGS_OVERRIDE,
     )
 
     for mt_bench in ["MT10", "MT25", "MT50"]:
@@ -288,15 +298,13 @@ def _register_mw_envs() -> None:
             id=f"Meta-World/{mt_bench}",
             vector_entry_point=partial(
                 _mtX_vector_entry_point,
-                env_names=MT_BENCHMARKS_TRAIN_ENV_NAMES[mt_bench],
+                mt_bench=mt_bench,
             ),
-            kwargs=_MT_ENV_KWARGS_OVERRIDE,
         )
 
     register(
         id="Meta-World/custom-mt-envs",
-        vector_entry_point=_mtX_vector_entry_point,
-        kwargs=_MT_ENV_KWARGS_OVERRIDE,
+        vector_entry_point=_mtCustom_vector_entry_point,
     )
 
     # --- ML Envs ---
@@ -304,8 +312,10 @@ def _register_mw_envs() -> None:
     for split in ["train", "test"]:
         register(
             id=f"Meta-World/ML1-{split}",
-            vector_entry_point=partial(_ml1_vector_entry_point, split),
-            kwargs=_ML_ENV_KWARGS_OVERRIDE,
+            vector_entry_point=partial(
+                _ml1_vector_entry_point,
+                split=split
+            ),
         )
 
     for ml_bench in ["ML10", "ML25", "ML45"]:
@@ -313,16 +323,15 @@ def _register_mw_envs() -> None:
             register(
                 id=f"Meta-World/{ml_bench}-{split}",
                 vector_entry_point=partial(
-                    _mtX_vector_entry_point,
-                    env_names=ML_BENCHMARKS[ml_bench][split],
+                    _mlX_vector_entry_point,
+                    ml_bench=ml_bench,
+                    split=split
                 ),
-                kwargs=_ML_ENV_KWARGS_OVERRIDE,
             )
 
     register(
         id="Meta-World/custom-ml-envs",
-        vector_entry_point=_custom_ml_vector_entry_point,
-        kwargs=_ML_ENV_KWARGS_OVERRIDE,
+        vector_entry_point=_mlCustom_vector_entry_point,
     )
 
 

@@ -7,30 +7,6 @@ import numpy.typing as npt
 from typing_extensions import NotRequired, TypeAlias, TypedDict
 
 
-class TaskSet(NamedTuple):
-    """
-    A collection of tasks.
-    """
-
-    tasks_dict: dict[str, list[Task]]
-    """
-    Mapping from environment name to list of tasks.
-    """
-    env_names: list[str]
-    """
-    List of all environment names in the task set.
-    """
-
-
-class Task(NamedTuple):
-    """
-    All data necessary to fully describe a single environment.
-    """
-
-    env_name: str
-    env_seed: int
-
-
 XYZ: TypeAlias = "Tuple[float, float, float]"
 """A 3D coordinate."""
 

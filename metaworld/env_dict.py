@@ -3,13 +3,11 @@ and organising them into various collections and splits for the benchmarks."""
 
 from __future__ import annotations
 
-import re
 from collections import OrderedDict
 from typing import Dict, List, Literal
 from typing import OrderedDict as Typing_OrderedDict
-from typing import Sequence, Union
+from typing import Union
 
-import numpy as np
 from typing_extensions import TypeAlias
 
 import gymnasium as gym

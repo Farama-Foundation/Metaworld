@@ -17,6 +17,7 @@ def test_mt1_single_seed(env_name):
                    seed=42,
                    num_seeds_per_env=1)
 
+    # TODO: test different seeds different envs
     # TODO: rm duplicate code by introducing a helper function
     initial_observations = []
     agent.reset()
@@ -24,7 +25,8 @@ def test_mt1_single_seed(env_name):
     initial_observations.append(obs)
 
     for _ in range(200):
-        action = agent.get_action(obs, info, env.action_space)
+        action = agent.get_action(
+            obs, info, env.unwrapped.ENV_NAME, env.action_space)
         obs, reward, terminate, truncate, info = env.step(action)
         initial_observations.append(obs)
         if terminate or truncate:
@@ -35,7 +37,8 @@ def test_mt1_single_seed(env_name):
     obs, info = env.reset()
     second_observations.append(obs)
     for _ in range(200):
-        action = agent.get_action(obs, info, env.action_space)
+        action = agent.get_action(
+            obs, info, env.unwrapped.ENV_NAME, env.action_space)
         obs, reward, terminate, truncate, info = env.step(action)
         second_observations.append(obs)
         if terminate or truncate:
