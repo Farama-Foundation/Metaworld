@@ -16,10 +16,16 @@ from metaworld.types import QueryableVectorEnv
 class ScriptedPolicyAgent(evaluation.MetaLearningAgent):
     def __init__(
         self,
-        envs: gym.vector.VectorEnv,
+        envs: gym.Env | gym.vector.VectorEnv,
         num_rollouts: int | None = None,
         max_episode_steps: int | None = None,
     ):
+        if not isinstance(envs, gym.vector.VectorEnv):
+            env = envs
+            envs = gym.vector.SyncVectorEnv(
+                [lambda: env], autoreset_mode=gym.vector.AutoresetMode.SAME_STEP
+            )
+
         env_task_names = evaluation._get_task_names(envs)
         self.policies = [ENV_POLICY_MAP[task]() for task in env_task_names]
         self.num_rollouts = num_rollouts
@@ -115,34 +121,62 @@ def test_evaluation():
         raise AssertionError(f"Not all tasks got > .8 success rate: {failed_tasks}")
 
 
-# @pytest.mark.parametrize("benchmark", ("reach-v3",))
-# def test_evaluation_mt1(benchmark):
-#     SEED = 1
-#     max_episode_steps = 300
-#     num_episodes = 50
-#     num_envs = 10
+@pytest.mark.parametrize("benchmark", ("reach-v3",))
+def test_evaluation_mt1(benchmark):
+    SEED = 1
+    num_episodes = 5
 
-#     random.seed(SEED)
-#     np.random.seed(SEED)
-#     envs = gym.make_vec(
-#         "Meta-World/MT1",
-#         env_name=benchmark,
-#         seed=SEED,
-#         max_episode_steps=max_episode_steps,
-#         vector_strategy="async",
-#         num_envs=num_envs
-#     )
-#     agent = ScriptedPolicyAgent(envs)
-#     mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
-#         agent,
-#         envs,
-#         num_episodes=num_episodes,
-#     )
-#     assert isinstance(mean_returns, float)
-#     assert set(success_rate_per_task) == {benchmark}
-#     assert mean_success_rate >= 0.80
-#     assert success_rate_per_task[benchmark] >= 0.80
-#     assert np.isclose(mean_success_rate, success_rate_per_task[benchmark])
+    random.seed(SEED)
+    np.random.seed(SEED)
+    env = gym.make(
+        "Meta-World/MT1",
+        env_name=benchmark,
+        seed=SEED,
+    )
+    agent = ScriptedPolicyAgent(env)
+    mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
+        agent,
+        env,
+        num_episodes=num_episodes,
+    )
+    assert isinstance(mean_returns, float)
+    assert set(success_rate_per_task) == {benchmark}
+    assert mean_success_rate >= 0.80
+    assert success_rate_per_task[benchmark] >= 0.80
+    assert np.isclose(mean_success_rate, success_rate_per_task[benchmark])
+
+
+@pytest.mark.parametrize("benchmark", ("reach-v3",))
+def test_evaluation_mt1_vectorized(benchmark):
+    SEED = 1
+    max_episode_steps = 300
+    num_envs = 10
+    num_goals = 50
+    num_episodes = num_goals // num_envs
+
+    random.seed(SEED)
+    np.random.seed(SEED)
+    envs = gym.make_vec(
+        "Meta-World/MT1-vectorized",
+        env_name=benchmark,
+        seed=SEED,
+        max_episode_steps=max_episode_steps,
+        vector_strategy="async",
+        num_envs=num_envs,
+        num_goals=num_goals,
+    )
+    assert isinstance(envs, gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv)
+    agent = ScriptedPolicyAgent(envs)
+    mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
+        agent,
+        envs,
+        num_episodes=num_episodes,
+    )
+    assert isinstance(mean_returns, float)
+    assert set(success_rate_per_task) == {benchmark}
+    assert mean_success_rate >= 0.80
+    assert success_rate_per_task[benchmark] >= 0.80
+    assert np.isclose(mean_success_rate, success_rate_per_task[benchmark])
 
 
 # @pytest.mark.skip

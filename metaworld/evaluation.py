@@ -43,9 +43,15 @@ def _get_task_names(
 
 def evaluation(
     agent: Agent,
-    eval_envs: gym.vector.VectorEnv,
+    eval_envs: gym.Env | gym.vector.VectorEnv,
     num_episodes: int = 50,
 ) -> tuple[float, float, dict[str, float], dict[str, list[float]]]:
+    if not isinstance(eval_envs, gym.vector.VectorEnv):
+        eval_env = eval_envs
+        eval_envs = gym.vector.SyncVectorEnv(
+            [lambda: eval_env], autoreset_mode=gym.vector.AutoresetMode.SAME_STEP
+        )
+
     assert isinstance(eval_envs, QueryableVectorEnv)
 
     terminate_on_success = np.all(eval_envs.get_attr("terminate_on_success")).item()
@@ -72,8 +78,9 @@ def evaluation(
 
         for i, env_ended in enumerate(dones):
             if env_ended:
-                episode_return = float(infos["final_info"]["episode"]["r"][i])
-                success = int(infos["final_info"]["success"][i])
+                final_info = infos.get("final_info", infos)
+                episode_return = float(final_info["episode"]["r"][i])
+                success = int(final_info["success"][i])
 
                 env_episodic_returns[i].append(episode_return)
 
