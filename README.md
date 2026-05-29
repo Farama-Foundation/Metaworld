@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://metaworld.farama.org/" target = "_blank">
-    <img src="https://github.com/Farama-Foundation/Metaworld/blob/master/metaworld-text.png" width="500px"/>
+    <img src="https://github.com/Farama-Foundation/Metaworld/blob/main/metaworld-text.png" width="500px"/>
 </p>
 
 Meta-World is an open source benchmark for developing and evaluating multi-task and meta reinforcement learning algorithms for continuous control robotic manipulation environments, with various benchmarks to evaluate different aspects of reinforcement learning algorithms.
