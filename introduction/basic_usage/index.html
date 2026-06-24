@@ -325,11 +325,11 @@ For users with limited compute resources, the synchronous option needs the least
 
 <span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
 
-<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT10&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns a Synchronous Vector Environment with 10 environments</span>
+<span class="n">envs</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make_vec</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT10&#39;</span><span class="p">,</span> <span class="n">vector_strategy</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># this returns a Synchronous Vector Environment with 10 environments</span>
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># reset all 10 environments</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># step all 10 environments</span>
 </pre></div>
@@ -351,7 +351,7 @@ For users with limited compute resources, the synchronous option needs the least
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># reset all 50 environments</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># sample an action for each environment</span>
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">envs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># step all 50 environments</span>
 </pre></div>
