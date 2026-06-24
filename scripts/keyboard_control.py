@@ -10,7 +10,7 @@ import numpy as np
 import pygame  # type: ignore
 from pygame.locals import KEYDOWN, QUIT  # type: ignore
 
-from metaworld.envs.V3 import SawyerPickPlaceEnvV3
+from metaworld.envs import SawyerPickPlaceEnvV3
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -35,7 +35,7 @@ char_to_action = {
 }
 
 
-env = SawyerPickPlaceEnvV3()
+env = SawyerPickPlaceEnvV3(render_mode="human")
 env._partially_observable = False
 env._freeze_rand_vec = False
 env._set_task_called = True
@@ -57,7 +57,9 @@ while True:
             if event.type == KEYDOWN:
                 char = event.dict["key"]
                 new_action = char_to_action.get(chr(char), None)
-                if new_action == "toggle":
+                if new_action is not None and isinstance(new_action, np.ndarray):
+                    action[:3] = new_action[:3]
+                elif new_action == "toggle":
                     lock_action = not lock_action
                 elif new_action == "reset":
                     done = True
@@ -65,15 +67,13 @@ while True:
                     action[3] = 1
                 elif new_action == "open":
                     action[3] = -1
-                elif new_action is not None and isinstance(new_action, np.ndarray):
-                    action[:3] = new_action[:3]
                 else:
                     action = np.zeros(3, dtype=np.float32)
                 print(action)
     else:
         action = np.array(env.action_space.sample(), dtype=np.float32)
-    ob, reward, done, infos = env.step(action)
+    ob, reward, terminated, truncated, infos = env.step(action)
     # time.sleep(1)
-    if done:
+    if terminated or truncated or done:
         obs = env.reset()
     env.render()
