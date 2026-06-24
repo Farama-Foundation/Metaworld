@@ -168,7 +168,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
         self,
         env: Env,
         tasks: list[Task],
-        sample_tasks_on_reset: bool = False,
+        sample_tasks_on_reset: bool = True,
     ):
         super().__init__(env)
         self.sample_tasks_on_reset = sample_tasks_on_reset
