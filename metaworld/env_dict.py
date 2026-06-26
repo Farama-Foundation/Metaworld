@@ -331,7 +331,7 @@ MT50_V3_ARGS_KWARGS = _get_args_kwargs(ALL_V3_ENVIRONMENTS, MT50_V3)
 ML1_V3 = _get_train_test_env_dict(
     list(ALL_V3_ENVIRONMENTS.keys()), list(ALL_V3_ENVIRONMENTS.keys())
 )
-ML1_args_kwargs = _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML1_V3["train"])
+ML1_ARGS_KWARGS = _get_args_kwargs(ALL_V3_ENVIRONMENTS, ML1_V3["train"])
 
 ML10_V3 = _get_train_test_env_dict(
     train_env_names=[
