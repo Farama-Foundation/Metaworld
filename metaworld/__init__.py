@@ -116,6 +116,7 @@ def _make_tasks(
     args_kwargs: _env_dict.EnvArgsKwargsDict,
     kwargs_override: dict,
     seed: int | None = None,
+    num_goals: int = _N_GOALS,
 ) -> list[Task]:
     """Initialises goals for a given set of environments.
 
@@ -124,9 +125,10 @@ def _make_tasks(
         args_kwargs: The environment arguments and keyword arguments.
         kwargs_override: Any kwarg overrides.
         seed: The random seed to use.
+        num_goals: The number of goals to generate for each environment.
 
     Returns:
-        A flat list of `Task` objects, `_N_GOALS` for each environment in `classes`.
+        A flat list of `num_goals` different `Task` objects, for each environment in `classes`.
     """
     # Cache existing random state
     if seed is not None:
@@ -149,14 +151,14 @@ def _make_tasks(
         del kwargs["task_id"]
         env._set_task_inner(**kwargs)
 
-        for _ in range(_N_GOALS):  # Generate random goals
+        for _ in range(num_goals):  # Generate random goals
             env.reset()
             assert env._last_rand_vec is not None
             rand_vecs.append(env._last_rand_vec)
         unique_task_rand_vecs = np.unique(np.array(rand_vecs), axis=0)
-        assert (
-            unique_task_rand_vecs.shape[0] == _N_GOALS
-        ), f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {_N_GOALS}"
+        assert unique_task_rand_vecs.shape[0] == num_goals, (
+            f"Only generated {unique_task_rand_vecs.shape[0]} unique goals, not {num_goals}"
+        )
         env.close()
 
         # Create a task for each random goal
@@ -190,7 +192,9 @@ class MT1(Benchmark):
 
     ENV_NAMES = list(_env_dict.ALL_V3_ENVIRONMENTS.keys())
 
-    def __init__(self, env_name, seed=None):
+    def __init__(
+        self, env_name: str, seed: int | None = None, num_goals: int = _N_GOALS
+    ):
         super().__init__()
         if env_name not in _env_dict.ALL_V3_ENVIRONMENTS:
             raise ValueError(f"{env_name} is not a V3 environment")
@@ -200,7 +204,11 @@ class MT1(Benchmark):
         args_kwargs = _env_dict.ML1_ARGS_KWARGS[env_name]
 
         self._train_tasks = _make_tasks(
-            self._train_classes, {env_name: args_kwargs}, _MT_OVERRIDE, seed=seed
+            self._train_classes,
+            {env_name: args_kwargs},
+            _MT_OVERRIDE,
+            seed=seed,
+            num_goals=num_goals,
         )
 
         self._test_tasks = []
@@ -213,17 +221,18 @@ class MT10(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed: int | None = None, num_goals: int = _N_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT10_V3
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.MT10_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes,
+            _env_dict.MT10_V3_ARGS_KWARGS,
+            _MT_OVERRIDE,
+            seed=seed,
+            num_goals=num_goals,
         )
-
         self._test_tasks = []
-        self._test_classes = []
 
 
 class MT25(Benchmark):
@@ -233,16 +242,17 @@ class MT25(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _N_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT25_V3
-        train_kwargs = _env_dict.MT25_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes,
+            _env_dict.MT25_V3_ARGS_KWARGS,
+            _MT_OVERRIDE,
+            seed=seed,
+            num_goals=num_goals,
         )
-
         self._test_tasks = []
-        self._test_classes = []
 
 
 class MT50(Benchmark):
@@ -252,17 +262,18 @@ class MT50(Benchmark):
     Has an empty test set.
     """
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, num_goals: int = _N_GOALS):
         super().__init__()
         self._train_classes = _env_dict.MT50_V3
         self._test_classes = OrderedDict()
-        train_kwargs = _env_dict.MT50_V3_ARGS_KWARGS
         self._train_tasks = _make_tasks(
-            self._train_classes, train_kwargs, _MT_OVERRIDE, seed=seed
+            self._train_classes,
+            _env_dict.MT50_V3_ARGS_KWARGS,
+            _MT_OVERRIDE,
+            seed=seed,
+            num_goals=num_goals,
         )
-
         self._test_tasks = []
-        self._test_classes = []
 
 
 # ML Benchmarks
@@ -463,11 +474,12 @@ def make_mt_envs(
     num_tasks: int | None = None,
     vector_strategy: Literal["sync", "async"] = "sync",
     autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
+    num_goals: int = _N_GOALS,
     **kwargs,
 ) -> gym.Env | gym.vector.VectorEnv:
     benchmark: Benchmark
     if name in ALL_V3_ENVIRONMENTS.keys():
-        benchmark = MT1(name, seed=seed)
+        benchmark = MT1(name, seed=seed, num_goals=num_goals)
         tasks = [task for task in benchmark.train_tasks]
         return _init_each_env(  # type: ignore[misc]
             env_cls=benchmark.train_classes[name],
@@ -477,7 +489,7 @@ def make_mt_envs(
             **kwargs,
         )
     elif name == "MT10" or name == "MT25" or name == "MT50":
-        benchmark = globals()[name](seed=seed)
+        benchmark = globals()[name](seed=seed, num_goals=num_goals)
         vectorizer: type[gym.vector.VectorEnv] = getattr(
             gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
         )
@@ -513,6 +525,52 @@ def make_mt_envs(
         )
 
 
+def make_mt1_envs_vectorized(
+    name: str,
+    seed: int | None = None,
+    num_envs: int = 1,
+    vector_strategy: Literal["sync", "async"] = "sync",
+    autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
+    num_goals: int = _N_GOALS,
+    **kwargs,
+) -> gym.vector.VectorEnv:
+    if name not in ALL_V3_ENVIRONMENTS.keys():
+        raise ValueError(
+            "Invalid MT1 env name. Must be a valid Metaworld task name (e.g. 'reach-v3')."
+        )
+    if num_goals % num_envs != 0:
+        raise ValueError(
+            f"num_envs must evenly divide num_goals, got num_envs={num_envs} and num_goals={num_goals}."
+        )
+
+    benchmark = MT1(name, seed=seed, num_goals=num_goals)
+    tasks = [task for task in benchmark.train_tasks]
+    tasks_per_env = [tasks[env_idx::num_envs] for env_idx in range(num_envs)]
+    for tasks_for_subenv in tasks_per_env:
+        assert len(tasks_for_subenv) == num_goals // num_envs, (
+            f"Invalid division of subtasks, expected {num_goals // num_envs} got {len(tasks_for_subenv)}"
+        )
+
+    vectorizer: type[gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv] = getattr(
+        gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+    )
+    return vectorizer(
+        [
+            partial(
+                _init_each_env,
+                env_cls=benchmark.train_classes[name],
+                tasks=tasks_for_subenv,
+                seed=seed,
+                env_id=env_idx,
+                num_tasks=num_envs,
+                **kwargs,
+            )
+            for env_idx, tasks_for_subenv in enumerate(tasks_per_env)
+        ],
+        autoreset_mode=autoreset_mode,
+    )
+
+
 def _make_ml_envs_inner(
     benchmark: Benchmark,
     meta_batch_size: int,
@@ -527,9 +585,9 @@ def _make_ml_envs_inner(
         benchmark.train_classes if split == "train" else benchmark.test_classes
     )
     all_tasks = benchmark.train_tasks if split == "train" else benchmark.test_tasks
-    assert (
-        meta_batch_size % len(all_classes) == 0
-    ), "meta_batch_size must be divisible by envs_per_task"
+    assert meta_batch_size % len(all_classes) == 0, (
+        "meta_batch_size must be divisible by envs_per_task"
+    )
     tasks_per_env = meta_batch_size // len(all_classes)
 
     env_tuples = []
@@ -539,9 +597,9 @@ def _make_ml_envs_inner(
             tasks = tasks[:total_tasks_per_cls]
         subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
         for tasks_for_subenv in subenv_tasks:
-            assert (
-                len(tasks_for_subenv) == len(tasks) // tasks_per_env
-            ), f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
+            assert len(tasks_for_subenv) == len(tasks) // tasks_per_env, (
+                f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
+            )
             env_tuples.append((env_cls, tasks_for_subenv))
 
     vectorizer: type[gym.vector.SyncVectorEnv | gym.vector.AsyncVectorEnv] = getattr(
@@ -610,20 +668,39 @@ def register_mw_envs() -> None:
         vector_strategy: Literal["sync", "async"],
         autoreset_mode: gym.vector.AutoresetMode
         | str = gym.vector.AutoresetMode.SAME_STEP,
-        seed=None,
-        use_one_hot=False,
+        seed: int | None = None,
+        use_one_hot: bool = False,
         num_envs=None,
+        num_goals: int = _N_GOALS,
         **lamb_kwargs,
     ):
-        if "num_goals" in lamb_kwargs:
-            global _N_GOALS
-            _N_GOALS = lamb_kwargs["num_goals"]
-            del lamb_kwargs["num_goals"]
         return make_mt_envs(  # type: ignore
             mt_bench,
             seed=seed,
             use_one_hot=use_one_hot,
+            num_goals=num_goals,
             vector_strategy=vector_strategy,  # type: ignore
+            autoreset_mode=autoreset_mode,
+            **lamb_kwargs,
+        )
+
+    def _mt1_bench_vector_entry_point(
+        mt1_env_name: str,
+        vector_strategy: Literal["sync", "async"],
+        autoreset_mode: gym.vector.AutoresetMode
+        | str = gym.vector.AutoresetMode.SAME_STEP,
+        seed=None,
+        num_envs: int = 1,
+        num_goals: int = _N_GOALS,
+        **lamb_kwargs,
+    ):
+        return make_mt1_envs_vectorized(
+            mt1_env_name,
+            seed=seed,
+            num_envs=num_envs,
+            num_goals=num_goals,
+            use_one_hot=False,
+            vector_strategy=vector_strategy,
             autoreset_mode=autoreset_mode,
             **lamb_kwargs,
         )
@@ -654,14 +731,33 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/MT1",
-        entry_point=lambda env_name, use_one_hot=False, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, num_envs=None, **kwargs: _mt_bench_vector_entry_point(
-            env_name,
-            vector_strategy,
-            autoreset_mode,
-            seed,
-            use_one_hot,
-            num_envs,
-            **kwargs,
+        entry_point=lambda env_name, use_one_hot=False, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, num_envs=None, num_goals=_N_GOALS, **kwargs: (
+            _mt_bench_vector_entry_point(
+                env_name,
+                vector_strategy,
+                autoreset_mode,
+                seed,
+                False,
+                num_envs,
+                num_goals,
+                **kwargs,
+            )
+        ),
+        kwargs={},
+    )
+
+    register(
+        id="Meta-World/MT1-vectorized",
+        vector_entry_point=lambda env_name, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, num_envs=1, num_goals=_N_GOALS, **kwargs: (
+            _mt1_bench_vector_entry_point(
+                env_name,
+                vector_strategy,
+                autoreset_mode,
+                seed,
+                num_envs,
+                num_goals,
+                **kwargs,
+            )
         ),
         kwargs={},
     )
@@ -669,16 +765,18 @@ def register_mw_envs() -> None:
     for split in ["train", "test"]:
         register(
             id=f"Meta-World/ML1-{split}",
-            vector_entry_point=lambda env_name, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, meta_batch_size=20, seed=None, num_envs=None, **kwargs: _ml_bench_vector_entry_point(
-                env_name,
-                split,  # type: ignore[arg-type]
-                vector_strategy,
-                autoreset_mode,
-                total_tasks_per_cls,
-                seed,
-                meta_batch_size,
-                num_envs,
-                **kwargs,
+            vector_entry_point=lambda env_name, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, meta_batch_size=20, seed=None, num_envs=None, **kwargs: (
+                _ml_bench_vector_entry_point(
+                    env_name,
+                    split,  # type: ignore[arg-type]
+                    vector_strategy,
+                    autoreset_mode,
+                    total_tasks_per_cls,
+                    seed,
+                    meta_batch_size,
+                    num_envs,
+                    **kwargs,
+                )
             ),
             kwargs={},
         )
@@ -708,14 +806,17 @@ def register_mw_envs() -> None:
     for mt_bench in ["MT10", "MT25", "MT50"]:
         register(
             id=f"Meta-World/{mt_bench}",
-            vector_entry_point=lambda _mt_bench=mt_bench, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, use_one_hot=False, num_envs=None, **kwargs: _mt_bench_vector_entry_point(
-                _mt_bench,  # positional arguments
-                vector_strategy,
-                autoreset_mode,
-                seed,
-                use_one_hot,
-                num_envs,
-                **kwargs,
+            vector_entry_point=lambda _mt_bench=mt_bench, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, use_one_hot=False, num_envs=None, num_goals=_N_GOALS, **kwargs: (
+                _mt_bench_vector_entry_point(
+                    _mt_bench,  # positional arguments
+                    vector_strategy,
+                    autoreset_mode,
+                    seed,
+                    use_one_hot,
+                    num_envs,
+                    num_goals,
+                    **kwargs,
+                )
             ),
             kwargs={},
         )
@@ -724,16 +825,18 @@ def register_mw_envs() -> None:
         for split in ["train", "test"]:
             register(
                 id=f"Meta-World/{ml_bench}-{split}",
-                vector_entry_point=lambda _ml_bench=ml_bench, _split=split, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, seed=None, meta_batch_size=20, num_envs=None, **kwargs: _ml_bench_vector_entry_point(
-                    _ml_bench,
-                    _split,
-                    vector_strategy,
-                    autoreset_mode,
-                    total_tasks_per_cls,
-                    seed,
-                    meta_batch_size,
-                    num_envs,
-                    **kwargs,
+                vector_entry_point=lambda _ml_bench=ml_bench, _split=split, vector_strategy="sync", autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, seed=None, meta_batch_size=20, num_envs=None, **kwargs: (
+                    _ml_bench_vector_entry_point(
+                        _ml_bench,
+                        _split,
+                        vector_strategy,
+                        autoreset_mode,
+                        total_tasks_per_cls,
+                        seed,
+                        meta_batch_size,
+                        num_envs,
+                        **kwargs,
+                    )
                 ),
                 kwargs={},
             )
@@ -769,14 +872,16 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/custom-mt-envs",
-        vector_entry_point=lambda vector_strategy, envs_list, autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, use_one_hot=False, num_envs=None, **kwargs: _custom_mt_vector_entry_point(
-            vector_strategy,
-            envs_list,
-            seed,
-            autoreset_mode,
-            use_one_hot,
-            num_envs,
-            **kwargs,
+        vector_entry_point=lambda vector_strategy, envs_list, autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, seed=None, use_one_hot=False, num_envs=None, **kwargs: (
+            _custom_mt_vector_entry_point(
+                vector_strategy,
+                envs_list,
+                seed,
+                autoreset_mode,
+                use_one_hot,
+                num_envs,
+                **kwargs,
+            )
         ),
         kwargs={},
     )
@@ -805,16 +910,18 @@ def register_mw_envs() -> None:
 
     register(
         id="Meta-World/custom-ml-envs",
-        vector_entry_point=lambda vector_strategy, train_envs, test_envs, autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, meta_batch_size=20, seed=None, num_envs=None, **kwargs: _custom_ml_vector_entry_point(
-            vector_strategy,
-            train_envs,
-            test_envs,
-            autoreset_mode,
-            total_tasks_per_cls,
-            meta_batch_size,
-            seed,
-            num_envs,
-            **kwargs,
+        vector_entry_point=lambda vector_strategy, train_envs, test_envs, autoreset_mode=gym.vector.AutoresetMode.SAME_STEP, total_tasks_per_cls=None, meta_batch_size=20, seed=None, num_envs=None, **kwargs: (
+            _custom_ml_vector_entry_point(
+                vector_strategy,
+                train_envs,
+                test_envs,
+                autoreset_mode,
+                total_tasks_per_cls,
+                meta_batch_size,
+                seed,
+                num_envs,
+                **kwargs,
+            )
         ),
         kwargs={},
     )
