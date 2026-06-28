@@ -1,14 +1,16 @@
-name: Build and Deploy Docs
+name: Build release documentation website
+
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v?*.*.*'
 
 permissions:
   contents: write
 
 jobs:
   docs:
-    name: Generate Website
+    name: Generate Website for new version
     runs-on: ubuntu-latest
 
     steps:
@@ -35,9 +37,18 @@ jobs:
       - name: Remove .doctrees
         run: rm -r _build/.doctrees
 
-      - name: Upload to GitHub Pages
+      - name: Upload to GitHub Pages (versioned)
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _build
-          target-folder: main
+          target-folder: ${{ github.ref_name }}
           clean: false
+
+      - name: Upload to GitHub Pages (latest at root)
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: ${{ !contains(github.ref_name, 'a') }}
+        with:
+          folder: _build
+          clean-exclude: |
+            *.*.*/
+            main
