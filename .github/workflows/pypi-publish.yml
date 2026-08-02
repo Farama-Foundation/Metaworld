@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v7
 
     - name: Install dependencies
       run: pipx install build
