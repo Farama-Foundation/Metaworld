@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import warnings
 from typing import Any, Callable
 
 import numpy as np
@@ -41,16 +40,12 @@ def move(
         p: constant to scale response
 
     Returns:
-        Response that will decrease abs(to_xyz - from_xyz)
+        Clipped response that will decrease abs(to_xyz - from_xyz)
     """
     error = to_xyz - from_xyz
     response = p * error
-    if np.any(np.absolute(response) > 1.0):
-        warnings.warn(
-            "Constant(s) may be too high. Environments clip response to [-1, 1]"
-        )
 
-    return response
+    return np.clip(response, -1.0, 1.0)
 
 
 class Policy(abc.ABC):

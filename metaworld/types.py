@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, NamedTuple, Tuple
+from typing import Any, NamedTuple, Protocol, Tuple, runtime_checkable
 
 import numpy as np
 import numpy.typing as npt
@@ -47,3 +47,12 @@ class HammerInitConfigDict(TypedDict):
 class StickInitConfigDict(TypedDict):
     stick_init_pos: npt.NDArray[Any]
     hand_init_pos: npt.NDArray[Any]
+
+
+@runtime_checkable
+class QueryableVectorEnv(Protocol):
+    def get_attr(self, name: str) -> Any: ...
+
+    def set_attr(self, name: str, values: Any) -> Any: ...
+
+    def call(self, name: str, *args, **kwargs) -> Any: ...
