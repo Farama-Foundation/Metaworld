@@ -144,7 +144,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[16:18] = pos.copy()
-        qvel[16:18] = 0
+        qvel[15:17] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self) -> npt.NDArray[np.float64]:
