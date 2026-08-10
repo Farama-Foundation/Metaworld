@@ -5,6 +5,7 @@ from typing import NamedTuple, Protocol
 import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
+from tqdm import tqdm
 
 from metaworld.env_dict import ALL_V3_ENVIRONMENTS
 
@@ -63,6 +64,9 @@ def evaluation(
         task_name: [] for task_name in set(task_names)
     }
 
+    pbar_envs_done = tqdm(total=len(set(task_names)) *
+                          num_episodes, desc="Evaluation")
+
     def eval_done(returns):
         return all(len(r) >= num_episodes for _, r in returns.items())
 
@@ -75,6 +79,10 @@ def evaluation(
 
         for i, env_ended in enumerate(dones):
             if env_ended:
+                task = task_names[i]
+                current_count = len(episodic_returns[task])
+                if current_count < num_episodes:
+                    pbar_envs_done.update(1)
                 episodic_returns[task_names[i]].append(
                     float(infos["final_info"]["episode"]["r"][i])
                 )
