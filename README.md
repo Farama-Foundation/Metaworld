@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://metaworld.farama.org/" target = "_blank">
-    <img src="https://github.com/Farama-Foundation/Metaworld/blob/master/metaworld-text.png" width="500px"/>
+    <img src="https://github.com/Farama-Foundation/Metaworld/blob/main/metaworld-text.png" width="500px"/>
 </p>
 
 Meta-World is an open source benchmark for developing and evaluating multi-task and meta reinforcement learning algorithms for continuous control robotic manipulation environments, with various benchmarks to evaluate different aspects of reinforcement learning algorithms.
@@ -17,7 +17,7 @@ The documentation website is at [metaworld.farama.org](https://metaworld.farama.
 
 To install Meta-World, use `pip install metaworld`
 
-We support and test for Python 3.8, 3.9, 3.10, 3.11 on Linux and macOS. We will accept PRs related to Windows, but do not officially support it.
+We support and test for Python 3.10, 3.11, 3.12, and 3.13 on Linux and macOS. We will accept PRs related to Windows, but do not officially support it.
 
 ## API
 
