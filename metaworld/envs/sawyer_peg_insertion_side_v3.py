@@ -327,4 +327,16 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             assert (placeRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + placeRew
 
-            return float(reward), 0.0, 0.0, float(placingDist), 0.0, 0.0, 0.0, 0.0
+            # The task goal is the peg head entering the side hole.  Reporting
+            # the body-center distance here can never reach the success radius
+            # because the head is offset from the object's reference frame.
+            return (
+                float(reward),
+                0.0,
+                0.0,
+                float(placingDistHead),
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            )

@@ -200,11 +200,18 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             reachNearRew = max(reachNearRew, 0)
             reward = reachRew + reachNearRew
 
+            # Keep the diagnostic distance tied to the achieved object pose.
+            # The legacy v1 reward only shapes the end-effector trajectory, but
+            # ``evaluate_state`` uses this value to report task success.  Using
+            # the reset distance here made the success flag constant for an
+            # entire episode, even after the object had been inserted.
+            obj_to_target = float(np.linalg.norm(obs[4:7] - goal))
+
             return (
                 float(reward),
                 0.0,
                 0.0,
-                float(np.linalg.norm(self.obj_init_pos - self._target_pos)),
+                obj_to_target,
                 0.0,
                 0.0,
             )
