@@ -69,7 +69,6 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
         stick = obs[4:7]
-        container = obs[11:14]
         (
             reward,
             tcp_to_obj,
@@ -79,7 +78,11 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             stick_in_place,
         ) = self.compute_reward(action, obs)
         assert self._target_pos is not None
-        success = float(np.linalg.norm(container - self._target_pos) <= 0.12)
+        # Completion is determined by the pushed container, not by whether the
+        # gripper is still holding the stick.  Expert policies commonly release
+        # after placing the container, so coupling success to grasp contact
+        # makes valid terminal states invisible to evaluation.
+        success = float(container_to_target <= 0.12)
         near_object = float(tcp_to_obj <= 0.03)
         grasp_success = float(
             self.touching_main_object
@@ -88,7 +91,7 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
         )
 
         info = {
-            "success": grasp_success and success,
+            "success": success,
             "near_object": near_object,
             "grasp_success": grasp_success,
             "grasp_reward": grasp_reward,
@@ -346,7 +349,11 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             )
         else:
             stickPos = obs[4:7]
-            objPos = obs[6:9]
+            # Objects are encoded as (position, quaternion) blocks.  The
+            # container is the second block at [11:14]; [6:9] mixes the stick's
+            # z coordinate with quaternion components and corrupts the push
+            # distance used by the legacy reward.
+            objPos = obs[11:14]
 
             rightFinger, leftFinger = self._get_site_pos(
                 "rightEndEffector"
@@ -357,6 +364,7 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             pushGoal = self._target_pos
 
             pushDist = np.linalg.norm(objPos[:2] - pushGoal[:2])
+            containerToTarget = float(np.linalg.norm(objPos - pushGoal))
             placeDist = np.linalg.norm(objPos - stickPos)
             reachDist = np.linalg.norm(stickPos - fingerCOM)
 
@@ -408,4 +416,4 @@ class SawyerStickPushEnvV3(SawyerXYZEnv):
             assert (pushRew >= 0) and (pickRew >= 0)
             reward = reachRew + pickRew + pushRew
 
-            return float(reward), 0.0, 0.0, float(pushDist), 0.0, 0.0
+            return float(reward), 0.0, 0.0, containerToTarget, 0.0, 0.0
