@@ -300,7 +300,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">metaworld.policies.sawyer_reach_v3_policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">SawyerReachV3Policy</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT1&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;reach-v3&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">'Meta-World/MT1'</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="s1">'reach-v3'</span><span class="p">)</span>
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
@@ -311,7 +311,7 @@
 <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
     <span class="n">obs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-    <span class="n">done</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">done</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">'success'</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
 </section>

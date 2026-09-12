@@ -295,11 +295,11 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">metaworld</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 
-<span class="n">env_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># Pick an environment name</span>
+<span class="n">env_name</span> <span class="o">=</span> <span class="s1">''</span> <span class="c1"># Pick an environment name</span>
 
-<span class="n">render_mode</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># set a render mode</span>
+<span class="n">render_mode</span> <span class="o">=</span> <span class="s1">''</span> <span class="c1"># set a render mode</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Meta-World/MT1&#39;</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">'Meta-World/MT1'</span><span class="p">,</span> <span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span>
 
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># Reset environment</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>  <span class="c1"># Sample an action</span>
@@ -309,7 +309,7 @@
 <section id="render-from-a-specific-camera">
 <h2>Render from a specific camera<a class="headerlink" href="#render-from-a-specific-camera" title="Link to this heading">¶</a></h2>
 <p>In addition to the base render functions, Meta-World supports multiple camera positions.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">camera_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># one of: [&#39;corner&#39;, &#39;corner2&#39;, &#39;corner3&#39;, &#39;corner4&#39;, &#39;topview&#39;, &#39;behindGripper&#39;, &#39;gripperPOV&#39;]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">camera_name</span> <span class="o">=</span> <span class="s1">''</span> <span class="c1"># one of: ['corner', 'corner2', 'corner3', 'corner4', 'topview', 'behindGripper', 'gripperPOV']</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_name</span><span class="o">=</span><span class="n">camera_name</span><span class="p">)</span>
 
@@ -317,7 +317,7 @@
 </div>
 <p>The ID of the camera (from Mujoco) can also be passed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
-<span class="n">camera_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># this is an integer that represents the camera ID from Mujoco</span>
+<span class="n">camera_id</span> <span class="o">=</span> <span class="s1">''</span> <span class="c1"># this is an integer that represents the camera ID from Mujoco</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_name</span><span class="o">=</span><span class="n">env_name</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="n">camera_id</span><span class="o">=</span><span class="n">camera_id</span><span class="p">)</span>
 
