@@ -76,6 +76,22 @@ ENV_CLS_MAP = {
     "window-close-v3": envs.SawyerWindowCloseEnvV3,
 }
 
+# Continual World (CW10/CW20) order, mapped from the original v1 benchmark to
+# the equivalent MetaWorld v3 task names. CW20 repeats the same ten tasks.
+CW10_TASK_NAMES = (
+    "hammer-v3",
+    "push-wall-v3",
+    "faucet-close-v3",
+    "push-back-v3",
+    "stick-pull-v3",
+    "handle-press-side-v3",
+    "push-v3",
+    "shelf-place-v3",
+    "window-close-v3",
+    "peg-unplug-side-v3",
+)
+CW20_TASK_NAMES = CW10_TASK_NAMES * 2
+
 
 def _get_env_dict(env_names: Sequence[str]) -> EnvDict:
     """Returns an `OrderedDict` containing `(env_name, env_cls)` tuples for the given env_names.
