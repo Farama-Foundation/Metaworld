@@ -37,8 +37,9 @@ class ContinualWorldEnv(gym.vector.VectorEnv):
     the returned observation and reset info belong to the next task, while
     ``final_obs`` and ``final_info`` preserve the last transition of the old
     task. Calling :meth:`reset` during a sequence resets the active task but
-    does not restart its step budget. After the final phase, reset starts a
-    new sequence.
+    does not restart its step budget. The final phase returns its own reset
+    observation and sets ``sequence_complete``. Further steps require an
+    explicit reset, which starts a new sequence.
 
     Args:
         envs: One vector environment per task phase, in sequence order.
@@ -160,14 +161,15 @@ class ContinualWorldEnv(gym.vector.VectorEnv):
         truncated = np.ones(self.num_envs, dtype=np.bool_)
         if self.env_idx == len(self.envs) - 1:
             self._needs_reset = True
-            info = self._with_task_info(info)
+            reset_obs, reset_info = self.envs[self.env_idx].reset()
+            info = self._with_task_info(reset_info)
             for i in range(self.num_envs):
                 self._add_info(
                     info, {"final_obs": final_obs[i], "final_info": final_info[i]}, i
                 )
             info["sequence_complete"] = np.ones(self.num_envs, dtype=np.bool_)
             info["_sequence_complete"] = np.ones(self.num_envs, dtype=np.bool_)
-            return np.stack(final_obs), rewards, terminated, truncated, info
+            return reset_obs, rewards, terminated, truncated, info
 
         self.env_idx += 1
         self.phase_step = 0

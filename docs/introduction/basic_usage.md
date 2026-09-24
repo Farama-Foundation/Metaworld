@@ -47,7 +47,7 @@ for _ in range(10 * 100_000):
 envs.close()
 ```
 
-Task identity is appended to observations as a one-hot vector by default (`use_one_hot=False` disables it). The current sequence position is also available in `info['task_idx']`. At a task boundary, every lane is truncated and the wrapper uses Gymnasium's same-step autoreset convention: `obs` and ordinary reset information come from the next task, while `final_obs` and `final_info` retain the preceding task's last transition. An explicit `reset()` during a sequence resets the active task without restarting its step budget. After the final task, `info['sequence_complete']` is true; call `reset()` to start the sequence again. The training algorithms from the original Continual World repository are not included.
+Task identity is appended to observations as a one-hot vector by default (`use_one_hot=False` disables it). The current sequence position is also available in `info['task_idx']`. At a task boundary, every lane is truncated and the wrapper uses Gymnasium's same-step autoreset convention: `obs` and ordinary reset information come from the next task, while `final_obs` and `final_info` retain the preceding task's last transition. An explicit `reset()` during a sequence resets the active task without restarting its step budget. After the final task, `obs` and ordinary info come from a reset of that final task, while `final_obs` and `final_info` retain its last transition. `info['sequence_complete']` is true and further steps require an explicit `reset()` to start the sequence again. The training algorithms from the original Continual World repository are not included.
 
 
 ### MT1

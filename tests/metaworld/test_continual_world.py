@@ -103,6 +103,40 @@ def test_boundary_uses_true_final_obs_when_inner_env_autoresets():
         env.close()
 
 
+@pytest.mark.parametrize(
+    "vectorizer", [gym.vector.SyncVectorEnv, gym.vector.AsyncVectorEnv]
+)
+@pytest.mark.parametrize("episode_ends", [(False, False), (True, True), (False, True)])
+def test_sequence_completion_returns_reset_data(vectorizer, episode_ends):
+    phase = vectorizer(
+        [partial(_PhaseEnv, 2, done) for done in episode_ends],
+        autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
+    )
+    env = ContinualWorldEnv([phase], steps_per_task=1)
+    try:
+        env.reset(seed=7)
+        obs, rewards, terminated, truncated, info = env.step(np.zeros((2, 1)))
+        np.testing.assert_array_equal(obs, [[20], [20]])
+        np.testing.assert_array_equal(rewards, [1, 1])
+        assert not terminated.any()
+        assert truncated.all()
+        assert info["sequence_complete"].all()
+        np.testing.assert_array_equal(info["reset_phase"], [2, 2])
+        np.testing.assert_array_equal(info["task_idx"], [0, 0])
+        assert "step_phase" not in info
+        np.testing.assert_array_equal(info["final_obs"].tolist(), [[21], [21]])
+        np.testing.assert_array_equal(info["final_info"]["step_phase"], [2, 2])
+        np.testing.assert_array_equal(info["final_info"]["task_idx"], [0, 0])
+        with pytest.raises(RuntimeError, match="reset"):
+            env.step(np.zeros((2, 1)))
+        obs, info = env.reset(seed=11)
+        np.testing.assert_array_equal(obs, [[20], [20]])
+        np.testing.assert_array_equal(info["reset_seed"], [11, 12])
+        assert "sequence_complete" not in info
+    finally:
+        env.close()
+
+
 def test_async_phase_switch():
     env = ContinualWorldEnv(
         [
