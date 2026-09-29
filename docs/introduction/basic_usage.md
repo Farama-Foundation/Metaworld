@@ -27,14 +27,14 @@ import metaworld
 
 envs = gym.make_vec(
     'Meta-World/CW10',
-    num_envs=4,
-    steps_per_task=100_000,
+    num_envs=1,
+    steps_per_task=1_000_000,
     seed=42,
     vector_strategy='sync',
 )
 obs, info = envs.reset(seed=42)
 
-for _ in range(10 * 100_000):
+for _ in range(10 * 1_000_000):
     actions = envs.action_space.sample()
     obs, rewards, terminated, truncated, info = envs.step(actions)
     if 'final_obs' in info:
