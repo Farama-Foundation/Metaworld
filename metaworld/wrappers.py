@@ -24,8 +24,14 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
         self.one_hot = np.zeros(num_tasks)
         self.one_hot[task_idx] = 1.0
 
+        # `Box` falls back to float32 when no dtype is given, while the Sawyer
+        # observation space is float64 and `observation()` concatenates float64
+        # arrays. Without carrying the dtype across, the wrapper declared a space
+        # its own observations never lay in.
         self._observation_space = gym.spaces.Box(
-            np.concatenate([env_lb, one_hot_lb]), np.concatenate([env_ub, one_hot_ub])
+            np.concatenate([env_lb, one_hot_lb]),
+            np.concatenate([env_ub, one_hot_ub]),
+            dtype=env.observation_space.dtype,
         )
 
     def observation(self, obs: NDArray) -> NDArray:
@@ -57,8 +63,13 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
         assert isinstance(self.env.action_space, gym.spaces.Box)
         obs_flat_dim = int(np.prod(self.env.observation_space.shape))
         action_flat_dim = int(np.prod(self.env.action_space.shape))
+        # Same as in `OneHotWrapper`: the observation stays float64, so the
+        # declared space has to say so rather than take `Box`'s float32 default.
         self._observation_space = gym.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(obs_flat_dim + action_flat_dim + 1 + 1,)
+            low=-np.inf,
+            high=np.inf,
+            shape=(obs_flat_dim + action_flat_dim + 1 + 1,),
+            dtype=self.env.observation_space.dtype,
         )
         self._normalize_reward = normalize_reward
 
