@@ -5,10 +5,207 @@ import base64
 import gymnasium as gym
 import numpy as np
 from gymnasium import Env
+from gymnasium.vector.utils import batch_space
 from numpy.typing import NDArray
 
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import Task
+
+
+def _vector_info_at(infos: dict, env_idx: int) -> dict:
+    """Extract one environment's information from Gymnasium's vector format."""
+    result = {}
+    for key, value in infos.items():
+        if key.startswith("_"):
+            continue
+        mask = infos.get(f"_{key}")
+        if mask is not None and not mask[env_idx]:
+            continue
+        result[key] = (
+            _vector_info_at(value, env_idx)
+            if isinstance(value, dict)
+            else value[env_idx]
+        )
+    return result
+
+
+class ContinualWorldEnv(gym.vector.VectorEnv):
+    """Run a finite sequence of vectorized MetaWorld tasks.
+
+    Each phase receives ``steps_per_task`` vector steps, regardless of the
+    number of parallel environments. Phase boundaries use same-step autoreset:
+    the returned observation and reset info belong to the next task, while
+    ``final_obs`` and ``final_info`` preserve the last transition of the old
+    task. Calling :meth:`reset` during a sequence resets the active task but
+    does not restart its step budget. The final phase returns its own reset
+    observation and sets ``sequence_complete``. Further steps require an
+    explicit reset, which starts a new sequence.
+
+    Args:
+        envs: One vector environment per task phase, in sequence order.
+        steps_per_task: Number of vector steps allotted to each phase.
+
+    Raises:
+        ValueError: If phases are empty, incompatible, or use an unsupported
+            autoreset mode, or if the step budget is not positive.
+    """
+
+    def __init__(self, envs: list[gym.vector.VectorEnv], steps_per_task: int):
+        if not envs:
+            raise ValueError("ContinualWorldEnv requires at least one task phase")
+        if steps_per_task <= 0:
+            raise ValueError("steps_per_task must be positive")
+
+        first = envs[0]
+        for env in envs:
+            if env.num_envs != first.num_envs:
+                raise ValueError("All task phases must have the same num_envs")
+            if env.single_action_space != first.single_action_space:
+                raise ValueError("All task phases must have the same action space")
+            if not isinstance(env.single_observation_space, gym.spaces.Box):
+                raise ValueError("Task observations must use Box spaces")
+            if (
+                env.single_observation_space.shape
+                != first.single_observation_space.shape
+            ):
+                raise ValueError("All task phases must have the same observation shape")
+            if (
+                env.single_observation_space.dtype
+                != first.single_observation_space.dtype
+            ):
+                raise ValueError("All task phases must have the same observation dtype")
+            if env.metadata.get("autoreset_mode") != gym.vector.AutoresetMode.SAME_STEP:
+                raise ValueError("Task phases must use SAME_STEP autoreset")
+
+        self.envs = envs
+        self.num_envs = first.num_envs
+        self.steps_per_task = steps_per_task
+        self.single_action_space = first.single_action_space
+        self.action_space = first.action_space
+        self.single_observation_space = gym.spaces.Box(
+            low=np.minimum.reduce(
+                [env.single_observation_space.low for env in envs]
+            ).astype(first.single_observation_space.dtype),
+            high=np.maximum.reduce(
+                [env.single_observation_space.high for env in envs]
+            ).astype(first.single_observation_space.dtype),
+            dtype=first.single_observation_space.dtype,
+        )
+        self.observation_space = batch_space(
+            self.single_observation_space, self.num_envs
+        )
+        self.metadata = {
+            **first.metadata,
+            "autoreset_mode": gym.vector.AutoresetMode.SAME_STEP,
+        }
+        self.render_mode = first.render_mode
+        self.env_idx = 0
+        self.phase_step = 0
+        self._base_seed: int | None = None
+        self._needs_reset = True
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        """Reset the active task, or start a new sequence after completion."""
+        super().reset(seed=seed)
+        starting_sequence = self._needs_reset
+        if starting_sequence:
+            self._base_seed = seed
+            self.env_idx = 0
+            self.phase_step = 0
+        obs, info = self.envs[self.env_idx].reset(seed=seed, options=options)
+        if starting_sequence:
+            self._needs_reset = False
+        return obs, self._with_task_info(info)
+
+    def _with_task_info(self, info: dict) -> dict:
+        return {
+            **info,
+            "task_idx": np.full(self.num_envs, self.env_idx, dtype=np.int64),
+            "_task_idx": np.ones(self.num_envs, dtype=np.bool_),
+        }
+
+    def step(self, actions):
+        """Step the active task and advance on a phase boundary."""
+        if self._needs_reset:
+            raise RuntimeError(
+                "Call reset() before stepping the Continual World sequence"
+            )
+
+        obs, rewards, terminated, truncated, info = self.envs[self.env_idx].step(
+            actions
+        )
+        self.phase_step += 1
+        if self.phase_step < self.steps_per_task:
+            return obs, rewards, terminated, truncated, self._with_task_info(info)
+
+        # The inner vector env may already have reset an episode on this step.
+        # In that case its final_obs/final_info, not its returned reset data,
+        # describe the transition which ended the task phase.
+        final_obs = np.empty(self.num_envs, dtype=object)
+        final_info = []
+        for i in range(self.num_envs):
+            inner_final = info.get("_final_obs")
+            final_obs[i] = (
+                info["final_obs"][i]
+                if inner_final is not None and inner_final[i]
+                else obs[i].copy()
+            )
+            inner_final_info = info.get("_final_info")
+            transition_info = (
+                _vector_info_at(info["final_info"], i)
+                if inner_final_info is not None and inner_final_info[i]
+                else _vector_info_at(info, i)
+            )
+            final_info.append({**transition_info, "task_idx": self.env_idx})
+
+        truncated = np.ones(self.num_envs, dtype=np.bool_)
+        if self.env_idx == len(self.envs) - 1:
+            self._needs_reset = True
+            reset_obs, reset_info = self.envs[self.env_idx].reset()
+            info = self._with_task_info(reset_info)
+            for i in range(self.num_envs):
+                self._add_info(
+                    info, {"final_obs": final_obs[i], "final_info": final_info[i]}, i
+                )
+            info["sequence_complete"] = np.ones(self.num_envs, dtype=np.bool_)
+            info["_sequence_complete"] = np.ones(self.num_envs, dtype=np.bool_)
+            return reset_obs, rewards, terminated, truncated, info
+
+        self.env_idx += 1
+        self.phase_step = 0
+        next_seed = (
+            None
+            if self._base_seed is None
+            else self._base_seed + self.env_idx * self.num_envs
+        )
+        next_obs, reset_info = self.envs[self.env_idx].reset(seed=next_seed)
+        info = self._with_task_info(reset_info)
+        for i in range(self.num_envs):
+            self._add_info(
+                info, {"final_obs": final_obs[i], "final_info": final_info[i]}, i
+            )
+        return next_obs, rewards, terminated, truncated, info
+
+    def render(self):
+        """Render the active task phase."""
+        return self.envs[self.env_idx].render()
+
+    def get_attr(self, name: str):
+        """Get an attribute from the active vector environment."""
+        return self.envs[self.env_idx].get_attr(name)
+
+    def set_attr(self, name: str, values):
+        """Set an attribute on the active vector environment."""
+        return self.envs[self.env_idx].set_attr(name, values)
+
+    def call(self, name: str, *args, **kwargs):
+        """Call a method on the active vector environment."""
+        return self.envs[self.env_idx].call(name, *args, **kwargs)
+
+    def close_extras(self, **kwargs):
+        """Close every task phase, including those not yet visited."""
+        for env in self.envs:
+            env.close(**kwargs)
 
 
 class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
