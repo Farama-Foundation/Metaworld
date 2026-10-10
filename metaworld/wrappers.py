@@ -18,14 +18,17 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
         assert isinstance(env.observation_space, gym.spaces.Box)
         env_lb = env.observation_space.low
         env_ub = env.observation_space.high
-        one_hot_ub = np.ones(num_tasks)
-        one_hot_lb = np.zeros(num_tasks)
+        obs_dtype = env.observation_space.dtype
+        one_hot_ub = np.ones(num_tasks, dtype=obs_dtype)
+        one_hot_lb = np.zeros(num_tasks, dtype=obs_dtype)
 
-        self.one_hot = np.zeros(num_tasks)
+        self.one_hot = np.zeros(num_tasks, dtype=obs_dtype)
         self.one_hot[task_idx] = 1.0
 
         self._observation_space = gym.spaces.Box(
-            np.concatenate([env_lb, one_hot_lb]), np.concatenate([env_ub, one_hot_ub])
+            np.concatenate([env_lb, one_hot_lb]),
+            np.concatenate([env_ub, one_hot_ub]),
+            dtype=obs_dtype,
         )
 
     def observation(self, obs: NDArray) -> NDArray:
