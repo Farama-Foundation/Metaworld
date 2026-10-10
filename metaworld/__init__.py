@@ -758,7 +758,7 @@ def register_mw_envs() -> None:
                     env_name,
                     num_tasks=len(envs_list),
                     env_id=idx,
-                    seed=None if not seed else seed + idx,
+                    seed=None if seed is None else seed + idx,
                     use_one_hot=use_one_hot,
                     **lamb_kwargs,
                 )
