@@ -20,12 +20,15 @@ from metaworld.env_dict import (
     ALL_V3_ENVIRONMENTS,
     ALL_V3_ENVIRONMENTS_GOAL_HIDDEN,
     ALL_V3_ENVIRONMENTS_GOAL_OBSERVABLE,
+    CW10_TASK_NAMES,
+    CW20_TASK_NAMES,
 )
 from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
 from metaworld.types import Task  # type: ignore
 from metaworld.wrappers import (
     AutoTerminateOnSuccessWrapper,
     CheckpointWrapper,
+    ContinualWorldEnv,
     NormalizeRewardsExponential,
     OneHotWrapper,
     PseudoRandomTaskSelectWrapper,
@@ -513,6 +516,97 @@ def make_mt_envs(
         )
 
 
+def make_cw_envs(
+    name: Literal["CW10", "CW20"],
+    *,
+    steps_per_task: int,
+    num_envs: int = 1,
+    seed: int | None = None,
+    vector_strategy: Literal["sync", "async"] = "sync",
+    autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
+    use_one_hot: bool = True,
+    **kwargs,
+) -> ContinualWorldEnv:
+    """Make a CW10 or CW20 sequence using the standard MetaWorld wrapper stack.
+
+    ``steps_per_task`` counts vector steps, so each phase collects
+    ``steps_per_task * num_envs`` transitions. The returned environment switches
+    tasks with same-step autoreset and stops after the final phase.
+
+    Args:
+        name: The standard Continual World task sequence.
+        steps_per_task: Vector steps per task phase.
+        num_envs: Parallel copies of each task in a phase.
+        seed: Seed for goal generation and the individual environments.
+        vector_strategy: ``'sync'`` or ``'async'`` phase vectorization.
+        autoreset_mode: Must be Gymnasium's ``SAME_STEP`` mode.
+        use_one_hot: Append a task-position one-hot vector to observations.
+        **kwargs: Options forwarded to the existing MetaWorld environment
+            constructor, such as ``max_episode_steps``.
+
+    Returns:
+        A finite vector environment over the requested task sequence.
+
+    Raises:
+        ValueError: If the sequence or vectorization options are invalid.
+    """
+    sequences = {"CW10": CW10_TASK_NAMES, "CW20": CW20_TASK_NAMES}
+    if name not in sequences:
+        raise ValueError(f"Unknown Continual World sequence: {name}")
+    if steps_per_task <= 0:
+        raise ValueError("steps_per_task must be positive")
+    if num_envs <= 0:
+        raise ValueError("num_envs must be positive")
+    if vector_strategy not in ("sync", "async"):
+        raise ValueError("vector_strategy must be 'sync' or 'async'")
+    if gym.vector.AutoresetMode(autoreset_mode) != gym.vector.AutoresetMode.SAME_STEP:
+        raise ValueError("Continual World requires SAME_STEP autoreset")
+
+    sequence = sequences[name]
+    unique_names = list(dict.fromkeys(sequence))
+    classes = OrderedDict(
+        (task_name, _env_dict.ENV_CLS_MAP[task_name]) for task_name in unique_names
+    )
+    tasks = _make_tasks(
+        classes,
+        _env_dict._get_args_kwargs(classes, classes),
+        _MT_OVERRIDE,
+        seed=seed,
+    )
+    tasks_by_name = {
+        task_name: [task for task in tasks if task.env_name == task_name]
+        for task_name in unique_names
+    }
+    vectorizer = getattr(gym.vector, f"{vector_strategy.capitalize()}VectorEnv")
+    phases = []
+    try:
+        for phase_idx, task_name in enumerate(sequence):
+            phase_seed = None if seed is None else seed + phase_idx * num_envs
+            phases.append(
+                vectorizer(
+                    [
+                        partial(
+                            _init_each_env,
+                            env_cls=classes[task_name],
+                            tasks=tasks_by_name[task_name],
+                            seed=None if phase_seed is None else phase_seed + lane_idx,
+                            env_id=phase_idx,
+                            num_tasks=len(sequence),
+                            use_one_hot=use_one_hot,
+                            **kwargs,
+                        )
+                        for lane_idx in range(num_envs)
+                    ],
+                    autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
+                )
+            )
+        return ContinualWorldEnv(phases, steps_per_task)
+    except Exception:
+        for phase in phases:
+            phase.close()
+        raise
+
+
 def _make_ml_envs_inner(
     benchmark: Benchmark,
     meta_batch_size: int,
@@ -605,6 +699,12 @@ make_ml_envs_test = partial(
 
 
 def register_mw_envs() -> None:
+    for cw_bench in ("CW10", "CW20"):
+        register(
+            id=f"Meta-World/{cw_bench}",
+            vector_entry_point=partial(make_cw_envs, cw_bench),
+        )
+
     def _mt_bench_vector_entry_point(
         mt_bench: str,
         vector_strategy: Literal["sync", "async"],
