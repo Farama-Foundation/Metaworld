@@ -105,6 +105,51 @@ def test_mt1(env_name: str):
     assert not env.unwrapped._partially_observable
 
 
+@pytest.mark.parametrize("vector_strategy", ("sync", "async"))
+def test_mt1_vectorized(vector_strategy: str):
+    env_name = "reach-v3"
+    num_envs = 4
+    num_goals = 20
+    max_episode_steps = 10
+
+    envs = gym.make_vec(
+        "Meta-World/MT1-vectorized",
+        env_name=env_name,
+        vector_strategy=vector_strategy,
+        seed=42,
+        num_envs=num_envs,
+        num_goals=num_goals,
+        max_episode_steps=max_episode_steps,
+    )
+
+    expected_vectorisation = getattr(
+        gym.vector, f"{vector_strategy.capitalize()}VectorEnv"
+    )
+    assert isinstance(envs, expected_vectorisation)
+    assert envs.num_envs == num_envs
+    assert set(_get_task_names(envs)) == {env_name}
+
+    envs_tasks = envs.get_attr("tasks")
+    assert sum(len(env_tasks) for env_tasks in envs_tasks) == num_goals
+    assert all(len(env_tasks) == num_goals // num_envs for env_tasks in envs_tasks)
+    task_data = {task.data for env_tasks in envs_tasks for task in env_tasks}
+    assert len(task_data) == num_goals
+
+    envs.reset()
+    partially_observable = all(envs.get_attr("_partially_observable"))
+    assert not partially_observable
+
+
+def test_mt1_vectorized_requires_even_goal_split():
+    with pytest.raises(ValueError, match="num_envs must evenly divide num_goals"):
+        gym.make_vec(
+            "Meta-World/MT1-vectorized",
+            env_name="reach-v3",
+            num_envs=6,
+            num_goals=20,
+        )
+
+
 @pytest.mark.parametrize("env_name", ALL_V3_ENVIRONMENTS_GOAL_HIDDEN.keys())
 def test_goal_hidden(env_name: str):
     env = gym.make("Meta-World/goal_hidden", env_name=env_name, seed=None)
