@@ -9,7 +9,7 @@
 
         <body name="peg" pos="0 0.6 0.03">
           <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/>
-          <geom name="peg" euler="0 1.57 0" size="0.015 0.015 0.12" type="box" mass=".1" rgba="0.3 1 0.3 1" conaffinity="1" contype="1" group="1"/>
+          <geom name="peg" euler="0 1.57 0" size="0.015 0.015 0.12" type="box" mass=".1" rgba="0.3 1 0.3 1" conaffinity="1" contype="1" group="1" solref="0.025 1"/>
           <joint type="free" limited="false" damping="0.005"/>
           <site name="pegHead" pos="-0.1 0 0" size="0.005" rgba="0.8 0 0 1"/>
           <site name="pegEnd" pos="0.1 0 0" size="0.005" rgba="0.8 0 0 1"/>
