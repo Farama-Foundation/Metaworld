@@ -309,11 +309,17 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self._last_rand_vec = data["rand_vec"]
         del data["rand_vec"]
         new_observability = data["partially_observable"]
-        if new_observability != self._partially_observable:
+        observability_changed = new_observability != self._partially_observable
+        self._partially_observable = new_observability
+        if observability_changed:
             # Force recomputation of the observation space
             # See https://docs.python.org/3/library/functools.html#functools.cached_property
             del self.sawyer_observation_space
-        self._partially_observable = new_observability
+            # `observation_space` was bound to the old Box when the environment
+            # was constructed, so dropping the cached property is not enough on
+            # its own: without rebinding, the environment keeps advertising the
+            # hidden-goal bounds after it has become fully observable.
+            self.observation_space = self.sawyer_observation_space
         del data["partially_observable"]
         self._set_task_inner(**data)
 
