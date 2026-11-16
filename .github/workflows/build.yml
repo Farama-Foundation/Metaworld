@@ -1,5 +1,9 @@
 name: build
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read # to fetch code (actions/checkout)
@@ -8,6 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
     steps:
