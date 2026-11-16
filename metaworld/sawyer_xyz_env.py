@@ -135,7 +135,7 @@ class SawyerMocapBase(mjenv_gym):
         if self.model.nmocap > 0 and self.model.eq_data is not None:
             for i in range(self.model.eq_data.shape[0]):
                 if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
-                    self.model.eq_data[i] = np.array(
+                    self.model.eq_data[i, :11] = np.array(
                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 5.0]
                     )
 
