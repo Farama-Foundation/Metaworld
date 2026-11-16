@@ -26,7 +26,8 @@ classifiers = [
 ]
 dependencies = [
     "gymnasium>=1.1",
-    "mujoco>=3.3.0,<4",
+    "mujoco==3.3.0; python_version < '3.14'",
+    "mujoco>=3.3.0,<4; python_version >= '3.14'",
     "numpy>=1.18",
     "scipy>=1.4.1",
     "imageio"

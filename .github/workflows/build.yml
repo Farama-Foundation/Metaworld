@@ -17,6 +17,9 @@ jobs:
              --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
              --tag metaworld-docker .
       - name: Run tests
-        run: docker run metaworld-docker pytest tests/*
+        # Python 3.14+ defaults to forkserver; MT50 starts 50 MuJoCo workers,
+        # whose separate imports exceed small runners' memory. Keep the Linux
+        # process context used by the existing Python 3.11-3.13 jobs.
+        run: docker run -e METAWORLD_TEST_START_METHOD=fork metaworld-docker pytest tests/*
 #      - name: Run doctests
 #        run: docker run metaworld-docker pytest --doctest-modules metaworld/
