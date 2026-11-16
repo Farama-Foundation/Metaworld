@@ -46,9 +46,11 @@ class SawyerPegInsertionSideV3Policy(Policy):
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04:
             return pos_peg + np.array([0.0, 0.0, 0.3])
-        elif abs(pos_curr[2] - pos_peg[2]) > 0.025:
+        # A grasped peg can sit about 3 cm below the reported hand position.
+        elif abs(pos_curr[2] - pos_peg[2]) > 0.03:
             return pos_peg
-        elif np.linalg.norm(pos_peg[1:] - pos_hole[1:]) > 0.03:
+        # Align the peg with the actual hole, not the gripper's hover height.
+        elif np.linalg.norm(pos_peg[1:] - o_d["goal_pos"][1:]) > 0.03:
             return pos_hole + np.array([0.4, 0.0, 0.0])
         else:
             return pos_hole

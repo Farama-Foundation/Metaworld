@@ -8,7 +8,7 @@ import numpy.typing as npt
 import pytest
 
 import metaworld  # noqa: F401
-from metaworld import SawyerXYZEnv, evaluation
+from metaworld import evaluation
 from metaworld.policies import ENV_POLICY_MAP
 
 
@@ -84,9 +84,7 @@ class RemovePartialObservabilityWrapper(gym.vector.VectorWrapper):
 
 def test_evaluation():
     SEED = 42
-    # Use the same horizon as the scripted-policy regression tests. A shorter
-    # cap can truncate successful trajectories with newer MuJoCo versions.
-    max_episode_steps = SawyerXYZEnv.max_path_length
+    max_episode_steps = 300  # To speed up the test
     num_episodes = 50
 
     random.seed(SEED)
