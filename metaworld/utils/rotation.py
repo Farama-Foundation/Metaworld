@@ -421,8 +421,8 @@ def point_euler2euler(euler: npt.NDArray[Any]) -> npt.NDArray[Any]:
     if len(_euler.shape) < 2:
         _euler = np.expand_dims(_euler, 0)
     assert _euler.shape[1] == 6
-    angle = np.arctan(_euler[..., :3] / _euler[..., 3:])
-    angle[_euler[..., 3:] < 0] += np.pi
+    # arctan(sin / cos) maps a third-quadrant angle to 5*pi/4.
+    angle = np.arctan2(_euler[..., :3], _euler[..., 3:])
     return angle
 
 
@@ -464,7 +464,8 @@ def point_quat2quat(quat: npt.NDArray[Any]) -> npt.NDArray[Any]:
     if len(_quat.shape) < 2:
         _quat = np.expand_dims(_quat, 0)
     assert _quat.shape[1] == 5
-    angle = np.arctan(_quat[:, [0]] / _quat[:, [1]])
+    # arctan(sin / cos) turns a half turn around z into the identity.
+    angle = np.arctan2(_quat[:, [0]], _quat[:, [1]])
     qw = np.cos(angle / 2)
 
     qxyz = _quat[:, 2:]
