@@ -17,6 +17,38 @@ In the MT10 and MT50 benchmarks, the observations returned by the benchmark will
 The ML1, ML10, and ML45 benchmarks are 3 meta-reinforcement learning benchmarks available in Meta-World. The ML1 benchmark can be used with any of the 50 tasks available in Meta-World.
 The ML1 benchmark tests for few-shot adaptation to goal variations within a single task. The ML10 and ML45 both test few-shot adaptation to new tasks. ML10 comprises 10 train tasks with 5 test tasks, while ML45 comprises of 45 training tasks with 5 test tasks.
 
+### Continual World Benchmarks
+
+CW10 runs the original ten-task Continual World sequence on Meta-World v3 tasks. CW20 repeats that sequence. Because these are v3 tasks, results are not directly comparable to the original v1 benchmark scores. The environment contains one vector environment per task phase and applies actions only to the active phase. `steps_per_task` counts vector steps; with `num_envs=4`, each task contributes `4 * steps_per_task` transitions.
+
+```python
+import gymnasium as gym
+import metaworld
+
+envs = gym.make_vec(
+    'Meta-World/CW10',
+    num_envs=1,
+    steps_per_task=1_000_000,
+    seed=42,
+    vector_strategy='sync',
+)
+obs, info = envs.reset(seed=42)
+
+for _ in range(10 * 1_000_000):
+    actions = envs.action_space.sample()
+    obs, rewards, terminated, truncated, info = envs.step(actions)
+    if 'final_obs' in info:
+        # At a task boundary, obs and reset info belong to the next task.
+        # final_obs/final_info describe the last transition of the old task.
+        terminal_obs = info['final_obs']
+    if 'sequence_complete' in info:
+        break
+
+envs.close()
+```
+
+Task identity is appended to observations as a one-hot vector by default (`use_one_hot=False` disables it). The current sequence position is also available in `info['task_idx']`. At a task boundary, every lane is truncated and the wrapper uses Gymnasium's same-step autoreset convention: `obs` and ordinary reset information come from the next task, while `final_obs` and `final_info` retain the preceding task's last transition. An explicit `reset()` during a sequence resets the active task without restarting its step budget. After the final task, `obs` and ordinary info come from a reset of that final task, while `final_obs` and `final_info` retain its last transition. `info['sequence_complete']` is true and further steps require an explicit `reset()` to start the sequence again. The training algorithms from the original Continual World repository are not included.
+
 
 ### MT1
 ```python
