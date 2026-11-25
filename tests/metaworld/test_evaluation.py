@@ -95,14 +95,23 @@ def test_evaluation():
         max_episode_steps=max_episode_steps,
         vector_strategy="async",
     )
-    agent = ScriptedPolicyAgent(envs)
-    mean_success_rate, mean_returns, success_rate_per_task, _ = evaluation.evaluation(
-        agent, envs, num_episodes=num_episodes
-    )
-    assert isinstance(mean_returns, float)
-    assert mean_success_rate >= 0.80
-    assert len(success_rate_per_task) == envs.num_envs
-    assert np.all(np.array(list(success_rate_per_task.values())) >= 0.80)
+    try:
+        agent = ScriptedPolicyAgent(envs)
+        (
+            mean_success_rate,
+            mean_returns,
+            success_rate_per_task,
+            _,
+        ) = evaluation.evaluation(agent, envs, num_episodes=num_episodes)
+        assert isinstance(mean_returns, float)
+        assert mean_success_rate >= 0.80
+        assert len(success_rate_per_task) == envs.num_envs
+        failing_tasks = {
+            task: rate for task, rate in success_rate_per_task.items() if rate < 0.80
+        }
+        assert not failing_tasks, failing_tasks
+    finally:
+        envs.close()
 
 
 # @pytest.mark.skip

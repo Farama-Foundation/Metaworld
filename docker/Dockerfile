@@ -15,9 +15,8 @@ RUN apt-get -y update \
 COPY . /usr/local/metaworld/
 WORKDIR /usr/local/metaworld/
 RUN free -g
+# Exercise the declared dependencies rather than an unreleased Gymnasium checkout.
 RUN pip install .[testing]
-RUN git clone https://github.com/Farama-Foundation/Gymnasium.git
-RUN pip install -e Gymnasium
 
 
 ENTRYPOINT ["/usr/local/metaworld/docker/entrypoint"]
