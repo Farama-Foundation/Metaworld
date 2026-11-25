@@ -253,7 +253,6 @@ class NormalizeRewardsExponential(gym.Wrapper):
 
     def step(self, action: NDArray):
         next_obs, reward, terminate, truncate, info = self.env.step(action)
-        self._update_reward_estimate(reward)  # type: ignore
         reward = self._apply_normalize_reward(reward)  # type: ignore
         return next_obs, reward, terminate, truncate, info
 
