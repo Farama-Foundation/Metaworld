@@ -202,3 +202,33 @@ def test_ml_benchmarks(
 
     partially_observable = all(envs.get_attr("_partially_observable"))
     assert partially_observable
+
+
+@pytest.mark.parametrize("env_name", ["reach-v3", "push-v3", "window-open-v3"])
+def test_observation_space_follows_observability(env_name: str):
+    """A fully observable environment must advertise the goal bounds it uses.
+
+    `set_task` drops the cached `sawyer_observation_space` when observability
+    changes, but `observation_space` was bound to the old Box when the
+    environment was constructed. It kept the hidden-goal bounds of [0, 0], so
+    the goal slots of every observation fell outside the declared space.
+    """
+    env = gym.make("Meta-World/MT1", env_name=env_name, seed=0)
+    inner = env.unwrapped
+    assert isinstance(inner, SawyerXYZEnv)
+
+    # The task is set on the first reset, and with it the observability.
+    obs, _ = env.reset(seed=0)
+    assert not inner._partially_observable
+
+    space = inner.observation_space
+    recomputed = inner.sawyer_observation_space
+    assert np.array_equal(space.low, recomputed.low)
+    assert np.array_equal(space.high, recomputed.high)
+
+    assert space.contains(obs)
+
+    obs, _, _, _, _ = env.step(env.action_space.sample())
+    assert space.contains(obs)
+
+    env.close()
