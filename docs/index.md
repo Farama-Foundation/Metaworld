@@ -4,8 +4,9 @@ firstpage:
 lastpage:
 ---
 
-```{project-logo} _static/metaworld-text.svg
+```{project-logo} _static/metaworld-text.png
 :alt: Metaworld Logo
+:class: farama-black-logo-invert
 ```
 
 ```{project-heading}
