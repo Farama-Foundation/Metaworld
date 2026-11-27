@@ -184,9 +184,9 @@ def inverse_tolerance(
 
 
 def rect_prism_tolerance(
-    curr: npt.NDArray[np.float_],
-    zero: npt.NDArray[np.float_],
-    one: npt.NDArray[np.float_],
+    curr: npt.NDArray[np.float64],
+    zero: npt.NDArray[np.float64],
+    one: npt.NDArray[np.float64],
 ) -> float:
     """Computes a reward if curr is inside a rectangular prism region.
 
